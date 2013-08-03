@@ -1,1 +1,3 @@
 include ':iBurn'
+include ':libraries:google-play-services_lib'
+include ':libraries:android-gmaps-addons'

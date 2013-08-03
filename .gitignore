@@ -1,0 +1,14 @@
+.DS_Store
+*.class
+# Android Studio
+.idea/
+.gradle/
+/*/local.properties
+/*/out
+/iBurn/build/
+/iBurn/production/
+*.iml
+*.iws
+*.ipr
+*~
+*.swp
