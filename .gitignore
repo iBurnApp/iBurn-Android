@@ -3,10 +3,10 @@
 # Android Studio
 .idea/
 .gradle/
-/*/local.properties
+local.properties
 /*/out
-/iBurn/build/
-/iBurn/production/
+iBurn/build/
+iBurn/production/
 *.iml
 *.iws
 *.ipr

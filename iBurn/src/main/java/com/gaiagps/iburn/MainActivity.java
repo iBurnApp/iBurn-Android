@@ -1,7 +1,9 @@
 package com.gaiagps.iburn;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
@@ -11,6 +13,7 @@ import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 
 import java.io.File;
+import java.io.IOException;
 
 public class MainActivity extends FragmentActivity {
 
@@ -21,6 +24,7 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        addMBTileOverlay(R.raw.iburn2013_transparent);
     }
 
 
@@ -31,14 +35,19 @@ public class MainActivity extends FragmentActivity {
         return true;
     }
 
-    private void addMBTileOverlay(String pathToMBTileDatabase){
+    private void addMBTileOverlay(int MBTileAssetId){
+        // TODO: Get File reference to bundled .mbtiles
+        /*
+        Uri path = Uri.parse("android.resource://" + getPackageName() + "/" + MBTileAssetId);
+        File MBTFile = new File(path.getPath());
+
         GoogleMap map = ((SupportMapFragment) this.getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
         TileOverlayOptions opts = new TileOverlayOptions();
 
-        File MBTFile = new File(pathToMBTileDatabase);
         tileProvider = new MapBoxOfflineTileProvider(MBTFile);
         opts.tileProvider(tileProvider);
         overlay = map.addTileOverlay(opts);
+        */
     }
 
     @Override
