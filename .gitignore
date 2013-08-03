@@ -12,3 +12,5 @@ iBurn/production/
 *.ipr
 *~
 *.swp
+local.properties
+*.apk
