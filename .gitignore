@@ -12,3 +12,5 @@
 *.ipr
 *~
 *.swp
+local.properties
+*.apk
