@@ -341,9 +341,9 @@
                 <color name="common_signin_btn_dark_text_focused" >@android:color/white
                 </color>
 
-                <string name="common_google_play_services_unsupported_text" >Google Play services, which some of your applications rely on, is not supported by your device. Please contact the manufacturer for assistance.
-                </string>
                 <string name="auth_client_needs_enabling_title" >      An application requires Google Play Services to be enabled.
+                </string>
+                <string name="common_google_play_services_unsupported_text" >Google Play services, which some of your applications rely on, is not supported by your device. Please contact the manufacturer for assistance.
                 </string>
                 <string name="auth_client_using_bad_version_title" >      An application attempted to use a bad version of Google Play Services.
                 </string>
@@ -352,9 +352,9 @@
                     msgid="7215213145546190223" >Get Google Play services
                 </string>
 
-                <color name="common_signin_btn_light_text_disabled" >#FFAAAAAA
-                </color>
                 <color name="common_signin_btn_dark_text_default" >@android:color/white
+                </color>
+                <color name="common_signin_btn_light_text_disabled" >#FFAAAAAA
                 </color>
 
                 <string name="common_signin_button_text" >Sign in
@@ -477,13 +477,15 @@
                     name="common_google_play_services_install_text_phone"
                     msgid="2122112764540849864" >This app won\'t run without Google Play services, which are missing from your phone.
                 </string>
+
+                <color name="common_signin_btn_dark_text_pressed" >@android:color/white
+                </color>
+
                 <string
                     name="common_google_play_services_enable_button"
                     msgid="2523291102206661146" >Enable Google Play services
                 </string>
 
-                <color name="common_signin_btn_dark_text_pressed" >@android:color/white
-                </color>
                 <color name="common_signin_btn_light_text_focused" >#FF737373
                 </color>
                 <color name="common_action_bar_splitter" >#d2d2d2
@@ -554,28 +556,28 @@
                     msgid="2429381841831957106" >"Meld aan met Google"
                 </string>
                 <string
-                    name="common_google_play_services_update_title"
-                    msgid="6006316683626838685" >"Dateer Google Play-dienste op"
-                </string>
-                <string
                     name="common_google_play_services_enable_button"
                     msgid="4181637455539816337" >"Aktiveer Google Play-dienste"
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_title"
-                    msgid="6334768798839376943" >"Google Play-dienste"
+                    name="common_google_play_services_update_title"
+                    msgid="6006316683626838685" >"Dateer Google Play-dienste op"
                 </string>
                 <string
                     name="auth_client_needs_installation_title"
                     msgid="7999585836145154206" >"\'n Program vereis dat Google Play-dienste geïnstalleer word."
                 </string>
                 <string
-                    name="common_google_play_services_enable_title"
-                    msgid="529078775174559253" >"Aktiveer Google Play-dienste"
+                    name="common_google_play_services_unsupported_title"
+                    msgid="6334768798839376943" >"Google Play-dienste"
                 </string>
                 <string
                     name="common_google_play_services_install_text_phone"
                     msgid="8685301130651051380" >"Hierdie program sal nie loop sonder Google Play-dienste nie, wat nie op jou foon is nie."
+                </string>
+                <string
+                    name="common_google_play_services_enable_title"
+                    msgid="529078775174559253" >"Aktiveer Google Play-dienste"
                 </string>
                 <string
                     name="common_google_play_services_unknown_issue"
@@ -645,20 +647,20 @@
                     msgid="7999585836145154206" >"መተግበሪያው Google Play አገልግሎቶች እንዲጫኑ ይፈልጋል።"
                 </string>
                 <string
-                    name="common_signin_button_text"
-                    msgid="9071884888741449141" >"ግባ"
-                </string>
-                <string
                     name="auth_client_needs_enabling_title"
                     msgid="3983201110833868073" >"መተግበሪያው Google Play አገልግሎቶች እንዲነቁ ይፈልጋል።"
                 </string>
                 <string
-                    name="common_google_play_services_update_button"
-                    msgid="8932944190611227642" >"ያዘምኑ"
+                    name="common_signin_button_text"
+                    msgid="9071884888741449141" >"ግባ"
                 </string>
                 <string
                     name="common_google_play_services_unknown_issue"
                     msgid="4762332809710093730" >"በGoogle Play አገልግሎቶች ላይ ያልታወቀ ችግር።"
+                </string>
+                <string
+                    name="common_google_play_services_update_button"
+                    msgid="8932944190611227642" >"ያዘምኑ"
                 </string>
                 <string
                     name="common_google_play_services_install_title"
@@ -724,44 +726,44 @@
                     msgid="26645092511305524" >"الحصول على خدمات Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_update_title"
-                    msgid="6006316683626838685" >"تحديث خدمات Google Play"
-                </string>
-                <string
                     name="common_google_play_services_enable_text"
                     msgid="7627896071867667758" >"لن يعمل هذا التطبيق ما لم يتم تمكين خدمات Google Play."
                 </string>
                 <string
-                    name="common_google_play_services_enable_button"
-                    msgid="4181637455539816337" >"تمكين خدمات Google Play"
+                    name="common_google_play_services_update_title"
+                    msgid="6006316683626838685" >"تحديث خدمات Google Play"
                 </string>
                 <string
                     name="common_google_play_services_enable_title"
                     msgid="529078775174559253" >"تمكين خدمات Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_unknown_issue"
-                    msgid="4762332809710093730" >"حدثت مشكلة غير معروفة في خدمات Google Play."
+                    name="common_google_play_services_enable_button"
+                    msgid="4181637455539816337" >"تمكين خدمات Google Play"
                 </string>
                 <string
                     name="common_google_play_services_install_button"
                     msgid="8515591849428043265" >"الحصول على خدمات Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_update_button"
-                    msgid="8932944190611227642" >"تحديث"
+                    name="common_google_play_services_unknown_issue"
+                    msgid="4762332809710093730" >"حدثت مشكلة غير معروفة في خدمات Google Play."
                 </string>
                 <string
                     name="common_google_play_services_install_text_tablet"
                     msgid="1589957570365247855" >"لن يتم تشغيل هذا التطبيق بدون خدمات Google Play، والتي لا تتوفر في جهازك اللوحي."
                 </string>
                 <string
-                    name="auth_client_needs_enabling_title"
-                    msgid="3983201110833868073" >"يتطلب أحد التطبيقات تمكين خدمات Google Play."
+                    name="common_google_play_services_update_button"
+                    msgid="8932944190611227642" >"تحديث"
                 </string>
                 <string
                     name="auth_client_needs_update_title"
                     msgid="6488605506794595966" >"يتطلب أحد التطبيقات تحديث خدمات Google Play."
+                </string>
+                <string
+                    name="auth_client_needs_enabling_title"
+                    msgid="3983201110833868073" >"يتطلب أحد التطبيقات تمكين خدمات Google Play."
                 </string>
             </file>
             <file
@@ -815,12 +817,12 @@
                     msgid="8685301130651051380" >"Гэта прыкладанне не будзе працаваць без службаў Google Play, якіх няма ў вашым тэлефоне."
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_text"
-                    msgid="3542578567569488671" >"Службы Google Play, да якiх прывязаны некаторыя прыкладаннi, не падтрымлiваюцца на вашай прыладзе. Па дапамогу звярнiцеся да вытворцы."
-                </string>
-                <string
                     name="common_google_play_services_unknown_issue"
                     msgid="4762332809710093730" >"Невядомая праблема са службамі Google Play."
+                </string>
+                <string
+                    name="common_google_play_services_unsupported_text"
+                    msgid="3542578567569488671" >"Службы Google Play, да якiх прывязаны некаторыя прыкладаннi, не падтрымлiваюцца на вашай прыладзе. Па дапамогу звярнiцеся да вытворцы."
                 </string>
                 <string
                     name="common_google_play_services_enable_text"
@@ -907,16 +909,12 @@
                     msgid="4181637455539816337" >"Услуги за Google Play: Актив."
                 </string>
                 <string
-                    name="auth_client_needs_enabling_title"
-                    msgid="3983201110833868073" >"Приложение изисква активирането на услугите за Google Play."
-                </string>
-                <string
                     name="auth_client_needs_installation_title"
                     msgid="7999585836145154206" >"Приложение изисква инсталирането на услугите за Google Play."
                 </string>
                 <string
-                    name="common_google_play_services_install_title"
-                    msgid="26645092511305524" >"Изтегляне на услугите за Google Play"
+                    name="auth_client_needs_enabling_title"
+                    msgid="3983201110833868073" >"Приложение изисква активирането на услугите за Google Play."
                 </string>
                 <string
                     name="auth_client_requested_by_msg"
@@ -926,12 +924,16 @@
                     </ns1:g>"
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_title"
-                    msgid="6334768798839376943" >"Услуги за Google Play"
+                    name="common_google_play_services_install_title"
+                    msgid="26645092511305524" >"Изтегляне на услугите за Google Play"
                 </string>
                 <string
                     name="common_google_play_services_enable_text"
                     msgid="7627896071867667758" >"Това приложение няма да работи, освен ако не активирате услугите за Google Play."
+                </string>
+                <string
+                    name="common_google_play_services_unsupported_title"
+                    msgid="6334768798839376943" >"Услуги за Google Play"
                 </string>
                 <string
                     name="auth_client_needs_update_title"
@@ -1013,12 +1015,12 @@
                     msgid="7627896071867667758" >"Aquesta aplicació no funcionarà si no actives els serveis de Google Play."
                 </string>
                 <string
-                    name="common_google_play_services_unknown_issue"
-                    msgid="4762332809710093730" >"Error desconegut relacionat amb els serveis de Google Play."
-                </string>
-                <string
                     name="common_google_play_services_enable_button"
                     msgid="4181637455539816337" >"Activa els serveis de Google Play"
+                </string>
+                <string
+                    name="common_google_play_services_unknown_issue"
+                    msgid="4762332809710093730" >"Error desconegut relacionat amb els serveis de Google Play."
                 </string>
                 <string
                     name="common_google_play_services_install_text_phone"
@@ -1029,12 +1031,12 @@
                     msgid="8515591849428043265" >"Baixa els serveis de Google Play"
                 </string>
                 <string
-                    name="common_signin_button_text_long"
-                    msgid="2429381841831957106" >"Inicia sessió amb Google"
-                </string>
-                <string
                     name="common_google_play_services_update_button"
                     msgid="8932944190611227642" >"Actualitza"
+                </string>
+                <string
+                    name="common_signin_button_text_long"
+                    msgid="2429381841831957106" >"Inicia sessió amb Google"
                 </string>
             </file>
             <file
@@ -1085,12 +1087,12 @@
                     msgid="6334768798839376943" >"Služby Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_install_text_phone"
-                    msgid="8685301130651051380" >"Ke spuštění této aplikace jsou potřeba služby Google Play, které v telefonu nemáte."
-                </string>
-                <string
                     name="common_google_play_services_install_text_tablet"
                     msgid="1589957570365247855" >"Ke spuštění této aplikace jsou potřeba služby Google Play, které v tabletu nemáte."
+                </string>
+                <string
+                    name="common_google_play_services_install_text_phone"
+                    msgid="8685301130651051380" >"Ke spuštění této aplikace jsou potřeba služby Google Play, které v telefonu nemáte."
                 </string>
                 <string
                     name="auth_client_requested_by_msg"
@@ -1100,24 +1102,24 @@
                     </ns1:g>"
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_text"
-                    msgid="3542578567569488671" >"Některé vaše aplikace vyžadují služby Google Play, které ve vašem zařízení nejsou podporovány. S žádostí o pomoc se prosím obraťte na výrobce."
-                </string>
-                <string
                     name="common_google_play_services_enable_button"
                     msgid="4181637455539816337" >"Aktivovat služby Google Play"
+                </string>
+                <string
+                    name="common_google_play_services_unsupported_text"
+                    msgid="3542578567569488671" >"Některé vaše aplikace vyžadují služby Google Play, které ve vašem zařízení nejsou podporovány. S žádostí o pomoc se prosím obraťte na výrobce."
                 </string>
                 <string
                     name="common_google_play_services_install_button"
                     msgid="8515591849428043265" >"Instalovat služby Google Play"
                 </string>
                 <string
-                    name="common_signin_button_text"
-                    msgid="9071884888741449141" >"Přihlásit se"
-                </string>
-                <string
                     name="common_google_play_services_enable_title"
                     msgid="529078775174559253" >"Aktivovat služby Google Play"
+                </string>
+                <string
+                    name="common_signin_button_text"
+                    msgid="9071884888741449141" >"Přihlásit se"
                 </string>
                 <string
                     name="common_google_play_services_install_title"
@@ -1175,20 +1177,20 @@
                     msgid="4762332809710093730" >"Ukendt problem med Google Play-tjenester."
                 </string>
                 <string
-                    name="common_signin_button_text_long"
-                    msgid="2429381841831957106" >"Log ind med Google"
-                </string>
-                <string
-                    name="common_google_play_services_unsupported_text"
-                    msgid="3542578567569488671" >"Google Play-tjenester, som nogle af dine applikationer er afhængige af, understøttes ikke af din enhed. Kontakt producenten for at få hjælp."
-                </string>
-                <string
                     name="auth_client_needs_update_title"
                     msgid="6488605506794595966" >"En applikation kræver en opdatering af Google Play."
                 </string>
                 <string
                     name="common_google_play_services_enable_button"
                     msgid="4181637455539816337" >"Aktivér Google Play-tjenester"
+                </string>
+                <string
+                    name="common_google_play_services_unsupported_text"
+                    msgid="3542578567569488671" >"Google Play-tjenester, som nogle af dine applikationer er afhængige af, understøttes ikke af din enhed. Kontakt producenten for at få hjælp."
+                </string>
+                <string
+                    name="common_signin_button_text_long"
+                    msgid="2429381841831957106" >"Log ind med Google"
                 </string>
                 <string
                     name="common_google_play_services_install_button"
@@ -1199,12 +1201,12 @@
                     msgid="6006316683626838685" >"Opdater Google Play-tjenester"
                 </string>
                 <string
-                    name="common_google_play_services_install_title"
-                    msgid="26645092511305524" >"Hent Google Play-tjenester"
-                </string>
-                <string
                     name="common_google_play_services_install_text_tablet"
                     msgid="1589957570365247855" >"Denne app kan ikke køre uden Google Play-tjenester, som mangler på din tablet."
+                </string>
+                <string
+                    name="common_google_play_services_install_title"
+                    msgid="26645092511305524" >"Hent Google Play-tjenester"
                 </string>
                 <string
                     name="common_signin_button_text"
@@ -1275,20 +1277,20 @@
                     msgid="1589957570365247855" >"Zur Nutzung dieser App sind Google Play-Dienste erforderlich, die auf Ihrem Tablet nicht installiert sind."
                 </string>
                 <string
-                    name="common_google_play_services_unknown_issue"
-                    msgid="4762332809710093730" >"Unbekanntes Problem mit Google Play-Diensten"
-                </string>
-                <string
                     name="auth_client_needs_enabling_title"
                     msgid="3983201110833868073" >"Anwendung erfordert aktivierte Google Play-Dienste"
                 </string>
                 <string
-                    name="auth_client_needs_update_title"
-                    msgid="6488605506794595966" >"Anwendung erfordert ein Update für Google Play-Dienste"
+                    name="common_google_play_services_unknown_issue"
+                    msgid="4762332809710093730" >"Unbekanntes Problem mit Google Play-Diensten"
                 </string>
                 <string
                     name="common_google_play_services_install_button"
                     msgid="8515591849428043265" >"Google Play-Dienste installieren"
+                </string>
+                <string
+                    name="auth_client_needs_update_title"
+                    msgid="6488605506794595966" >"Anwendung erfordert ein Update für Google Play-Dienste"
                 </string>
                 <string
                     name="common_signin_button_text_long"
@@ -1370,8 +1372,8 @@
                     msgid="7999585836145154206" >"Μια εφαρμογή απαιτεί την εγκατάσταση των Υπηρεσιών Google Play."
                 </string>
                 <string
-                    name="auth_client_needs_update_title"
-                    msgid="6488605506794595966" >"Μια εφαρμογή απαιτεί μια ενημέρωση για τις Υπηρεσίες Google Play."
+                    name="common_google_play_services_install_text_tablet"
+                    msgid="1589957570365247855" >"Αυτή η εφαρμογή δεν θα εκτελεστεί χωρίς τις υπηρεσίες Google Play, οι οποίες λείπουν από το tablet σας."
                 </string>
                 <string
                     name="auth_client_requested_by_msg"
@@ -1381,8 +1383,8 @@
                     </ns1:g>"
                 </string>
                 <string
-                    name="common_google_play_services_install_text_tablet"
-                    msgid="1589957570365247855" >"Αυτή η εφαρμογή δεν θα εκτελεστεί χωρίς τις υπηρεσίες Google Play, οι οποίες λείπουν από το tablet σας."
+                    name="auth_client_needs_update_title"
+                    msgid="6488605506794595966" >"Μια εφαρμογή απαιτεί μια ενημέρωση για τις Υπηρεσίες Google Play."
                 </string>
                 <string
                     name="common_google_play_services_install_text_phone"
@@ -1393,12 +1395,12 @@
                     msgid="3983201110833868073" >"Μια εφαρμογή απαιτεί τις Υπηρεσίες Google Play για ενεργοποίηση."
                 </string>
                 <string
-                    name="common_google_play_services_unknown_issue"
-                    msgid="4762332809710093730" >"Άγνωστο πρόβλημα με τις υπηρεσίες Google Play."
-                </string>
-                <string
                     name="common_google_play_services_enable_title"
                     msgid="529078775174559253" >"Ενεργοποίηση υπηρεσιών Google Play"
+                </string>
+                <string
+                    name="common_google_play_services_unknown_issue"
+                    msgid="4762332809710093730" >"Άγνωστο πρόβλημα με τις υπηρεσίες Google Play."
                 </string>
             </file>
             <file
@@ -1460,36 +1462,36 @@
                     msgid="2429381841831957106" >"Sign in with Google"
                 </string>
                 <string
-                    name="common_signin_button_text"
-                    msgid="9071884888741449141" >"Sign in"
-                </string>
-                <string
-                    name="common_google_play_services_update_title"
-                    msgid="6006316683626838685" >"Update Google Play services"
-                </string>
-                <string
-                    name="common_google_play_services_update_text"
-                    msgid="448354684997260580" >"This app won\'t run unless you update Google Play services."
+                    name="common_google_play_services_enable_text"
+                    msgid="7627896071867667758" >"This app won\'t work unless you enable Google Play services."
                 </string>
                 <string
                     name="auth_client_needs_update_title"
                     msgid="6488605506794595966" >"An application requires an update for Google Play Services."
                 </string>
                 <string
-                    name="common_google_play_services_enable_text"
-                    msgid="7627896071867667758" >"This app won\'t work unless you enable Google Play services."
+                    name="common_google_play_services_update_text"
+                    msgid="448354684997260580" >"This app won\'t run unless you update Google Play services."
+                </string>
+                <string
+                    name="common_google_play_services_update_title"
+                    msgid="6006316683626838685" >"Update Google Play services"
+                </string>
+                <string
+                    name="common_signin_button_text"
+                    msgid="9071884888741449141" >"Sign in"
                 </string>
                 <string
                     name="common_google_play_services_unsupported_title"
                     msgid="6334768798839376943" >"Google Play services"
                 </string>
                 <string
-                    name="auth_client_play_services_err_notification_msg"
-                    msgid="3635065018897986478" >"Google Play services error"
-                </string>
-                <string
                     name="common_google_play_services_install_text_tablet"
                     msgid="1589957570365247855" >"This app won\'t run without Google Play services, which are missing from your tablet."
+                </string>
+                <string
+                    name="auth_client_play_services_err_notification_msg"
+                    msgid="3635065018897986478" >"Google Play services error"
                 </string>
             </file>
             <file
@@ -1655,15 +1657,15 @@
                     msgid="8515591849428043265" >"Descargar Google Play Services"
                 </string>
                 <string
-                    name="common_signin_button_text"
-                    msgid="9071884888741449141" >"Acceder"
-                </string>
-                <string
                     name="auth_client_requested_by_msg"
                     msgid="6304135633531965756" >"Solicitada por 
 <ns1:g id="APP_NAME" >
 %1$s
                     </ns1:g>"
+                </string>
+                <string
+                    name="common_signin_button_text"
+                    msgid="9071884888741449141" >"Acceder"
                 </string>
                 <string
                     name="common_google_play_services_unknown_issue"
@@ -1737,20 +1739,20 @@
                     msgid="2534454398764507874" >"Rakendus püüdis kasutada Google Play teenuste sobimatut versiooni."
                 </string>
                 <string
-                    name="common_google_play_services_install_title"
-                    msgid="26645092511305524" >"Hankige Google Play teenused"
-                </string>
-                <string
                     name="auth_client_play_services_err_notification_msg"
                     msgid="3635065018897986478" >"Viga Google Play teenustes"
                 </string>
                 <string
-                    name="common_signin_button_text"
-                    msgid="9071884888741449141" >"Logi sisse"
+                    name="common_google_play_services_install_title"
+                    msgid="26645092511305524" >"Hankige Google Play teenused"
                 </string>
                 <string
                     name="common_google_play_services_install_text_tablet"
                     msgid="1589957570365247855" >"Selle rakenduse käitamiseks on vaja Google Play teenuseid, mida teie tahvelarvutis pole."
+                </string>
+                <string
+                    name="common_signin_button_text"
+                    msgid="9071884888741449141" >"Logi sisse"
                 </string>
                 <string
                     name="common_google_play_services_update_text"
@@ -1821,15 +1823,15 @@
                     msgid="8515591849428043265" >"دریافت خدمات Google Play"
                 </string>
                 <string
-                    name="auth_client_needs_enabling_title"
-                    msgid="3983201110833868073" >"برنامه‌ای به فعال کردن خدمات Google Play نیاز دارد."
-                </string>
-                <string
                     name="auth_client_requested_by_msg"
                     msgid="6304135633531965756" >"درخواست توسط 
 <ns1:g id="APP_NAME" >
 %1$s
                     </ns1:g>"
+                </string>
+                <string
+                    name="auth_client_needs_enabling_title"
+                    msgid="3983201110833868073" >"برنامه‌ای به فعال کردن خدمات Google Play نیاز دارد."
                 </string>
                 <string
                     name="common_google_play_services_install_text_tablet"
@@ -1916,6 +1918,14 @@
                     msgid="4762332809710093730" >"Tuntematon ongelma käytettäessä Google Play -palveluita."
                 </string>
                 <string
+                    name="common_google_play_services_install_text_tablet"
+                    msgid="1589957570365247855" >"Tämä sovellus ei toimi ilman Google Play -palveluita, jotka puuttuvat tablet-laitteesta."
+                </string>
+                <string
+                    name="auth_client_using_bad_version_title"
+                    msgid="2534454398764507874" >"Sovellus yritti käyttää virheellistä Google Play -palveluiden versiota"
+                </string>
+                <string
                     name="auth_client_requested_by_msg"
                     msgid="6304135633531965756" >"Pyynnön teki 
 <ns1:g id="APP_NAME" >
@@ -1923,24 +1933,16 @@
                     </ns1:g>"
                 </string>
                 <string
-                    name="auth_client_using_bad_version_title"
-                    msgid="2534454398764507874" >"Sovellus yritti käyttää virheellistä Google Play -palveluiden versiota"
-                </string>
-                <string
-                    name="common_google_play_services_install_text_tablet"
-                    msgid="1589957570365247855" >"Tämä sovellus ei toimi ilman Google Play -palveluita, jotka puuttuvat tablet-laitteesta."
-                </string>
-                <string
-                    name="auth_client_needs_installation_title"
-                    msgid="7999585836145154206" >"Asenna Google Play -palvelut, jotta sovellus toimii."
+                    name="common_google_play_services_install_button"
+                    msgid="8515591849428043265" >"Asenna Google Play -palvelut"
                 </string>
                 <string
                     name="common_google_play_services_enable_title"
                     msgid="529078775174559253" >"Ota Google Play -palvelut käyttöön"
                 </string>
                 <string
-                    name="common_google_play_services_install_button"
-                    msgid="8515591849428043265" >"Asenna Google Play -palvelut"
+                    name="auth_client_needs_installation_title"
+                    msgid="7999585836145154206" >"Asenna Google Play -palvelut, jotta sovellus toimii."
                 </string>
                 <string
                     name="common_google_play_services_update_title"
@@ -2014,28 +2016,28 @@
                     msgid="6488605506794595966" >"Une application requiert la mise à jour des services Google Play"
                 </string>
                 <string
-                    name="common_signin_button_text_long"
-                    msgid="2429381841831957106" >"Se connecter avec Google"
-                </string>
-                <string
-                    name="common_google_play_services_update_title"
-                    msgid="6006316683626838685" >"Mettre à jour les services Google Play"
+                    name="common_google_play_services_install_button"
+                    msgid="8515591849428043265" >"Installer services Google Play"
                 </string>
                 <string
                     name="auth_client_needs_installation_title"
                     msgid="7999585836145154206" >"Une application requiert l\'installation des services Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_install_button"
-                    msgid="8515591849428043265" >"Installer services Google Play"
+                    name="common_google_play_services_update_title"
+                    msgid="6006316683626838685" >"Mettre à jour les services Google Play"
                 </string>
                 <string
-                    name="common_signin_button_text"
-                    msgid="9071884888741449141" >"Connexion"
+                    name="common_signin_button_text_long"
+                    msgid="2429381841831957106" >"Se connecter avec Google"
                 </string>
                 <string
                     name="auth_client_using_bad_version_title"
                     msgid="2534454398764507874" >"Une application requiert une version valide des services Google Play"
+                </string>
+                <string
+                    name="common_signin_button_text"
+                    msgid="9071884888741449141" >"Connexion"
                 </string>
             </file>
             <file
@@ -2089,12 +2091,12 @@
                     msgid="4181637455539816337" >"Google Play सेवाएं सक्षम करें"
                 </string>
                 <string
-                    name="common_google_play_services_update_title"
-                    msgid="6006316683626838685" >"Google Play सेवाएं अपडेट करें"
-                </string>
-                <string
                     name="auth_client_using_bad_version_title"
                     msgid="2534454398764507874" >"एप्लि. ने Google Play सेवाओं के खराब संस्करण के उपयोग का प्रयास किया."
+                </string>
+                <string
+                    name="common_google_play_services_update_title"
+                    msgid="6006316683626838685" >"Google Play सेवाएं अपडेट करें"
                 </string>
                 <string
                     name="common_google_play_services_install_text_phone"
@@ -2113,16 +2115,16 @@
                     msgid="3983201110833868073" >"एप्लिकेशन के लिए Google Play सेवाओं को सक्षम किए जाने की आवश्यकता है."
                 </string>
                 <string
-                    name="common_google_play_services_update_button"
-                    msgid="8932944190611227642" >"अपडेट करें"
+                    name="auth_client_play_services_err_notification_msg"
+                    msgid="3635065018897986478" >"Google Play सेवाएं त्रुटि"
                 </string>
                 <string
                     name="auth_client_needs_update_title"
                     msgid="6488605506794595966" >"एप्लिकेशन के लिए Google Play सेवाओं में अपडेट की आवश्यकता है."
                 </string>
                 <string
-                    name="auth_client_play_services_err_notification_msg"
-                    msgid="3635065018897986478" >"Google Play सेवाएं त्रुटि"
+                    name="common_google_play_services_update_button"
+                    msgid="8932944190611227642" >"अपडेट करें"
                 </string>
                 <string
                     name="common_google_play_services_install_title"
@@ -2184,16 +2186,16 @@
                     msgid="529078775174559253" >"Omogući usluge za Google Play"
                 </string>
                 <string
-                    name="common_signin_button_text_long"
-                    msgid="2429381841831957106" >"Prijava uslugom Google"
+                    name="common_google_play_services_install_text_tablet"
+                    msgid="1589957570365247855" >"Ova aplikacija neće funkcionirati bez usluga za Google Play, koje nisu instalirane na vašem tabletnom računalu."
                 </string>
                 <string
                     name="common_google_play_services_install_button"
                     msgid="8515591849428043265" >"Preuzmi usluge za Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_install_text_tablet"
-                    msgid="1589957570365247855" >"Ova aplikacija neće funkcionirati bez usluga za Google Play, koje nisu instalirane na vašem tabletnom računalu."
+                    name="common_signin_button_text_long"
+                    msgid="2429381841831957106" >"Prijava uslugom Google"
                 </string>
                 <string
                     name="common_google_play_services_install_title"
@@ -2208,12 +2210,12 @@
                     msgid="3635065018897986478" >"Pogreška usluga za Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_title"
-                    msgid="6334768798839376943" >"Usluge za Google Play"
-                </string>
-                <string
                     name="common_google_play_services_enable_button"
                     msgid="4181637455539816337" >"Omogući usluge za Google Play"
+                </string>
+                <string
+                    name="common_google_play_services_unsupported_title"
+                    msgid="6334768798839376943" >"Usluge za Google Play"
                 </string>
                 <string
                     name="common_google_play_services_install_text_phone"
@@ -2272,16 +2274,16 @@
                     msgid="4762332809710093730" >"Ismeretlen hiba a Google Play Szolgáltatásokban."
                 </string>
                 <string
-                    name="common_google_play_services_update_title"
-                    msgid="6006316683626838685" >"Play Szolgáltatások frissítése"
+                    name="common_google_play_services_install_text_phone"
+                    msgid="8685301130651051380" >"Az alkalmazás működéséhez a Google Play Szolgáltatások szükségesek, ezek nincsenek telepítve a telefonon."
                 </string>
                 <string
                     name="common_google_play_services_unsupported_title"
                     msgid="6334768798839376943" >"Google Play Szolgáltatások"
                 </string>
                 <string
-                    name="common_google_play_services_install_text_phone"
-                    msgid="8685301130651051380" >"Az alkalmazás működéséhez a Google Play Szolgáltatások szükségesek, ezek nincsenek telepítve a telefonon."
+                    name="common_google_play_services_update_title"
+                    msgid="6006316683626838685" >"Play Szolgáltatások frissítése"
                 </string>
                 <string
                     name="common_google_play_services_enable_button"
@@ -2292,15 +2294,15 @@
                     msgid="3542578567569488671" >"A Google Play Szolgáltatásokat, amelyre egyes alkalmazások támaszkodnak, nem támogatja az eszköz. Segítségért forduljon az eszköz gyártójához."
                 </string>
                 <string
-                    name="common_google_play_services_update_button"
-                    msgid="8932944190611227642" >"Frissítés"
-                </string>
-                <string
                     name="auth_client_requested_by_msg"
                     msgid="6304135633531965756" >"Igénylő: 
 <ns1:g id="APP_NAME" >
 %1$s
                     </ns1:g>"
+                </string>
+                <string
+                    name="common_google_play_services_update_button"
+                    msgid="8932944190611227642" >"Frissítés"
                 </string>
                 <string
                     name="auth_client_needs_enabling_title"
@@ -2366,12 +2368,12 @@
                     </ns1:g>"
                 </string>
                 <string
-                    name="auth_client_needs_enabling_title"
-                    msgid="3983201110833868073" >"Aplikasi membutuhkan Layanan Google Play untuk dapat diaktifkan."
-                </string>
-                <string
                     name="common_google_play_services_install_text_tablet"
                     msgid="1589957570365247855" >"Aplikasi ini tidak akan berjalan tanpa layanan Google Play, yang tidak ada di tablet Anda."
+                </string>
+                <string
+                    name="auth_client_needs_enabling_title"
+                    msgid="3983201110833868073" >"Aplikasi membutuhkan Layanan Google Play untuk dapat diaktifkan."
                 </string>
                 <string
                     name="common_google_play_services_update_text"
@@ -2457,12 +2459,12 @@
                     msgid="1589957570365247855" >"L\'app non funzionerà senza Google Play Services, non presente sul tuo tablet."
                 </string>
                 <string
-                    name="common_signin_button_text_long"
-                    msgid="2429381841831957106" >"Accedi con Google"
-                </string>
-                <string
                     name="common_google_play_services_install_button"
                     msgid="8515591849428043265" >"Installa Google Play Services"
+                </string>
+                <string
+                    name="common_signin_button_text_long"
+                    msgid="2429381841831957106" >"Accedi con Google"
                 </string>
                 <string
                     name="common_google_play_services_unknown_issue"
@@ -2561,16 +2563,20 @@
                     msgid="3983201110833868073" >"יש אפליקציה המחייבת הפעלה של שירותי Google Play."
                 </string>
                 <string
-                    name="auth_client_using_bad_version_title"
-                    msgid="2534454398764507874" >"יש אפליקציה שניסתה להשתמש בגרסה שגויה של שירותי Google Play."
-                </string>
-                <string
                     name="common_google_play_services_enable_title"
                     msgid="529078775174559253" >"הפעלת שירותי Google Play"
                 </string>
                 <string
+                    name="auth_client_using_bad_version_title"
+                    msgid="2534454398764507874" >"יש אפליקציה שניסתה להשתמש בגרסה שגויה של שירותי Google Play."
+                </string>
+                <string
                     name="common_google_play_services_enable_text"
                     msgid="7627896071867667758" >"יישום זה לא יעבוד אם לא תפעיל את שירותי Google Play."
+                </string>
+                <string
+                    name="common_google_play_services_install_text_phone"
+                    msgid="8685301130651051380" >"יישום זה לא יפעל ללא שירותי Google Play, החסרים בטלפון שלך."
                 </string>
                 <string
                     name="auth_client_requested_by_msg"
@@ -2578,10 +2584,6 @@
 <ns1:g id="APP_NAME" >
 %1$s
                     </ns1:g>"
-                </string>
-                <string
-                    name="common_google_play_services_install_text_phone"
-                    msgid="8685301130651051380" >"יישום זה לא יפעל ללא שירותי Google Play, החסרים בטלפון שלך."
                 </string>
             </file>
             <file
@@ -2628,14 +2630,6 @@
                     msgid="6006316683626838685" >"Play開発者サービスの更新"
                 </string>
                 <string
-                    name="common_google_play_services_unknown_issue"
-                    msgid="4762332809710093730" >"Google Play開発者サービスで原因不明の問題が発生しました。"
-                </string>
-                <string
-                    name="common_google_play_services_install_title"
-                    msgid="26645092511305524" >"Play開発者サービスの入手"
-                </string>
-                <string
                     name="auth_client_requested_by_msg"
                     msgid="6304135633531965756" >"
 <ns1:g id="APP_NAME" >
@@ -2647,24 +2641,32 @@
                     msgid="529078775174559253" >"Play開発者サービスの有効化"
                 </string>
                 <string
-                    name="auth_client_needs_update_title"
-                    msgid="6488605506794595966" >"アプリではGoogle Play開発者サービスをアップデートする必要があります。"
+                    name="common_google_play_services_install_title"
+                    msgid="26645092511305524" >"Play開発者サービスの入手"
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_title"
-                    msgid="6334768798839376943" >"Google Play開発者サービス"
+                    name="common_google_play_services_unknown_issue"
+                    msgid="4762332809710093730" >"Google Play開発者サービスで原因不明の問題が発生しました。"
+                </string>
+                <string
+                    name="auth_client_needs_update_title"
+                    msgid="6488605506794595966" >"アプリではGoogle Play開発者サービスをアップデートする必要があります。"
                 </string>
                 <string
                     name="common_google_play_services_unsupported_text"
                     msgid="3542578567569488671" >"一部のアプリが使用しているGoogle Play開発者サービスは、お使いの端末ではサポートされていません。詳しくは、端末メーカーまでお問い合わせください。"
                 </string>
                 <string
-                    name="common_google_play_services_update_button"
-                    msgid="8932944190611227642" >"更新"
+                    name="common_google_play_services_unsupported_title"
+                    msgid="6334768798839376943" >"Google Play開発者サービス"
                 </string>
                 <string
                     name="common_google_play_services_enable_button"
                     msgid="4181637455539816337" >"Play開発者サービスの有効化"
+                </string>
+                <string
+                    name="common_google_play_services_update_button"
+                    msgid="8932944190611227642" >"更新"
                 </string>
                 <string
                     name="auth_client_play_services_err_notification_msg"
@@ -2723,15 +2725,15 @@
                     msgid="3542578567569488671" >"일부 사용자 애플리케이션에 필요한 Google Play 서비스가 사용자 기기에서 지원되지 않습니다. 기기 제조업체에 문의하시기 바랍니다."
                 </string>
                 <string
-                    name="common_signin_button_text_long"
-                    msgid="2429381841831957106" >"Google 계정으로 로그인"
-                </string>
-                <string
                     name="auth_client_requested_by_msg"
                     msgid="6304135633531965756" >"
 <ns1:g id="APP_NAME" >
 %1$s
                     </ns1:g>에서 요청"
+                </string>
+                <string
+                    name="common_signin_button_text_long"
+                    msgid="2429381841831957106" >"Google 계정으로 로그인"
                 </string>
                 <string
                     name="auth_client_needs_installation_title"
@@ -2742,28 +2744,28 @@
                     msgid="8685301130651051380" >"휴대전화에 Google Play 서비스가 설치되어 있어야 이 앱이 실행됩니다."
                 </string>
                 <string
-                    name="common_google_play_services_update_title"
-                    msgid="6006316683626838685" >"Google Play 서비스 업데이트"
-                </string>
-                <string
                     name="common_google_play_services_install_text_tablet"
                     msgid="1589957570365247855" >"태블릿에 Google Play 서비스가 설치되어 있어야 이 앱이 실행됩니다."
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_title"
-                    msgid="6334768798839376943" >"Google Play 서비스"
+                    name="common_google_play_services_update_title"
+                    msgid="6006316683626838685" >"Google Play 서비스 업데이트"
                 </string>
                 <string
                     name="auth_client_using_bad_version_title"
                     msgid="2534454398764507874" >"애플리케이션에서 잘못된 버전의 Google Play 서비스를 사용하려고 했습니다."
                 </string>
                 <string
-                    name="common_google_play_services_enable_button"
-                    msgid="4181637455539816337" >"Google Play 서비스 사용"
+                    name="common_google_play_services_unsupported_title"
+                    msgid="6334768798839376943" >"Google Play 서비스"
                 </string>
                 <string
                     name="common_google_play_services_enable_text"
                     msgid="7627896071867667758" >"Google Play 서비스를 사용하도록 설정해야 이 앱이 작동합니다."
+                </string>
+                <string
+                    name="common_google_play_services_enable_button"
+                    msgid="4181637455539816337" >"Google Play 서비스 사용"
                 </string>
             </file>
             <file
@@ -2849,12 +2851,12 @@
                     msgid="9071884888741449141" >"Prisij."
                 </string>
                 <string
-                    name="common_google_play_services_update_text"
-                    msgid="448354684997260580" >"Ši programa neveiks, jei neatnaujinsite „Google Play“ paslaugų."
-                </string>
-                <string
                     name="common_google_play_services_install_title"
                     msgid="26645092511305524" >"Gauti „Google Play“ paslaugų"
+                </string>
+                <string
+                    name="common_google_play_services_update_text"
+                    msgid="448354684997260580" >"Ši programa neveiks, jei neatnaujinsite „Google Play“ paslaugų."
                 </string>
             </file>
             <file
@@ -2916,32 +2918,32 @@
                     msgid="2534454398764507874" >"Lietojumpr. mēģināja izmantot nederīgu Google Play pakalp. versiju."
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_text"
-                    msgid="3542578567569488671" >"Jūsu ierīce neatbalsta Google Play pakalpojumus, kuri nepieciešami dažu jūsu lietojumprogrammu darbībai. Lūdzu, sazinieties ar ražotāju, lai saņemtu palīdzību."
-                </string>
-                <string
                     name="common_google_play_services_enable_button"
                     msgid="4181637455539816337" >"Iespējot Google Play pakalpojumus"
+                </string>
+                <string
+                    name="common_google_play_services_unsupported_text"
+                    msgid="3542578567569488671" >"Jūsu ierīce neatbalsta Google Play pakalpojumus, kuri nepieciešami dažu jūsu lietojumprogrammu darbībai. Lūdzu, sazinieties ar ražotāju, lai saņemtu palīdzību."
                 </string>
                 <string
                     name="common_signin_button_text"
                     msgid="9071884888741449141" >"Pierakst."
                 </string>
                 <string
-                    name="auth_client_needs_enabling_title"
-                    msgid="3983201110833868073" >"Lai lietojumprogramma darbotos, ir jāiespējo Google Play pakalpojumi."
-                </string>
-                <string
                     name="common_google_play_services_install_button"
                     msgid="8515591849428043265" >"Iegūt Google Play pakalpojumus"
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_title"
-                    msgid="6334768798839376943" >"Google Play pakalpojumi"
+                    name="auth_client_needs_enabling_title"
+                    msgid="3983201110833868073" >"Lai lietojumprogramma darbotos, ir jāiespējo Google Play pakalpojumi."
                 </string>
                 <string
                     name="auth_client_needs_installation_title"
                     msgid="7999585836145154206" >"Lai lietojumprogramma darbotos, ir jāinstalē Google Play pakalpojumi."
+                </string>
+                <string
+                    name="common_google_play_services_unsupported_title"
+                    msgid="6334768798839376943" >"Google Play pakalpojumi"
                 </string>
                 <string
                     name="common_google_play_services_update_title"
@@ -2999,16 +3001,16 @@
                     msgid="4762332809710093730" >"Isu tidak diketahui dengan perkhidmatan Google Play."
                 </string>
                 <string
-                    name="common_google_play_services_update_text"
-                    msgid="448354684997260580" >"Apl ini tidak akan berfungsi kecuali anda mengemas kini perkhidmatan Google Play."
+                    name="common_google_play_services_enable_text"
+                    msgid="7627896071867667758" >"Apl ini tidak akan berfungsi kecuali anda mendayakan perkhidmatan Google Play."
                 </string>
                 <string
                     name="common_google_play_services_update_button"
                     msgid="8932944190611227642" >"Kemas kini"
                 </string>
                 <string
-                    name="common_google_play_services_enable_text"
-                    msgid="7627896071867667758" >"Apl ini tidak akan berfungsi kecuali anda mendayakan perkhidmatan Google Play."
+                    name="common_google_play_services_update_text"
+                    msgid="448354684997260580" >"Apl ini tidak akan berfungsi kecuali anda mengemas kini perkhidmatan Google Play."
                 </string>
                 <string
                     name="common_google_play_services_unsupported_text"
@@ -3023,20 +3025,20 @@
                     msgid="26645092511305524" >"Dapatkan perkhidmatan Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_title"
-                    msgid="6334768798839376943" >"Perkhidmatan Google Play"
-                </string>
-                <string
                     name="common_google_play_services_install_text_phone"
                     msgid="8685301130651051380" >"Apl ini tidak akan berfungsi tanpa perkhidmatan Google Play dan apl ini tiada pada telefon anda."
                 </string>
                 <string
-                    name="auth_client_needs_enabling_title"
-                    msgid="3983201110833868073" >"Perkhidmatan Google Play perlu didayakan untuk menggunakan aplikasi."
+                    name="common_google_play_services_unsupported_title"
+                    msgid="6334768798839376943" >"Perkhidmatan Google Play"
                 </string>
                 <string
                     name="auth_client_using_bad_version_title"
                     msgid="2534454398764507874" >"Aplikasi cuba menggunakan versi Perkhidmatan Google Play yang rosak."
+                </string>
+                <string
+                    name="auth_client_needs_enabling_title"
+                    msgid="3983201110833868073" >"Perkhidmatan Google Play perlu didayakan untuk menggunakan aplikasi."
                 </string>
             </file>
             <file
@@ -3197,12 +3199,12 @@
                     msgid="3635065018897986478" >"Fout met Google Play-services"
                 </string>
                 <string
-                    name="auth_client_needs_installation_title"
-                    msgid="7999585836145154206" >"Google Play-services moet zijn geïnstalleerd voor een applicatie."
-                </string>
-                <string
                     name="common_google_play_services_install_text_tablet"
                     msgid="1589957570365247855" >"Deze app kan niet worden uitgevoerd zonder Google Play-services die ontbreken op uw tablet."
+                </string>
+                <string
+                    name="auth_client_needs_installation_title"
+                    msgid="7999585836145154206" >"Google Play-services moet zijn geïnstalleerd voor een applicatie."
                 </string>
                 <string
                     name="common_google_play_services_unsupported_text"
@@ -3273,8 +3275,12 @@
                     msgid="3542578567569488671" >"Usługi Google Play, od których zależy działanie niektórych aplikacji, nie są obsługiwane na Twoim urządzeniu. Skontaktuj się z producentem, by uzyskać pomoc."
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_title"
-                    msgid="6334768798839376943" >"Usługi Google Play"
+                    name="common_google_play_services_install_text_tablet"
+                    msgid="1589957570365247855" >"Ta aplikacja nie będzie działać bez Usług Google Play, których nie masz na tablecie."
+                </string>
+                <string
+                    name="common_google_play_services_enable_button"
+                    msgid="4181637455539816337" >"Włącz Usługi Google Play"
                 </string>
                 <string
                     name="auth_client_requested_by_msg"
@@ -3284,12 +3290,8 @@
                     </ns1:g>"
                 </string>
                 <string
-                    name="common_google_play_services_enable_button"
-                    msgid="4181637455539816337" >"Włącz Usługi Google Play"
-                </string>
-                <string
-                    name="common_google_play_services_install_text_tablet"
-                    msgid="1589957570365247855" >"Ta aplikacja nie będzie działać bez Usług Google Play, których nie masz na tablecie."
+                    name="common_google_play_services_unsupported_title"
+                    msgid="6334768798839376943" >"Usługi Google Play"
                 </string>
                 <string
                     name="common_google_play_services_enable_title"
@@ -3395,12 +3397,12 @@
                     msgid="8685301130651051380" >"Este aplicativo não funciona sem o Google Play Services, que não está instalado em seu telefone."
                 </string>
                 <string
-                    name="common_signin_button_text"
-                    msgid="9071884888741449141" >"Login"
-                </string>
-                <string
                     name="common_google_play_services_unknown_issue"
                     msgid="4762332809710093730" >"Problema desconhecido com o Google Play Services."
+                </string>
+                <string
+                    name="common_signin_button_text"
+                    msgid="9071884888741449141" >"Login"
                 </string>
             </file>
             <file
@@ -3451,15 +3453,15 @@
                     msgid="8685301130651051380" >"Este aplicativo não funciona sem o Google Play Services, que não está instalado em seu telefone."
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_text"
-                    msgid="3542578567569488671" >"O Google Play Services, necessário para alguns dos aplicativos, não é compatível com seu dispositivo. Entre em contato com o fabricante para obter assistência."
-                </string>
-                <string
                     name="auth_client_requested_by_msg"
                     msgid="6304135633531965756" >"Solicitado por 
 <ns1:g id="APP_NAME" >
 %1$s
                     </ns1:g>"
+                </string>
+                <string
+                    name="common_google_play_services_unsupported_text"
+                    msgid="3542578567569488671" >"O Google Play Services, necessário para alguns dos aplicativos, não é compatível com seu dispositivo. Entre em contato com o fabricante para obter assistência."
                 </string>
                 <string
                     name="auth_client_using_bad_version_title"
@@ -3561,12 +3563,12 @@
                     msgid="4762332809710093730" >"Problema desconhecido nos serviços do Google Play."
                 </string>
                 <string
-                    name="auth_client_needs_installation_title"
-                    msgid="7999585836145154206" >"Uma aplicação necessita da instalação dos Serviços do Google Play."
-                </string>
-                <string
                     name="common_google_play_services_enable_title"
                     msgid="529078775174559253" >"Ativar serviços do Google Play"
+                </string>
+                <string
+                    name="auth_client_needs_installation_title"
+                    msgid="7999585836145154206" >"Uma aplicação necessita da instalação dos Serviços do Google Play."
                 </string>
                 <string
                     name="auth_client_using_bad_version_title"
@@ -3577,12 +3579,12 @@
                     msgid="3542578567569488671" >"Os serviços do Google Play, dos quais dependem algumas das suas aplicações, não são suportados pelo seu dispositivo. Contacte o fabricante para obter assistência."
                 </string>
                 <string
-                    name="auth_client_needs_update_title"
-                    msgid="6488605506794595966" >"Uma aplicação necessita da atualização dos Serviços do Google Play."
-                </string>
-                <string
                     name="auth_client_play_services_err_notification_msg"
                     msgid="3635065018897986478" >"Erro dos serviços do Google Play"
+                </string>
+                <string
+                    name="auth_client_needs_update_title"
+                    msgid="6488605506794595966" >"Uma aplicação necessita da atualização dos Serviços do Google Play."
                 </string>
             </file>
             <file
@@ -3640,24 +3642,24 @@
                     msgid="8515591849428043265" >"Obţineţi Servicii Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_install_title"
-                    msgid="26645092511305524" >"Descărcaţi Servicii Google Play"
-                </string>
-                <string
                     name="auth_client_needs_installation_title"
                     msgid="7999585836145154206" >"O aplicație necesită instalarea Serviciilor Google Play."
+                </string>
+                <string
+                    name="common_google_play_services_install_title"
+                    msgid="26645092511305524" >"Descărcaţi Servicii Google Play"
                 </string>
                 <string
                     name="common_google_play_services_update_title"
                     msgid="6006316683626838685" >"Actualizaţi Servicii Google Play"
                 </string>
                 <string
-                    name="common_signin_button_text_long"
-                    msgid="2429381841831957106" >"Conectați-vă cu Google"
-                </string>
-                <string
                     name="common_google_play_services_enable_button"
                     msgid="4181637455539816337" >"Activaţi Servicii Google Play"
+                </string>
+                <string
+                    name="common_signin_button_text_long"
+                    msgid="2429381841831957106" >"Conectați-vă cu Google"
                 </string>
                 <string
                     name="auth_client_play_services_err_notification_msg"
@@ -3731,20 +3733,20 @@
                     msgid="448354684997260580" >"Для работы этого приложения требуется обновить Сервисы Google Play."
                 </string>
                 <string
-                    name="common_signin_button_text_long"
-                    msgid="2429381841831957106" >"Войти в аккаунт Google"
-                </string>
-                <string
                     name="common_google_play_services_unsupported_title"
                     msgid="6334768798839376943" >"Сервисы Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_update_button"
-                    msgid="8932944190611227642" >"Обновить"
+                    name="common_signin_button_text_long"
+                    msgid="2429381841831957106" >"Войти в аккаунт Google"
                 </string>
                 <string
                     name="common_google_play_services_enable_button"
                     msgid="4181637455539816337" >"Включить"
+                </string>
+                <string
+                    name="common_google_play_services_update_button"
+                    msgid="8932944190611227642" >"Обновить"
                 </string>
                 <string
                     name="auth_client_needs_enabling_title"
@@ -3755,12 +3757,12 @@
                     msgid="7999585836145154206" >"Для работы приложения требуется установить сервисы Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_install_title"
-                    msgid="26645092511305524" >"Установите Сервисы Google Play"
-                </string>
-                <string
                     name="common_google_play_services_enable_title"
                     msgid="529078775174559253" >"Включите Сервисы Google Play"
+                </string>
+                <string
+                    name="common_google_play_services_install_title"
+                    msgid="26645092511305524" >"Установите Сервисы Google Play"
                 </string>
                 <string
                     name="auth_client_play_services_err_notification_msg"
@@ -3830,24 +3832,24 @@
                     msgid="448354684997260580" >"Túto aplikáciu bude možné spustiť až po aktualizácii služieb Google Play."
                 </string>
                 <string
-                    name="common_google_play_services_update_button"
-                    msgid="8932944190611227642" >"Aktualizovať"
+                    name="common_google_play_services_enable_title"
+                    msgid="529078775174559253" >"Povoliť služby Google Play"
                 </string>
                 <string
                     name="common_google_play_services_enable_button"
                     msgid="4181637455539816337" >"Povoliť služby Google Play"
                 </string>
                 <string
-                    name="common_google_play_services_enable_title"
-                    msgid="529078775174559253" >"Povoliť služby Google Play"
-                </string>
-                <string
-                    name="common_google_play_services_update_title"
-                    msgid="6006316683626838685" >"Aktualizovať služby Google Play"
+                    name="common_google_play_services_update_button"
+                    msgid="8932944190611227642" >"Aktualizovať"
                 </string>
                 <string
                     name="common_google_play_services_install_text_phone"
                     msgid="8685301130651051380" >"Na spustenie tejto aplikácie sa vyžadujú služby Google Play, ktoré v telefóne nemáte."
+                </string>
+                <string
+                    name="common_google_play_services_update_title"
+                    msgid="6006316683626838685" >"Aktualizovať služby Google Play"
                 </string>
                 <string
                     name="common_signin_button_text_long"
@@ -3918,6 +3920,10 @@
                     msgid="6334768798839376943" >"Storitve Google Play"
                 </string>
                 <string
+                    name="auth_client_using_bad_version_title"
+                    msgid="2534454398764507874" >"Aplikacija je poskusila uporabiti napačno različico Storitev Google Play."
+                </string>
+                <string
                     name="auth_client_requested_by_msg"
                     msgid="6304135633531965756" >"Zahtevala aplikacija 
 <ns1:g id="APP_NAME" >
@@ -3925,16 +3931,12 @@
                     </ns1:g>"
                 </string>
                 <string
-                    name="auth_client_using_bad_version_title"
-                    msgid="2534454398764507874" >"Aplikacija je poskusila uporabiti napačno različico Storitev Google Play."
+                    name="common_google_play_services_install_text_tablet"
+                    msgid="1589957570365247855" >"Ta aplikacija ne deluje brez storitev Google Play, ki jih ni v tabličnem računalniku."
                 </string>
                 <string
                     name="auth_client_play_services_err_notification_msg"
                     msgid="3635065018897986478" >"Napaka storitev Google Play"
-                </string>
-                <string
-                    name="common_google_play_services_install_text_tablet"
-                    msgid="1589957570365247855" >"Ta aplikacija ne deluje brez storitev Google Play, ki jih ni v tabličnem računalniku."
                 </string>
                 <string
                     name="common_google_play_services_enable_title"
@@ -4004,36 +4006,36 @@
                     msgid="6488605506794595966" >"Апликација захтева ажурирање Google Play услуга."
                 </string>
                 <string
-                    name="common_signin_button_text"
-                    msgid="9071884888741449141" >"Пријави ме"
-                </string>
-                <string
                     name="common_google_play_services_enable_title"
                     msgid="529078775174559253" >"Омогућавање Google Play услуга"
                 </string>
                 <string
-                    name="auth_client_needs_enabling_title"
-                    msgid="3983201110833868073" >"Апликација захтева да Google Play услуге буду омогућене."
-                </string>
-                <string
-                    name="auth_client_using_bad_version_title"
-                    msgid="2534454398764507874" >"Апликација је покушала да користи лошу верзију Google Play услуга."
+                    name="common_signin_button_text"
+                    msgid="9071884888741449141" >"Пријави ме"
                 </string>
                 <string
                     name="common_google_play_services_install_button"
                     msgid="8515591849428043265" >"Преузми Google Play услуге"
                 </string>
                 <string
+                    name="auth_client_using_bad_version_title"
+                    msgid="2534454398764507874" >"Апликација је покушала да користи лошу верзију Google Play услуга."
+                </string>
+                <string
+                    name="auth_client_needs_enabling_title"
+                    msgid="3983201110833868073" >"Апликација захтева да Google Play услуге буду омогућене."
+                </string>
+                <string
                     name="common_google_play_services_install_text_tablet"
                     msgid="1589957570365247855" >"Ова апликација не може да се покрене без Google Play услуга, које недостају на таблету."
                 </string>
                 <string
-                    name="common_signin_button_text_long"
-                    msgid="2429381841831957106" >"Пријави ме преко Google-а"
-                </string>
-                <string
                     name="auth_client_play_services_err_notification_msg"
                     msgid="3635065018897986478" >"Грешка Google Play услуга"
+                </string>
+                <string
+                    name="common_signin_button_text_long"
+                    msgid="2429381841831957106" >"Пријави ме преко Google-а"
                 </string>
                 <string
                     name="common_google_play_services_update_text"
@@ -4107,20 +4109,20 @@
                     msgid="3542578567569488671" >"Några av dina appar använder Google Play-tjänster som inte stöds av din enhet. Kontakta tillverkaren om du vill ha hjälp."
                 </string>
                 <string
-                    name="common_signin_button_text_long"
-                    msgid="2429381841831957106" >"Logga in med Google"
-                </string>
-                <string
-                    name="auth_client_needs_update_title"
-                    msgid="6488605506794595966" >"Google Play Tjänster måste uppdateras för en app ska fungera."
+                    name="common_google_play_services_install_button"
+                    msgid="8515591849428043265" >"Hämta Google Play Tjänster"
                 </string>
                 <string
                     name="auth_client_play_services_err_notification_msg"
                     msgid="3635065018897986478" >"Fel på Google Play Tjänster"
                 </string>
                 <string
-                    name="common_google_play_services_install_button"
-                    msgid="8515591849428043265" >"Hämta Google Play Tjänster"
+                    name="auth_client_needs_update_title"
+                    msgid="6488605506794595966" >"Google Play Tjänster måste uppdateras för en app ska fungera."
+                </string>
+                <string
+                    name="common_signin_button_text_long"
+                    msgid="2429381841831957106" >"Logga in med Google"
                 </string>
                 <string
                     name="auth_client_needs_installation_title"
@@ -4210,12 +4212,12 @@
                     msgid="9071884888741449141" >"Ingia"
                 </string>
                 <string
-                    name="auth_client_using_bad_version_title"
-                    msgid="2534454398764507874" >"Programu ilijaribu kutumia toleo baya la Huduma za Google Play."
-                </string>
-                <string
                     name="common_google_play_services_install_text_phone"
                     msgid="8685301130651051380" >"Programu hii haiwezi kuendeshwa bila huduma za Google Play, ambazo hazipo kwenye simu yako."
+                </string>
+                <string
+                    name="auth_client_using_bad_version_title"
+                    msgid="2534454398764507874" >"Programu ilijaribu kutumia toleo baya la Huduma za Google Play."
                 </string>
                 <string
                     name="common_google_play_services_unknown_issue"
@@ -4369,12 +4371,12 @@
                     msgid="7999585836145154206" >"Kailangan ng application na ma-install ang Serbisyo ng Google Play."
                 </string>
                 <string
-                    name="common_google_play_services_update_title"
-                    msgid="6006316683626838685" >"I-update ang mga serbisyo ng Google Play"
-                </string>
-                <string
                     name="auth_client_needs_enabling_title"
                     msgid="3983201110833868073" >"Kailangan ng application na na-enable ang Mga Serbisyo ng Google Play."
+                </string>
+                <string
+                    name="common_google_play_services_update_title"
+                    msgid="6006316683626838685" >"I-update ang mga serbisyo ng Google Play"
                 </string>
                 <string
                     name="common_signin_button_text"
@@ -4392,12 +4394,12 @@
                     msgid="1589957570365247855" >"Hindi gagana ang app na ito nang wala ang mga serbisyo ng Google Play, na wala sa iyong tablet."
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_title"
-                    msgid="6334768798839376943" >"Mga serbisyo ng Google Play"
-                </string>
-                <string
                     name="common_google_play_services_install_button"
                     msgid="8515591849428043265" >"Kumuha ng Google Play services"
+                </string>
+                <string
+                    name="common_google_play_services_unsupported_title"
+                    msgid="6334768798839376943" >"Mga serbisyo ng Google Play"
                 </string>
                 <string
                     name="common_google_play_services_install_text_phone"
@@ -4452,32 +4454,32 @@
                     msgid="7627896071867667758" >"Bu uygulama, Google Play Hizmetleri etkinleştirilmeden çalışmaz"
                 </string>
                 <string
-                    name="common_google_play_services_update_button"
-                    msgid="8932944190611227642" >"Güncelle"
+                    name="common_google_play_services_install_text_tablet"
+                    msgid="1589957570365247855" >"Google Play Hizmetleri tabletinizde yok ve bu uygulama Google Play Hizmetleri olmadan çalışmaz."
                 </string>
                 <string
                     name="auth_client_play_services_err_notification_msg"
                     msgid="3635065018897986478" >"Google Play hizmetleri hatası"
                 </string>
                 <string
-                    name="common_google_play_services_install_text_tablet"
-                    msgid="1589957570365247855" >"Google Play Hizmetleri tabletinizde yok ve bu uygulama Google Play Hizmetleri olmadan çalışmaz."
+                    name="common_google_play_services_update_button"
+                    msgid="8932944190611227642" >"Güncelle"
                 </string>
                 <string
                     name="common_signin_button_text_long"
                     msgid="2429381841831957106" >"Google\'da oturum aç"
                 </string>
                 <string
-                    name="common_google_play_services_unsupported_title"
-                    msgid="6334768798839376943" >"Google Play hizmetleri"
+                    name="common_google_play_services_enable_title"
+                    msgid="529078775174559253" >"Google Play hizmetlerini etkinleştir"
                 </string>
                 <string
                     name="common_google_play_services_enable_button"
                     msgid="4181637455539816337" >"Google Play hizmetlerini etkinleştir"
                 </string>
                 <string
-                    name="common_google_play_services_enable_title"
-                    msgid="529078775174559253" >"Google Play hizmetlerini etkinleştir"
+                    name="common_google_play_services_unsupported_title"
+                    msgid="6334768798839376943" >"Google Play hizmetleri"
                 </string>
                 <string
                     name="common_google_play_services_update_text"
@@ -4550,12 +4552,12 @@
                     msgid="2534454398764507874" >"Програма спробувала застосувати хибну версію Сервісів Google Play."
                 </string>
                 <string
-                    name="common_signin_button_text"
-                    msgid="9071884888741449141" >"Увійти"
-                </string>
-                <string
                     name="common_google_play_services_unknown_issue"
                     msgid="4762332809710093730" >"Google Play Послуги – невідома проблема."
+                </string>
+                <string
+                    name="common_signin_button_text"
+                    msgid="9071884888741449141" >"Увійти"
                 </string>
                 <string
                     name="common_google_play_services_unsupported_text"
@@ -4566,12 +4568,12 @@
                     msgid="6488605506794595966" >"Щоб програма працювала, потрібно оновити Сервіси Google Play."
                 </string>
                 <string
-                    name="auth_client_needs_installation_title"
-                    msgid="7999585836145154206" >"Щоб програма працювала, потрібно встановити Сервіси Google Play."
-                </string>
-                <string
                     name="auth_client_play_services_err_notification_msg"
                     msgid="3635065018897986478" >"Помилка Сервісів Google Play"
+                </string>
+                <string
+                    name="auth_client_needs_installation_title"
+                    msgid="7999585836145154206" >"Щоб програма працювала, потрібно встановити Сервіси Google Play."
                 </string>
                 <string
                     name="common_google_play_services_update_text"
@@ -4634,15 +4636,15 @@
                     msgid="448354684997260580" >"Ứng dụng này sẽ không chạy trừ khi bạn cập nhật dịch vụ của Google Play."
                 </string>
                 <string
-                    name="auth_client_play_services_err_notification_msg"
-                    msgid="3635065018897986478" >"Lỗi dịch vụ của Google Play"
-                </string>
-                <string
                     name="auth_client_requested_by_msg"
                     msgid="6304135633531965756" >"Được yêu cầu bởi 
 <ns1:g id="APP_NAME" >
 %1$s
                     </ns1:g>"
+                </string>
+                <string
+                    name="auth_client_play_services_err_notification_msg"
+                    msgid="3635065018897986478" >"Lỗi dịch vụ của Google Play"
                 </string>
                 <string
                     name="common_signin_button_text_long"
@@ -4661,12 +4663,12 @@
                     msgid="8932944190611227642" >"Cập nhật"
                 </string>
                 <string
-                    name="auth_client_needs_installation_title"
-                    msgid="7999585836145154206" >"Ứng dụng yêu cầu cài đặt Dịch vụ của Google Play."
-                </string>
-                <string
                     name="common_google_play_services_enable_text"
                     msgid="7627896071867667758" >"Ứng dụng này sẽ không hoạt động trừ khi bạn bật dịch vụ của Google Play."
+                </string>
+                <string
+                    name="auth_client_needs_installation_title"
+                    msgid="7999585836145154206" >"Ứng dụng yêu cầu cài đặt Dịch vụ của Google Play."
                 </string>
                 <string
                     name="common_signin_button_text"
@@ -4752,12 +4754,12 @@
                     msgid="7999585836145154206" >"某个应用要求安装 Google Play 服务。"
                 </string>
                 <string
-                    name="auth_client_needs_enabling_title"
-                    msgid="3983201110833868073" >"某个应用要求启用 Google Play 服务。"
-                </string>
-                <string
                     name="common_google_play_services_install_text_tablet"
                     msgid="1589957570365247855" >"您的平板电脑中没有 Google Play 服务，您必须先安装该服务才能运行此应用。"
+                </string>
+                <string
+                    name="auth_client_needs_enabling_title"
+                    msgid="3983201110833868073" >"某个应用要求启用 Google Play 服务。"
                 </string>
                 <string
                     name="auth_client_using_bad_version_title"
@@ -4816,28 +4818,28 @@
                     msgid="2534454398764507874" >"應用程式嘗試使用的 Google Play 服務版本有誤。"
                 </string>
                 <string
-                    name="common_google_play_services_update_button"
-                    msgid="8932944190611227642" >"更新"
+                    name="auth_client_play_services_err_notification_msg"
+                    msgid="3635065018897986478" >"Google Play 服務錯誤"
                 </string>
                 <string
                     name="common_google_play_services_unsupported_text"
                     msgid="3542578567569488671" >"您的裝置不支援部分應用程式所需的 Google Play 服務。如需協助，請與您的裝置製造商聯絡。"
                 </string>
                 <string
-                    name="auth_client_play_services_err_notification_msg"
-                    msgid="3635065018897986478" >"Google Play 服務錯誤"
+                    name="common_google_play_services_update_button"
+                    msgid="8932944190611227642" >"更新"
                 </string>
                 <string
-                    name="auth_client_needs_installation_title"
-                    msgid="7999585836145154206" >"應用程式需要安裝 Google Play 服務。"
+                    name="common_google_play_services_install_text_tablet"
+                    msgid="1589957570365247855" >"您的平板電腦並未安裝 Google Play 服務，所以無法執行這個應用程式。"
                 </string>
                 <string
                     name="common_google_play_services_enable_title"
                     msgid="529078775174559253" >"啟用 Google Play 服務"
                 </string>
                 <string
-                    name="common_google_play_services_install_text_tablet"
-                    msgid="1589957570365247855" >"您的平板電腦並未安裝 Google Play 服務，所以無法執行這個應用程式。"
+                    name="auth_client_needs_installation_title"
+                    msgid="7999585836145154206" >"應用程式需要安裝 Google Play 服務。"
                 </string>
                 <string
                     name="common_google_play_services_enable_button"
@@ -4851,12 +4853,12 @@
                     </ns1:g>"
                 </string>
                 <string
-                    name="common_signin_button_text"
-                    msgid="9071884888741449141" >"登入"
-                </string>
-                <string
                     name="common_google_play_services_unsupported_title"
                     msgid="6334768798839376943" >"Google Play 服務"
+                </string>
+                <string
+                    name="common_signin_button_text"
+                    msgid="9071884888741449141" >"登入"
                 </string>
             </file>
             <file
@@ -4914,12 +4916,12 @@
                     </ns1:g>"
                 </string>
                 <string
-                    name="common_google_play_services_update_text"
-                    msgid="448354684997260580" >"Lolu hlelo lokusebenza ngeke lusebenze ngaphandle nje kokuthi ubuyekeze amasevisi e-Google Play."
-                </string>
-                <string
                     name="common_google_play_services_enable_title"
                     msgid="529078775174559253" >"Nika amandla amasevisi e-Google Play"
+                </string>
+                <string
+                    name="common_google_play_services_update_text"
+                    msgid="448354684997260580" >"Lolu hlelo lokusebenza ngeke lusebenze ngaphandle nje kokuthi ubuyekeze amasevisi e-Google Play."
                 </string>
                 <string
                     name="common_google_play_services_unsupported_text"
@@ -4934,12 +4936,12 @@
                     msgid="6334768798839376943" >"Amasevisi we-Google Play"
                 </string>
                 <string
-                    name="common_signin_button_text_long"
-                    msgid="2429381841831957106" >"Ngena ngemvume nge-Google"
-                </string>
-                <string
                     name="auth_client_needs_enabling_title"
                     msgid="3983201110833868073" >"Uhlelo lokusebenza ludinga amasevisi we-Google Play ukuze anikwe amandla."
+                </string>
+                <string
+                    name="common_signin_button_text_long"
+                    msgid="2429381841831957106" >"Ngena ngemvume nge-Google"
                 </string>
                 <string
                     name="common_signin_button_text"
