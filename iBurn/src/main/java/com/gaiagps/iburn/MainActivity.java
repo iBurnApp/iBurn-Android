@@ -1,19 +1,19 @@
 package com.gaiagps.iburn;
 
-import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Activity;
 import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 
 import java.io.File;
-import java.io.IOException;
 
 public class MainActivity extends FragmentActivity {
 
@@ -24,7 +24,7 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        addMBTileOverlay(R.raw.iburn2013_transparent);
+        addMBTileOverlay(R.raw.iburn);
     }
 
 
@@ -36,18 +36,34 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void addMBTileOverlay(int MBTileAssetId){
-        // TODO: Get File reference to bundled .mbtiles
-        /*
-        Uri path = Uri.parse("android.resource://" + getPackageName() + "/" + MBTileAssetId);
-        File MBTFile = new File(path.getPath());
+        new AsyncTask<Void, Void, Void>(){
 
-        GoogleMap map = ((SupportMapFragment) this.getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
-        TileOverlayOptions opts = new TileOverlayOptions();
+            @Override
+            protected Void doInBackground(Void... params) {
+                FileUtils.copyMBTilesToSD(getApplicationContext(), R.raw.iburn, Constants.MBTILE_DESTINATION);
+                return null;
+            }
 
-        tileProvider = new MapBoxOfflineTileProvider(MBTFile);
-        opts.tileProvider(tileProvider);
-        overlay = map.addTileOverlay(opts);
-        */
+            @Override
+            protected void onPostExecute(Void result) {
+                String tilesPath = String.format("%s/%s/%s/%s",Environment.getExternalStorageDirectory().getAbsolutePath().toString(),
+                        Constants.IBURN_ROOT, Constants.TILES_DIR, Constants.MBTILE_DESTINATION);
+                File MBTFile = new File(tilesPath);
+                GoogleMap map = ((SupportMapFragment) MainActivity.this.getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
+                map.setMapType(GoogleMap.MAP_TYPE_NONE);
+                TileOverlayOptions opts = new TileOverlayOptions();
+
+                tileProvider = new MapBoxOfflineTileProvider(MBTFile);
+                opts.tileProvider(tileProvider);
+                overlay = map.addTileOverlay(opts);
+
+                LatLng mStartLocation = new LatLng(40.782622, -119.208264);
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 10));
+
+            }
+        }.execute();
+
+
     }
 
     @Override
