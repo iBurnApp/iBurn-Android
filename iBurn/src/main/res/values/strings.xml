@@ -5,4 +5,10 @@
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
 
+    <!-- MainActivity Tabs -->
+    <string name="map_tab">Map</string>
+    <string name="camps_tab">Camps</string>
+    <string name="events_tab">Events</string>
+    <string name="art_tab">Art</string>
+
 </resources>
