@@ -3,7 +3,6 @@
     package="com.google.android.gms"
     android:versionCode="3159130"
     android:versionName="3.1.59 (744626-30)" >
-
-    <uses-sdk android:minSdkVersion="8"/>
+  <application />
 
 </manifest>
