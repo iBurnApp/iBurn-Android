@@ -5,6 +5,9 @@ package com.gaiagps.iburn;
  */
 public class Constants {
 
+    public static final double MAN_LAT = 40.782622;
+    public static final double MAN_LON = -119.208264;
+
     // External storage directory relative to sdcard
     public static final String IBURN_ROOT = "iburn";
     // External storage directory for tiles, relative to IBURN_ROOT

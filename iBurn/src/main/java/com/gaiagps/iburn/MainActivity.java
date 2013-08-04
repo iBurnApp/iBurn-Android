@@ -51,13 +51,14 @@ public class MainActivity extends FragmentActivity {
                 File MBTFile = new File(tilesPath);
                 GoogleMap map = ((SupportMapFragment) MainActivity.this.getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
                 map.setMapType(GoogleMap.MAP_TYPE_NONE);
+                map.setMyLocationEnabled(true);
                 TileOverlayOptions opts = new TileOverlayOptions();
 
                 tileProvider = new MapBoxOfflineTileProvider(MBTFile);
                 opts.tileProvider(tileProvider);
                 overlay = map.addTileOverlay(opts);
 
-                LatLng mStartLocation = new LatLng(40.782622, -119.208264);
+                LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 10));
 
             }
