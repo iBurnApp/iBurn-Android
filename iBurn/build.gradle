@@ -23,6 +23,7 @@ android {
 }
 
 dependencies {
+    compile project(':libraries:Android-ViewPagerIndicator')
     compile project(':libraries:android-gmaps-addons')
     compile project(':libraries:google-play-services_lib')
     compile 'com.android.support:support-v4:13.0.0'

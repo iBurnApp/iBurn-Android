@@ -42,18 +42,18 @@
                     android:id="@+id/titles"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:background="#ffffedea"
+                    android:background="#ff1c1919"
                     android:padding="10dip"
-                    android:textColor="#ff303030"
+                    android:textColor="#ffd6d6d6"
                     android:fontFamily="sans-serif-condensed"
-                    app:footerColor="#ffeb1d1d"
+                    app:footerColor="#ffebd483"
                     app:footerIndicatorHeight="3dp"
                     app:footerIndicatorStyle="underline"
                     app:footerLineHeight="1dp"
                     app:selectedBold="true"
-                    app:selectedColor="#1f1f1f" />
+                    app:selectedColor="#fff8ef96"/>
 
-            <android.support.v4.view.ViewPager
+            <com.gaiagps.iburn.MapViewPager
                     android:id="@+id/pager"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"

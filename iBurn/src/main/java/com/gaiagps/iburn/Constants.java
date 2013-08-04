@@ -23,10 +23,10 @@ public class Constants {
 
     public enum TAB_TYPE { MAP, CAMPS, ART, EVENTS};
 
-    public static HashMap<String, Integer> TAB_TO_TITLE = new HashMap<String, Integer>() {{
-        put(TAB_TYPE.MAP.toString().toLowerCase(), R.string.map_tab);
-        put(TAB_TYPE.CAMPS.toString().toLowerCase(), R.string.camps_tab);
-        put(TAB_TYPE.ART.toString().toLowerCase(), R.string.art_tab);
-        put(TAB_TYPE.EVENTS.toString().toLowerCase(), R.string.events_tab);
+    public static HashMap<TAB_TYPE, Integer> TAB_TO_TITLE = new HashMap<TAB_TYPE, Integer>() {{
+        put(TAB_TYPE.MAP, R.string.map_tab);
+        put(TAB_TYPE.CAMPS, R.string.camps_tab);
+        put(TAB_TYPE.ART, R.string.art_tab);
+        put(TAB_TYPE.EVENTS, R.string.events_tab);
     }};
 }

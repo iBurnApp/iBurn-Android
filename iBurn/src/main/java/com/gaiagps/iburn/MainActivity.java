@@ -6,49 +6,58 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.TabHost;
 import android.widget.TabWidget;
+import android.widget.TextView;
+import com.viewpagerindicator.TabPageIndicator;
+import com.viewpagerindicator.TitlePageIndicator;
 
 import java.util.ArrayList;
 
 public class MainActivity extends FragmentActivity {
 
+    // Hold display width to allow MapViewPager to calculate
+    // swiping margin on screen's right border.
+    public static int display_width = -1;
+
     TabHost mTabHost;
-    ViewPager  mViewPager;
+    MapViewPager  mViewPager;
     TabsAdapter mTabsAdapter;
-    // TODO: Use ViewPagerIndicator
-    //TitlePageIndicator mTitleIndicator;
+    TitlePageIndicator mTitlePageIndicator;
 
     LayoutInflater inflater;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getDisplayWidth();
         setContentView(R.layout.activity_main);
         inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        //addMBTileOverlay(R.raw.iburn);
+        setupFragmentStatePagerAdapter();
     }
 
     private void setupFragmentStatePagerAdapter(){
         mTabHost = (TabHost)findViewById(android.R.id.tabhost);
         mTabHost.setup();
-        mViewPager = (ViewPager)findViewById(R.id.pager);
+        mViewPager = (MapViewPager)findViewById(R.id.pager);
         mTabsAdapter = new TabsAdapter(this, mTabHost, mViewPager);
 
-        /*
-        mTitleIndicator = (TitlePageIndicator)findViewById(R.id.titles);
-        mTitleIndicator.setViewPager(mViewPager);
-        */
 
+        mTitlePageIndicator = (TitlePageIndicator)findViewById(R.id.titles);
+        mTitlePageIndicator.setViewPager(mViewPager);
+
+        String label = null;
         for(Constants.TAB_TYPE tabType : Constants.TAB_TYPE.values()){
+            label = getString(Constants.TAB_TO_TITLE.get(tabType));
             if(tabType.compareTo(Constants.TAB_TYPE.MAP) == 0){
-                //
-                mTabsAdapter.addTab(mTabHost.newTabSpec(getString(Constants.TAB_TO_TITLE.get(tabType))),
+                mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(inflateCustomTab(label)),
                         BurnerMapFragment.class, null);
+            }else{
+                Bundle bundle = new Bundle(1);
+                bundle.putSerializable("type", tabType);
+                mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(inflateCustomTab(label)),
+                        ListViewFragment.class, bundle);
             }
 
         }
@@ -64,6 +73,12 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
+    }
+
+    private View inflateCustomTab(String tab_title){
+        ViewGroup tab = (ViewGroup) inflater.inflate(R.layout.burn_tab, (ViewGroup) this.findViewById(android.R.id.tabs), false);
+        ((TextView)tab.findViewById(R.id.title)).setText(tab_title);
+        return tab;
     }
 
     /**
@@ -175,6 +190,15 @@ public class MainActivity extends FragmentActivity {
         @Override
         public void onPageScrollStateChanged(int state) {
         }
+    }
+
+    /**
+     * Measure display width so the view pager can implement its
+     * custom behavior re: paging on the map view
+     */
+    private void getDisplayWidth(){
+        Display display = getWindowManager().getDefaultDisplay();
+        display_width = display.getWidth();
     }
     
 }

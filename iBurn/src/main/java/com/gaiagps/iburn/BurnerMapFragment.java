@@ -28,6 +28,7 @@ public class BurnerMapFragment extends SupportMapFragment{
 
     @Override
     public void onDestroy(){
+        super.onDestroy();
         tileProvider.close();
     }
 
@@ -38,11 +39,12 @@ public class BurnerMapFragment extends SupportMapFragment{
     }
 
     private void addMBTileOverlay(int MBTileAssetId){
-        new AsyncTask<Void, Void, Void>(){
+        new AsyncTask<Integer, Void, Void>(){
 
             @Override
-            protected Void doInBackground(Void... params) {
-                FileUtils.copyMBTilesToSD(getActivity().getApplicationContext(), R.raw.iburn, Constants.MBTILE_DESTINATION);
+            protected Void doInBackground(Integer... params) {
+                int MBTileAssetId = params[0];
+                FileUtils.copyMBTilesToSD(getActivity().getApplicationContext(), MBTileAssetId, Constants.MBTILE_DESTINATION);
                 return null;
             }
 
@@ -61,10 +63,10 @@ public class BurnerMapFragment extends SupportMapFragment{
                 overlay = map.addTileOverlay(opts);
 
                 LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 10));
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
 
             }
-        }.execute();
+        }.execute(MBTileAssetId);
 
 
     }
