@@ -14,3 +14,4 @@ iBurn/production/
 *.swp
 local.properties
 *.apk
+libraries/google-play-services_lib/build/*
