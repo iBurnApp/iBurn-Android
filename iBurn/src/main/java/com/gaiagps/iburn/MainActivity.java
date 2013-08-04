@@ -10,7 +10,6 @@ import android.view.*;
 import android.widget.TabHost;
 import android.widget.TabWidget;
 import android.widget.TextView;
-import com.viewpagerindicator.TabPageIndicator;
 import com.viewpagerindicator.TitlePageIndicator;
 
 import java.util.ArrayList;
@@ -52,7 +51,7 @@ public class MainActivity extends FragmentActivity {
             label = getString(Constants.TAB_TO_TITLE.get(tabType));
             if(tabType.compareTo(Constants.TAB_TYPE.MAP) == 0){
                 mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(inflateCustomTab(label)),
-                        BurnerMapFragment.class, null);
+                        GoogleMapFragment.class, null);
             }else{
                 Bundle bundle = new Bundle(1);
                 bundle.putSerializable("type", tabType);

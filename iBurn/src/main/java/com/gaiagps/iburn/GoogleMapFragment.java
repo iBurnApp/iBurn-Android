@@ -16,13 +16,13 @@ import java.io.File;
 /**
  * Created by davidbrodsky on 8/3/13.
  */
-public class BurnerMapFragment extends SupportMapFragment{
-    private static final String TAG = "BurnerMapFragment";
+public class GoogleMapFragment extends SupportMapFragment{
+    private static final String TAG = "GoogleMapFragment";
 
     MapBoxOfflineTileProvider tileProvider;
     TileOverlay overlay;
 
-    public BurnerMapFragment() {
+    public GoogleMapFragment() {
         super();
     }
 
