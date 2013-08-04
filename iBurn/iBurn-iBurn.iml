@@ -72,6 +72,7 @@
     <orderEntry type="module" module-name="google-play-services_lib" exported="" />
     <orderEntry type="module" module-name="android-gmaps-addons" exported="" />
     <orderEntry type="module" module-name="Android-ViewPagerIndicator" exported="" />
+    <orderEntry type="library" exported="" name="gson-2.2.4" level="project" />
   </component>
 </module>
 
