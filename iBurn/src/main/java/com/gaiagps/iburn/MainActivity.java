@@ -23,7 +23,7 @@ public class MainActivity extends FragmentActivity {
     TabHost mTabHost;
     MapViewPager  mViewPager;
     TabsAdapter mTabsAdapter;
-    TitlePageIndicator mTitlePageIndicator;
+    //TitlePageIndicator mTitlePageIndicator;
 
     LayoutInflater inflater;
 
@@ -43,19 +43,19 @@ public class MainActivity extends FragmentActivity {
         mTabsAdapter = new TabsAdapter(this, mTabHost, mViewPager);
 
 
-        mTitlePageIndicator = (TitlePageIndicator)findViewById(R.id.titles);
-        mTitlePageIndicator.setViewPager(mViewPager);
+        //mTitlePageIndicator = (TitlePageIndicator)findViewById(R.id.titles);
+        //mTitlePageIndicator.setViewPager(mViewPager);
 
         String label = null;
         for(Constants.TAB_TYPE tabType : Constants.TAB_TYPE.values()){
             label = getString(Constants.TAB_TO_TITLE.get(tabType));
             if(tabType.compareTo(Constants.TAB_TYPE.MAP) == 0){
-                mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(inflateCustomTab(label)),
+                mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
                         GoogleMapFragment.class, null);
             }else{
                 Bundle bundle = new Bundle(1);
                 bundle.putSerializable("type", tabType);
-                mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(inflateCustomTab(label)),
+                mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
                         ListViewFragment.class, bundle);
             }
 

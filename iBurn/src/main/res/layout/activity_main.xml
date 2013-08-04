@@ -1,57 +1,27 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
-    <!--
-    <fragment
-    android:id="@+id/map"
-    class="com.google.android.gms.maps.SupportMapFragment"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"/>;
-    -->
-
-    <TabHost xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:app="http://schemas.android.com/apk/res-auto"
-             android:id="@android:id/tabhost"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent" >
+<?xml version="1.0" encoding="utf-8"?>
+    <TabHost
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@android:id/tabhost"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
         <LinearLayout
-                android:id="@+id/tabcontent_container"
+                android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical" >
+                android:layout_height="match_parent">
 
             <TabWidget
                     android:id="@android:id/tabs"
+                    android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:orientation="horizontal"
-                    android:visibility="gone" />
+                    android:layout_weight="0"/>
 
             <FrameLayout
                     android:id="@android:id/tabcontent"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:layout_weight="0" />
-
-            <com.viewpagerindicator.TitlePageIndicator
-                    android:id="@+id/titles"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#ff1c1919"
-                    android:padding="10dip"
-                    android:textColor="#ffd6d6d6"
-                    android:fontFamily="sans-serif-condensed"
-                    app:footerColor="#ffebd483"
-                    app:footerIndicatorHeight="3dp"
-                    app:footerIndicatorStyle="underline"
-                    app:footerLineHeight="1dp"
-                    app:selectedBold="true"
-                    app:selectedColor="#fff8ef96"/>
+                    android:layout_weight="0"/>
 
             <com.gaiagps.iburn.MapViewPager
                     android:id="@+id/pager"
@@ -60,8 +30,6 @@
                     android:layout_marginLeft="0dp"
                     android:layout_marginRight="0dp"
                     android:layout_weight="1" />
+
         </LinearLayout>
-
     </TabHost>
-
-</RelativeLayout>
