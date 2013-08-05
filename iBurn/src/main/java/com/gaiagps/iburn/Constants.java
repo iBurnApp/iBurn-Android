@@ -20,6 +20,7 @@ public class Constants {
 
     // SharedPreferences keys
     public static final String GENERAL_PREFS = "gen";
+    public static final String DB_POPULATED = "db_populated";
 
     public enum TAB_TYPE { MAP, CAMPS, ART, EVENTS};
 

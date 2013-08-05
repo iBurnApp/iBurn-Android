@@ -10,5 +10,8 @@
     <string name="camps_tab">Camps</string>
     <string name="events_tab">Events</string>
     <string name="art_tab">Art</string>
+    <string name="no_results">No Results</string>
+    <string name="mark_some_favorites">Mark some favorites first</string>
+    <string name="no_items_found">No Items Found</string>
 
 </resources>

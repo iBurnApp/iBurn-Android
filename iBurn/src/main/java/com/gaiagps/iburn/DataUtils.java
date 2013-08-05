@@ -3,10 +3,13 @@ package com.gaiagps.iburn;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
+import com.gaiagps.iburn.database.DBWrapper;
 import com.gaiagps.iburn.json.JSONDeserializers;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,6 +22,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class DataUtils {
+    private static final String TAG = "DataUtils";
 	
 	private static final String CAMP_DATA_PATH = "playa-json/camp_data.json";
 	private static final String EVENT_DATA_PATH = "playa-json/event_data.json";
@@ -30,6 +34,16 @@ public class DataUtils {
 	private static final double MAN_LON = -119.209042;
 	
 	public static final double MAN_DISTANCE_THRESHOLD = 3; // miles
+
+    public static void checkAndSetupDB(Context c){
+        SharedPreferences prefs = c.getSharedPreferences(Constants.GENERAL_PREFS, c.MODE_PRIVATE);
+        if(!prefs.getBoolean(Constants.DB_POPULATED, false)){
+            Toast toast = Toast.makeText(c, "Preparing iBurn data... ", Toast.LENGTH_LONG);
+            toast.show();
+            new PopulateDBFromJsonTask(c).execute();
+        }else
+            Log.i(TAG, "Database already populated with json");
+    }
 	
 	public static class PopulateDBFromJsonTask extends AsyncTask<Void, Void, Integer>{
         Context c;
@@ -57,31 +71,32 @@ public class DataUtils {
 				InputStream is = assets.open(CAMP_DATA_PATH);
 				// Parse JSON
 				ArrayList<ContentValues> result = gson.fromJson(inputStreamToChar(is), ArrayList.class);
+                Log.d("PopulateDBFromJsonTask",String.format("%d json camps parsed", result.size()));
 				// Insert JSON into database
 				//content://com.trailbehind.android.iburn.playacontentprovider/camp
-				DBWrapper.contentValuesToTable(result, PlayaContentProvider.CAMP_URI);
-				/*
-				Gson gson;
-				InputStream is;
-				ArrayList<ContentValues> result;
-				*/
+				DBWrapper.insertContentValuesToTable(result, PlayaContentProvider.CAMP_URI);
+                Log.d("PopulateDBFromJsonTask", "camps inserted into db");
+
 				// EVENTS
 				gson = new GsonBuilder().registerTypeAdapter(ArrayList.class, new JSONDeserializers.EventsDeserializer()).create();
 				is = assets.open(EVENT_DATA_PATH);
 				result = gson.fromJson(inputStreamToChar(is), ArrayList.class);
-				DBWrapper.contentValuesToTable(result, PlayaContentProvider.EVENT_URI);
-				
+                Log.d("PopulateDBFromJsonTask",String.format("%d json events parsed", result.size()));
+				DBWrapper.insertContentValuesToTable(result, PlayaContentProvider.EVENT_URI);
+                Log.d("PopulateDBFromJsonTask", "events inserted into db");
 				// ART
 				gson = new GsonBuilder().registerTypeAdapter(ArrayList.class, new JSONDeserializers.ArtDeserializer()).create();
 				is = assets.open(ART_DATA_PATH);
 				result = gson.fromJson(inputStreamToChar(is), ArrayList.class);
-                DBWrapper.contentValuesToTable(result, PlayaContentProvider.ART_URI);
-				
-				Log.d("ImportJsonToCampTable","Camps sent to database");
+                Log.d("PopulateDBFromJsonTask",String.format("%d json arts parsed", result.size()));
+                DBWrapper.insertContentValuesToTable(result, PlayaContentProvider.ART_URI);
+				Log.d("PopulateDBFromJsonTask","JSON sent to database");
 			} catch (JsonSyntaxException e) {
+                Log.e("PopulateDBFromJsonTask", "Json exception: " + e.toString());
 				e.printStackTrace();
 				return 0;
 			} catch (IOException e) {
+                Log.e("PopulateDBFromJsonTask", "IOexception: " + e.toString());
 				e.printStackTrace();
 				return 0;
 			}
@@ -90,7 +105,12 @@ public class DataUtils {
 		
 		@Override
 	    protected void onPostExecute(Integer result) {
-			sendDbReadyMessage(result);
+            SharedPreferences.Editor editor = c.getSharedPreferences(Constants.GENERAL_PREFS, c.MODE_PRIVATE).edit();
+			editor.putBoolean(Constants.DB_POPULATED, true);
+            editor.commit();
+            Toast toast = Toast.makeText(c, "iBurn data ready! ", Toast.LENGTH_LONG);
+            toast.show();
+            sendDbReadyMessage(result);
 			super.onPostExecute(result);
 
 	    }

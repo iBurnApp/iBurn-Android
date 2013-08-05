@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="list_item_cache" type="id"/>
+    <item name="list_item_related_model" type="id"/>
+    <item name="favorite_button_state" type="id"/>
+</resources>

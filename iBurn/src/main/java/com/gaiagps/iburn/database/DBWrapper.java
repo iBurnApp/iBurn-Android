@@ -1,4 +1,4 @@
-package com.gaiagps.iburn;
+package com.gaiagps.iburn.database;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -15,15 +15,11 @@ import android.content.Intent;
 import android.database.AbstractWindowedCursor;
 import android.database.Cursor;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteCantOpenDatabaseException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import com.gaiagps.iburn.database.ArtTable;
-import com.gaiagps.iburn.database.CampTable;
-import com.gaiagps.iburn.database.EventTable;
 
 
 /**
@@ -33,7 +29,9 @@ import com.gaiagps.iburn.database.EventTable;
  * requires Strings: DATABASE_NAME, DATABASE_VERSION,
  * CREATE_TABLE_STATEMENT, TABLE_NAME
  */
-class DBWrapper extends SQLiteOpenHelper {
+public class DBWrapper extends SQLiteOpenHelper {
+
+    public static boolean COPY_DB = false; // Should bundled db be copied on first launch?
 	
 	//DATABASE INFO
     public static final String DATABASE_NAME = "iburn.db";
@@ -166,16 +164,19 @@ class DBWrapper extends SQLiteOpenHelper {
      */
     
     private void copyDataBase() throws IOException{
+        if(!COPY_DB)
+            return;
     	Log.d("CopyDataBase","Copying...");
     	//Open your local db as the input stream
         // TODO: Bundled DB will be stored in res/raw
+        //InputStream myInput = c.getResources().openRawResource(R.raw.dbId);
     	InputStream myInput = c.getAssets().open(DATABASE_PATH + DATABASE_NAME);
  
     	// Path to the just created empty db
-    	String outFileName = DATABASE_DESTINATION_PATH + DATABASE_NAME;
+    	//String outFileName = DATABASE_DESTINATION_PATH + DATABASE_NAME;
  
     	//Open the empty db as the output stream
-    	OutputStream myOutput = new FileOutputStream(outFileName);
+    	OutputStream myOutput = new FileOutputStream(DATABASE_DESTINATION_PATH);
  
     	//transfer bytes from the inputfile to the outputfile
     	byte[] buffer = new byte[1024];
@@ -207,8 +208,8 @@ class DBWrapper extends SQLiteOpenHelper {
     			return false;
     		}
     		
-    		String myPath = DATABASE_DESTINATION_PATH + DATABASE_NAME;
-    		checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
+    		//String myPath = DATABASE_DESTINATION_PATH + DATABASE_NAME;
+    		checkDB = SQLiteDatabase.openDatabase(DATABASE_DESTINATION_PATH, null, SQLiteDatabase.OPEN_READONLY);
  
     	}catch(SQLiteException e){
  
@@ -228,11 +229,11 @@ class DBWrapper extends SQLiteOpenHelper {
     public SQLiteDatabase openDataBase(boolean write) throws SQLException{
     	 
     	//Open the copied database
-        String myPath = DATABASE_DESTINATION_PATH + DATABASE_NAME;
+        //String myPath = DATABASE_DESTINATION_PATH + DATABASE_NAME;
         if (write)
-        	return SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READWRITE);
+        	return SQLiteDatabase.openDatabase(DATABASE_DESTINATION_PATH, null, SQLiteDatabase.OPEN_READWRITE);
         else
-        	return SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
+        	return SQLiteDatabase.openDatabase(DATABASE_DESTINATION_PATH, null, SQLiteDatabase.OPEN_READONLY);
  
     }
     
@@ -264,14 +265,14 @@ class DBWrapper extends SQLiteOpenHelper {
  
     }
 
-    public static Uri contentValuesToTable(ArrayList<ContentValues> cv, Uri uri){
+    public static int insertContentValuesToTable(ArrayList<ContentValues> cv, Uri uri){
         if(c == null)
-            return null;
+            return 0;
         int size = cv.size();
-        Uri result = null;
-        for(int x = 0; x<size;x++){
-            result = c.getContentResolver().insert(uri, cv.get(x));
-        }
+        int result = 0;
+        ContentValues[] cvList = new ContentValues[1];
+        cvList = cv.toArray(cvList); // toArray requires an initialized array of type equal to desired result :/
+        result = c.getContentResolver().bulkInsert(uri, cvList);
         return result;
     }
 

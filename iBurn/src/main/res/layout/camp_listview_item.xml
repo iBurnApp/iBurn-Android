@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--  This RelativeLayout contains the entire list item 
+	  It is more efficient to use RelativeLayout then nested LinearLayouts
+	  see http://developer.android.com/resources/articles/layout-tricks-efficiency.html-->
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/list_item_container"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content" >
+
+     <TextView
+	    android:id="@+id/list_item_title"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignWithParentIfMissing="true"
+        android:gravity="center_vertical"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+	    android:padding="2dp"
+	    android:textSize="20dp" >
+	</TextView>
+	    
+	<TextView
+	    android:id="@+id/list_item_sub"
+	    android:layout_width="wrap_content"
+        android:layout_height="wrap_content" 
+        android:layout_below="@id/list_item_title"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+	    android:padding="2dp"
+	    android:textSize="18dp" >
+	</TextView>
+
+
+</RelativeLayout>

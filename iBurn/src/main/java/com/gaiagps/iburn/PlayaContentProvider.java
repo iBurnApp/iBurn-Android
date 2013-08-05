@@ -12,9 +12,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.util.Log;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.CampTable;
+import com.gaiagps.iburn.database.DBWrapper;
 import com.gaiagps.iburn.database.EventTable;
 
 public class PlayaContentProvider extends ContentProvider {
@@ -33,7 +33,7 @@ public class PlayaContentProvider extends ContentProvider {
 		private static final int ART_ID = 8;
 		private static final int ART_SEARCH = 10;
 
-		private static final String AUTHORITY = "pro.dbro.iburn_2012.data.playacontentprovider";
+		private static final String AUTHORITY = "com.gaiagps.iburn.playacontentprovider";
 
 		private static final String CAMP_BASE_PATH = "camp";
 		private static final String EVENT_BASE_PATH = "event";

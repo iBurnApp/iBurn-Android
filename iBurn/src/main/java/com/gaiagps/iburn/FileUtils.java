@@ -2,6 +2,7 @@ package com.gaiagps.iburn;
 
 import android.content.Context;
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.*;
 
@@ -9,6 +10,7 @@ import java.io.*;
  * Created by davidbrodsky on 8/3/13.
  */
 public class FileUtils {
+    private static final String TAG = "FileUtils";
 
     private static void createDirectoryAndParents(Context c, String path) throws IOException {
         File toCreate = new File(path);
@@ -34,10 +36,14 @@ public class FileUtils {
         }
         File output = new File(String.format("%s/%s", tilesPath, tilesName));
         if(!output.exists()){
+            Log.i(TAG, "Copying MBTiles");
             copyRawFileToSD(c, resourceId, output.getAbsolutePath());
+            Log.i(TAG, "MBTiles copying complete");
             return true;
-        }else
+        }else{
+            Log.i(TAG, "MBTiles already copied");
             return false;
+        }
     }
 
 

@@ -3,7 +3,9 @@ package com.gaiagps.iburn;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
+import com.gaiagps.iburn.adapters.CampCursorAdapter;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -29,12 +31,12 @@ public class GoogleMapFragment extends SupportMapFragment{
     @Override
     public void onDestroy(){
         super.onDestroy();
-        tileProvider.close();
+        if(tileProvider != null)
+            tileProvider.close();
     }
 
-    @Override
-    public void onCreate(Bundle arg0) {
-        super.onCreate(arg0);
+    @Override public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
         addMBTileOverlay(R.raw.iburn);
     }
 
@@ -44,12 +46,19 @@ public class GoogleMapFragment extends SupportMapFragment{
             @Override
             protected Void doInBackground(Integer... params) {
                 int MBTileAssetId = params[0];
-                FileUtils.copyMBTilesToSD(getActivity().getApplicationContext(), MBTileAssetId, Constants.MBTILE_DESTINATION);
+                if(getActivity() != null)
+                    FileUtils.copyMBTilesToSD(getActivity().getApplicationContext(), MBTileAssetId, Constants.MBTILE_DESTINATION);
+                else{
+                    Log.e(TAG, "getActivity() null on addMBTileOverlay");
+                    this.cancel(true);
+                }
                 return null;
             }
 
             @Override
             protected void onPostExecute(Void result) {
+                if(getActivity() == null)
+                    return;
                 String tilesPath = String.format("%s/%s/%s/%s", Environment.getExternalStorageDirectory().getAbsolutePath().toString(),
                         Constants.IBURN_ROOT, Constants.TILES_DIR, Constants.MBTILE_DESTINATION);
                 File MBTFile = new File(tilesPath);

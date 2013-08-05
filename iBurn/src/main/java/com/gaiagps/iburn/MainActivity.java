@@ -9,10 +9,10 @@ import android.support.v4.view.ViewPager;
 import android.view.*;
 import android.widget.TabHost;
 import android.widget.TabWidget;
-import android.widget.TextView;
-import com.viewpagerindicator.TitlePageIndicator;
 
 import java.util.ArrayList;
+
+import static com.gaiagps.iburn.DataUtils.checkAndSetupDB;
 
 public class MainActivity extends FragmentActivity {
 
@@ -34,6 +34,7 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         setupFragmentStatePagerAdapter();
+        checkAndSetupDB(getApplicationContext());
     }
 
     private void setupFragmentStatePagerAdapter(){
@@ -49,16 +50,27 @@ public class MainActivity extends FragmentActivity {
         String label = null;
         for(Constants.TAB_TYPE tabType : Constants.TAB_TYPE.values()){
             label = getString(Constants.TAB_TO_TITLE.get(tabType));
-            if(tabType.compareTo(Constants.TAB_TYPE.MAP) == 0){
-                mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
-                        GoogleMapFragment.class, null);
-            }else{
-                Bundle bundle = new Bundle(1);
-                bundle.putSerializable("type", tabType);
-                mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
-                        ListViewFragment.class, bundle);
-            }
+            Bundle bundle = new Bundle(1);
+            bundle.putSerializable("type", tabType);
+            switch(tabType){
+                case MAP:
+                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
+                            GoogleMapFragment.class, null);
+                    break;
+                case ART:
+                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
+                            ArtListViewFragment.class, bundle);
+                    break;
+                case EVENTS:
+                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
+                            EventListViewFragment.class, bundle);
+                    break;
+                case CAMPS:
+                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
+                            CampListViewFragment.class, bundle);
+                    break;
 
+            }
         }
     }
 
@@ -74,11 +86,13 @@ public class MainActivity extends FragmentActivity {
         super.onDestroy();
     }
 
+    /*
     private View inflateCustomTab(String tab_title){
         ViewGroup tab = (ViewGroup) inflater.inflate(R.layout.burn_tab, (ViewGroup) this.findViewById(android.R.id.tabs), false);
         ((TextView)tab.findViewById(R.id.title)).setText(tab_title);
         return tab;
     }
+    */
 
     /**
      * This is a helper class that implements the management of tabs and all
