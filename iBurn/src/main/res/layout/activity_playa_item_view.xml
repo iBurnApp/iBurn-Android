@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@android:drawable/screen_background_dark"
+    android:orientation="vertical"
+    android:padding="10dp" >
+
+    <ImageView
+        android:id="@+id/favorite_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="5dp"
+        android:src="@android:drawable/star_big_off" />
+
+    <TextView
+        android:id="@+id/popup_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:fontFamily="sans-serif-light"
+        android:layout_toLeftOf="@id/favorite_button"
+        android:ellipsize="marquee"
+        android:text="Title"
+        android:textSize="24dp" />
+
+    <TextView
+        android:id="@+id/popup_artist"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/popup_title"
+        android:ellipsize="marquee"
+        android:fontFamily="sans-serif-light"
+        android:text="artist"
+        android:textSize="20dp"
+        android:visibility="visible" />
+
+    <TextView
+        android:id="@+id/popup_contact"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-light"
+        android:layout_below="@id/popup_artist"
+        android:ellipsize="marquee"
+        android:text="contact"
+        android:textSize="20dp"
+        android:visibility="visible" />
+
+    <TextView
+        android:id="@+id/popup_hometown"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/popup_contact"
+        android:fontFamily="sans-serif-light"
+        android:ellipsize="marquee"
+        android:text="hometown"
+        android:textSize="20dp"
+        android:visibility="visible" />
+
+    <TextView
+        android:id="@+id/popup_location"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-light"
+        android:layout_below="@id/popup_hometown"
+        android:ellipsize="marquee"
+        android:text="location"
+        android:textColor="#33B5E5"
+        android:textSize="20dp"
+        android:visibility="visible" />
+
+    <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@id/popup_location" >
+
+        <TextView
+            android:id="@+id/popup_description"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
+            android:ellipsize="marquee"
+            android:singleLine="false"
+            android:text="description"
+            android:textSize="18dp"
+            android:visibility="visible" />
+    </ScrollView>
+
+
+</RelativeLayout>

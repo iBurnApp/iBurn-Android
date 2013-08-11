@@ -168,7 +168,7 @@ public abstract class PlayaListViewFragment extends ListFragment
     protected View getPopupView(){
         if(popupView == null){
             LayoutInflater layoutInflater = (LayoutInflater)getActivity().getSystemService(getActivity().LAYOUT_INFLATER_SERVICE);
-            popupView = layoutInflater.inflate(R.layout.popup, (ViewGroup) getView());
+            popupView = layoutInflater.inflate(R.layout.activity_playa_item_view, (ViewGroup) getView());
         }
 
         return popupView;

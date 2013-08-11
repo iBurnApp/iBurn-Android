@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.system.id="GRADLE" type="JAVA_MODULE" version="4">
+<module external.linked.project.path="$MODULE_DIR$/.." external.system.id="GRADLE" type="JAVA_MODULE" version="4">
   <component name="FacetManager">
     <facet type="android" name="Android">
       <configuration>
@@ -68,10 +68,10 @@
     </content>
     <orderEntry type="jdk" jdkName="Android 4.3 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="support-v4-13.0.0" level="project" />
-    <orderEntry type="module" module-name="google-play-services_lib" exported="" />
-    <orderEntry type="module" module-name="android-gmaps-addons" exported="" />
     <orderEntry type="module" module-name="Android-ViewPagerIndicator" exported="" />
+    <orderEntry type="module" module-name="android-gmaps-addons" exported="" />
+    <orderEntry type="module" module-name="google-play-services_lib" exported="" />
+    <orderEntry type="library" exported="" name="support-v4-13.0.0" level="project" />
     <orderEntry type="library" exported="" name="gson-2.2.4" level="project" />
   </component>
 </module>

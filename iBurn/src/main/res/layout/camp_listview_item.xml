@@ -7,10 +7,12 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/list_item_container"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content" >
+    android:layout_height="wrap_content"
+    android:padding="5dp">
 
      <TextView
 	    android:id="@+id/list_item_title"
+        android:fontFamily="sans-serif-light"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
@@ -25,6 +27,7 @@
 	    
 	<TextView
 	    android:id="@+id/list_item_sub"
+        android:fontFamily="sans-serif-light"
 	    android:layout_width="wrap_content"
         android:layout_height="wrap_content" 
         android:layout_below="@id/list_item_title"
