@@ -1,5 +1,6 @@
 package com.gaiagps.iburn;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 import android.widget.TextView;
 
 /**
@@ -165,13 +167,14 @@ public abstract class PlayaListViewFragment extends ListFragment
         }
     }
 
-    protected View getPopupView(){
-        if(popupView == null){
-            LayoutInflater layoutInflater = (LayoutInflater)getActivity().getSystemService(getActivity().LAYOUT_INFLATER_SERVICE);
-            popupView = layoutInflater.inflate(R.layout.activity_playa_item_view, (ViewGroup) getView());
-        }
-
-        return popupView;
+    @Override
+    public void onListItemClick (ListView l, View v, int position, long id){
+        int model_id = (Integer) v.getTag(R.id.list_item_related_model);
+        Constants.PLAYA_ITEM playa_item = (Constants.PLAYA_ITEM) v.getTag(R.id.list_item_related_model_type);
+        Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
+        i.putExtra("model_id", model_id);
+        i.putExtra("playa_item", playa_item);
+        getActivity().startActivity(i);
 
     }
 }

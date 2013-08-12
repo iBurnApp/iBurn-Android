@@ -1,6 +1,7 @@
 package com.gaiagps.iburn;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -9,6 +10,7 @@ import android.support.v4.view.ViewPager;
 import android.view.*;
 import android.widget.TabHost;
 import android.widget.TabWidget;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
@@ -35,6 +37,20 @@ public class MainActivity extends FragmentActivity {
         inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         setupFragmentStatePagerAdapter();
         checkAndSetupDB(getApplicationContext());
+    }
+
+    protected void onNewIntent(Intent intent){
+        if(intent.hasExtra("tab")){
+            Constants.TAB_TYPE tab = (Constants.TAB_TYPE) intent.getSerializableExtra("tab");
+            switch(tab){
+                case MAP:
+                    mViewPager.setCurrentItem(0, true);
+                    LatLng marker = new LatLng(intent.getFloatExtra("lat",0), intent.getFloatExtra("lon",0));
+                    ((GoogleMapFragment)mTabsAdapter.getItem(0)).addMarker(marker, intent.getStringExtra("title"));
+                    break;
+
+            }
+        }
     }
 
     private void setupFragmentStatePagerAdapter(){

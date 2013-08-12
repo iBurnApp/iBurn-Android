@@ -6,6 +6,7 @@ import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.View;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
+import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.EventTable;
 
@@ -93,6 +94,7 @@ public class EventCursorAdapter extends SimpleCursorAdapter implements SectionIn
         view_cache.sub.setText(view_cache.time_label);
         //view_cache.thumbnail.setImageBitmap(BitmapFactory.decodeFile(cursor.getString(view_cache.thumbnail_col)));
         view.setTag(R.id.list_item_related_model, cursor.getInt(view_cache._id_col));
+        view.setTag(R.id.list_item_related_model_type, Constants.PLAYA_ITEM.EVENT);
     }
 	
 	// Cache the views within a ListView row item 

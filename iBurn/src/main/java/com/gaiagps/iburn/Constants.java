@@ -25,6 +25,7 @@ public class Constants {
     public static final String GENERAL_PREFS = "gen";
     public static final String DB_POPULATED = "db_populated";
 
+    public enum PLAYA_ITEM { CAMP, ART, EVENT};
     public enum TAB_TYPE { MAP, CAMPS, ART, EVENTS};
 
     public static HashMap<TAB_TYPE, Integer> TAB_TO_TITLE = new HashMap<TAB_TYPE, Integer>() {{

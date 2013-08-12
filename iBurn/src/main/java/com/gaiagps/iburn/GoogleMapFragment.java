@@ -181,5 +181,12 @@ public class GoogleMapFragment extends SupportMapFragment{
         getMap().clear();
     }
 
+    public void addMarker(LatLng location, String title){
+        getMap().addMarker(new MarkerOptions()
+                .position(location)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .title(title));
+    }
+
 
 }
