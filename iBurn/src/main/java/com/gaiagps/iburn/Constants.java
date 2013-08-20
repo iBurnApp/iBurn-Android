@@ -10,9 +10,6 @@ public class Constants {
     public static final double MAN_LAT = 40.782622;
     public static final double MAN_LON = -119.208264;
 
-    public static final double WOMAN_LAT = 40.792622;
-    public static final double WOMAN_LON = -119.218264;
-
     // External storage directory relative to sdcard
     public static final String IBURN_ROOT = "iburn";
     // External storage directory for tiles, relative to IBURN_ROOT
@@ -24,6 +21,9 @@ public class Constants {
     // SharedPreferences keys
     public static final String GENERAL_PREFS = "gen";
     public static final String DB_POPULATED = "db_populated";
+    public static final String EMBARGO_CLEAR = "embargo";
+    public static final String HOME_LAT = "home_lat";
+    public static final String HOME_LON = "home_lon";
 
     public enum PLAYA_ITEM { CAMP, ART, EVENT};
     public enum TAB_TYPE { MAP, CAMPS, ART, EVENTS};

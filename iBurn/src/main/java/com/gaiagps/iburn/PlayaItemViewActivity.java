@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -32,6 +33,11 @@ public class PlayaItemViewActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playa_item_view);
         populateViews(getIntent());
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return true;
     }
 
     private void populateViews(Intent i){
@@ -74,7 +80,7 @@ public class PlayaItemViewActivity extends FragmentActivity {
             }else
                 findViewById(R.id.body).setVisibility(View.GONE);
 
-            if(BurnState.embargoClear && !c.isNull(c.getColumnIndex("latitude"))){
+            if(BurnState.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex("latitude"))){
                 latLng = new LatLng(c.getDouble(c.getColumnIndexOrThrow("latitude")), c.getDouble(c.getColumnIndexOrThrow("longitude")));
                 //TextView locationView = ((TextView) findViewById(R.id.location));
                 GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -142,7 +148,7 @@ public class PlayaItemViewActivity extends FragmentActivity {
                     }else
                         findViewById(R.id.subitem_1).setVisibility(View.GONE);
 
-                    if(BurnState.embargoClear && !c.isNull(c.getColumnIndex(EventTable.COLUMN_LOCATION))){
+                    if(BurnState.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex(EventTable.COLUMN_LOCATION))){
                         ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(EventTable.COLUMN_LOCATION)));
                     }
                     else

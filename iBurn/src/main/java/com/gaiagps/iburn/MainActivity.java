@@ -1,14 +1,18 @@
 package com.gaiagps.iburn;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.InputType;
 import android.util.Log;
 import android.view.*;
+import android.widget.EditText;
 import android.widget.TabHost;
 import android.widget.TabWidget;
 import com.google.android.gms.maps.model.LatLng;
@@ -38,7 +42,12 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         setupFragmentStatePagerAdapter();
-        checkAndSetupDB(getApplicationContext());
+        if(!checkAndSetupDB(getApplicationContext())){
+            new AlertDialog.Builder(this)
+                    .setTitle("Welcome to iBurn!")
+                    .setMessage("Hang tight a minute while we build you the iBurn database. In the meantime, explore the map! Happy Burning!")
+                    .show();
+        }
         checkIntentForExtras(getIntent());
     }
 
@@ -102,9 +111,59 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        if(!BurnState.isEmbargoClear(getApplicationContext()))
+            getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if(BurnState.isEmbargoClear(getApplicationContext()))
+            menu.removeItem(R.id.action_unlock);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected (MenuItem item){
+        int id = item.getItemId();
+        if(id == R.id.action_unlock){
+            AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+            alert.setTitle("Enter Unlock Password");
+
+            // Set an EditText view to get user input
+            final EditText input = new EditText(this);
+            input.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            alert.setView(input);
+            alert.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    String value = input.getText().toString();
+                    if(value.compareTo(BurnState.UNLOCK_PW)==0){
+                        BurnState.setEmbargoClear(getApplicationContext(), true);
+                        new AlertDialog.Builder(MainActivity.this)
+                        .setTitle(getString(R.string.victory))
+                        .setMessage(getString(R.string.location_data_unlocked))
+                        .show();
+                    }
+                    else{
+                        dialog.cancel();
+                        new AlertDialog.Builder(MainActivity.this)
+                        .setTitle(getString(R.string.invalid_password))
+                        .show();
+                    }
+                }
+            });
+
+            alert.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                }
+            });
+
+            alert.show();
+            return true;
+        }
+
+        return false;
     }
 
     @Override

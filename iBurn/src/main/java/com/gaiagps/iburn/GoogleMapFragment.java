@@ -1,5 +1,7 @@
 package com.gaiagps.iburn;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -30,11 +32,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     private static final String TAG = "GoogleMapFragment";
 
     // Loader ids
-    final int ART = 0;
-    final int CAMPS = 1;
-    final int EVENTS = 2;
+    final int ART = 1;
+    final int CAMPS = 2;
+    final int EVENTS = 3;
 
-    boolean showingMarkers = false;
+    int state = 0;
 
     MapBoxOfflineTileProvider tileProvider;
     TileOverlay overlay;
@@ -42,6 +44,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     String mCurFilter;                      // Search string to filter by
     boolean limitListToFavorites = false;   // Limit display to favorites?
+
+    boolean settingHomeLocation = false;
 
     public GoogleMapFragment() {
         super();
@@ -62,38 +66,50 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.map, menu);
+        if(BurnState.isEmbargoClear(getActivity().getApplicationContext()))
+            inflater.inflate(R.menu.map, menu);
     }
 
     @Override
     public boolean onOptionsItemSelected (MenuItem item){
        int id = item.getItemId();
-       if(id == R.id.action_home){
-           boundCameraByTwoPoints();
-       }else if(showingMarkers){
+
+       if(state != 0){
            clearMap();
-       }else{
-           switch(id){
-               case R.id.action_home:
-                   boundCameraByTwoPoints();
-                   break;
-               case R.id.action_map_art:
-                   initLoader(ART);
-                   break;
-               case R.id.action_map_camps:
-                   initLoader(CAMPS);
-                   break;
-               case R.id.action_map_events:
-                   initLoader(EVENTS);
-                   break;
-           }
        }
+
+       switch(id){
+           case R.id.action_home:
+               if(BurnState.getHomeLatLng(getActivity()) == null && !settingHomeLocation){
+                   settingHomeLocation = true;
+                   Toast.makeText(GoogleMapFragment.this.getActivity(), "Hold then drag the pin to set your home camp", Toast.LENGTH_LONG).show();
+                   addHomePin(new LatLng(Constants.MAN_LAT, Constants.MAN_LON));
+               }else if(!settingHomeLocation){
+                   navigateHome();
+               }
+               break;
+           case R.id.action_map_art:
+                if(state != ART)
+                    initLoader(ART);
+               break;
+           case R.id.action_map_camps:
+               if(state != CAMPS)
+                    initLoader(CAMPS);
+               break;
+           case R.id.action_map_events:
+               if(state != EVENTS)
+                    initLoader(EVENTS);
+
+               break;
+       }
+
         return true;
     }
 
     @Override public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         addMBTileOverlay(R.raw.iburn);
+        addHomePin(BurnState.getHomeLatLng(getActivity()));
         LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
         getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
 
@@ -149,12 +165,38 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             }
         }.execute(MBTileAssetId);
 
-
     }
 
-    private void boundCameraByTwoPoints(){
-        LatLng start = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
-        LatLng end = new LatLng(Constants.WOMAN_LAT, Constants.WOMAN_LON);
+    private void navigateHome(){
+        if(getMap().getMyLocation() == null){
+            new AlertDialog.Builder(getActivity())
+                    .setTitle("Where are you?")
+                    .setMessage("We're still working on your location. Try again in a few seconds!")
+                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    })
+                    .show();
+            return;
+        }
+        LatLng start = new LatLng(getMap().getMyLocation().getLatitude(), getMap().getMyLocation().getLongitude());
+        LatLng end = BurnState.getHomeLatLng(getActivity());
+        if(getDistance(start, end) > 8046){
+            new AlertDialog.Builder(getActivity())
+                    .setTitle(getActivity().getString(R.string.youre_so_far))
+                    .setMessage(String.format("It appears you're %d meters from home. Get closer to the burn before navigating home..", (int) getDistance(start, end)))
+                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            
+                        }
+                    })
+                    .show();
+            return;
+
+        }
         // Mark start and end
         getMap().addMarker(new MarkerOptions()
                 .position(start)
@@ -166,13 +208,17 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
 
         // Draw line between them
+        /*
         PolylineOptions pathOptions = new PolylineOptions()
                 .add(start).add(end);
         getMap().addPolyline(pathOptions);
+        */
 
+        /*
         final LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
-        boundsBuilder.include(new LatLng(Constants.MAN_LAT, Constants.MAN_LON));
-        boundsBuilder.include(new LatLng(Constants.WOMAN_LAT, Constants.WOMAN_LON));
+        boundsBuilder.include(start);
+        boundsBuilder.include(end);
+        */
         getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().bearing(getBearing(start, end)).target(getMidPoint(start,end)).tilt(45).zoom(15).build()));
 
         DecimalFormat twoDForm = new DecimalFormat("#");
@@ -228,7 +274,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public void clearMap(){
         getMap().clear();
         addMBTileOverlay(R.raw.iburn);
-        showingMarkers = false;
+        if(BurnState.getHomeLatLng(getActivity()) != null)
+            addHomePin(BurnState.getHomeLatLng(getActivity()));
+        state = 0;
     }
 
     public void mapMarker(MarkerOptions marker){
@@ -329,7 +377,35 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     }
 
     public void initLoader(int type){
-        showingMarkers = true;
+        state = type;
         getLoaderManager().initLoader(type, null, this);
+    }
+
+    private void addHomePin(LatLng latLng){
+        if(latLng == null)
+            return;
+        Marker marker = getMap().addMarker(new MarkerOptions()
+                .position(latLng)
+                .draggable(true)
+                .title("Home")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_marker)));
+        final String homeMarkerId = marker.getId();
+        getMap().setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+            @Override
+            public void onMarkerDragStart(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDrag(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDragEnd(Marker marker) {
+                if(marker.getId().compareTo(homeMarkerId) == 0)
+                    BurnState.setHomeLatLng(GoogleMapFragment.this.getActivity().getApplicationContext(), marker.getPosition());
+            }
+        });
     }
 }

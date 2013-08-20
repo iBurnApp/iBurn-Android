@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -35,14 +36,24 @@ public class DataUtils {
 	
 	public static final double MAN_DISTANCE_THRESHOLD = 3; // miles
 
-    public static void checkAndSetupDB(Context c){
+    /**
+     *
+     * @param c
+     * @return true if database is ready, false if setup required
+     */
+    public static boolean checkAndSetupDB(Context c){
         SharedPreferences prefs = c.getSharedPreferences(Constants.GENERAL_PREFS, c.MODE_PRIVATE);
         if(!prefs.getBoolean(Constants.DB_POPULATED, false)){
-            Toast toast = Toast.makeText(c, "Preparing iBurn data... ", Toast.LENGTH_LONG);
-            toast.show();
-            new PopulateDBFromJsonTask(c).execute();
-        }else
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)  // Ensure this asynctask doesn't block the map tile copying
+                new PopulateDBFromJsonTask(c).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            else                                                        // Pre API 3.0, AsyncTasks used >1 thread pools by default.
+                new PopulateDBFromJsonTask(c).execute();
+
+            return false;
+        }else{
             Log.i(TAG, "Database already populated with json");
+            return true;
+        }
     }
 	
 	public static class PopulateDBFromJsonTask extends AsyncTask<Void, Void, Integer>{

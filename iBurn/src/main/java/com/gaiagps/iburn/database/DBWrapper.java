@@ -88,6 +88,7 @@ public class DBWrapper extends SQLiteOpenHelper {
         ContentValues[] cvList = new ContentValues[1];
         cvList = cv.toArray(cvList); // toArray requires an initialized array of type equal to desired result :/
         result = c.getContentResolver().bulkInsert(uri, cvList);
+        c.getContentResolver().notifyChange(uri, null);
         return result;
     }
 
