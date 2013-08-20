@@ -1,34 +1,47 @@
 package com.gaiagps.iburn;
 
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.gaiagps.iburn.database.ArtTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.*;
 
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 
 /**
  * Created by davidbrodsky on 8/3/13.
  */
-public class GoogleMapFragment extends SupportMapFragment{
+public class GoogleMapFragment extends SupportMapFragment implements LoaderManager.LoaderCallbacks<Cursor>{
     private static final String TAG = "GoogleMapFragment";
+
+    // Loader ids
+    final int ART = 0;
+    final int CAMPS = 1;
+    final int EVENTS = 2;
+
+    boolean showingMarkers = false;
 
     MapBoxOfflineTileProvider tileProvider;
     TileOverlay overlay;
     LatLng latLngToCenterOn;
+
+    String mCurFilter;                      // Search string to filter by
+    boolean limitListToFavorites = false;   // Limit display to favorites?
 
     public GoogleMapFragment() {
         super();
@@ -54,10 +67,26 @@ public class GoogleMapFragment extends SupportMapFragment{
 
     @Override
     public boolean onOptionsItemSelected (MenuItem item){
-       switch(item.getItemId()){
-           case R.id.action_home:
-               boundCameraByTwoPoints();
-               break;
+       int id = item.getItemId();
+       if(id == R.id.action_home){
+           boundCameraByTwoPoints();
+       }else if(showingMarkers){
+           clearMap();
+       }else{
+           switch(id){
+               case R.id.action_home:
+                   boundCameraByTwoPoints();
+                   break;
+               case R.id.action_map_art:
+                   initLoader(ART);
+                   break;
+               case R.id.action_map_camps:
+                   initLoader(CAMPS);
+                   break;
+               case R.id.action_map_events:
+                   initLoader(EVENTS);
+                   break;
+           }
        }
         return true;
     }
@@ -117,7 +146,6 @@ public class GoogleMapFragment extends SupportMapFragment{
                 opts.tileProvider(tileProvider);
                 overlay = map.addTileOverlay(opts);
 
-                LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
             }
         }.execute(MBTileAssetId);
 
@@ -199,6 +227,8 @@ public class GoogleMapFragment extends SupportMapFragment{
 
     public void clearMap(){
         getMap().clear();
+        addMBTileOverlay(R.raw.iburn);
+        showingMarkers = false;
     }
 
     public void mapMarker(MarkerOptions marker){
@@ -211,5 +241,95 @@ public class GoogleMapFragment extends SupportMapFragment{
 
     }
 
+    static final String[] PROJECTION = new String[] {
+            ArtTable.COLUMN_NAME,
+            ArtTable.COLUMN_ID,
+            ArtTable.COLUMN_LATITUDE,
+            ArtTable.COLUMN_LONGITUDE,
+            ArtTable.COLUMN_FAVORITE
+    };
 
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        Uri targetUri = null;
+        if (mCurFilter != null) {
+            switch(i){
+                case ART:
+                    targetUri = PlayaContentProvider.ART_SEARCH_URI;
+                    break;
+                case CAMPS:
+                    targetUri = PlayaContentProvider.CAMP_SEARCH_URI;
+                    break;
+                case EVENTS:
+                    targetUri = PlayaContentProvider.EVENT_SEARCH_URI;
+                    break;
+            }
+            targetUri = Uri.withAppendedPath(targetUri, Uri.encode(mCurFilter));
+        } else {
+            switch(i){
+                case ART:
+                    targetUri = PlayaContentProvider.ART_URI;
+                    break;
+                case CAMPS:
+                    targetUri = PlayaContentProvider.CAMP_URI;
+                    break;
+                case EVENTS:
+                    targetUri = PlayaContentProvider.EVENT_URI;
+                    break;
+            }
+
+        }
+
+        String selection = null;
+        String[] selectionArgs = null;
+
+
+        if(limitListToFavorites){
+            selection = ArtTable.COLUMN_FAVORITE;
+            selectionArgs = new String[]{"1"};
+        }
+
+        // Now create and return a CursorLoader that will take care of
+        // creating a Cursor for the data being displayed.
+        Log.i(TAG, "Creating loader with uri: " + targetUri.toString());
+        return new CursorLoader(getActivity(), targetUri,
+                PROJECTION, selection, selectionArgs,
+                null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        int id = cursorLoader.getId();
+        GoogleMap map = getMap();
+        clearMap();
+        MarkerOptions markerOptions;
+        while(cursor.moveToNext()){
+            markerOptions = new MarkerOptions().position(new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LATITUDE)), cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LONGITUDE))))
+                    .title(cursor.getString(cursor.getColumnIndex(ArtTable.COLUMN_NAME)));
+
+            switch(id){
+                case ART:
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    break;
+                case CAMPS:
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    break;
+                case EVENTS:
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                    break;
+            }
+            map.addMarker(markerOptions);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> cursorLoader) {
+
+    }
+
+    public void initLoader(int type){
+        showingMarkers = true;
+        getLoaderManager().initLoader(type, null, this);
+    }
 }

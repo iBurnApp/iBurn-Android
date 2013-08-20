@@ -6,4 +6,22 @@
           android:orderInCategory="100"
           android:showAsAction="always" />
 
+    <item android:id="@+id/action_map_camps"
+          android:title="Camps"
+          android:checkable="true"
+          android:orderInCategory="100"
+          android:showAsAction="always" />
+
+    <item android:id="@+id/action_map_art"
+          android:title="Art"
+          android:checkable="true"
+          android:orderInCategory="100"
+          android:showAsAction="always" />
+
+    <item android:id="@+id/action_map_events"
+          android:title="Events"
+          android:checkable="true"
+          android:orderInCategory="100"
+          android:showAsAction="always" />
+
 </menu>
