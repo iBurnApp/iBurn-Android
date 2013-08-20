@@ -14,7 +14,7 @@ public class EventCursorAdapter extends SimpleCursorAdapter implements SectionIn
 
 
 	public EventCursorAdapter(Context context, Cursor c){
-		super(context, R.layout.camp_listview_item, c, new String[]{} , new int[]{}, 0);
+		super(context, R.layout.double_listview_item, c, new String[]{} , new int[]{}, 0);
 	}
 	
 	@Override
@@ -85,14 +85,11 @@ public class EventCursorAdapter extends SimpleCursorAdapter implements SectionIn
         		view_cache.all_day = false;
         		view_cache.time_label = cursor.getString(cursor.getColumnIndexOrThrow(EventTable.COLUMN_START_TIME_PRINT));
         	}
-        	//view_cache.thumbnail_col = cursor.getColumnIndexOrThrow(SQLiteWrapper.COLUMN_THUMBNAIL_PATH);
         	view_cache._id_col = cursor.getColumnIndexOrThrow(EventTable.COLUMN_ID);
-            //view.setTag(R.id.list_item_cache, view_cache);
         }
-        //Log.d("bindView","yeah");
         view_cache.title.setText(cursor.getString(view_cache.title_col));
         view_cache.sub.setText(view_cache.time_label);
-        //view_cache.thumbnail.setImageBitmap(BitmapFactory.decodeFile(cursor.getString(view_cache.thumbnail_col)));
+
         view.setTag(R.id.list_item_related_model, cursor.getInt(view_cache._id_col));
         view.setTag(R.id.list_item_related_model_type, Constants.PLAYA_ITEM.EVENT);
     }
@@ -100,7 +97,6 @@ public class EventCursorAdapter extends SimpleCursorAdapter implements SectionIn
 	// Cache the views within a ListView row item 
     static class ViewCache {
         TextView title;
-        //TextView body;
         TextView sub;
         
         boolean all_day;

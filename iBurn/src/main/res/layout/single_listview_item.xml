@@ -8,35 +8,25 @@
     android:id="@+id/list_item_container"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:padding="5dp">
+    android:background="@drawable/list_item_bg"
+    android:paddingRight="5dp"
+    android:paddingLeft="5dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
      <TextView
 	    android:id="@+id/list_item_title"
         android:fontFamily="sans-serif-light"
+        style="@style/PlayaTextItem"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignWithParentIfMissing="true"
         android:gravity="center_vertical"
         android:singleLine="true"
         android:ellipsize="marquee"
 	    android:padding="2dp"
-	    android:textSize="20dp" >
-	</TextView>
-	    
-	<TextView
-	    android:id="@+id/list_item_sub"
-        android:fontFamily="sans-serif-light"
-	    android:layout_width="wrap_content"
-        android:layout_height="wrap_content" 
-        android:layout_below="@id/list_item_title"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:singleLine="true"
-        android:ellipsize="marquee"
-	    android:padding="2dp"
-	    android:textSize="18dp" >
+	    android:textSize="22sp" >
 	</TextView>
 
 

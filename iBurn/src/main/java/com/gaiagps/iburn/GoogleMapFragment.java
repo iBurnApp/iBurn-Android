@@ -9,14 +9,16 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
-import com.gaiagps.iburn.adapters.CampCursorAdapter;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.*;
 
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 
 /**
  * Created by davidbrodsky on 8/3/13.
@@ -26,6 +28,7 @@ public class GoogleMapFragment extends SupportMapFragment{
 
     MapBoxOfflineTileProvider tileProvider;
     TileOverlay overlay;
+    LatLng latLngToCenterOn;
 
     public GoogleMapFragment() {
         super();
@@ -62,6 +65,25 @@ public class GoogleMapFragment extends SupportMapFragment{
     @Override public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         addMBTileOverlay(R.raw.iburn);
+        LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
+        getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
+
+        if(latLngToCenterOn != null){
+            getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(latLngToCenterOn, 14));
+            latLngToCenterOn = null;
+        }
+
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+    }
+
+    @Override
+    public void onDestroyView(){
+        super.onDestroyView();
+        latLngToCenterOn = null;
     }
 
     private void addMBTileOverlay(int MBTileAssetId){
@@ -96,8 +118,6 @@ public class GoogleMapFragment extends SupportMapFragment{
                 overlay = map.addTileOverlay(opts);
 
                 LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
-
             }
         }.execute(MBTileAssetId);
 
@@ -181,11 +201,14 @@ public class GoogleMapFragment extends SupportMapFragment{
         getMap().clear();
     }
 
-    public void addMarker(LatLng location, String title){
-        getMap().addMarker(new MarkerOptions()
-                .position(location)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                .title(title));
+    public void mapMarker(MarkerOptions marker){
+        getMap().addMarker(marker);
+    }
+
+    public void mapAndCenterOnMarker(MarkerOptions marker){
+        latLngToCenterOn = marker.getPosition();
+        mapMarker(marker);
+
     }
 
 

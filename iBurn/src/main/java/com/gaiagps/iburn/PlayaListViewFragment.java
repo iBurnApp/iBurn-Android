@@ -2,6 +2,7 @@ package com.gaiagps.iburn;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -90,6 +91,8 @@ public abstract class PlayaListViewFragment extends ListFragment
     public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
         View v =  super.onCreateView(inflater, container, savedInstanceState);
         emptyText = (TextView) v.findViewById(android.R.id.empty);
+        ((ListView) v.findViewById(android.R.id.list)).setDivider(new ColorDrawable(0x292929));
+
         return v;
     }
 

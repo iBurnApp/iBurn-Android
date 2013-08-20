@@ -1,24 +1,28 @@
 package com.gaiagps.iburn;
 
-import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.MotionEvent;
+import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.EventTable;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 /**
  * Created by davidbrodsky on 8/11/13.
  */
-public class PlayaItemViewActivity extends Activity {
+public class PlayaItemViewActivity extends FragmentActivity {
 
     Uri uri;
     int model_id;
@@ -27,7 +31,6 @@ public class PlayaItemViewActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playa_item_view);
-
         populateViews(getIntent());
     }
 
@@ -68,15 +71,21 @@ public class PlayaItemViewActivity extends Activity {
 
             if(!c.isNull(c.getColumnIndex("description"))){
                 ((TextView) findViewById(R.id.body)).setText(c.getString(c.getColumnIndexOrThrow("description")));
-                findViewById(R.id.body).setVisibility(View.VISIBLE);
-            }
+            }else
+                findViewById(R.id.body).setVisibility(View.GONE);
 
             if(BurnState.embargoClear && !c.isNull(c.getColumnIndex("latitude"))){
                 latLng = new LatLng(c.getDouble(c.getColumnIndexOrThrow("latitude")), c.getDouble(c.getColumnIndexOrThrow("longitude")));
-                TextView locationView = ((TextView) findViewById(R.id.location));
-                locationView.setVisibility(View.VISIBLE);
-                locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
-                locationView.setOnTouchListener(new View.OnTouchListener(){
+                //TextView locationView = ((TextView) findViewById(R.id.location));
+                GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+                LatLng start = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
+                Log.i("GoogleMapFragment", "adding / centering marker");
+                mapFragment.mapAndCenterOnMarker(new MarkerOptions().position(latLng));
+                mapFragment.getMap().getUiSettings().setMyLocationButtonEnabled(false);
+                mapFragment.getMap().getUiSettings().setZoomControlsEnabled(false);
+                //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
+                /*
+                mapFragment.setOnTouchListener(new View.OnTouchListener(){
 
                     @Override
                     public boolean onTouch(View v, MotionEvent me) {
@@ -86,6 +95,7 @@ public class PlayaItemViewActivity extends Activity {
                             i.putExtra("lat", latLng.latitude);
                             i.putExtra("lon", latLng.longitude);
                             i.putExtra("title", title);
+                            i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                             PlayaItemViewActivity.this.startActivity(i);
                             return true;
                         }
@@ -93,42 +103,51 @@ public class PlayaItemViewActivity extends Activity {
                     }
 
                 });
-            }
+                */
+            }else
+                findViewById(R.id.map).setVisibility(View.GONE);
 
             switch(model_type){
                 case ART:
                     if(!c.isNull(c.getColumnIndex(ArtTable.COLUMN_ARTIST))){
                         ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.COLUMN_ARTIST)));
-                        findViewById(R.id.subitem_1).setVisibility(View.VISIBLE);
-                    }
+                    }else
+                        findViewById(R.id.subitem_1).setVisibility(View.GONE);
+
                     if(!c.isNull(c.getColumnIndex(ArtTable.COLUMN_CONTACT))){
                         ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.COLUMN_CONTACT)));
-                        findViewById(R.id.subitem_2).setVisibility(View.VISIBLE);
-                    }
+                    }else
+                        findViewById(R.id.subitem_2).setVisibility(View.GONE);
+
                     if(!c.isNull(c.getColumnIndex(ArtTable.COLUMN_ARTIST_LOCATION))){
                         ((TextView) findViewById(R.id.subitem_3)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.COLUMN_ARTIST_LOCATION)));
-                        findViewById(R.id.subitem_3).setVisibility(View.VISIBLE);
-                    }
+                    }else
+                        findViewById(R.id.subitem_3).setVisibility(View.GONE);
                     break;
                 case CAMP:
                     if(!c.isNull(c.getColumnIndex(CampTable.COLUMN_CONTACT))){
                         ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(CampTable.COLUMN_CONTACT)));
-                        findViewById(R.id.subitem_1).setVisibility(View.VISIBLE);
-                    }
+                    }else
+                        findViewById(R.id.subitem_1).setVisibility(View.GONE);
+
                     if(!c.isNull(c.getColumnIndex(CampTable.COLUMN_HOMETOWN))){
                         ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(CampTable.COLUMN_HOMETOWN)));
-                        findViewById(R.id.subitem_2).setVisibility(View.VISIBLE);
-                    }
+                    }else
+                        findViewById(R.id.subitem_2).setVisibility(View.GONE);
+                    findViewById(R.id.subitem_3).setVisibility(View.GONE);
                     break;
                 case EVENT:
                     if(!c.isNull(c.getColumnIndex(EventTable.COLUMN_HOST_CAMP_NAME))){
                         ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(EventTable.COLUMN_HOST_CAMP_NAME)));
-                        findViewById(R.id.subitem_1).setVisibility(View.VISIBLE);
-                    }
+                    }else
+                        findViewById(R.id.subitem_1).setVisibility(View.GONE);
+
                     if(BurnState.embargoClear && !c.isNull(c.getColumnIndex(EventTable.COLUMN_LOCATION))){
                         ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(EventTable.COLUMN_LOCATION)));
-                        findViewById(R.id.subitem_2).setVisibility(View.VISIBLE);
                     }
+                    else
+                        findViewById(R.id.subitem_2).setVisibility(View.GONE);
+                    findViewById(R.id.subitem_3).setVisibility(View.GONE);
                     break;
             }
         }

@@ -7,10 +7,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.*;
 import android.widget.TabHost;
 import android.widget.TabWidget;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
@@ -37,16 +39,24 @@ public class MainActivity extends FragmentActivity {
         inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         setupFragmentStatePagerAdapter();
         checkAndSetupDB(getApplicationContext());
+        checkIntentForExtras(getIntent());
     }
 
+    @Override
     protected void onNewIntent(Intent intent){
+        checkIntentForExtras(intent);
+    }
+
+    private void checkIntentForExtras(Intent intent){
         if(intent.hasExtra("tab")){
             Constants.TAB_TYPE tab = (Constants.TAB_TYPE) intent.getSerializableExtra("tab");
             switch(tab){
                 case MAP:
                     mViewPager.setCurrentItem(0, true);
                     LatLng marker = new LatLng(intent.getFloatExtra("lat",0), intent.getFloatExtra("lon",0));
-                    ((GoogleMapFragment)mTabsAdapter.getItem(0)).addMarker(marker, intent.getStringExtra("title"));
+
+                    ((GoogleMapFragment)mTabsAdapter.getItem(0)).mapAndCenterOnMarker(new MarkerOptions().position(marker).title(intent.getStringExtra("title")));
+                    Log.i("GoogleMapFragment", "queue marker");
                     break;
 
             }

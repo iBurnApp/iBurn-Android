@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@android:drawable/screen_background_dark"
+    android:background="#ff1b1b1b"
     android:orientation="vertical"
     android:padding="10dp" >
 
@@ -10,6 +10,8 @@
         android:id="@+id/favorite_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_marginRight="5dp"
@@ -19,75 +21,84 @@
         android:id="@+id/title"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        style="@style/PlayaTextItem"
+        android:textColor="#c7c79d"
         android:layout_alignParentTop="true"
         android:fontFamily="sans-serif-light"
         android:layout_toLeftOf="@id/favorite_button"
         android:ellipsize="marquee"
         android:text="Title"
-        android:textSize="24dp" />
+        android:textSize="32dp" />
 
-    <TextView
-        android:id="@+id/subitem_1"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/title"
-        android:ellipsize="marquee"
-        android:fontFamily="sans-serif-light"
-        android:text="artist"
-        android:textSize="20dp"
-        android:visibility="visible" />
+    <fragment
+            android:id="@+id/map"
+            android:layout_marginTop="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_below="@id/title"
+            class="com.gaiagps.iburn.GoogleMapFragment"/>
 
-    <TextView
-        android:id="@+id/subitem_2"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-light"
-        android:layout_below="@id/subitem_1"
-        android:ellipsize="marquee"
-        android:text="contact"
-        android:textSize="20dp"
-        android:visibility="visible" />
-
-    <TextView
-        android:id="@+id/subitem_3"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/subitem_2"
-        android:fontFamily="sans-serif-light"
-        android:ellipsize="marquee"
-        android:text="hometown"
-        android:textSize="20dp"
-        android:visibility="visible" />
-
-    <TextView
-        android:id="@+id/location"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-light"
-        android:layout_below="@id/subitem_3"
-        android:ellipsize="marquee"
-        android:text="location"
-        android:textColor="#33B5E5"
-        android:textSize="20dp"
-        android:visibility="visible" />
 
     <ScrollView
         android:id="@+id/scrollView1"
+        android:layout_marginTop="5dp"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_below="@id/location" >
+        android:layout_below="@id/map" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <TextView
+                android:id="@+id/subitem_1"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                style="@style/PlayaTextItem"
+                android:ellipsize="marquee"
+                android:fontFamily="sans-serif-light"
+                android:text="artist"
+                android:textSize="26dp"
+                android:visibility="visible" />
+
+        <TextView
+                android:id="@+id/subitem_2"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                style="@style/PlayaTextItem"
+                android:fontFamily="sans-serif-light"
+                android:ellipsize="marquee"
+                android:text="contact"
+                android:textSize="20dp"
+                android:visibility="visible" />
+
+        <TextView
+                android:id="@+id/subitem_3"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                style="@style/PlayaTextItem"
+                android:fontFamily="sans-serif-light"
+                android:ellipsize="marquee"
+                android:text="hometown"
+                android:textSize="20dp"
+                android:visibility="visible" />
+
 
         <TextView
             android:id="@+id/body"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            style="@style/PlayaTextItem"
             android:fontFamily="sans-serif-light"
             android:ellipsize="marquee"
             android:singleLine="false"
             android:text="description"
             android:textSize="18dp"
             android:visibility="visible" />
+
+        </LinearLayout>
     </ScrollView>
 
 
