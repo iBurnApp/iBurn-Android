@@ -71,8 +71,9 @@
     <orderEntry type="module" module-name="Android-ViewPagerIndicator" exported="" />
     <orderEntry type="module" module-name="android-gmaps-addons" exported="" />
     <orderEntry type="module" module-name="google-play-services_lib" exported="" />
-    <orderEntry type="library" exported="" name="support-v4-13.0.0" level="project" />
     <orderEntry type="library" exported="" name="gson-2.2.4" level="project" />
+    <orderEntry type="library" exported="" name="support-v4-18.0.0" level="project" />
+    <orderEntry type="library" exported="" name="ComAndroidSupportAppcompatV71800.aar" level="project" />
   </component>
 </module>
 

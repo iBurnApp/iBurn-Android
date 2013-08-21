@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:iburn="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_home"
           android:title="@string/action_home"
           android:orderInCategory="100"
-          android:showAsAction="always" />
+          iburn:showAsAction="always" />
 
     <item android:title="POIs"
-          android:showAsAction="always">
+          iburn:showAsAction="always">
         <menu>
             <group android:id="@+id/poi_group"
                    android:checkableBehavior="all">

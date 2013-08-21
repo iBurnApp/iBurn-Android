@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -24,7 +25,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 /**
  * Created by davidbrodsky on 8/11/13.
  */
-public class PlayaItemViewActivity extends FragmentActivity {
+public class PlayaItemViewActivity extends ActionBarActivity {
 
     Uri uri;
     int model_id;
@@ -32,6 +33,7 @@ public class PlayaItemViewActivity extends FragmentActivity {
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getSupportActionBar().setTitle("");
         setContentView(R.layout.activity_playa_item_view);
         populateViews(getIntent());
     }

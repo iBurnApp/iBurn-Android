@@ -9,12 +9,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBarActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.*;
 import android.widget.EditText;
 import android.widget.TabHost;
 import android.widget.TabWidget;
+import android.widget.TextView;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -22,7 +24,7 @@ import java.util.ArrayList;
 
 import static com.gaiagps.iburn.DataUtils.checkAndSetupDB;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends ActionBarActivity {
 
     // Hold display width to allow MapViewPager to calculate
     // swiping margin on screen's right border.
@@ -38,6 +40,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getSupportActionBar().setTitle("");
         getDisplayWidth();
         setContentView(R.layout.activity_main);
         inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -89,19 +92,19 @@ public class MainActivity extends FragmentActivity {
             bundle.putSerializable("type", tabType);
             switch(tabType){
                 case MAP:
-                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
+                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(inflateCustomTab(label)),
                             GoogleMapFragment.class, null);
                     break;
                 case ART:
-                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
+                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(inflateCustomTab(label)),
                             ArtListViewFragment.class, bundle);
                     break;
                 case EVENTS:
-                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
+                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(inflateCustomTab(label)),
                             EventListViewFragment.class, bundle);
                     break;
                 case CAMPS:
-                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(label),
+                    mTabsAdapter.addTab(mTabHost.newTabSpec(label).setIndicator(inflateCustomTab(label)),
                             CampListViewFragment.class, bundle);
                     break;
 
@@ -297,6 +300,12 @@ public class MainActivity extends FragmentActivity {
     private void getDisplayWidth(){
         Display display = getWindowManager().getDefaultDisplay();
         display_width = display.getWidth();
+    }
+
+    private View inflateCustomTab(String tab_title){
+        ViewGroup tab = (ViewGroup) inflater.inflate(R.layout.tab_indicator_iburn, (ViewGroup) this.findViewById(android.R.id.tabs), false);
+        ((TextView)tab.findViewById(R.id.title)).setText(tab_title);
+        return tab;
     }
     
 }

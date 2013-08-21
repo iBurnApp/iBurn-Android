@@ -28,4 +28,5 @@ dependencies {
     compile project(':libraries:android-gmaps-addons')
     compile project(':libraries:google-play-services_lib')
     compile 'com.android.support:support-v4:13.0.0'
+    compile 'com.android.support:appcompat-v7:18.0.+'
 }
