@@ -37,7 +37,15 @@ public class PlayaItemViewActivity extends FragmentActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        return true;
+        super.onCreateOptionsMenu(menu);
+        return false;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu (Menu menu){
+        super.onPrepareOptionsMenu(menu);
+        menu.removeItem(R.id.action_home);
+        return false;
     }
 
     private void populateViews(Intent i){

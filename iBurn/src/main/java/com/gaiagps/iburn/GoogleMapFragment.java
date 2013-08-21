@@ -17,6 +17,8 @@ import android.view.MenuItem;
 import android.widget.Toast;
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
 import com.gaiagps.iburn.database.ArtTable;
+import com.gaiagps.iburn.database.CampTable;
+import com.gaiagps.iburn.database.EventTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -35,7 +37,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     final int ART = 1;
     final int CAMPS = 2;
     final int EVENTS = 3;
+    final int ALL = 4;
 
+    float lastZoomLevel = 0;
     int state = 0;
 
     MapBoxOfflineTileProvider tileProvider;
@@ -88,19 +92,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                    navigateHome();
                }
                break;
-           case R.id.action_map_art:
-                if(state != ART)
-                    initLoader(ART);
-               break;
-           case R.id.action_map_camps:
-               if(state != CAMPS)
-                    initLoader(CAMPS);
-               break;
-           case R.id.action_map_events:
-               if(state != EVENTS)
-                    initLoader(EVENTS);
-
-               break;
        }
 
         return true;
@@ -108,16 +99,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     @Override public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        addMBTileOverlay(R.raw.iburn);
-        addHomePin(BurnState.getHomeLatLng(getActivity()));
-        LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
-        getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
-
-        if(latLngToCenterOn != null){
-            getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(latLngToCenterOn, 14));
-            latLngToCenterOn = null;
-        }
-
+        initMap();
     }
 
     @Override
@@ -129,6 +111,33 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public void onDestroyView(){
         super.onDestroyView();
         latLngToCenterOn = null;
+    }
+
+    private void initMap(){
+        addMBTileOverlay(R.raw.iburn);
+        addHomePin(BurnState.getHomeLatLng(getActivity()));
+        LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
+        getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
+
+        if(latLngToCenterOn != null){
+            getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(latLngToCenterOn, 14));
+            latLngToCenterOn = null;
+        }
+        getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(CameraPosition cameraPosition) {
+                Log.i(TAG, "Zoom: " + String.valueOf(cameraPosition.zoom) + " Last zoom: " + String.valueOf(lastZoomLevel));
+                if(cameraPosition.zoom > 16 && lastZoomLevel <= 16){
+                    clearMap();
+                    restartLoader(CAMPS);
+                    restartLoader(ART);
+                    restartLoader(EVENTS);
+                }else if(cameraPosition.zoom < 16 && lastZoomLevel >= 16)
+                    clearMap();
+                lastZoomLevel = cameraPosition.zoom;
+            }
+        });
+
     }
 
     private void addMBTileOverlay(int MBTileAssetId){
@@ -179,6 +188,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                         }
                     })
                     .show();
+            getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(Constants.MAN_LAT, Constants.MAN_LON)).zoom(15).build()));
             return;
         }
         LatLng start = new LatLng(getMap().getMyLocation().getLatitude(), getMap().getMyLocation().getLongitude());
@@ -194,10 +204,12 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                         }
                     })
                     .show();
+
+            getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(Constants.MAN_LAT, Constants.MAN_LON)).zoom(15).build()));
             return;
 
         }
-        // Mark start and end
+
         getMap().addMarker(new MarkerOptions()
                 .position(start)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
@@ -206,24 +218,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 .position(end)
                 .title("Home"));
 
-
-        // Draw line between them
-        /*
-        PolylineOptions pathOptions = new PolylineOptions()
-                .add(start).add(end);
-        getMap().addPolyline(pathOptions);
-        */
-
-        /*
-        final LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
-        boundsBuilder.include(start);
-        boundsBuilder.include(end);
-        */
         getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().bearing(getBearing(start, end)).target(getMidPoint(start,end)).tilt(45).zoom(15).build()));
 
         DecimalFormat twoDForm = new DecimalFormat("#");
         new Toast(getActivity()).makeText(getActivity(), String.format("%s meters from home",twoDForm.format(getDistance(start, end))), Toast.LENGTH_LONG).show();
-        // getMap().animateCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 80));
 
     }
 
@@ -289,7 +287,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     }
 
-    static final String[] PROJECTION = new String[] {
+    static final String[] ART_PROJECTION = new String[] {
             ArtTable.COLUMN_NAME,
             ArtTable.COLUMN_ID,
             ArtTable.COLUMN_LATITUDE,
@@ -297,34 +295,61 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             ArtTable.COLUMN_FAVORITE
     };
 
+    static final String[] EVENTS_PROJECTION = new String[] {
+            EventTable.COLUMN_NAME,
+            EventTable.COLUMN_ID,
+            EventTable.COLUMN_LATITUDE,
+            EventTable.COLUMN_LONGITUDE,
+            EventTable.COLUMN_FAVORITE
+    };
+
+    static final String[] CAMPS_PROJECTION = new String[] {
+            CampTable.COLUMN_NAME,
+            CampTable.COLUMN_ID,
+            CampTable.COLUMN_LATITUDE,
+            CampTable.COLUMN_LONGITUDE,
+            CampTable.COLUMN_FAVORITE
+    };
+
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        String[] projection = null;
         Uri targetUri = null;
         if (mCurFilter != null) {
             switch(i){
                 case ART:
+                    projection = ART_PROJECTION;
                     targetUri = PlayaContentProvider.ART_SEARCH_URI;
                     break;
                 case CAMPS:
+                    projection = CAMPS_PROJECTION;
                     targetUri = PlayaContentProvider.CAMP_SEARCH_URI;
                     break;
                 case EVENTS:
+                    projection = EVENTS_PROJECTION;
                     targetUri = PlayaContentProvider.EVENT_SEARCH_URI;
                     break;
+                case ALL:
+                    targetUri = PlayaContentProvider.ALL_URI; // TODO
             }
             targetUri = Uri.withAppendedPath(targetUri, Uri.encode(mCurFilter));
         } else {
             switch(i){
                 case ART:
+                    projection = ART_PROJECTION;
                     targetUri = PlayaContentProvider.ART_URI;
                     break;
                 case CAMPS:
+                    projection = CAMPS_PROJECTION;
                     targetUri = PlayaContentProvider.CAMP_URI;
                     break;
                 case EVENTS:
+                    projection = EVENTS_PROJECTION;
                     targetUri = PlayaContentProvider.EVENT_URI;
                     break;
+                case ALL:
+                    targetUri = PlayaContentProvider.ALL_URI;
             }
 
         }
@@ -342,29 +367,39 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         // creating a Cursor for the data being displayed.
         Log.i(TAG, "Creating loader with uri: " + targetUri.toString());
         return new CursorLoader(getActivity(), targetUri,
-                PROJECTION, selection, selectionArgs,
+                projection, selection, selectionArgs,
                 null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        Toast.makeText(getActivity(), "Mapping POIs...", Toast.LENGTH_SHORT).show();
         int id = cursorLoader.getId();
         GoogleMap map = getMap();
-        clearMap();
+        //clearMap();
         MarkerOptions markerOptions;
         while(cursor.moveToNext()){
             markerOptions = new MarkerOptions().position(new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LATITUDE)), cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LONGITUDE))))
                     .title(cursor.getString(cursor.getColumnIndex(ArtTable.COLUMN_NAME)));
 
             switch(id){
+                case ALL:
+                    if(cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0){
+                        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
+                    }else if(cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0){
+                        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
+                    }else{
+                        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
+                    }
+                    break;
                 case ART:
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
                     break;
                 case CAMPS:
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
                     break;
                 case EVENTS:
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
                     break;
             }
             map.addMarker(markerOptions);
@@ -376,9 +411,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     }
 
-    public void initLoader(int type){
+    public void restartLoader(int type){
         state = type;
-        getLoaderManager().initLoader(type, null, this);
+        getLoaderManager().restartLoader(type, null, this);
+        //getLoaderManager().initLoader(type, null, this);
     }
 
     private void addHomePin(LatLng latLng){
@@ -393,7 +429,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         getMap().setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
             public void onMarkerDragStart(Marker marker) {
-
             }
 
             @Override

@@ -32,12 +32,14 @@ public class PlayaContentProvider extends ContentProvider {
 		private static final int ART = 7;
 		private static final int ART_ID = 8;
 		private static final int ART_SEARCH = 10;
+        private static final int ALL = 11;
 
 		private static final String AUTHORITY = "com.gaiagps.iburn.playacontentprovider";
 
 		private static final String CAMP_BASE_PATH = "camp";
 		private static final String EVENT_BASE_PATH = "event";
 		private static final String ART_BASE_PATH = "art";
+        private static final String ALL_BASE_PATH = "all";
 		
 		public static final Uri AUTHORITY_URI = Uri.parse("content://" + AUTHORITY + "/");
 		
@@ -50,18 +52,8 @@ public class PlayaContentProvider extends ContentProvider {
 		public static final Uri ART_URI = AUTHORITY_URI.buildUpon().appendPath(ART_BASE_PATH).build();
 		public static final Uri ART_SEARCH_URI = AUTHORITY_URI.buildUpon().appendPath(ART_BASE_PATH).appendPath("search").build();
 
-		public static final String CAMP_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE
-				+ "/camps";
-		public static final String CAMP_CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE
-				+ "/camp";
-		public static final String EVENT_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE
-				+ "/events";
-		public static final String EVENT_CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE
-				+ "/event";
-		public static final String ART_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE
-				+ "/arts";
-		public static final String ART_CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE
-				+ "/art";
+        public static final Uri ALL_URI = AUTHORITY_URI.buildUpon().appendPath(ALL_BASE_PATH).build();
+
 
 		private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 		static {
@@ -76,6 +68,8 @@ public class PlayaContentProvider extends ContentProvider {
 			sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH, ART);
 			sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/#", ART_ID);
 			sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/search/*", ART_SEARCH);
+
+            sURIMatcher.addURI(AUTHORITY, ALL_BASE_PATH, ALL);
 		}
 
 		@Override
@@ -89,7 +83,6 @@ public class PlayaContentProvider extends ContentProvider {
 		public Cursor query(Uri uri, String[] projection, String selection,
 				String[] selectionArgs, String sortOrder) {
 			
-			// Uisng SQLiteQueryBuilder instead of query() method
 			SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
 
 			int uriType = sURIMatcher.match(uri);
@@ -101,7 +94,6 @@ public class PlayaContentProvider extends ContentProvider {
 			case CAMP_ID:
 				queryBuilder.setTables(CampTable.TABLE_NAME);
 				checkColumns(projection, CAMPS);
-				// Adding the ID to the original query
 				queryBuilder.appendWhere(CampTable.COLUMN_ID + "="
 						+ uri.getLastPathSegment());
 				break;
@@ -118,7 +110,6 @@ public class PlayaContentProvider extends ContentProvider {
 			case EVENT_ID:
 				queryBuilder.setTables(EventTable.TABLE_NAME);
 				checkColumns(projection, EVENTS);
-				// Adding the ID to the original query
 				queryBuilder.appendWhere(EventTable.COLUMN_ID + "="
 						+ uri.getLastPathSegment());
 				break;
@@ -135,7 +126,6 @@ public class PlayaContentProvider extends ContentProvider {
 			case ART_ID:
 				queryBuilder.setTables(ArtTable.TABLE_NAME);
 				checkColumns(projection, ART);
-				// Adding the ID to the original query
 				queryBuilder.appendWhere(ArtTable.COLUMN_ID + "="
 						+ uri.getLastPathSegment());
 				break;
@@ -145,6 +135,11 @@ public class PlayaContentProvider extends ContentProvider {
 				queryBuilder.appendWhere(ArtTable.COLUMN_NAME + " LIKE "
 						+ "\"%" + uri.getLastPathSegment()+"%\"");
 				break;
+            case ALL:
+                queryBuilder.setTables(ArtTable.TABLE_NAME + ", " + CampTable.TABLE_NAME + ", " + EventTable.TABLE_NAME);
+                //queryBuilder.appendWhere("(art.latitude != 0 AND art.longitude != 0) OR (camps.latitude != 0 AND camps.longitude != 0) OR (events.latitude != 0 AND events.longitude != 0)");
+                checkColumns(projection, ALL);
+                break;
 			default:
 				throw new IllegalArgumentException("Unknown URI: " + uri);
 			}
@@ -348,6 +343,8 @@ public class PlayaContentProvider extends ContentProvider {
 				available = EventTable.COLUMNS;
 			else if(type == ART)
 				available = ArtTable.COLUMNS;
+            else if(type == ALL)
+                return; //TODO
 			else
 				available = new String[0];
 			
