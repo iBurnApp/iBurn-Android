@@ -43,9 +43,9 @@ public class MainActivity extends FragmentActivity {
         inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         setupFragmentStatePagerAdapter();
         if(!checkAndSetupDB(getApplicationContext())){
+            View dialog = getLayoutInflater().inflate(R.layout.dialog_welcome, null);
             new AlertDialog.Builder(this)
-                    .setTitle("Welcome to iBurn!")
-                    .setMessage("Hang tight a minute while we build you the iBurn database. In the meantime, explore the map! Happy Burning!")
+                    .setView(dialog)
                     .show();
         }
         checkIntentForExtras(getIntent());

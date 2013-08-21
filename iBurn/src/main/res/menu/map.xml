@@ -5,4 +5,23 @@
           android:title="@string/action_home"
           android:orderInCategory="100"
           android:showAsAction="always" />
+
+    <item android:title="POIs"
+          android:showAsAction="always">
+        <menu>
+            <group android:id="@+id/poi_group"
+                   android:checkableBehavior="all">
+                <!-- Notice how these items inherit from the group. -->
+                <item android:id="@+id/map_camps"
+                      android:title="@string/camps_tab"
+                      android:checked="false"/>
+                <item android:id="@+id/map_art"
+                      android:title="@string/art_tab"
+                      android:checked="false" />
+                <item android:id="@+id/map_events"
+                      android:title="@string/events_tab"
+                      android:checked="false" />
+            </group>
+        </menu>
+    </item>
 </menu>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="10dp"
+                android:background="#fffffdea">
+
+    <TextView
+        android:id="@+id/title"
+        android:fontFamily="sans-serif-light"
+        android:layout_marginTop="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:textSize="32sp"
+        android:text="Hang Tight!"/>
+
+    <TextView
+            android:id="@+id/message"
+            android:fontFamily="sans-serif-light"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/title"
+            android:layout_centerHorizontal="true"
+            android:textSize="22sp"
+            android:text="It'll take a few minutes while we prepare Camp, Art, and Event data in the background. In the meantime explore the map! \n\n Love,\n\n Team iBurn"/>
+
+    <ImageView
+            android:id="@+id/heart"
+            android:layout_below="@id/message"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/heart"
+        />
+</RelativeLayout>

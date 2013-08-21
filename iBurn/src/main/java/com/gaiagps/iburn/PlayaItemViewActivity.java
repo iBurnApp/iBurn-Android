@@ -17,6 +17,7 @@ import com.gaiagps.iburn.database.EventTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -44,7 +45,7 @@ public class PlayaItemViewActivity extends FragmentActivity {
     @Override
     public boolean onPrepareOptionsMenu (Menu menu){
         super.onPrepareOptionsMenu(menu);
-        menu.removeItem(R.id.action_home);
+        menu.clear();
         return false;
     }
 
@@ -91,12 +92,20 @@ public class PlayaItemViewActivity extends FragmentActivity {
             if(BurnState.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex("latitude"))){
                 latLng = new LatLng(c.getDouble(c.getColumnIndexOrThrow("latitude")), c.getDouble(c.getColumnIndexOrThrow("longitude")));
                 //TextView locationView = ((TextView) findViewById(R.id.location));
-                GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+                final GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
                 LatLng start = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
                 Log.i("GoogleMapFragment", "adding / centering marker");
                 mapFragment.mapAndCenterOnMarker(new MarkerOptions().position(latLng));
                 mapFragment.getMap().getUiSettings().setMyLocationButtonEnabled(false);
                 mapFragment.getMap().getUiSettings().setZoomControlsEnabled(false);
+                mapFragment.getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+                    @Override
+                    public void onCameraChange(CameraPosition cameraPosition) {
+                        if(cameraPosition.zoom >= 20){
+                            mapFragment.getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.99));
+                        }
+                    }
+                });
                 //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
                 /*
                 mapFragment.setOnTouchListener(new View.OnTouchListener(){

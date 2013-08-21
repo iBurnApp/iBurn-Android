@@ -39,6 +39,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     final int EVENTS = 3;
     final int ALL = 4;
 
+    boolean mapCamps = false;
+    boolean mapArt = false;
+    boolean mapEvents = false;
+
     float lastZoomLevel = 0;
     int state = 0;
 
@@ -78,10 +82,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public boolean onOptionsItemSelected (MenuItem item){
        int id = item.getItemId();
 
-       if(state != 0){
-           clearMap();
-       }
-
        switch(id){
            case R.id.action_home:
                if(BurnState.getHomeLatLng(getActivity()) == null && !settingHomeLocation){
@@ -92,7 +92,36 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                    navigateHome();
                }
                break;
+           case R.id.map_camps:
+               if(item.isChecked()){
+                   item.setChecked(false);
+                   mapCamps = false;
+               }else{
+                   item.setChecked(true);
+                   mapCamps = true;
+               }
+               break;
+           case R.id.map_art:
+               if(item.isChecked()){
+                   item.setChecked(false);
+                   mapArt = false;
+               }else{
+                   item.setChecked(true);
+                   mapArt = true;
+               }
+               break;
+           case R.id.map_events:
+               if(item.isChecked()){
+                   item.setChecked(false);
+                   mapEvents = false;
+               }else{
+                   item.setChecked(true);
+                   mapEvents = true;
+               }
+               break;
        }
+       if(item.getGroupId() == R.id.poi_group && getMap().getCameraPosition().zoom > 16)
+           clearMapAndRestartLoaders();
 
         return true;
     }
@@ -126,12 +155,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
-                Log.i(TAG, "Zoom: " + String.valueOf(cameraPosition.zoom) + " Last zoom: " + String.valueOf(lastZoomLevel));
-                if(cameraPosition.zoom > 16 && lastZoomLevel <= 16){
-                    clearMap();
-                    restartLoader(CAMPS);
-                    restartLoader(ART);
-                    restartLoader(EVENTS);
+                if(cameraPosition.zoom >= 19.5){
+                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.4));
+                }
+                if(cameraPosition.zoom > 16 && lastZoomLevel <= 16 && BurnState.isEmbargoClear(getActivity())){
+                    clearMapAndRestartLoaders();
                 }else if(cameraPosition.zoom < 16 && lastZoomLevel >= 16)
                     clearMap();
                 lastZoomLevel = cameraPosition.zoom;
@@ -414,7 +442,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public void restartLoader(int type){
         state = type;
         getLoaderManager().restartLoader(type, null, this);
-        //getLoaderManager().initLoader(type, null, this);
     }
 
     private void addHomePin(LatLng latLng){
@@ -442,5 +469,15 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     BurnState.setHomeLatLng(GoogleMapFragment.this.getActivity().getApplicationContext(), marker.getPosition());
             }
         });
+    }
+
+    private void clearMapAndRestartLoaders(){
+        clearMap();
+        if(mapCamps)
+            restartLoader(CAMPS);
+        if(mapArt)
+            restartLoader(ART);
+        if(mapEvents)
+            restartLoader(EVENTS);
     }
 }

@@ -10,59 +10,13 @@ import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.EventTable;
 
-public class EventCursorAdapter extends SimpleCursorAdapter implements SectionIndexer{
+public class EventCursorAdapter extends SimpleCursorAdapter{
 
 
 	public EventCursorAdapter(Context context, Cursor c){
 		super(context, R.layout.double_listview_item, c, new String[]{} , new int[]{}, 0);
 	}
-	
-	@Override
-	public int getPositionForSection(int section) {
-        /*
-		int result;
-		//Log.d("EventSection",String.valueOf(section));
-		//Log.d("SectionIndexer","getPos for " + String.valueOf(section)+ " : " + String.valueOf(EventFragment.CursorLoaderListFragment.daySections[section]));
-		if(section-1 >= EventFragment.CursorLoaderListFragment.daySections.length)
-			result = EventFragment.CursorLoaderListFragment.daySections[EventFragment.CursorLoaderListFragment.daySections.length-1];
-		else if(section == 0){
-			result = 0;
-			//result = EventFragment.CursorLoaderListFragment.daySections[0];
-		}
-		else
-			result = EventFragment.CursorLoaderListFragment.daySections[section-1];
-		//Log.d("EventSection-Position",String.valueOf(result) + " for " + String.valueOf(section));
-		return result;
-		*/
-        return 0;
-	}
 
-
-	@Override
-	public int getSectionForPosition(int position) {
-        /*
-		int result;
-		for(int x=0;x<EventFragment.CursorLoaderListFragment.daySections.length;x++){
-			if(EventFragment.CursorLoaderListFragment.daySections[x] < position){
-				//Log.d("SectionIndexer","getSection for " + String.valueOf(position)+ " : " + String.valueOf(x));
-				result = x;
-			}
-		}
-		// this should never happen
-		result = EventFragment.CursorLoaderListFragment.daySections.length;
-		//Log.d("EventSection-Section",String.valueOf(result) + " for " + String.valueOf(position));
-		return result;
-		*/
-        return 0;
-	}
-
-
-	@Override
-	public Object[] getSections() {
-		return new String[]{"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su", "Mo"};
-	}
-
-	
 	@Override
     public void bindView(View view, Context context, Cursor cursor) {
         super.bindView(view, context, cursor);

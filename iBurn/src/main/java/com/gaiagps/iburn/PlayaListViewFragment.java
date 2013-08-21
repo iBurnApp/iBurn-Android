@@ -92,7 +92,7 @@ public abstract class PlayaListViewFragment extends ListFragment
         View v =  super.onCreateView(inflater, container, savedInstanceState);
         emptyText = (TextView) v.findViewById(android.R.id.empty);
         ((ListView) v.findViewById(android.R.id.list)).setDivider(new ColorDrawable(0x292929));
-
+        ((ListView) v.findViewById(android.R.id.list)).setFastScrollEnabled(true);
         return v;
     }
 

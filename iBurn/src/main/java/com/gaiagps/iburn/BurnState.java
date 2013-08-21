@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.util.GregorianCalendar;
+
 /**
  * This class keeps track of application-wide state
  * Created by davidbrodsky on 8/4/13.
@@ -12,6 +14,8 @@ public class BurnState {
     public static final String UNLOCK_PW = "burnbabyburn";
 
     public static boolean isEmbargoClear(Context c){
+        if(Constants.EMBARGO_DATE.before(new GregorianCalendar()))
+            setEmbargoClear(c, true);
         return c.getSharedPreferences(Constants.GENERAL_PREFS, Context.MODE_PRIVATE).getBoolean(Constants.EMBARGO_CLEAR, false);
     }
 

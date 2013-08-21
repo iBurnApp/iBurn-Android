@@ -1,5 +1,9 @@
 package com.gaiagps.iburn;
 
+import android.text.format.DateUtils;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 
 /**
@@ -34,4 +38,6 @@ public class Constants {
         put(TAB_TYPE.ART, R.string.art_tab);
         put(TAB_TYPE.EVENTS, R.string.events_tab);
     }};
+
+    static final GregorianCalendar EMBARGO_DATE = new GregorianCalendar(2013, Calendar.AUGUST, 26);
 }
