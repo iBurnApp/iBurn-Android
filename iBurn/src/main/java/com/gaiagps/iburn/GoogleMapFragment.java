@@ -2,6 +2,7 @@ package com.gaiagps.iburn;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -26,6 +27,7 @@ import com.google.android.gms.maps.model.*;
 
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.HashMap;
 
 /**
  * Created by davidbrodsky on 8/3/13.
@@ -163,6 +165,33 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 }else if(cameraPosition.zoom < 16 && lastZoomLevel >= 16)
                     clearMap();
                 lastZoomLevel = cameraPosition.zoom;
+            }
+        });
+
+        getMap().setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                if(markerIdToMeta.containsKey(marker.getId())){
+                    String markerMeta = markerIdToMeta.get(marker.getId());
+                    int model_id = Integer.parseInt(markerMeta.split("-")[1]);
+                    int model_type = Integer.parseInt(markerMeta.split("-")[0]);
+                    Constants.PLAYA_ITEM playaItem = null;
+                    switch(model_type){
+                        case ART:
+                            playaItem = Constants.PLAYA_ITEM.ART;
+                            break;
+                        case EVENTS:
+                            playaItem = Constants.PLAYA_ITEM.EVENT;
+                            break;
+                        case CAMPS:
+                            playaItem = Constants.PLAYA_ITEM.CAMP;
+                            break;
+                    }
+                    Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
+                    i.putExtra("model_id", model_id);
+                    i.putExtra("playa_item", playaItem);
+                    getActivity().startActivity(i);
+                }
             }
         });
 
@@ -399,8 +428,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 null);
     }
 
+    HashMap<String, String> markerIdToMeta;
+
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        markerIdToMeta = new HashMap<String, String>(cursor.getCount());
         Toast.makeText(getActivity(), "Mapping POIs...", Toast.LENGTH_SHORT).show();
         int id = cursorLoader.getId();
         GoogleMap map = getMap();
@@ -430,7 +462,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
                     break;
             }
-            map.addMarker(markerOptions);
+            String markerId = map.addMarker(markerOptions).getId();
+            markerIdToMeta.put(markerId, String.format("%d-%s", id, String.valueOf(cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID)))));
         }
     }
 
