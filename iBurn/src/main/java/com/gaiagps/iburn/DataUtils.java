@@ -42,7 +42,9 @@ public class DataUtils {
      * @return true if database is ready, false if setup required
      */
     public static boolean checkAndSetupDB(Context c){
+         /*
         SharedPreferences prefs = c.getSharedPreferences(Constants.GENERAL_PREFS, c.MODE_PRIVATE);
+
         if(!prefs.getBoolean(Constants.DB_POPULATED, false)){
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)  // Ensure this asynctask doesn't block the map tile copying
                 new PopulateDBFromJsonTask(c).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -54,6 +56,8 @@ public class DataUtils {
             Log.i(TAG, "Database already populated with json");
             return true;
         }
+        */
+        return true;
     }
 	
 	public static class PopulateDBFromJsonTask extends AsyncTask<Void, Void, Integer>{
