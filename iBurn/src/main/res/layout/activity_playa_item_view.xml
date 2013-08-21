@@ -4,16 +4,16 @@
     android:layout_height="fill_parent"
     android:background="#ff1b1b1b"
     android:orientation="vertical"
-    android:padding="10dp" >
+    android:padding="5dp" >
 
     <ImageView
         android:id="@+id/favorite_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
         android:src="@android:drawable/star_big_off" />
 
     <TextView

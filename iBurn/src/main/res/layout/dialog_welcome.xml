@@ -4,37 +4,50 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="10dp"
-                android:background="#fffffdea">
+                android:background="#ff3d3938">
 
     <TextView
         android:id="@+id/title"
         android:fontFamily="sans-serif-light"
+        android:textColor="#c7c79d"
         android:layout_marginTop="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:textSize="32sp"
-        android:text="Hang Tight!"/>
+        android:text="@string/lets_burn"/>
 
     <TextView
             android:id="@+id/message"
             android:fontFamily="sans-serif-light"
             android:layout_marginTop="10dp"
+            android:textColor="#ffe6e0dd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/title"
             android:layout_centerHorizontal="true"
             android:textSize="22sp"
-            android:text="It'll take a few minutes while we prepare Camp, Art, and Event data in the background. In the meantime explore the map! \n\n Love,\n\n Team iBurn"/>
+            android:text="@string/welcome"/>
 
     <ImageView
             android:id="@+id/heart"
             android:layout_below="@id/message"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="20dp"
             android:layout_marginBottom="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:src="@drawable/heart"
-        />
+            android:src="@drawable/heart" />
+
+    <TextView
+            android:id="@+id/salutation"
+            android:fontFamily="sans-serif-black"
+            android:layout_marginTop="10dp"
+            android:textColor="#ffe6e0dd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/heart"
+            android:layout_centerHorizontal="true"
+            android:textSize="22sp"
+            android:text="Team iBurn"/>
 </RelativeLayout>

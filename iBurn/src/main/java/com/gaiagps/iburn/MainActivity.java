@@ -45,13 +45,19 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         setupFragmentStatePagerAdapter();
-        if(!checkAndSetupDB(getApplicationContext())){
-            View dialog = getLayoutInflater().inflate(R.layout.dialog_welcome, null);
-            new AlertDialog.Builder(this)
-                    .setView(dialog)
-                    .show();
-        }
         checkIntentForExtras(getIntent());
+        if(getSharedPreferences(Constants.GENERAL_PREFS, MODE_PRIVATE).getBoolean(Constants.FIRST_TIME, true)){
+            showWelcomeDialog();
+            getSharedPreferences(Constants.GENERAL_PREFS, MODE_PRIVATE).edit().putBoolean(Constants.FIRST_TIME, false).commit();
+        }
+
+    }
+
+    private void showWelcomeDialog(){
+        View dialog = getLayoutInflater().inflate(R.layout.dialog_welcome, null);
+        new AlertDialog.Builder(this)
+                .setView(dialog)
+                .show();
     }
 
     @Override
