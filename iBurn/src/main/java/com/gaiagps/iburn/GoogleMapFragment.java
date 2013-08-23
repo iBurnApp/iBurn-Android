@@ -52,6 +52,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     TileOverlay overlay;
     LatLng latLngToCenterOn;
 
+    VisibleRegion visibleRegion;
     String mCurFilter;                      // Search string to filter by
     boolean limitListToFavorites = false;   // Limit display to favorites?
 
@@ -157,10 +158,12 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
+
                 if(cameraPosition.zoom >= 19.5){
                     getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.4));
                 }
                 if(cameraPosition.zoom > 16 && lastZoomLevel <= 16 && BurnState.isEmbargoClear(getActivity())){
+                    visibleRegion = getMap().getProjection().getVisibleRegion();
                     clearMapAndRestartLoaders();
                 }else if(cameraPosition.zoom < 16 && lastZoomLevel >= 16)
                     clearMap();
@@ -392,22 +395,33 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             }
             targetUri = Uri.withAppendedPath(targetUri, Uri.encode(mCurFilter));
         } else {
+            if(visibleRegion != null){
+                Log.e(TAG, "Visible region null onCreateLoader!");
+                return new CursorLoader(getActivity(), targetUri,
+                        projection, null, null,
+                        null);
+            }
             switch(i){
                 case ART:
                     projection = ART_PROJECTION;
-                    targetUri = PlayaContentProvider.ART_URI;
+                    targetUri = PlayaContentProvider.ART_GEO_URI;
                     break;
                 case CAMPS:
                     projection = CAMPS_PROJECTION;
-                    targetUri = PlayaContentProvider.CAMP_URI;
+                    targetUri = PlayaContentProvider.CAMP_GEO_URI;
                     break;
                 case EVENTS:
                     projection = EVENTS_PROJECTION;
-                    targetUri = PlayaContentProvider.EVENT_URI;
+                    targetUri = PlayaContentProvider.EVENT_GEO_URI;
                     break;
                 case ALL:
-                    targetUri = PlayaContentProvider.ALL_URI;
+                    targetUri = PlayaContentProvider.ALL_URI; // TODO
             }
+
+                Uri.withAppendedPath(targetUri, String.valueOf(visibleRegion.farLeft.latitude));
+                targetUri.buildUpon().appendPath(String.valueOf(visibleRegion.farLeft.longitude))
+                                     .appendPath(String.valueOf(visibleRegion.nearRight.latitude))
+                                     .appendPath(String.valueOf(visibleRegion.nearRight.longitude));
 
         }
 

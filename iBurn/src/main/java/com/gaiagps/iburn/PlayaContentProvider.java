@@ -2,6 +2,7 @@ package com.gaiagps.iburn;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
@@ -26,12 +27,15 @@ public class PlayaContentProvider extends ContentProvider {
 		private static final int CAMPS = 1; 		// Query all
 		private static final int CAMP_ID = 2; 		// Query single entry by id
 		private static final int CAMP_SEARCH = 3; 	// Search title by string
+        private static final int CAMP_GEO = 12;     // Within LatLng bounds
 		private static final int EVENTS = 4;
 		private static final int EVENT_ID = 5;
 		private static final int EVENT_SEARCH = 9;
+        private static final int EVENT_GEO = 13;
 		private static final int ART = 7;
 		private static final int ART_ID = 8;
 		private static final int ART_SEARCH = 10;
+        private static final int ART_GEO = 14;
         private static final int ALL = 11;
 
 		private static final String AUTHORITY = "com.gaiagps.iburn.playacontentprovider";
@@ -45,12 +49,15 @@ public class PlayaContentProvider extends ContentProvider {
 		
 		public static final Uri CAMP_URI = AUTHORITY_URI.buildUpon().appendPath(CAMP_BASE_PATH).build();
 		public static final Uri CAMP_SEARCH_URI = AUTHORITY_URI.buildUpon().appendPath(CAMP_BASE_PATH).appendPath("search").build();
+        public static final Uri CAMP_GEO_URI = AUTHORITY_URI.buildUpon().appendPath(CAMP_BASE_PATH).appendPath("within").build();
 		
 		public static final Uri EVENT_URI = AUTHORITY_URI.buildUpon().appendPath(EVENT_BASE_PATH).build();
 		public static final Uri EVENT_SEARCH_URI = AUTHORITY_URI.buildUpon().appendPath(EVENT_BASE_PATH).appendPath("search").build();
+        public static final Uri EVENT_GEO_URI = AUTHORITY_URI.buildUpon().appendPath(EVENT_BASE_PATH).appendPath("within").build();
 		
 		public static final Uri ART_URI = AUTHORITY_URI.buildUpon().appendPath(ART_BASE_PATH).build();
 		public static final Uri ART_SEARCH_URI = AUTHORITY_URI.buildUpon().appendPath(ART_BASE_PATH).appendPath("search").build();
+        public static final Uri ART_GEO_URI = AUTHORITY_URI.buildUpon().appendPath(ART_BASE_PATH).appendPath("within").build();
 
         public static final Uri ALL_URI = AUTHORITY_URI.buildUpon().appendPath(ALL_BASE_PATH).build();
 
@@ -60,14 +67,17 @@ public class PlayaContentProvider extends ContentProvider {
 			sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH, CAMPS);
 			sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH + "/#", CAMP_ID);
 			sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH + "/search/*", CAMP_SEARCH);
+            sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH + "/within/#/#/#/#", CAMP_GEO);
 			
 			sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH, EVENTS);
 			sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH + "/#", EVENT_ID);
 			sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH + "/search/*", EVENT_SEARCH);
+            sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH + "/within/#/#/#/#", EVENT_GEO);
 			
 			sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH, ART);
 			sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/#", ART_ID);
 			sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/search/*", ART_SEARCH);
+            sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/within/#/#/#/#", ART_GEO);
 
             sURIMatcher.addURI(AUTHORITY, ALL_BASE_PATH, ALL);
 		}
@@ -103,6 +113,18 @@ public class PlayaContentProvider extends ContentProvider {
 				queryBuilder.appendWhere(CampTable.COLUMN_NAME + " LIKE "
 						+ "\"%" + uri.getLastPathSegment()+"%\"");
 				break;
+            case CAMP_GEO:
+                List<String> params = uri.getPathSegments();
+                String tlLat = params.get(0);
+                String tlLon = params.get(1);
+                String brLat = params.get(2);
+                String brLon = params.get(3);
+                queryBuilder.setTables(CampTable.TABLE_NAME);
+                checkColumns(projection, CAMPS);
+                queryBuilder.appendWhere("( ( " + CampTable.COLUMN_LATITUDE + " < " + tlLat
+                        + " AND " + CampTable.COLUMN_LONGITUDE + " < " + tlLon + ") AND ( " + CampTable.COLUMN_LATITUDE + " > " + brLat + " AND " + CampTable.COLUMN_LONGITUDE + " > " + brLon);
+
+                break;
 			case EVENTS:
 				queryBuilder.setTables(EventTable.TABLE_NAME);
 				checkColumns(projection, EVENTS);
