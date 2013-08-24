@@ -11,7 +11,7 @@ import java.util.GregorianCalendar;
  * Created by davidbrodsky on 8/4/13.
  */
 public class BurnState {
-    public static final String UNLOCK_PW = "burnbabyburn";
+    public static final String UNLOCK_PW = "snowden";
 
     public static boolean isEmbargoClear(Context c){
         boolean isClear =  c.getSharedPreferences(Constants.GENERAL_PREFS, Context.MODE_PRIVATE).getBoolean(Constants.EMBARGO_CLEAR, false);
