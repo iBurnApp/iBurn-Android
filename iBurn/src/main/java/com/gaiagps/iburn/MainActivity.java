@@ -62,6 +62,7 @@ public class MainActivity extends ActionBarActivity {
         super.onResume();
         if(googlePlayServicesMissing && checkPlayServices()){
             setupFragmentStatePagerAdapter();
+            googlePlayServicesMissing = false;
         }
     }
 
