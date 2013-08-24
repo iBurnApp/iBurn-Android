@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:textSize="32sp"
-        android:text="@string/lets_burn"/>
+        android:text="@string/congratulations"/>
 
     <TextView
             android:id="@+id/message"

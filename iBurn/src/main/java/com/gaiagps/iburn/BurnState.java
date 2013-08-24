@@ -14,9 +14,12 @@ public class BurnState {
     public static final String UNLOCK_PW = "burnbabyburn";
 
     public static boolean isEmbargoClear(Context c){
-        if(Constants.EMBARGO_DATE.before(new GregorianCalendar()))
+        boolean isClear =  c.getSharedPreferences(Constants.GENERAL_PREFS, Context.MODE_PRIVATE).getBoolean(Constants.EMBARGO_CLEAR, false);
+        if(!isClear && Constants.EMBARGO_DATE.before(new GregorianCalendar())){
             setEmbargoClear(c, true);
-        return c.getSharedPreferences(Constants.GENERAL_PREFS, Context.MODE_PRIVATE).getBoolean(Constants.EMBARGO_CLEAR, false);
+            isClear = !isClear;
+        }
+        return isClear;
     }
 
     public static void setEmbargoClear(Context c, boolean isClear){

@@ -22,8 +22,11 @@
     <string name="ok">Ok!</string>
     <string name="youre_so_far">You\'re so far away</string>
     <string name="lets_burn">Let\'s Burn!</string>
-    <string name="welcome">Congratulations! With iBurn in your pocket, you\'re well equipped for finding your way around
-        the playa. Try everything, piss clear, and stay safe!
+    <string name="welcome">With iBurn in your pocket, you\'re ready to find your way around
+        the Playa. Try everything, piss clear, and stay safe!
     </string>
+    <string name="congratulations">Congratulations!</string>
+    <string name="requres_google_play">iBurn requires Google Play Services...</string>
+    <string name="device_not_supported">Your device doesn\'t jive with our mapping tech. So sorry...</string>
 
 </resources>

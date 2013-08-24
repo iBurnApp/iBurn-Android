@@ -13,16 +13,13 @@ import android.support.v7.app.ActionBarActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.*;
-import android.widget.EditText;
-import android.widget.TabHost;
-import android.widget.TabWidget;
-import android.widget.TextView;
+import android.widget.*;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
-
-import static com.gaiagps.iburn.DataUtils.checkAndSetupDB;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -37,6 +34,9 @@ public class MainActivity extends ActionBarActivity {
 
     LayoutInflater inflater;
 
+    static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
+
+    boolean googlePlayServicesMissing = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,19 +44,35 @@ public class MainActivity extends ActionBarActivity {
         getDisplayWidth();
         setContentView(R.layout.activity_main);
         inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        setupFragmentStatePagerAdapter();
+        Log.i("MainActivity", "MA onCreate");
+        if(checkPlayServices()){
+            setupFragmentStatePagerAdapter();
+        }else
+            googlePlayServicesMissing = true;
         checkIntentForExtras(getIntent());
         if(getSharedPreferences(Constants.GENERAL_PREFS, MODE_PRIVATE).getBoolean(Constants.FIRST_TIME, true)){
             showWelcomeDialog();
             getSharedPreferences(Constants.GENERAL_PREFS, MODE_PRIVATE).edit().putBoolean(Constants.FIRST_TIME, false).commit();
+            //DataUtils.checkAndSetupDB(getApplicationContext());
         }
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(googlePlayServicesMissing && checkPlayServices()){
+            setupFragmentStatePagerAdapter();
+        }
     }
 
     private void showWelcomeDialog(){
         View dialog = getLayoutInflater().inflate(R.layout.dialog_welcome, null);
         new AlertDialog.Builder(this)
                 .setView(dialog)
+                .setPositiveButton(R.string.lets_burn, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {}
+                })
                 .show();
     }
 
@@ -152,6 +168,10 @@ public class MainActivity extends ActionBarActivity {
                         new AlertDialog.Builder(MainActivity.this)
                         .setTitle(getString(R.string.victory))
                         .setMessage(getString(R.string.location_data_unlocked))
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {}
+                        })
                         .show();
                     }
                     else{
@@ -312,6 +332,41 @@ public class MainActivity extends ActionBarActivity {
         ViewGroup tab = (ViewGroup) inflater.inflate(R.layout.tab_indicator_iburn, (ViewGroup) this.findViewById(android.R.id.tabs), false);
         ((TextView)tab.findViewById(R.id.title)).setText(tab_title);
         return tab;
+    }
+
+    private boolean checkPlayServices() {
+        int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (status != ConnectionResult.SUCCESS) {
+            if (GooglePlayServicesUtil.isUserRecoverableError(status)) {
+                showErrorDialog(status);
+            } else {
+                Toast.makeText(this, getString(R.string.device_not_supported),
+                        Toast.LENGTH_LONG).show();
+                finish();
+            }
+
+            return false;
+        }
+        return true;
+    }
+
+    void showErrorDialog(int code) {
+        GooglePlayServicesUtil.getErrorDialog(code, this,
+                REQUEST_CODE_RECOVER_PLAY_SERVICES).show();
+    }
+
+    @Override
+     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_CODE_RECOVER_PLAY_SERVICES:
+                if (resultCode == RESULT_CANCELED) {
+                    Toast.makeText(this, getString(R.string.requres_google_play),
+                            Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
     
 }

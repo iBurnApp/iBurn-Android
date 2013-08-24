@@ -41,13 +41,16 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     final int EVENTS = 3;
     final int ALL = 4;
 
-    boolean mapCamps = false;
-    boolean mapArt = false;
-    boolean mapEvents = false;
+    // Limit mapped pois
+    boolean mapCamps = true;
+    boolean mapArt = true;
+    boolean mapEvents = true;
 
     float lastZoomLevel = 0;
+    LatLng lastTarget;
     int state = 0;
 
+    HashMap<String, String> markerIdToMeta;
     MapBoxOfflineTileProvider tileProvider;
     TileOverlay overlay;
     LatLng latLngToCenterOn;
@@ -73,6 +76,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        markerIdToMeta = new HashMap<String, String>();
     }
 
     @Override
@@ -95,36 +99,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                    navigateHome();
                }
                break;
-           case R.id.map_camps:
-               if(item.isChecked()){
-                   item.setChecked(false);
-                   mapCamps = false;
-               }else{
-                   item.setChecked(true);
-                   mapCamps = true;
-               }
-               break;
-           case R.id.map_art:
-               if(item.isChecked()){
-                   item.setChecked(false);
-                   mapArt = false;
-               }else{
-                   item.setChecked(true);
-                   mapArt = true;
-               }
-               break;
-           case R.id.map_events:
-               if(item.isChecked()){
-                   item.setChecked(false);
-                   mapEvents = false;
-               }else{
-                   item.setChecked(true);
-                   mapEvents = true;
-               }
-               break;
        }
-       if(item.getGroupId() == R.id.poi_group && getMap().getCameraPosition().zoom > 16)
-           clearMapAndRestartLoaders();
 
         return true;
     }
@@ -158,16 +133,20 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
-
                 if(cameraPosition.zoom >= 19.5){
                     getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.4));
                 }
-                if(cameraPosition.zoom > 16 && lastZoomLevel <= 16 && BurnState.isEmbargoClear(getActivity())){
+                if(cameraPosition.zoom > 16 && BurnState.isEmbargoClear(getActivity())){
                     visibleRegion = getMap().getProjection().getVisibleRegion();
-                    clearMapAndRestartLoaders();
-                }else if(cameraPosition.zoom < 16 && lastZoomLevel >= 16)
+                    Log.i(TAG, "visibleRegion set");
+                    restartLoaders(false);
+                }else if(cameraPosition.zoom < 16 && lastZoomLevel >= 16){
                     clearMap();
+                    markerIdToMeta = new HashMap<String, String>();
+                }
+
                 lastZoomLevel = cameraPosition.zoom;
+                lastTarget = cameraPosition.target;
             }
         });
 
@@ -395,7 +374,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             }
             targetUri = Uri.withAppendedPath(targetUri, Uri.encode(mCurFilter));
         } else {
-            if(visibleRegion != null){
+            if(visibleRegion == null){
                 Log.e(TAG, "Visible region null onCreateLoader!");
                 return new CursorLoader(getActivity(), targetUri,
                         projection, null, null,
@@ -418,10 +397,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     targetUri = PlayaContentProvider.ALL_URI; // TODO
             }
 
-                Uri.withAppendedPath(targetUri, String.valueOf(visibleRegion.farLeft.latitude));
-                targetUri.buildUpon().appendPath(String.valueOf(visibleRegion.farLeft.longitude))
+                targetUri = targetUri.buildUpon().appendPath(String.valueOf(visibleRegion.farLeft.latitude))
+                                     .appendPath(String.valueOf(visibleRegion.farLeft.longitude))
                                      .appendPath(String.valueOf(visibleRegion.nearRight.latitude))
-                                     .appendPath(String.valueOf(visibleRegion.nearRight.longitude));
+                                     .appendPath(String.valueOf(visibleRegion.nearRight.longitude))
+                                     .build();
 
         }
 
@@ -442,42 +422,39 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 null);
     }
 
-    HashMap<String, String> markerIdToMeta;
-
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        markerIdToMeta = new HashMap<String, String>(cursor.getCount());
-        Toast.makeText(getActivity(), "Mapping POIs...", Toast.LENGTH_SHORT).show();
         int id = cursorLoader.getId();
         GoogleMap map = getMap();
-        //clearMap();
         MarkerOptions markerOptions;
         while(cursor.moveToNext()){
-            markerOptions = new MarkerOptions().position(new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LATITUDE)), cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LONGITUDE))))
-                    .title(cursor.getString(cursor.getColumnIndex(ArtTable.COLUMN_NAME)));
+            if(!markerIdToMeta.containsValue(String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID))))){
+                markerOptions = new MarkerOptions().position(new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LATITUDE)), cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LONGITUDE))))
+                        .title(cursor.getString(cursor.getColumnIndex(ArtTable.COLUMN_NAME)));
 
-            switch(id){
-                case ALL:
-                    if(cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0){
+                switch(id){
+                    case ALL:
+                        if(cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0){
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
+                        }else if(cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0){
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
+                        }else{
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
+                        }
+                        break;
+                    case ART:
                         markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
-                    }else if(cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0){
+                        break;
+                    case CAMPS:
                         markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
-                    }else{
+                        break;
+                    case EVENTS:
                         markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
-                    }
-                    break;
-                case ART:
-                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
-                    break;
-                case CAMPS:
-                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
-                    break;
-                case EVENTS:
-                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
-                    break;
+                        break;
+                }
+                String markerId = map.addMarker(markerOptions).getId();
+                markerIdToMeta.put(markerId, String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID))));
             }
-            String markerId = map.addMarker(markerOptions).getId();
-            markerIdToMeta.put(markerId, String.format("%d-%s", id, String.valueOf(cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID)))));
         }
     }
 
@@ -518,8 +495,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         });
     }
 
-    private void clearMapAndRestartLoaders(){
-        clearMap();
+    private void restartLoaders(boolean clearMap){
+        if(clearMap)
+            clearMap();
         if(mapCamps)
             restartLoader(CAMPS);
         if(mapArt)

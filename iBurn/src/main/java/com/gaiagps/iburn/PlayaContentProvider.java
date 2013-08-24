@@ -67,17 +67,17 @@ public class PlayaContentProvider extends ContentProvider {
 			sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH, CAMPS);
 			sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH + "/#", CAMP_ID);
 			sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH + "/search/*", CAMP_SEARCH);
-            sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH + "/within/#/#/#/#", CAMP_GEO);
+            sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH + "/within/*/*/*/*", CAMP_GEO);
 			
 			sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH, EVENTS);
 			sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH + "/#", EVENT_ID);
 			sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH + "/search/*", EVENT_SEARCH);
-            sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH + "/within/#/#/#/#", EVENT_GEO);
+            sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH + "/within/*/*/*/*", EVENT_GEO);
 			
 			sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH, ART);
 			sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/#", ART_ID);
 			sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/search/*", ART_SEARCH);
-            sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/within/#/#/#/#", ART_GEO);
+            sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/within/*/*/*/*", ART_GEO);
 
             sURIMatcher.addURI(AUTHORITY, ALL_BASE_PATH, ALL);
 		}
@@ -95,6 +95,7 @@ public class PlayaContentProvider extends ContentProvider {
 			
 			SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
 
+            String table = null;
 			int uriType = sURIMatcher.match(uri);
 			switch (uriType) {
 			case CAMPS:
@@ -113,16 +114,37 @@ public class PlayaContentProvider extends ContentProvider {
 				queryBuilder.appendWhere(CampTable.COLUMN_NAME + " LIKE "
 						+ "\"%" + uri.getLastPathSegment()+"%\"");
 				break;
+            case ART_GEO:
+                table = ArtTable.TABLE_NAME;
+            case EVENT_GEO:
+                if(table == null)
+                    table = EventTable.TABLE_NAME;
             case CAMP_GEO:
+                if(table == null)
+                    table = CampTable.TABLE_NAME;
+                queryBuilder.setTables(table);
                 List<String> params = uri.getPathSegments();
-                String tlLat = params.get(0);
-                String tlLon = params.get(1);
-                String brLat = params.get(2);
-                String brLon = params.get(3);
-                queryBuilder.setTables(CampTable.TABLE_NAME);
-                checkColumns(projection, CAMPS);
-                queryBuilder.appendWhere("( ( " + CampTable.COLUMN_LATITUDE + " < " + tlLat
-                        + " AND " + CampTable.COLUMN_LONGITUDE + " < " + tlLon + ") AND ( " + CampTable.COLUMN_LATITUDE + " > " + brLat + " AND " + CampTable.COLUMN_LONGITUDE + " > " + brLon);
+                String tlLat = params.get(2);
+                String tlLon = params.get(3);
+                String brLat = params.get(4);
+                String brLon = params.get(5);
+                queryBuilder.setTables(table);
+                //checkColumns(projection, CAMPS);
+                /*
+                selection = String.format("(%s < ? AND %s > ?) AND (%s < ? AND %s > ?)", CampTable.COLUMN_LATITUDE, CampTable.COLUMN_LATITUDE
+                        ,CampTable.COLUMN_LONGITUDE, CampTable.COLUMN_LONGITUDE);
+                selectionArgs = new String[] {tlLat, brLat, brLon, tlLon};
+                */
+
+                selection = String.format("(%s < %s AND %s > %s) AND (%s < %s AND %s > %s)", CampTable.COLUMN_LATITUDE, tlLat, CampTable.COLUMN_LATITUDE, brLat
+                                                                                            ,CampTable.COLUMN_LONGITUDE, brLon, CampTable.COLUMN_LONGITUDE, tlLon);
+
+                /*
+                String where = String.format("%s < %s AND %s > %s", CampTable.COLUMN_LATITUDE, tlLat, CampTable.COLUMN_LATITUDE, brLat);
+                queryBuilder.appendWhere(where);
+                where = String.format("%s < %s AND %s > %s", CampTable.COLUMN_LONGITUDE, brLon, CampTable.COLUMN_LONGITUDE, tlLon);
+                queryBuilder.appendWhere(where);
+                */
 
                 break;
 			case EVENTS:
@@ -170,7 +192,8 @@ public class PlayaContentProvider extends ContentProvider {
 			Cursor cursor = queryBuilder.query(db, projection, selection,
 					selectionArgs, null, null, sortOrder);
 			// Make sure that potential listeners are getting notified
-			cursor.setNotificationUri(getContext().getContentResolver(), uri);
+            if(cursor != null)
+			    cursor.setNotificationUri(getContext().getContentResolver(), uri);
 			return cursor;
 		}
 

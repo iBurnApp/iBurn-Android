@@ -30,6 +30,15 @@ public class DBWrapper extends SQLiteAssetHelper {
         c = context;
     }
 
+    /* If overriding SQLiteOpenHelper
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL(CampTable.CREATE_TABLE_STATEMENT);
+        db.execSQL(ArtTable.CREATE_TABLE_STATEMENT);
+        db.execSQL(EventTable.CREATE_TABLE_STATEMENT);
+    }
+    */
+
     /**
      * Invoked if a DB upgrade (version change) has been detected
      */
