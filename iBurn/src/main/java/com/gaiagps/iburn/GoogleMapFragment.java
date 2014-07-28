@@ -61,6 +61,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     boolean settingHomeLocation = false;
 
+    public static GoogleMapFragment newInstance() {
+        return new GoogleMapFragment();
+    }
+
     public GoogleMapFragment() {
         super();
     }
@@ -76,12 +80,12 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        markerIdToMeta = new HashMap<String, String>();
+        markerIdToMeta = new HashMap<>();
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if(BurnState.isEmbargoClear(getActivity().getApplicationContext()))
+        if(BurnClient.isEmbargoClear(getActivity().getApplicationContext()))
             inflater.inflate(R.menu.map, menu);
     }
 
@@ -91,7 +95,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
        switch(id){
            case R.id.action_home:
-               if(BurnState.getHomeLatLng(getActivity()) == null && !settingHomeLocation){
+               if(BurnClient.getHomeLatLng(getActivity()) == null && !settingHomeLocation){
                    settingHomeLocation = true;
                    Toast.makeText(GoogleMapFragment.this.getActivity(), "Hold then drag the pin to set your home camp", Toast.LENGTH_LONG).show();
                    addHomePin(new LatLng(Constants.MAN_LAT, Constants.MAN_LON));
@@ -122,7 +126,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     private void initMap(){
         addMBTileOverlay(R.raw.iburn);
-        addHomePin(BurnState.getHomeLatLng(getActivity()));
+        addHomePin(BurnClient.getHomeLatLng(getActivity()));
         LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
         getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
 
@@ -136,7 +140,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 if(cameraPosition.zoom >= 19.5){
                     getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.4));
                 }
-                if(cameraPosition.zoom > 16 && BurnState.isEmbargoClear(getActivity())){
+                if(cameraPosition.zoom > 16 && BurnClient.isEmbargoClear(getActivity())){
                     visibleRegion = getMap().getProjection().getVisibleRegion();
                     Log.i(TAG, "visibleRegion set");
                     restartLoaders(false);
@@ -198,7 +202,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             protected void onPostExecute(Void result) {
                 if(getActivity() == null)
                     return;
-                String tilesPath = String.format("%s/%s/%s/%s", Environment.getExternalStorageDirectory().getAbsolutePath().toString(),
+                String tilesPath = String.format("%s/%s/%s/%s", Environment.getExternalStorageDirectory().getAbsolutePath(),
                         Constants.IBURN_ROOT, Constants.TILES_DIR, Constants.MBTILE_DESTINATION);
                 File MBTFile = new File(tilesPath);
                 GoogleMap map = getMap();
@@ -231,7 +235,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             return;
         }
         LatLng start = new LatLng(getMap().getMyLocation().getLatitude(), getMap().getMyLocation().getLongitude());
-        LatLng end = BurnState.getHomeLatLng(getActivity());
+        LatLng end = BurnClient.getHomeLatLng(getActivity());
         if(getDistance(start, end) > 8046){
             new AlertDialog.Builder(getActivity())
                     .setTitle(getActivity().getString(R.string.youre_so_far))
@@ -260,7 +264,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().bearing(getBearing(start, end)).target(getMidPoint(start,end)).tilt(45).zoom(15).build()));
 
         DecimalFormat twoDForm = new DecimalFormat("#");
-        new Toast(getActivity()).makeText(getActivity(), String.format("%s meters from home",twoDForm.format(getDistance(start, end))), Toast.LENGTH_LONG).show();
+        Toast.makeText(getActivity(), String.format("%s meters from home", twoDForm.format(getDistance(start, end))), Toast.LENGTH_LONG).show();
 
     }
 
@@ -311,8 +315,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public void clearMap(){
         getMap().clear();
         addMBTileOverlay(R.raw.iburn);
-        if(BurnState.getHomeLatLng(getActivity()) != null)
-            addHomePin(BurnState.getHomeLatLng(getActivity()));
+        if(BurnClient.getHomeLatLng(getActivity()) != null)
+            addHomePin(BurnClient.getHomeLatLng(getActivity()));
         state = 0;
     }
 
@@ -490,7 +494,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             @Override
             public void onMarkerDragEnd(Marker marker) {
                 if(marker.getId().compareTo(homeMarkerId) == 0)
-                    BurnState.setHomeLatLng(GoogleMapFragment.this.getActivity().getApplicationContext(), marker.getPosition());
+                    BurnClient.setHomeLatLng(GoogleMapFragment.this.getActivity().getApplicationContext(), marker.getPosition());
             }
         });
     }

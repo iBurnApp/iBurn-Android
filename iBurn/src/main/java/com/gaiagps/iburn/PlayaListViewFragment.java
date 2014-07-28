@@ -82,7 +82,6 @@ public abstract class PlayaListViewFragment extends ListFragment
 
     @Override public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Constants.TAB_TYPE tabType = (Constants.TAB_TYPE) this.getArguments().getSerializable("type");
         setListAdapter(getAdapter());
         initLoader();
     }

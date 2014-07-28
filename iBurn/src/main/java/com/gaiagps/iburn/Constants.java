@@ -23,11 +23,11 @@ public class Constants {
     public static final String MBTILE_DESTINATION = "iburn2013.mbtiles";
 
     // SharedPreferences keys
-    public static final String GENERAL_PREFS = "gen";
+
     public static final String EMBARGO_CLEAR = "embargo";
     public static final String HOME_LAT = "home_lat";
     public static final String HOME_LON = "home_lon";
-    public static final String FIRST_TIME = "first_time";
+
     public static final String DB_POPULATED = "db_populated";
 
     public enum PLAYA_ITEM { CAMP, ART, EVENT};

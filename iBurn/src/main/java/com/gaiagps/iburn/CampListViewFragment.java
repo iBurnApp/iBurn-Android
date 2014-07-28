@@ -33,6 +33,10 @@ public class CampListViewFragment extends PlayaListViewFragment
     String ordering = CampTable.COLUMN_NAME + " ASC";               // How is the ListView ordered?
     String favoriteSelection = CampTable.COLUMN_FAVORITE + " = ?";  // Statement to filter by favorites.
 
+    public static CampListViewFragment newInstance() {
+        return new CampListViewFragment();
+    }
+
     protected Uri getBaseUri(){
         return baseUri;
     }

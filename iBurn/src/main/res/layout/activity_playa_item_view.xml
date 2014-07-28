@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="#ff1b1b1b"
+    android:background="@color/off_blk"
     android:orientation="vertical"
     android:padding="5dp" >
 
@@ -21,9 +21,10 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         style="@style/PlayaTextItem"
-        android:textColor="#c7c79d"
+        android:textColor="@color/highlight"
         android:layout_alignParentTop="true"
         android:fontFamily="sans-serif-light"
+        android:textStyle="bold"
         android:layout_toLeftOf="@id/favorite_button"
         android:ellipsize="marquee"
         android:text="Title"

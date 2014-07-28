@@ -37,6 +37,10 @@ public class EventListViewFragment extends PlayaListViewFragment
     String ordering = EventTable.COLUMN_START_TIME + " ASC";               // How is the ListView ordered?
     String favoriteSelection = EventTable.COLUMN_FAVORITE + " = ?";  // Statement to filter by favorites.
 
+    public static EventListViewFragment newInstance() {
+        return new EventListViewFragment();
+    }
+
     protected Uri getBaseUri(){
         return baseUri;
     }

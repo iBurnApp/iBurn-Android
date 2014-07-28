@@ -32,6 +32,10 @@ public class ArtListViewFragment extends PlayaListViewFragment
     String ordering = ArtTable.COLUMN_NAME + " ASC";               // How is the ListView ordered?
     String favoriteSelection = ArtTable.COLUMN_FAVORITE + " = ?";  // Statement to filter by favorites.
 
+    public static ArtListViewFragment newInstance() {
+        return new ArtListViewFragment();
+    }
+
     protected Uri getBaseUri(){
         return baseUri;
     }

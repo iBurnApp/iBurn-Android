@@ -6,18 +6,17 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.EventTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -25,7 +24,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 /**
  * Created by davidbrodsky on 8/11/13.
  */
-public class PlayaItemViewActivity extends ActionBarActivity {
+public class PlayaItemViewActivity extends FragmentActivity {
 
     Uri uri;
     int model_id;
@@ -33,7 +32,7 @@ public class PlayaItemViewActivity extends ActionBarActivity {
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getSupportActionBar().setTitle("");
+        getActionBar().setTitle("");
         setContentView(R.layout.activity_playa_item_view);
         populateViews(getIntent());
     }
@@ -91,7 +90,7 @@ public class PlayaItemViewActivity extends ActionBarActivity {
             }else
                 findViewById(R.id.body).setVisibility(View.GONE);
 
-            if(BurnState.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex("latitude"))){
+            if(BurnClient.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex("latitude"))){
                 latLng = new LatLng(c.getDouble(c.getColumnIndexOrThrow("latitude")), c.getDouble(c.getColumnIndexOrThrow("longitude")));
                 //TextView locationView = ((TextView) findViewById(R.id.location));
                 final GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -167,7 +166,7 @@ public class PlayaItemViewActivity extends ActionBarActivity {
                     }else
                         findViewById(R.id.subitem_1).setVisibility(View.GONE);
 
-                    if(BurnState.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex(EventTable.COLUMN_LOCATION))){
+                    if(BurnClient.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex(EventTable.COLUMN_LOCATION))){
                         ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(EventTable.COLUMN_LOCATION)));
                     }
                     else

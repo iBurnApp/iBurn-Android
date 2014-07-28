@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pre-dex-items>
+
+    <item
+        dex="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/pre-dexed/debug/classes-14d86d2b0e2f52c6d176112d942af90cd6a98587.jar"
+        jar="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/exploded-aar/com.astuetz/pagerslidingtabstrip/1.0.1/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="7912610ed96381c25c36d986eba422731b9641b6"/>
+    <item
+        dex="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/pre-dexed/debug/gson-2.2.4-5fab436d3950be46cdc86ff1671c9efa5477e4ad.jar"
+        jar="/Users/davidbrodsky/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.2.4/a60a5e993c98c864010053cb901b7eab25306568/gson-2.2.4.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="a60a5e993c98c864010053cb901b7eab25306568"/>
+    <item
+        dex="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/pre-dexed/debug/sqliteassethelper-2.0.1-2f343c38c608c0ae593c61f66ab3ac2931c5f7cf.jar"
+        jar="/Users/davidbrodsky/.gradle/caches/modules-2/files-2.1/com.readystatesoftware.sqliteasset/sqliteassethelper/2.0.1/d5f02e4a4d65ec0fbb339f2e4228723d1540bb9f/sqliteassethelper-2.0.1.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="d5f02e4a4d65ec0fbb339f2e4228723d1540bb9f"/>
+    <item
+        dex="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/pre-dexed/debug/classes-6f2c58227a0496ddfcf59450fbe57d4b2531bfc7.jar"
+        jar="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/exploded-aar/iBurn-Android.libraries/android-gmaps-addons/unspecified/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="22c506ac254031b5dbe784493f51a3c61c464133"/>
+    <item
+        dex="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/pre-dexed/debug/classes-799dbf4a45c329fb84826f57caad7d9388dda890.jar"
+        jar="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/exploded-aar/com.android.support/appcompat-v7/19.1.0/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="3499ceba05ca1f6037c6a2fad73df8f636224a28"/>
+    <item
+        dex="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/pre-dexed/debug/classes-ad514af55b01c38df31626f050fc78431f432e46.jar"
+        jar="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/exploded-aar/com.android.support/support-v4/20.0.0/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="8694693636ab36910c8100ce527c258ff3ebece0"/>
+    <item
+        dex="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/pre-dexed/debug/support-annotations-20.0.0-bca9cd8c8082330ef7549e0398af852faae531fd.jar"
+        jar="/Applications/Android Studio.app/sdk/extras/android/m2repository/com/android/support/support-annotations/20.0.0/support-annotations-20.0.0.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="9d9013e9ff35fc3756411e62873c363c70c638fa"/>
+    <item
+        dex="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/pre-dexed/debug/classes-4821f2b00a91836057e77da0c1a0c7f0d986649b.jar"
+        jar="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/exploded-aar/com.google.android.gms/play-services/5.0.77/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="b6a82434c1eca686607867cd906bcc80ed987837"/>
+    <item
+        dex="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/pre-dexed/debug/internal_impl-20.0.0-e8b66c9c9bfc3cfdeca814eb2977e48517b59f5c.jar"
+        jar="/Users/davidbrodsky/Code/android/iBurn-Android/iBurn/build/intermediates/exploded-aar/com.android.support/support-v4/20.0.0/libs/internal_impl-20.0.0.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="e40b3078e3fbd353c9f44da8df25a8fc0078209d"/>
+
+</pre-dex-items>

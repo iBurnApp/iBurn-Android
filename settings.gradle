@@ -1,4 +1,2 @@
 include ':iBurn'
-include ':libraries:Android-ViewPagerIndicator'
-include ':libraries:google-play-services_lib'
 include ':libraries:android-gmaps-addons'
