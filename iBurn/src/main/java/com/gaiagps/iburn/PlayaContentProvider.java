@@ -1,8 +1,11 @@
 package com.gaiagps.iburn;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
@@ -61,6 +64,7 @@ public class PlayaContentProvider extends ContentProvider {
 
         public static final Uri ALL_URI = AUTHORITY_URI.buildUpon().appendPath(ALL_BASE_PATH).build();
 
+        private static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
 		private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 		static {
@@ -94,7 +98,7 @@ public class PlayaContentProvider extends ContentProvider {
 				String[] selectionArgs, String sortOrder) {
 			
 			SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
-
+            if (selection == null) selection = "";
             String table = null;
 			int uriType = sURIMatcher.match(uri);
 			switch (uriType) {
@@ -117,8 +121,14 @@ public class PlayaContentProvider extends ContentProvider {
             case ART_GEO:
                 table = ArtTable.TABLE_NAME;
             case EVENT_GEO:
-                if(table == null)
+                if(table == null) {
                     table = EventTable.TABLE_NAME;
+                    Date now = new Date();
+                    // TODO: Compare the diff between start time / now and end time / now
+                    // with some fuzzy accepting
+                    selection += String.format("(%s < '%s' AND %s > '%s') AND ", EventTable.COLUMN_START_TIME, dateFormatter.format(now),
+                                                                       EventTable.COLUMN_END_TIME, dateFormatter.format(now));
+                }
             case CAMP_GEO:
                 if(table == null)
                     table = CampTable.TABLE_NAME;
@@ -136,8 +146,8 @@ public class PlayaContentProvider extends ContentProvider {
                 selectionArgs = new String[] {tlLat, brLat, brLon, tlLon};
                 */
 
-                selection = String.format("(%s < %s AND %s > %s) AND (%s < %s AND %s > %s)", CampTable.COLUMN_LATITUDE, tlLat, CampTable.COLUMN_LATITUDE, brLat
-                                                                                            ,CampTable.COLUMN_LONGITUDE, brLon, CampTable.COLUMN_LONGITUDE, tlLon);
+                selection += String.format("(%s < %s AND %s > %s) AND (%s < %s AND %s > %s)", CampTable.COLUMN_LATITUDE, tlLat, CampTable.COLUMN_LATITUDE, brLat
+                                                                                              ,CampTable.COLUMN_LONGITUDE, brLon, CampTable.COLUMN_LONGITUDE, tlLon);
 
                 /*
                 String where = String.format("%s < %s AND %s > %s", CampTable.COLUMN_LATITUDE, tlLat, CampTable.COLUMN_LATITUDE, brLat);

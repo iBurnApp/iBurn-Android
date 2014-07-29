@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
+
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.CampTable;
@@ -27,12 +28,13 @@ import com.google.android.gms.maps.model.*;
 
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 
 /**
  * Created by davidbrodsky on 8/3/13.
  */
-public class GoogleMapFragment extends SupportMapFragment implements LoaderManager.LoaderCallbacks<Cursor>{
+public class GoogleMapFragment extends SupportMapFragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = "GoogleMapFragment";
 
     // Loader ids
@@ -42,7 +44,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     final int ALL = 4;
 
     // Limit mapped pois
-    boolean mapCamps = true;
+    boolean mapCamps = false;
     boolean mapArt = true;
     boolean mapEvents = true;
 
@@ -50,7 +52,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     LatLng lastTarget;
     int state = 0;
 
-    HashMap<String, String> markerIdToMeta;
+    private static final int MAX_POIS = 200;
+    ArrayDeque<Marker> markerQueue = new ArrayDeque<>(MAX_POIS);
+    HashMap<String, String> markerIdToMeta = new HashMap<>();
     MapBoxOfflineTileProvider tileProvider;
     TileOverlay overlay;
     LatLng latLngToCenterOn;
@@ -70,81 +74,81 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
-        if(tileProvider != null)
+        if (tileProvider != null)
             tileProvider.close();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState){
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        markerIdToMeta = new HashMap<>();
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if(BurnClient.isEmbargoClear(getActivity().getApplicationContext()))
+        if (BurnClient.isEmbargoClear(getActivity().getApplicationContext()))
             inflater.inflate(R.menu.map, menu);
     }
 
     @Override
-    public boolean onOptionsItemSelected (MenuItem item){
-       int id = item.getItemId();
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
 
-       switch(id){
-           case R.id.action_home:
-               if(BurnClient.getHomeLatLng(getActivity()) == null && !settingHomeLocation){
-                   settingHomeLocation = true;
-                   Toast.makeText(GoogleMapFragment.this.getActivity(), "Hold then drag the pin to set your home camp", Toast.LENGTH_LONG).show();
-                   addHomePin(new LatLng(Constants.MAN_LAT, Constants.MAN_LON));
-               }else if(!settingHomeLocation){
-                   navigateHome();
-               }
-               break;
-       }
+        switch (id) {
+            case R.id.action_home:
+                if (BurnClient.getHomeLatLng(getActivity()) == null && !settingHomeLocation) {
+                    settingHomeLocation = true;
+                    Toast.makeText(GoogleMapFragment.this.getActivity(), "Hold then drag the pin to set your home camp", Toast.LENGTH_LONG).show();
+                    addHomePin(new LatLng(Constants.MAN_LAT, Constants.MAN_LON));
+                } else if (!settingHomeLocation) {
+                    navigateHome();
+                }
+                break;
+        }
 
         return true;
     }
 
-    @Override public void onActivityCreated(Bundle savedInstanceState) {
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         initMap();
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
     }
 
     @Override
-    public void onDestroyView(){
+    public void onDestroyView() {
         super.onDestroyView();
         latLngToCenterOn = null;
     }
 
-    private void initMap(){
+    private void initMap() {
         addMBTileOverlay(R.raw.iburn);
         addHomePin(BurnClient.getHomeLatLng(getActivity()));
         LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
         getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
 
-        if(latLngToCenterOn != null){
+        if (latLngToCenterOn != null) {
             getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(latLngToCenterOn, 14));
             latLngToCenterOn = null;
         }
         getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
-                if(cameraPosition.zoom >= 19.5){
+                if (cameraPosition.zoom >= 19.5) {
                     getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.4));
                 }
-                if(cameraPosition.zoom > 16 && BurnClient.isEmbargoClear(getActivity())){
+                if (cameraPosition.zoom > 16 && BurnClient.isEmbargoClear(getActivity())) {
                     visibleRegion = getMap().getProjection().getVisibleRegion();
                     Log.i(TAG, "visibleRegion set");
                     restartLoaders(false);
-                }else if(cameraPosition.zoom < 16 && lastZoomLevel >= 16){
+                } else if (cameraPosition.zoom < 16 && lastZoomLevel >= 16) {
                     clearMap();
                     markerIdToMeta = new HashMap<String, String>();
                 }
@@ -157,12 +161,12 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         getMap().setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                if(markerIdToMeta.containsKey(marker.getId())){
+                if (markerIdToMeta.containsKey(marker.getId())) {
                     String markerMeta = markerIdToMeta.get(marker.getId());
                     int model_id = Integer.parseInt(markerMeta.split("-")[1]);
                     int model_type = Integer.parseInt(markerMeta.split("-")[0]);
                     Constants.PLAYA_ITEM playaItem = null;
-                    switch(model_type){
+                    switch (model_type) {
                         case ART:
                             playaItem = Constants.PLAYA_ITEM.ART;
                             break;
@@ -183,15 +187,15 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     }
 
-    private void addMBTileOverlay(int MBTileAssetId){
-        new AsyncTask<Integer, Void, Void>(){
+    private void addMBTileOverlay(int MBTileAssetId) {
+        new AsyncTask<Integer, Void, Void>() {
 
             @Override
             protected Void doInBackground(Integer... params) {
                 int MBTileAssetId = params[0];
-                if(getActivity() != null)
+                if (getActivity() != null)
                     FileUtils.copyMBTilesToSD(getActivity().getApplicationContext(), MBTileAssetId, Constants.MBTILE_DESTINATION);
-                else{
+                else {
                     Log.e(TAG, "getActivity() null on addMBTileOverlay");
                     this.cancel(true);
                 }
@@ -200,7 +204,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
             @Override
             protected void onPostExecute(Void result) {
-                if(getActivity() == null)
+                if (getActivity() == null)
                     return;
                 String tilesPath = String.format("%s/%s/%s/%s", Environment.getExternalStorageDirectory().getAbsolutePath(),
                         Constants.IBURN_ROOT, Constants.TILES_DIR, Constants.MBTILE_DESTINATION);
@@ -219,8 +223,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     }
 
-    private void navigateHome(){
-        if(getMap().getMyLocation() == null){
+    private void navigateHome() {
+        if (getMap().getMyLocation() == null) {
             new AlertDialog.Builder(getActivity())
                     .setTitle("Where are you?")
                     .setMessage("We're still working on your location. Try again in a few seconds!")
@@ -236,14 +240,14 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         }
         LatLng start = new LatLng(getMap().getMyLocation().getLatitude(), getMap().getMyLocation().getLongitude());
         LatLng end = BurnClient.getHomeLatLng(getActivity());
-        if(getDistance(start, end) > 8046){
+        if (getDistance(start, end) > 8046) {
             new AlertDialog.Builder(getActivity())
                     .setTitle(getActivity().getString(R.string.youre_so_far))
                     .setMessage(String.format("It appears you're %d meters from home. Get closer to the burn before navigating home..", (int) getDistance(start, end)))
                     .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            
+
                         }
                     })
                     .show();
@@ -261,26 +265,26 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 .position(end)
                 .title("Home"));
 
-        getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().bearing(getBearing(start, end)).target(getMidPoint(start,end)).tilt(45).zoom(15).build()));
+        getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().bearing(getBearing(start, end)).target(getMidPoint(start, end)).tilt(45).zoom(15).build()));
 
         DecimalFormat twoDForm = new DecimalFormat("#");
         Toast.makeText(getActivity(), String.format("%s meters from home", twoDForm.format(getDistance(start, end))), Toast.LENGTH_LONG).show();
 
     }
 
-    private float getBearing(LatLng start, LatLng end){
+    private float getBearing(LatLng start, LatLng end) {
         double longitude1 = start.longitude;
         double longitude2 = end.longitude;
         double latitude1 = Math.toRadians(start.latitude);
         double latitude2 = Math.toRadians(end.latitude);
-        double longDiff= Math.toRadians(longitude2-longitude1);
-        double y= Math.sin(longDiff)*Math.cos(latitude2);
-        double x=Math.cos(latitude1)*Math.sin(latitude2)-Math.sin(latitude1)*Math.cos(latitude2)*Math.cos(longDiff);
+        double longDiff = Math.toRadians(longitude2 - longitude1);
+        double y = Math.sin(longDiff) * Math.cos(latitude2);
+        double x = Math.cos(latitude1) * Math.sin(latitude2) - Math.sin(latitude1) * Math.cos(latitude2) * Math.cos(longDiff);
 
-        return (float) (Math.toDegrees(Math.atan2(y, x))+360)%360;
+        return (float) (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
     }
 
-    private LatLng getMidPoint(LatLng start, LatLng end){
+    private LatLng getMidPoint(LatLng start, LatLng end) {
 
         double dLon = Math.toRadians(end.longitude - start.longitude);
         double lat1;
@@ -312,25 +316,26 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         return dist;
     }
 
-    public void clearMap(){
+    public void clearMap() {
         getMap().clear();
+        markerQueue.clear();
         addMBTileOverlay(R.raw.iburn);
-        if(BurnClient.getHomeLatLng(getActivity()) != null)
+        if (BurnClient.getHomeLatLng(getActivity()) != null)
             addHomePin(BurnClient.getHomeLatLng(getActivity()));
         state = 0;
     }
 
-    public void mapMarker(MarkerOptions marker){
+    public void mapMarker(MarkerOptions marker) {
         getMap().addMarker(marker);
     }
 
-    public void mapAndCenterOnMarker(MarkerOptions marker){
+    public void mapAndCenterOnMarker(MarkerOptions marker) {
         latLngToCenterOn = marker.getPosition();
         mapMarker(marker);
 
     }
 
-    static final String[] ART_PROJECTION = new String[] {
+    static final String[] ART_PROJECTION = new String[]{
             ArtTable.COLUMN_NAME,
             ArtTable.COLUMN_ID,
             ArtTable.COLUMN_LATITUDE,
@@ -338,7 +343,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             ArtTable.COLUMN_FAVORITE
     };
 
-    static final String[] EVENTS_PROJECTION = new String[] {
+    static final String[] EVENTS_PROJECTION = new String[]{
             EventTable.COLUMN_NAME,
             EventTable.COLUMN_ID,
             EventTable.COLUMN_LATITUDE,
@@ -346,7 +351,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             EventTable.COLUMN_FAVORITE
     };
 
-    static final String[] CAMPS_PROJECTION = new String[] {
+    static final String[] CAMPS_PROJECTION = new String[]{
             CampTable.COLUMN_NAME,
             CampTable.COLUMN_ID,
             CampTable.COLUMN_LATITUDE,
@@ -360,7 +365,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         String[] projection = null;
         Uri targetUri = null;
         if (mCurFilter != null) {
-            switch(i){
+            switch (i) {
                 case ART:
                     projection = ART_PROJECTION;
                     targetUri = PlayaContentProvider.ART_SEARCH_URI;
@@ -378,13 +383,13 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             }
             targetUri = Uri.withAppendedPath(targetUri, Uri.encode(mCurFilter));
         } else {
-            if(visibleRegion == null){
+            if (visibleRegion == null) {
                 Log.e(TAG, "Visible region null onCreateLoader!");
                 return new CursorLoader(getActivity(), targetUri,
                         projection, null, null,
                         null);
             }
-            switch(i){
+            switch (i) {
                 case ART:
                     projection = ART_PROJECTION;
                     targetUri = PlayaContentProvider.ART_GEO_URI;
@@ -401,11 +406,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     targetUri = PlayaContentProvider.ALL_URI; // TODO
             }
 
-                targetUri = targetUri.buildUpon().appendPath(String.valueOf(visibleRegion.farLeft.latitude))
-                                     .appendPath(String.valueOf(visibleRegion.farLeft.longitude))
-                                     .appendPath(String.valueOf(visibleRegion.nearRight.latitude))
-                                     .appendPath(String.valueOf(visibleRegion.nearRight.longitude))
-                                     .build();
+            targetUri = targetUri.buildUpon().appendPath(String.valueOf(visibleRegion.farLeft.latitude))
+                    .appendPath(String.valueOf(visibleRegion.farLeft.longitude))
+                    .appendPath(String.valueOf(visibleRegion.nearRight.latitude))
+                    .appendPath(String.valueOf(visibleRegion.nearRight.longitude))
+                    .build();
 
         }
 
@@ -413,7 +418,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         String[] selectionArgs = null;
 
 
-        if(limitListToFavorites){
+        if (limitListToFavorites) {
             selection = ArtTable.COLUMN_FAVORITE;
             selectionArgs = new String[]{"1"};
         }
@@ -430,34 +435,72 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         int id = cursorLoader.getId();
         GoogleMap map = getMap();
-        MarkerOptions markerOptions;
-        while(cursor.moveToNext()){
-            if(!markerIdToMeta.containsValue(String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID))))){
-                markerOptions = new MarkerOptions().position(new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LATITUDE)), cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LONGITUDE))))
-                        .title(cursor.getString(cursor.getColumnIndex(ArtTable.COLUMN_NAME)));
+        String markerMapId;
+        while (cursor.moveToNext()) {
+            markerMapId = String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID)));
+            if (!markerIdToMeta.containsValue(markerMapId)) {
+                // This POI is not yet mapped
+                LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LATITUDE)), cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LONGITUDE)));
+                if (markerQueue.size() == MAX_POIS) {
+                    // We should re-use the eldest Marker
+                    Marker marker = markerQueue.remove();
+                    marker.setPosition(pos);
+                    marker.setTitle(cursor.getString(cursor.getColumnIndex(ArtTable.COLUMN_NAME)));
 
-                switch(id){
-                    case ALL:
-                        if(cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0){
+                    switch (id) {
+                        case ALL:
+                            if (cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0) {
+                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
+                            } else if (cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0) {
+                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
+                            } else {
+                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
+                            }
+                            break;
+                        case ART:
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
+                            break;
+                        case CAMPS:
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
+                            break;
+                        case EVENTS:
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
+                            break;
+                    }
+
+                    markerQueue.add(marker);
+                    markerIdToMeta.put(marker.getId(), String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID))));
+                } else {
+                    // We shall create a new Marker
+                    MarkerOptions markerOptions;
+                    markerOptions = new MarkerOptions().position(pos)
+                            .title(cursor.getString(cursor.getColumnIndex(ArtTable.COLUMN_NAME)));
+
+                    switch (id) {
+                        case ALL:
+                            if (cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0) {
+                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
+                            } else if (cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0) {
+                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
+                            } else {
+                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
+                            }
+                            break;
+                        case ART:
                             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
-                        }else if(cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0){
+                            break;
+                        case CAMPS:
                             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
-                        }else{
+                            break;
+                        case EVENTS:
                             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
-                        }
-                        break;
-                    case ART:
-                        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
-                        break;
-                    case CAMPS:
-                        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
-                        break;
-                    case EVENTS:
-                        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
-                        break;
+                            break;
+                    }
+
+                    Marker marker = map.addMarker(markerOptions);
+                    markerIdToMeta.put(marker.getId(), String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID))));
+                    markerQueue.add(marker);
                 }
-                String markerId = map.addMarker(markerOptions).getId();
-                markerIdToMeta.put(markerId, String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID))));
             }
         }
     }
@@ -467,13 +510,13 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     }
 
-    public void restartLoader(int type){
+    private void restartLoader(int type) {
         state = type;
         getLoaderManager().restartLoader(type, null, this);
     }
 
-    private void addHomePin(LatLng latLng){
-        if(latLng == null)
+    private void addHomePin(LatLng latLng) {
+        if (latLng == null)
             return;
         Marker marker = getMap().addMarker(new MarkerOptions()
                 .position(latLng)
@@ -493,20 +536,20 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
             @Override
             public void onMarkerDragEnd(Marker marker) {
-                if(marker.getId().compareTo(homeMarkerId) == 0)
+                if (marker.getId().compareTo(homeMarkerId) == 0)
                     BurnClient.setHomeLatLng(GoogleMapFragment.this.getActivity().getApplicationContext(), marker.getPosition());
             }
         });
     }
 
-    private void restartLoaders(boolean clearMap){
-        if(clearMap)
+    private void restartLoaders(boolean clearMap) {
+        if (clearMap)
             clearMap();
-        if(mapCamps)
+        if (mapCamps)
             restartLoader(CAMPS);
-        if(mapArt)
+        if (mapArt)
             restartLoader(ART);
-        if(mapEvents)
+        if (mapEvents)
             restartLoader(EVENTS);
     }
 }
