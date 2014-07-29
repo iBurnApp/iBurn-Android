@@ -1,4 +1,4 @@
-package com.gaiagps.iburn;
+package com.gaiagps.iburn.view;
 
 /**
  * Created by davidbrodsky on 8/4/13.
@@ -7,8 +7,9 @@ package com.gaiagps.iburn;
 import android.content.Context;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
+
+import com.gaiagps.iburn.activity.MainActivity;
 
 /**
  * This class intercepts touch events to prevent

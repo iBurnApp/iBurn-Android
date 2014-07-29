@@ -36,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:layout_below="@id/title"
-            class="com.gaiagps.iburn.GoogleMapFragment"/>
+            class="com.gaiagps.iburn.fragment.GoogleMapFragment"/>
 
 
     <ScrollView

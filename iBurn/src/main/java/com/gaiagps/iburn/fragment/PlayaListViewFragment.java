@@ -1,4 +1,4 @@
-package com.gaiagps.iburn;
+package com.gaiagps.iburn.fragment;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -16,6 +16,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.activity.PlayaItemViewActivity;
+import com.gaiagps.iburn.R;
 
 /**
  * Created by davidbrodsky on 8/3/13.

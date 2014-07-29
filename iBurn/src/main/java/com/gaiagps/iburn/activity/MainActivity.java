@@ -1,4 +1,4 @@
-package com.gaiagps.iburn;
+package com.gaiagps.iburn.activity;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -17,6 +17,14 @@ import android.view.*;
 import android.widget.*;
 
 import com.astuetz.PagerSlidingTabStrip;
+import com.gaiagps.iburn.BurnClient;
+import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.view.MapViewPager;
+import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.fragment.ArtListViewFragment;
+import com.gaiagps.iburn.fragment.CampListViewFragment;
+import com.gaiagps.iburn.fragment.EventListViewFragment;
+import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.model.LatLng;

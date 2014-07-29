@@ -1,10 +1,12 @@
-package com.gaiagps.iburn;
+package com.gaiagps.iburn.fragment;
 
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.SimpleCursorAdapter;
+
+import com.gaiagps.iburn.database.PlayaContentProvider;
 import com.gaiagps.iburn.adapters.ArtCursorAdapter;
 import com.gaiagps.iburn.database.ArtTable;
 

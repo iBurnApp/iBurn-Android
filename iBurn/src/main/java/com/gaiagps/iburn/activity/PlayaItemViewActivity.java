@@ -1,4 +1,4 @@
-package com.gaiagps.iburn;
+package com.gaiagps.iburn.activity;
 
 import android.content.ContentValues;
 import android.content.Intent;
@@ -12,9 +12,14 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.gaiagps.iburn.BurnClient;
+import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.database.PlayaContentProvider;
+import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.EventTable;
+import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;

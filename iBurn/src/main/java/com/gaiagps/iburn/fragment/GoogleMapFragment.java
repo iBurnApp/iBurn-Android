@@ -1,4 +1,4 @@
-package com.gaiagps.iburn;
+package com.gaiagps.iburn.fragment;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -18,6 +18,12 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
+import com.gaiagps.iburn.BurnClient;
+import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.FileUtils;
+import com.gaiagps.iburn.database.PlayaContentProvider;
+import com.gaiagps.iburn.activity.PlayaItemViewActivity;
+import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.EventTable;
