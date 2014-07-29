@@ -6,9 +6,9 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.SimpleCursorAdapter;
 
-import com.gaiagps.iburn.database.PlayaContentProvider;
 import com.gaiagps.iburn.adapters.CampCursorAdapter;
 import com.gaiagps.iburn.database.CampTable;
+import com.gaiagps.iburn.database.PlayaContentProvider;
 
 /**
  * Created by davidbrodsky on 8/3/13.
@@ -21,18 +21,20 @@ public class CampListViewFragment extends PlayaListViewFragment
     private static final String TAG = "CampListViewFragment";
 
     static final String[] PROJECTION = new String[] {
-            CampTable.COLUMN_ID,
-            CampTable.COLUMN_NAME,
-            CampTable.COLUMN_LOCATION,
-            CampTable.COLUMN_FAVORITE
+            CampTable.id,
+            CampTable.name,
+            CampTable.playaStreet,
+            CampTable.playaHour,
+            CampTable.playaMinute,
+            CampTable.favorite
     };
 
     SimpleCursorAdapter mAdapter;
-    protected Uri baseUri = PlayaContentProvider.CAMP_URI;                    // Uris corresponding to PlayaContentProvider
-    protected Uri searchUri = PlayaContentProvider.CAMP_SEARCH_URI;
+    protected Uri baseUri = PlayaContentProvider.Camps.CAMPS;                    // Uris corresponding to PlayaContentProvider
+    protected Uri searchUri = PlayaContentProvider.Camps.CAMPS;
 
-    String ordering = CampTable.COLUMN_NAME + " ASC";               // How is the ListView ordered?
-    String favoriteSelection = CampTable.COLUMN_FAVORITE + " = ?";  // Statement to filter by favorites.
+    String ordering = CampTable.name + " ASC";               // How is the ListView ordered?
+    String favoriteSelection = CampTable.favorite + " = ?";  // Statement to filter by favorites.
 
     public static CampListViewFragment newInstance() {
         return new CampListViewFragment();

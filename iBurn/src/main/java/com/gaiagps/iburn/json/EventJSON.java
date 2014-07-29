@@ -1,25 +1,22 @@
 package com.gaiagps.iburn.json;
 
-public class EventJSON {
-	
-	public static final String KEY_NAME = "title";
-	public static final String KEY_DESCRIPTION = "description";
-	public static final String KEY_ALL_DAY= "all_day";
-	public static final String KEY_CHECK_LOCATION = "check_location";
+public class EventJSON extends PlayaItemJSON{
 
-	public static final String KEY_HOST_CAMP = "hosted_by_camp";
-	public static final String KEY_HOST_CAMP_ID = "id";
-	public static final String KEY_HOST_CAMP_NAME = "name";
-	
-	public static final String KEY_LATITUDE = "latitude";
-	public static final String KEY_LONGITUDE = "longitude";
-	public static final String KEY_LOCATION = "location";
-	public static final String KEY_URL = "url";
-	public static final String KEY_YEAR = "year";
-	
-	public static final String KEY_OCCURENCE_SET = "occurrence_set";
+    public static final String KEY_ALL_DAY              = "all_day";
+	public static final String KEY_CHECK_LOCATION       = "check_location";
+    public static final String KEY_EVENT_TYPE           = "event_type";
+    public static final String KEY_EVENT_ABBREV         = "abbr";
+
+	public static final String KEY_HOST_CAMP            = "hosted_by_camp";
+	public static final String KEY_HOST_CAMP_ID         = "id";
+	public static final String KEY_HOST_CAMP_NAME       = "name";
+
+	public static final String KEY_OCCURENCE_SET        = "occurrence_set";
 	public static final String KEY_OCCURENCE_START_TIME = "start_time";
-	public static final String KEY_OCCURENCE_END_TIME = "end_time";
+	public static final String KEY_OCCURENCE_END_TIME   = "end_time";
+
+    /** Events JSON uses "title" instead of "name" */
+    public static final String KEY_NAME                 = "title";
 	
 	/*
 	 

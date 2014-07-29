@@ -6,9 +6,9 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.SimpleCursorAdapter;
 
-import com.gaiagps.iburn.database.PlayaContentProvider;
 import com.gaiagps.iburn.adapters.ArtCursorAdapter;
 import com.gaiagps.iburn.database.ArtTable;
+import com.gaiagps.iburn.database.PlayaContentProvider;
 
 /**
  * Created by davidbrodsky on 8/3/13.
@@ -21,18 +21,18 @@ public class ArtListViewFragment extends PlayaListViewFragment
     private static final String TAG = "ArtListViewFragment";
 
     static final String[] PROJECTION = new String[] {
-            ArtTable.COLUMN_ID,
-            ArtTable.COLUMN_NAME,
-            ArtTable.COLUMN_ARTIST,
-            ArtTable.COLUMN_FAVORITE
+            ArtTable.id,
+            ArtTable.name,
+            ArtTable.artist,
+            ArtTable.favorite
     };
 
     SimpleCursorAdapter mAdapter;
-    protected Uri baseUri = PlayaContentProvider.ART_URI;                    // Uris corresponding to PlayaContentProvider
-    protected Uri searchUri = PlayaContentProvider.ART_SEARCH_URI;
+    protected Uri baseUri   = PlayaContentProvider.Art.ART;                    // Uris corresponding to PlayaContentProvider
+    protected Uri searchUri = PlayaContentProvider.Art.ART;
 
-    String ordering = ArtTable.COLUMN_NAME + " ASC";               // How is the ListView ordered?
-    String favoriteSelection = ArtTable.COLUMN_FAVORITE + " = ?";  // Statement to filter by favorites.
+    String ordering = ArtTable.name + " ASC";               // How is the ListView ordered?
+    String favoriteSelection = ArtTable.favorite + " = ?";  // Statement to filter by favorites.
 
     public static ArtListViewFragment newInstance() {
         return new ArtListViewFragment();

@@ -1,26 +1,10 @@
 package com.gaiagps.iburn.json;
 
-public class ArtJSON {
-	
-	public static final String KEY_NAME = "name";
-	public static final String KEY_DESCRIPTION = "description";
-	public static final String KEY_ARTIST = "artist";
-	public static final String KEY_ARTIST_LOCATION = "artist_location";
-	public static final String KEY_ART_ID= "id";
-	public static final String KEY_CIRCULAR_STREET = "circular_street";
-	public static final String KEY_CONTACT = "contact_email";
+public class ArtJSON extends PlayaItemJSON {
 
-	public static final String KEY_TIME_ADDRESS = "time_address";
-	public static final String KEY_HOUR = "hour";
-	public static final String KEY_MINUTE = "minute";
-	public static final String KEY_DISTANCE = "distance";
-	
-	public static final String KEY_LATITUDE = "latitude";
-	public static final String KEY_LONGITUDE = "longitude";
-	//public static final String KEY_LOCATION = "location_string";
-	public static final String KEY_URL = "url";
-	public static final String KEY_YEAR = "year";
-	
+	public static final String KEY_ARTIST           = "artist";
+	public static final String KEY_ARTIST_LOCATION  = "artist_location";
+
 	/*
 	{
         "artist": null, 

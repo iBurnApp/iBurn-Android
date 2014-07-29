@@ -18,19 +18,25 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
-import com.gaiagps.iburn.BurnClient;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.FileUtils;
-import com.gaiagps.iburn.database.PlayaContentProvider;
-import com.gaiagps.iburn.activity.PlayaItemViewActivity;
+import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.activity.PlayaItemViewActivity;
 import com.gaiagps.iburn.database.ArtTable;
-import com.gaiagps.iburn.database.CampTable;
-import com.gaiagps.iburn.database.EventTable;
+import com.gaiagps.iburn.database.PlayaContentProvider;
+import com.gaiagps.iburn.database.PlayaItemTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.*;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.TileOverlay;
+import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.android.gms.maps.model.VisibleRegion;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -94,7 +100,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if (BurnClient.isEmbargoClear(getActivity().getApplicationContext()))
+        if (PlayaClient.isEmbargoClear(getActivity().getApplicationContext()))
             inflater.inflate(R.menu.map, menu);
     }
 
@@ -104,7 +110,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
         switch (id) {
             case R.id.action_home:
-                if (BurnClient.getHomeLatLng(getActivity()) == null && !settingHomeLocation) {
+                if (PlayaClient.getHomeLatLng(getActivity()) == null && !settingHomeLocation) {
                     settingHomeLocation = true;
                     Toast.makeText(GoogleMapFragment.this.getActivity(), "Hold then drag the pin to set your home camp", Toast.LENGTH_LONG).show();
                     addHomePin(new LatLng(Constants.MAN_LAT, Constants.MAN_LON));
@@ -136,7 +142,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     private void initMap() {
         addMBTileOverlay(R.raw.iburn);
-        addHomePin(BurnClient.getHomeLatLng(getActivity()));
+        addHomePin(PlayaClient.getHomeLatLng(getActivity()));
         LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
         getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
 
@@ -150,7 +156,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 if (cameraPosition.zoom >= 19.5) {
                     getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.4));
                 }
-                if (cameraPosition.zoom > 16 && BurnClient.isEmbargoClear(getActivity())) {
+                if (cameraPosition.zoom > 16 && PlayaClient.isEmbargoClear(getActivity())) {
                     visibleRegion = getMap().getProjection().getVisibleRegion();
                     Log.i(TAG, "visibleRegion set");
                     restartLoaders(false);
@@ -245,7 +251,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             return;
         }
         LatLng start = new LatLng(getMap().getMyLocation().getLatitude(), getMap().getMyLocation().getLongitude());
-        LatLng end = BurnClient.getHomeLatLng(getActivity());
+        LatLng end = PlayaClient.getHomeLatLng(getActivity());
         if (getDistance(start, end) > 8046) {
             new AlertDialog.Builder(getActivity())
                     .setTitle(getActivity().getString(R.string.youre_so_far))
@@ -326,8 +332,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         getMap().clear();
         markerQueue.clear();
         addMBTileOverlay(R.raw.iburn);
-        if (BurnClient.getHomeLatLng(getActivity()) != null)
-            addHomePin(BurnClient.getHomeLatLng(getActivity()));
+        if (PlayaClient.getHomeLatLng(getActivity()) != null)
+            addHomePin(PlayaClient.getHomeLatLng(getActivity()));
         state = 0;
     }
 
@@ -341,99 +347,64 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     }
 
-    static final String[] ART_PROJECTION = new String[]{
-            ArtTable.COLUMN_NAME,
-            ArtTable.COLUMN_ID,
-            ArtTable.COLUMN_LATITUDE,
-            ArtTable.COLUMN_LONGITUDE,
-            ArtTable.COLUMN_FAVORITE
+    static final String[] PROJECTION = new String[]{
+            PlayaItemTable.name,
+            PlayaItemTable.id,
+            PlayaItemTable.latitude,
+            PlayaItemTable.longitude,
+            PlayaItemTable.favorite
     };
-
-    static final String[] EVENTS_PROJECTION = new String[]{
-            EventTable.COLUMN_NAME,
-            EventTable.COLUMN_ID,
-            EventTable.COLUMN_LATITUDE,
-            EventTable.COLUMN_LONGITUDE,
-            EventTable.COLUMN_FAVORITE
-    };
-
-    static final String[] CAMPS_PROJECTION = new String[]{
-            CampTable.COLUMN_NAME,
-            CampTable.COLUMN_ID,
-            CampTable.COLUMN_LATITUDE,
-            CampTable.COLUMN_LONGITUDE,
-            CampTable.COLUMN_FAVORITE
-    };
-
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        String[] projection = null;
+        String[] projection = PROJECTION;
         Uri targetUri = null;
-        if (mCurFilter != null) {
-            switch (i) {
-                case ART:
-                    projection = ART_PROJECTION;
-                    targetUri = PlayaContentProvider.ART_SEARCH_URI;
-                    break;
-                case CAMPS:
-                    projection = CAMPS_PROJECTION;
-                    targetUri = PlayaContentProvider.CAMP_SEARCH_URI;
-                    break;
-                case EVENTS:
-                    projection = EVENTS_PROJECTION;
-                    targetUri = PlayaContentProvider.EVENT_SEARCH_URI;
-                    break;
-                case ALL:
-                    targetUri = PlayaContentProvider.ALL_URI; // TODO
-            }
-            targetUri = Uri.withAppendedPath(targetUri, Uri.encode(mCurFilter));
-        } else {
-            if (visibleRegion == null) {
-                Log.e(TAG, "Visible region null onCreateLoader!");
-                return new CursorLoader(getActivity(), targetUri,
-                        projection, null, null,
-                        null);
-            }
-            switch (i) {
-                case ART:
-                    projection = ART_PROJECTION;
-                    targetUri = PlayaContentProvider.ART_GEO_URI;
-                    break;
-                case CAMPS:
-                    projection = CAMPS_PROJECTION;
-                    targetUri = PlayaContentProvider.CAMP_GEO_URI;
-                    break;
-                case EVENTS:
-                    projection = EVENTS_PROJECTION;
-                    targetUri = PlayaContentProvider.EVENT_GEO_URI;
-                    break;
-                case ALL:
-                    targetUri = PlayaContentProvider.ALL_URI; // TODO
-            }
 
-            targetUri = targetUri.buildUpon().appendPath(String.valueOf(visibleRegion.farLeft.latitude))
-                    .appendPath(String.valueOf(visibleRegion.farLeft.longitude))
-                    .appendPath(String.valueOf(visibleRegion.nearRight.latitude))
-                    .appendPath(String.valueOf(visibleRegion.nearRight.longitude))
-                    .build();
-
+        if (visibleRegion == null || !PlayaClient.isDbPopulated(getActivity())) {
+            Log.e(TAG, "Visible region null onCreateLoader!");
+            return new CursorLoader(getActivity(), targetUri,
+                    projection, null, null,
+                    null);
         }
+
+        switch (i) {
+            case ART:
+                targetUri = PlayaContentProvider.Art.ART;
+                break;
+            case CAMPS:
+                targetUri = PlayaContentProvider.Camps.CAMPS;
+                break;
+            case EVENTS:
+                targetUri = PlayaContentProvider.Events.EVENTS;
+                break;
+            case ALL:
+                //targetUri = PlayaContentProvider.ALL_URI; // TODO
+                throw new IllegalArgumentException("ART endpoint not yet supported");
+        }
+
+        if (mCurFilter != null) {
+            // Add to selection, selectionArgs for name filter
+        }
+
+        targetUri = targetUri.buildUpon().appendPath(String.valueOf(visibleRegion.farLeft.latitude))
+                .appendPath(String.valueOf(visibleRegion.farLeft.longitude))
+                .appendPath(String.valueOf(visibleRegion.nearRight.latitude))
+                .appendPath(String.valueOf(visibleRegion.nearRight.longitude))
+                .build();
 
         String selection = null;
         String[] selectionArgs = null;
 
 
         if (limitListToFavorites) {
-            selection = ArtTable.COLUMN_FAVORITE;
+            selection += ArtTable.favorite + " =?";
             selectionArgs = new String[]{"1"};
         }
 
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
         Log.i(TAG, "Creating loader with uri: " + targetUri.toString());
-        return new CursorLoader(getActivity(), targetUri,
-                projection, selection, selectionArgs,
+        return new CursorLoader(getActivity(), targetUri, projection, selection, selectionArgs,
                 null);
     }
 
@@ -443,15 +414,15 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         GoogleMap map = getMap();
         String markerMapId;
         while (cursor.moveToNext()) {
-            markerMapId = String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID)));
+            markerMapId = String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.id)));
             if (!markerIdToMeta.containsValue(markerMapId)) {
                 // This POI is not yet mapped
-                LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LATITUDE)), cursor.getDouble(cursor.getColumnIndex(ArtTable.COLUMN_LONGITUDE)));
+                LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.latitude)), cursor.getDouble(cursor.getColumnIndex(ArtTable.longitude)));
                 if (markerQueue.size() == MAX_POIS) {
                     // We should re-use the eldest Marker
                     Marker marker = markerQueue.remove();
                     marker.setPosition(pos);
-                    marker.setTitle(cursor.getString(cursor.getColumnIndex(ArtTable.COLUMN_NAME)));
+                    marker.setTitle(cursor.getString(cursor.getColumnIndex(ArtTable.name)));
 
                     switch (id) {
                         case ALL:
@@ -475,12 +446,12 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     }
 
                     markerQueue.add(marker);
-                    markerIdToMeta.put(marker.getId(), String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID))));
+                    markerIdToMeta.put(marker.getId(), String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.id))));
                 } else {
                     // We shall create a new Marker
                     MarkerOptions markerOptions;
                     markerOptions = new MarkerOptions().position(pos)
-                            .title(cursor.getString(cursor.getColumnIndex(ArtTable.COLUMN_NAME)));
+                            .title(cursor.getString(cursor.getColumnIndex(ArtTable.name)));
 
                     switch (id) {
                         case ALL:
@@ -504,7 +475,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     }
 
                     Marker marker = map.addMarker(markerOptions);
-                    markerIdToMeta.put(marker.getId(), String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.COLUMN_ID))));
+                    markerIdToMeta.put(marker.getId(), String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.id))));
                     markerQueue.add(marker);
                 }
             }
@@ -543,7 +514,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             @Override
             public void onMarkerDragEnd(Marker marker) {
                 if (marker.getId().compareTo(homeMarkerId) == 0)
-                    BurnClient.setHomeLatLng(GoogleMapFragment.this.getActivity().getApplicationContext(), marker.getPosition());
+                    PlayaClient.setHomeLatLng(GoogleMapFragment.this.getActivity().getApplicationContext(), marker.getPosition());
             }
         });
     }

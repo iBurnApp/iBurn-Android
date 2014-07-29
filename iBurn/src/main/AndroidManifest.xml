@@ -28,7 +28,7 @@
 
         <provider
                 android:authorities="com.gaiagps.iburn.playacontentprovider"
-                android:name=".database.PlayaContentProvider"
+                android:name=".schematic.PlayaContentProvider"
                 android:exported="false" >
         </provider>
 

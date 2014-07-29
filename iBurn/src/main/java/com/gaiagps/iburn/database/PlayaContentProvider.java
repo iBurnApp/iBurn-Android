@@ -1,406 +1,84 @@
 package com.gaiagps.iburn.database;
 
-import android.content.ContentProvider;
-import android.content.ContentValues;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.text.TextUtils;
 
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
+import net.simonvt.schematic.annotation.ContentProvider;
+import net.simonvt.schematic.annotation.ContentUri;
+import net.simonvt.schematic.annotation.InexactContentUri;
+import net.simonvt.schematic.annotation.TableEndpoint;
 
-public class PlayaContentProvider extends ContentProvider {
+/**
+ * ContentProvider definition. This defines a familiar API
+ * for Android framework components to utilize.
+ * See {@link com.gaiagps.iburn.database.PlayaClient} for
+ * an abstracted, human-friendly interface.
+ *
+ * Created by davidbrodsky on 7/28/14.
+ */
+@ContentProvider(authority = PlayaContentProvider.AUTHORITY, database = PlayaDatabase.class)
+public final class PlayaContentProvider {
 
-    // database
-    private DBWrapper database;
+    public static final String AUTHORITY      = "com.gaiagps.iburn.playacontentprovider";
+    private static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
 
-    // Used for the UriMacher
-    private static final int CAMPS = 1;        // Query all
-    private static final int CAMP_ID = 2;        // Query single entry by id
-    private static final int CAMP_SEARCH = 3;    // Search title by string
-    private static final int CAMP_GEO = 12;     // Within LatLng bounds
-    private static final int EVENTS = 4;
-    private static final int EVENT_ID = 5;
-    private static final int EVENT_SEARCH = 9;
-    private static final int EVENT_GEO = 13;
-    private static final int ART = 7;
-    private static final int ART_ID = 8;
-    private static final int ART_SEARCH = 10;
-    private static final int ART_GEO = 14;
-    private static final int ALL = 11;
-
-    private static final String AUTHORITY = "com.gaiagps.iburn.playacontentprovider";
-
-    private static final String CAMP_BASE_PATH = "camp";
-    private static final String EVENT_BASE_PATH = "event";
-    private static final String ART_BASE_PATH = "art";
-    private static final String ALL_BASE_PATH = "all";
-
-    public static final Uri AUTHORITY_URI = Uri.parse("content://" + AUTHORITY + "/");
-
-    public static final Uri CAMP_URI = AUTHORITY_URI.buildUpon().appendPath(CAMP_BASE_PATH).build();
-    public static final Uri CAMP_SEARCH_URI = AUTHORITY_URI.buildUpon().appendPath(CAMP_BASE_PATH).appendPath("search").build();
-    public static final Uri CAMP_GEO_URI = AUTHORITY_URI.buildUpon().appendPath(CAMP_BASE_PATH).appendPath("within").build();
-
-    public static final Uri EVENT_URI = AUTHORITY_URI.buildUpon().appendPath(EVENT_BASE_PATH).build();
-    public static final Uri EVENT_SEARCH_URI = AUTHORITY_URI.buildUpon().appendPath(EVENT_BASE_PATH).appendPath("search").build();
-    public static final Uri EVENT_GEO_URI = AUTHORITY_URI.buildUpon().appendPath(EVENT_BASE_PATH).appendPath("within").build();
-
-    public static final Uri ART_URI = AUTHORITY_URI.buildUpon().appendPath(ART_BASE_PATH).build();
-    public static final Uri ART_SEARCH_URI = AUTHORITY_URI.buildUpon().appendPath(ART_BASE_PATH).appendPath("search").build();
-    public static final Uri ART_GEO_URI = AUTHORITY_URI.buildUpon().appendPath(ART_BASE_PATH).appendPath("within").build();
-
-    public static final Uri ALL_URI = AUTHORITY_URI.buildUpon().appendPath(ALL_BASE_PATH).build();
-
-    private static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-
-    private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-
-    static {
-        sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH, CAMPS);
-        sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH + "/#", CAMP_ID);
-        sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH + "/search/*", CAMP_SEARCH);
-        sURIMatcher.addURI(AUTHORITY, CAMP_BASE_PATH + "/within/*/*/*/*", CAMP_GEO);
-
-        sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH, EVENTS);
-        sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH + "/#", EVENT_ID);
-        sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH + "/search/*", EVENT_SEARCH);
-        sURIMatcher.addURI(AUTHORITY, EVENT_BASE_PATH + "/within/*/*/*/*", EVENT_GEO);
-
-        sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH, ART);
-        sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/#", ART_ID);
-        sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/search/*", ART_SEARCH);
-        sURIMatcher.addURI(AUTHORITY, ART_BASE_PATH + "/within/*/*/*/*", ART_GEO);
-
-        sURIMatcher.addURI(AUTHORITY, ALL_BASE_PATH, ALL);
-    }
-
-    @Override
-    public boolean onCreate() {
-        database = new DBWrapper(getContext());
-        return false;
-    }
-
-
-    @Override
-    public Cursor query(Uri uri, String[] projection, String selection,
-                        String[] selectionArgs, String sortOrder) {
-
-        SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
-        if (selection == null) selection = "";
-        String table = null;
-        int uriType = sURIMatcher.match(uri);
-        switch (uriType) {
-            case CAMPS:
-                queryBuilder.setTables(CampTable.TABLE_NAME);
-                checkColumns(projection, CAMPS);
-                break;
-            case CAMP_ID:
-                queryBuilder.setTables(CampTable.TABLE_NAME);
-                checkColumns(projection, CAMPS);
-                queryBuilder.appendWhere(CampTable.COLUMN_ID + "="
-                        + uri.getLastPathSegment());
-                break;
-            case CAMP_SEARCH:
-                queryBuilder.setTables(CampTable.TABLE_NAME);
-                checkColumns(projection, CAMPS);
-                queryBuilder.appendWhere(CampTable.COLUMN_NAME + " LIKE "
-                        + "\"%" + uri.getLastPathSegment() + "%\"");
-                break;
-            case ART_GEO:
-                table = ArtTable.TABLE_NAME;
-            case EVENT_GEO:
-                if (table == null) {
-                    table = EventTable.TABLE_NAME;
-                    Date now = new Date();
-                    // TODO: Compare the diff between start time / now and end time / now
-                    // with some fuzzy accepting
-                    selection += String.format("(%s < '%s' AND %s > '%s') AND ",
-                            EventTable.COLUMN_START_TIME,   dateFormatter.format(now),
-                            EventTable.COLUMN_END_TIME,     dateFormatter.format(now));
-                }
-            case CAMP_GEO:
-                if (table == null)
-                    table = CampTable.TABLE_NAME;
-                queryBuilder.setTables(table);
-                List<String> params = uri.getPathSegments();
-                String tlLat = params.get(2);
-                String tlLon = params.get(3);
-                String brLat = params.get(4);
-                String brLon = params.get(5);
-                queryBuilder.setTables(table);
-
-                selection += String.format("(%s < %s AND %s > %s) AND (%s < %s AND %s > %s)",
-                        CampTable.COLUMN_LATITUDE,  tlLat, CampTable.COLUMN_LATITUDE,   brLat,
-                        CampTable.COLUMN_LONGITUDE, brLon, CampTable.COLUMN_LONGITUDE,  tlLon);
-                break;
-            case EVENTS:
-                queryBuilder.setTables(EventTable.TABLE_NAME);
-                checkColumns(projection, EVENTS);
-                break;
-            case EVENT_ID:
-                queryBuilder.setTables(EventTable.TABLE_NAME);
-                checkColumns(projection, EVENTS);
-                queryBuilder.appendWhere(EventTable.COLUMN_ID + "="
-                        + uri.getLastPathSegment());
-                break;
-            case EVENT_SEARCH:
-                queryBuilder.setTables(EventTable.TABLE_NAME);
-                checkColumns(projection, EVENTS);
-                queryBuilder.appendWhere(EventTable.COLUMN_NAME + " LIKE "
-                        + "\"%" + uri.getLastPathSegment() + "%\"");
-                break;
-            case ART:
-                queryBuilder.setTables(ArtTable.TABLE_NAME);
-                checkColumns(projection, ART);
-                break;
-            case ART_ID:
-                queryBuilder.setTables(ArtTable.TABLE_NAME);
-                checkColumns(projection, ART);
-                queryBuilder.appendWhere(ArtTable.COLUMN_ID + "="
-                        + uri.getLastPathSegment());
-                break;
-            case ART_SEARCH:
-                queryBuilder.setTables(ArtTable.TABLE_NAME);
-                checkColumns(projection, ART);
-                queryBuilder.appendWhere(ArtTable.COLUMN_NAME + " LIKE "
-                        + "\"%" + uri.getLastPathSegment() + "%\"");
-                break;
-            case ALL:
-                queryBuilder.setTables(ArtTable.TABLE_NAME + ", " + CampTable.TABLE_NAME + ", " + EventTable.TABLE_NAME);
-                //queryBuilder.appendWhere("(art.latitude != 0 AND art.longitude != 0) OR (camps.latitude != 0 AND camps.longitude != 0) OR (events.latitude != 0 AND events.longitude != 0)");
-                checkColumns(projection, ALL);
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown URI: " + uri);
+    private static Uri buildUri(String... paths) {
+        Uri.Builder builder = BASE_CONTENT_URI.buildUpon();
+        for (String path : paths) {
+            builder.appendPath(path);
         }
-
-        SQLiteDatabase db = database.getWritableDatabase();
-        Cursor cursor = queryBuilder.query(db, projection, selection,
-                selectionArgs, null, null, sortOrder);
-        // Make sure that potential listeners are getting notified
-        if (cursor != null)
-            cursor.setNotificationUri(getContext().getContentResolver(), uri);
-        return cursor;
+        return builder.build();
     }
 
-    @Override
-    public String getType(Uri uri) {
-        return null;
+    /** Art API **/
+
+    @TableEndpoint(table = PlayaDatabase.ART)
+    public static class Art {
+
+        private static final String ENDPOINT = "art";
+
+        @ContentUri(
+                path = ENDPOINT,
+                type = "vnd.android.cursor.dir/list",
+                defaultSort = ArtTable.name + " ASC")
+        public static final Uri ART = buildUri(ENDPOINT);
     }
 
-    @Override
-    public Uri insert(Uri uri, ContentValues values) {
-        int uriType = sURIMatcher.match(uri);
-        SQLiteDatabase sqlDB = database.getWritableDatabase();
-        long id = 0;
-        Uri result = null;
-        switch (uriType) {
-            case CAMPS:
-                id = sqlDB.insert(CampTable.TABLE_NAME, null, values);
-                getContext().getContentResolver().notifyChange(uri, null);
-                result = Uri.parse(CAMP_BASE_PATH + "/" + id);
-                break;
-            case EVENTS:
-                id = sqlDB.insert(EventTable.TABLE_NAME, null, values);
-                getContext().getContentResolver().notifyChange(uri, null);
-                result = Uri.parse(EVENT_BASE_PATH + "/" + id);
-                break;
-            case ART:
-                id = sqlDB.insert(ArtTable.TABLE_NAME, null, values);
-                getContext().getContentResolver().notifyChange(uri, null);
-                result = Uri.parse(ART_BASE_PATH + "/" + id);
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown URI: " + uri);
+    /** Camps API **/
+
+    @TableEndpoint(table = PlayaDatabase.CAMPS)
+    public static class Camps {
+
+        private static final String ENDPOINT = "camps";
+
+        @ContentUri(
+                path = ENDPOINT,
+                type = "vnd.android.cursor.dir/list",
+                defaultSort = CampTable.name + " ASC")
+        public static final Uri CAMPS = buildUri(ENDPOINT);
+
+        @InexactContentUri(
+                name = "CAMP_ID",
+                path = ENDPOINT + "/#",
+                type = "vnd.android.cursor.item/camp",
+                whereColumn = CampTable.id,
+                pathSegment = 1)
+        public static Uri withId(long id) {
+            return buildUri(ENDPOINT, String.valueOf(id));
         }
-
-        return result;
-
     }
 
-    @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
-        int uriType = sURIMatcher.match(uri);
-        SQLiteDatabase sqlDB = database.getWritableDatabase();
-        int rowsDeleted = 0;
-        String id;
-        switch (uriType) {
-            case CAMPS:
-                rowsDeleted = sqlDB.delete(CampTable.TABLE_NAME, selection,
-                        selectionArgs);
-                break;
-            case CAMP_ID:
-                id = uri.getLastPathSegment();
-                if (TextUtils.isEmpty(selection)) {
-                    rowsDeleted = sqlDB.delete(CampTable.TABLE_NAME,
-                            CampTable.COLUMN_ID + "=" + id,
-                            null);
-                } else {
-                    rowsDeleted = sqlDB.delete(CampTable.TABLE_NAME,
-                            CampTable.COLUMN_ID + "=" + id
-                                    + " and " + selection,
-                            selectionArgs
-                    );
-                }
-                break;
-            case EVENTS:
-                rowsDeleted = sqlDB.delete(EventTable.TABLE_NAME, selection,
-                        selectionArgs);
-                break;
-            case EVENT_ID:
-                id = uri.getLastPathSegment();
-                if (TextUtils.isEmpty(selection)) {
-                    rowsDeleted = sqlDB.delete(EventTable.TABLE_NAME,
-                            CampTable.COLUMN_ID + "=" + id,
-                            null);
-                } else {
-                    rowsDeleted = sqlDB.delete(EventTable.TABLE_NAME,
-                            CampTable.COLUMN_ID + "=" + id
-                                    + " and " + selection,
-                            selectionArgs
-                    );
-                }
-                break;
-            case ART:
-                rowsDeleted = sqlDB.delete(ArtTable.TABLE_NAME, selection,
-                        selectionArgs);
-                break;
-            case ART_ID:
-                id = uri.getLastPathSegment();
-                if (TextUtils.isEmpty(selection)) {
-                    rowsDeleted = sqlDB.delete(ArtTable.TABLE_NAME,
-                            ArtTable.COLUMN_ID + "=" + id,
-                            null);
-                } else {
-                    rowsDeleted = sqlDB.delete(ArtTable.TABLE_NAME,
-                            ArtTable.COLUMN_ID + "=" + id
-                                    + " and " + selection,
-                            selectionArgs
-                    );
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown URI: " + uri);
-        }
-        getContext().getContentResolver().notifyChange(uri, null);
-        return rowsDeleted;
-    }
+    /** Events API **/
 
-    @Override
-    public int update(Uri uri, ContentValues values, String selection,
-                      String[] selectionArgs) {
+    @TableEndpoint(table = PlayaDatabase.EVENTS)
+    public static class Events {
 
-        int uriType = sURIMatcher.match(uri);
-        SQLiteDatabase sqlDB = database.getWritableDatabase();
-        int rowsUpdated = 0;
-        String id;
-        switch (uriType) {
-            case CAMPS:
-                rowsUpdated = sqlDB.update(CampTable.TABLE_NAME,
-                        values,
-                        selection,
-                        selectionArgs);
-                break;
-            case CAMP_ID:
-                id = uri.getLastPathSegment();
-                if (TextUtils.isEmpty(selection)) {
-                    rowsUpdated = sqlDB.update(CampTable.TABLE_NAME,
-                            values,
-                            CampTable.COLUMN_ID + "=" + id,
-                            null);
-                } else {
-                    rowsUpdated = sqlDB.update(CampTable.TABLE_NAME,
-                            values,
-                            CampTable.COLUMN_ID + "=" + id
-                                    + " and "
-                                    + selection,
-                            selectionArgs
-                    );
-                }
-                break;
-            case EVENTS:
-                rowsUpdated = sqlDB.update(EventTable.TABLE_NAME,
-                        values,
-                        selection,
-                        selectionArgs);
-                break;
-            case EVENT_ID:
-                id = uri.getLastPathSegment();
-                if (TextUtils.isEmpty(selection)) {
-                    rowsUpdated = sqlDB.update(EventTable.TABLE_NAME,
-                            values,
-                            EventTable.COLUMN_ID + "=" + id,
-                            null);
-                } else {
-                    rowsUpdated = sqlDB.update(EventTable.TABLE_NAME,
-                            values,
-                            EventTable.COLUMN_ID + "=" + id
-                                    + " and "
-                                    + selection,
-                            selectionArgs
-                    );
-                }
-                break;
-            case ART:
-                rowsUpdated = sqlDB.update(ArtTable.TABLE_NAME,
-                        values,
-                        selection,
-                        selectionArgs);
-                break;
-            case ART_ID:
-                id = uri.getLastPathSegment();
-                if (TextUtils.isEmpty(selection)) {
-                    rowsUpdated = sqlDB.update(ArtTable.TABLE_NAME,
-                            values,
-                            ArtTable.COLUMN_ID + "=" + id,
-                            null);
-                } else {
-                    rowsUpdated = sqlDB.update(ArtTable.TABLE_NAME,
-                            values,
-                            ArtTable.COLUMN_ID + "=" + id
-                                    + " and "
-                                    + selection,
-                            selectionArgs
-                    );
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown URI: " + uri);
-        }
-        getContext().getContentResolver().notifyChange(uri, null);
-        return rowsUpdated;
-    }
+        private static final String ENDPOINT = "events";
 
-    private void checkColumns(String[] projection, int type) {
-        String[] available;
-
-        if (type == CAMPS)
-            available = CampTable.COLUMNS;
-        else if (type == EVENTS)
-            available = EventTable.COLUMNS;
-        else if (type == ART)
-            available = ArtTable.COLUMNS;
-        else if (type == ALL)
-            return; //TODO
-        else
-            available = new String[0];
-
-        if (projection != null) {
-            HashSet<String> requestedColumns = new HashSet<String>(Arrays.asList(projection));
-            HashSet<String> availableColumns = new HashSet<String>(Arrays.asList(available));
-            // Check if all columns which are requested are available
-            if (!availableColumns.containsAll(requestedColumns)) {
-                throw new IllegalArgumentException("Unknown columns in projection");
-            }
-        }
+        @ContentUri(
+                path = ENDPOINT,
+                type = "vnd.android.cursor.dir/list",
+                defaultSort = EventTable.startTime + " ASC")
+        public static final Uri EVENTS = buildUri(ENDPOINT);
     }
 
 }

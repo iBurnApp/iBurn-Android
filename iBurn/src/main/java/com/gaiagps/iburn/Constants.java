@@ -28,8 +28,6 @@ public class Constants {
     public static final String HOME_LAT = "home_lat";
     public static final String HOME_LON = "home_lon";
 
-    public static final String DB_POPULATED = "db_populated";
-
     public enum PLAYA_ITEM { CAMP, ART, EVENT};
     public enum TAB_TYPE { MAP, CAMPS, ART, EVENTS};
 

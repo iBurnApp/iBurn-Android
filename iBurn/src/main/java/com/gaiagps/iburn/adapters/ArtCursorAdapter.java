@@ -25,8 +25,8 @@ public class ArtCursorAdapter extends SimpleCursorAdapter {
         	view_cache = new ViewCache();
         	view_cache.title = (TextView) view.findViewById(R.id.list_item_title);
 
-        	view_cache.title_col = cursor.getColumnIndexOrThrow(ArtTable.COLUMN_NAME);
-        	view_cache._id_col = cursor.getColumnIndexOrThrow(ArtTable.COLUMN_ID);
+        	view_cache.title_col = cursor.getColumnIndexOrThrow(ArtTable.name);
+        	view_cache._id_col = cursor.getColumnIndexOrThrow(ArtTable.id);
             view.setTag(R.id.list_item_cache, view_cache);
         }
 

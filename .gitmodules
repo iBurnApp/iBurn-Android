@@ -4,3 +4,6 @@
 [submodule "libraries/Android-ViewPagerIndicator"]
 	path = libraries/Android-ViewPagerIndicator
 	url = git@github.com:OnlyInAmerica/Android-ViewPagerIndicator.git
+[submodule "libraries/schematic"]
+	path = libraries/schematic
+	url = https://github.com/SimonVT/schematic.git

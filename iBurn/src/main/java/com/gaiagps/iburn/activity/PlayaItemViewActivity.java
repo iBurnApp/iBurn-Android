@@ -12,13 +12,14 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.gaiagps.iburn.BurnClient;
+import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.database.PlayaContentProvider;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.EventTable;
+import com.gaiagps.iburn.database.PlayaContentProvider;
+import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -62,24 +63,24 @@ public class PlayaItemViewActivity extends FragmentActivity {
         String[] projection = null;
         switch(model_type){
             case CAMP:
-                projection = CampTable.COLUMNS;
-                uri = PlayaContentProvider.CAMP_URI;
+                projection = null;
+                uri = PlayaContentProvider.Camps.CAMPS;
                 break;
             case ART:
-                projection = ArtTable.COLUMNS;
-                uri = PlayaContentProvider.ART_URI;
+                projection = null;
+                uri = PlayaContentProvider.Art.ART;
                 break;
             case EVENT:
-                projection = EventTable.COLUMNS;
-                uri = PlayaContentProvider.EVENT_URI;
+                projection = null;
+                uri = PlayaContentProvider.Events.EVENTS;
                 break;
         }
 
         Cursor c = getContentResolver().query(uri, projection, selection, new String[]{String.valueOf(model_id)}, null);
         if(c != null && c.moveToFirst()){
-            final String title = c.getString(c.getColumnIndexOrThrow("name"));
+            final String title = c.getString(c.getColumnIndexOrThrow(PlayaItemTable.name));
             ((TextView) findViewById(R.id.title)).setText(title);
-            int isFavorite = c.getInt(c.getColumnIndex("favorite"));
+            int isFavorite = c.getInt(c.getColumnIndex(PlayaItemTable.favorite));
             View favoriteBtn = findViewById(R.id.favorite_button);
             if(isFavorite == 1)
                 ((ImageView)favoriteBtn).setImageResource(android.R.drawable.star_big_on);
@@ -90,13 +91,13 @@ public class PlayaItemViewActivity extends FragmentActivity {
             favoriteBtn.setTag(R.id.favorite_button_state, isFavorite);
             favoriteBtn.setOnClickListener(favoriteButtonOnClickListener);
 
-            if(!c.isNull(c.getColumnIndex("description"))){
-                ((TextView) findViewById(R.id.body)).setText(c.getString(c.getColumnIndexOrThrow("description")));
+            if(!c.isNull(c.getColumnIndex(PlayaItemTable.description))){
+                ((TextView) findViewById(R.id.body)).setText(c.getString(c.getColumnIndexOrThrow(PlayaItemTable.description)));
             }else
                 findViewById(R.id.body).setVisibility(View.GONE);
 
-            if(BurnClient.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex("latitude"))){
-                latLng = new LatLng(c.getDouble(c.getColumnIndexOrThrow("latitude")), c.getDouble(c.getColumnIndexOrThrow("longitude")));
+            if(PlayaClient.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex(PlayaItemTable.latitude))){
+                latLng = new LatLng(c.getDouble(c.getColumnIndexOrThrow(PlayaItemTable.latitude)), c.getDouble(c.getColumnIndexOrThrow(PlayaItemTable.longitude)));
                 //TextView locationView = ((TextView) findViewById(R.id.location));
                 final GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
                 LatLng start = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
@@ -138,44 +139,44 @@ public class PlayaItemViewActivity extends FragmentActivity {
 
             switch(model_type){
                 case ART:
-                    if(!c.isNull(c.getColumnIndex(ArtTable.COLUMN_ARTIST))){
-                        ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.COLUMN_ARTIST)));
+                    if(!c.isNull(c.getColumnIndex(ArtTable.artist))){
+                        ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.artist)));
                     }else
                         findViewById(R.id.subitem_1).setVisibility(View.GONE);
 
-                    if(!c.isNull(c.getColumnIndex(ArtTable.COLUMN_CONTACT))){
-                        ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.COLUMN_CONTACT)));
+                    if(!c.isNull(c.getColumnIndex(ArtTable.contact))){
+                        ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.contact)));
                     }else
                         findViewById(R.id.subitem_2).setVisibility(View.GONE);
 
-                    if(!c.isNull(c.getColumnIndex(ArtTable.COLUMN_ARTIST_LOCATION))){
-                        ((TextView) findViewById(R.id.subitem_3)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.COLUMN_ARTIST_LOCATION)));
+                    if(!c.isNull(c.getColumnIndex(ArtTable.artistLoc))){
+                        ((TextView) findViewById(R.id.subitem_3)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.artistLoc)));
                     }else
                         findViewById(R.id.subitem_3).setVisibility(View.GONE);
                     break;
                 case CAMP:
-                    if(!c.isNull(c.getColumnIndex(CampTable.COLUMN_CONTACT))){
-                        ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(CampTable.COLUMN_CONTACT)));
+                    if(!c.isNull(c.getColumnIndex(CampTable.contact))){
+                        ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(CampTable.contact)));
                     }else
                         findViewById(R.id.subitem_1).setVisibility(View.GONE);
 
-                    if(!c.isNull(c.getColumnIndex(CampTable.COLUMN_HOMETOWN))){
-                        ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(CampTable.COLUMN_HOMETOWN)));
+                    if(!c.isNull(c.getColumnIndex(CampTable.hometown))){
+                        ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(CampTable.hometown)));
                     }else
                         findViewById(R.id.subitem_2).setVisibility(View.GONE);
                     findViewById(R.id.subitem_3).setVisibility(View.GONE);
                     break;
                 case EVENT:
-                    if(!c.isNull(c.getColumnIndex(EventTable.COLUMN_HOST_CAMP_NAME))){
-                        ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(EventTable.COLUMN_HOST_CAMP_NAME)));
+                    if(!c.isNull(c.getColumnIndex(EventTable.campName))){
+                        ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(EventTable.campName)));
                     }else
                         findViewById(R.id.subitem_1).setVisibility(View.GONE);
 
-                    if(BurnClient.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex(EventTable.COLUMN_LOCATION))){
-                        ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(EventTable.COLUMN_LOCATION)));
-                    }
-                    else
-                        findViewById(R.id.subitem_2).setVisibility(View.GONE);
+//                    if(BurnClient.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex(EventTable.COLUMN_LOCATION))){
+//                        ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(EventTable.COLUMN_LOCATION)));
+//                    }
+//                    else
+//                        findViewById(R.id.subitem_2).setVisibility(View.GONE);
                     findViewById(R.id.subitem_3).setVisibility(View.GONE);
                     break;
             }

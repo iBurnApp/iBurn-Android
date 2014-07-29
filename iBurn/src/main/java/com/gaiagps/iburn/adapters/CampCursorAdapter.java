@@ -26,8 +26,8 @@ public class CampCursorAdapter extends SimpleCursorAdapter {
         	view_cache = new ViewCache();
         	view_cache.title = (TextView) view.findViewById(R.id.list_item_title);
             
-        	view_cache.title_col = cursor.getColumnIndexOrThrow(CampTable.COLUMN_NAME);
-        	view_cache._id_col = cursor.getColumnIndexOrThrow(CampTable.COLUMN_ID);
+        	view_cache.title_col = cursor.getColumnIndexOrThrow(CampTable.name);
+        	view_cache._id_col = cursor.getColumnIndexOrThrow(CampTable.id);
             view.setTag(R.id.list_item_cache, view_cache);
             view.setTag(R.id.list_item_related_model, cursor.getInt(view_cache._id_col));
         }

@@ -17,7 +17,8 @@ import android.view.*;
 import android.widget.*;
 
 import com.astuetz.PagerSlidingTabStrip;
-import com.gaiagps.iburn.BurnClient;
+import com.gaiagps.iburn.DataUtils;
+import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.view.MapViewPager;
 import com.gaiagps.iburn.R;
@@ -34,8 +35,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.gaiagps.iburn.BurnClient.isFirstLaunch;
-import static com.gaiagps.iburn.BurnClient.validateUnlockPassword;
+import static com.gaiagps.iburn.PlayaClient.isFirstLaunch;
+import static com.gaiagps.iburn.PlayaClient.validateUnlockPassword;
 
 public class MainActivity extends FragmentActivity {
 
@@ -72,8 +73,8 @@ public class MainActivity extends FragmentActivity {
         checkIntentForExtras(getIntent());
         if (isFirstLaunch(this)) {
             showWelcomeDialog();
-            //DataUtils.checkAndSetupDB(getApplicationContext());
         }
+        DataUtils.checkAndSetupDB(getApplicationContext());
     }
 
     @Override
@@ -132,14 +133,14 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!BurnClient.isEmbargoClear(getApplicationContext()))
+        if (!PlayaClient.isEmbargoClear(getApplicationContext()))
             getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        if (BurnClient.isEmbargoClear(getApplicationContext()))
+        if (PlayaClient.isEmbargoClear(getApplicationContext()))
             menu.removeItem(R.id.action_unlock);
         return true;
     }
@@ -160,7 +161,7 @@ public class MainActivity extends FragmentActivity {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     String pwGuess = input.getText().toString();
                     if (validateUnlockPassword(pwGuess)) {
-                        BurnClient.setEmbargoClear(MainActivity.this, true);
+                        PlayaClient.setEmbargoClear(MainActivity.this, true);
                         new AlertDialog.Builder(MainActivity.this)
                                 .setTitle(getString(R.string.victory))
                                 .setMessage(getString(R.string.location_data_unlocked))

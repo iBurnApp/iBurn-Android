@@ -4,10 +4,12 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.12.+'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.2'
     }
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'android-apt'
 
 repositories {
     mavenCentral()
@@ -18,7 +20,7 @@ android {
     buildToolsVersion "19.1.0"
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 15
         targetSdkVersion 19
     }
 
@@ -36,4 +38,12 @@ dependencies {
     compile project(':libraries:android-gmaps-addons')
     compile 'com.android.support:support-v4:20.0.0'
     compile 'com.android.support:appcompat-v7:19.1.0'
+    apt 'net.simonvt.schematic:schematic-compiler:0.5.1'
+    compile 'net.simonvt.schematic:schematic:0.5.1'
+}
+
+apt {
+    arguments {
+        schematicOutPackage 'com.gaiagps.iburn.schematic'
+    }
 }

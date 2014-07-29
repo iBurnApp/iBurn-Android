@@ -18,6 +18,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
 import com.gaiagps.iburn.R;
 
@@ -87,7 +88,9 @@ public abstract class PlayaListViewFragment extends ListFragment
     @Override public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setListAdapter(getAdapter());
-        initLoader();
+        if (PlayaClient.isDbPopulated(getActivity())) {
+            initLoader();
+        }
     }
 
     @Override

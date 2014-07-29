@@ -28,18 +28,18 @@ public class EventCursorAdapter extends SimpleCursorAdapter{
         	view_cache.sub = (TextView) view.findViewById(R.id.list_item_sub);
         	//view_cache.thumbnail = (ImageView) view.findViewById(R.id.list_item_image);
             
-        	view_cache.title_col = cursor.getColumnIndexOrThrow(EventTable.COLUMN_NAME);
-        	view_cache.sub_col = cursor.getColumnIndexOrThrow(EventTable.COLUMN_START_TIME);
-        	view_cache._id_col = cursor.getColumnIndexOrThrow(EventTable.COLUMN_ID);
-        	if(cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.COLUMN_ALL_DAY)) == 1 ){
+        	view_cache.title_col = cursor.getColumnIndexOrThrow(EventTable.name);
+        	view_cache.sub_col = cursor.getColumnIndexOrThrow(EventTable.startTime);
+        	view_cache._id_col = cursor.getColumnIndexOrThrow(EventTable.id);
+        	if(cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1 ){
         		view_cache.all_day = true;
-        		view_cache.time_label = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.COLUMN_START_TIME_PRINT));
+        		view_cache.time_label = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
         	}
         	else {
         		view_cache.all_day = false;
-        		view_cache.time_label = cursor.getString(cursor.getColumnIndexOrThrow(EventTable.COLUMN_START_TIME_PRINT));
+        		view_cache.time_label = cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
         	}
-        	view_cache._id_col = cursor.getColumnIndexOrThrow(EventTable.COLUMN_ID);
+        	view_cache._id_col = cursor.getColumnIndexOrThrow(EventTable.id);
         }
         view_cache.title.setText(cursor.getString(view_cache.title_col));
         view_cache.sub.setText(view_cache.time_label);
