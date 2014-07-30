@@ -24,6 +24,7 @@ import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
 import com.gaiagps.iburn.database.ArtTable;
+import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaContentProvider;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -40,14 +41,27 @@ import com.google.android.gms.maps.model.VisibleRegion;
 
 import java.io.File;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 
 /**
  * Created by davidbrodsky on 8/3/13.
  */
 public class GoogleMapFragment extends SupportMapFragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = "GoogleMapFragment";
+
+    private enum STATE {
+        /** Default. Constantly search and show POIs within the viewable map region */
+        EXPLORE,
+        /** Showcase a particular POI and its relation to the user home camp / location */
+        SHOWCASE
+    }
+
+    private STATE mState = STATE.EXPLORE;
 
     // Loader ids
     final int ART = 1;
@@ -77,6 +91,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     boolean settingHomeLocation = false;
 
+    private static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
     public static GoogleMapFragment newInstance() {
         return new GoogleMapFragment();
     }
@@ -100,8 +116,15 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if (PlayaClient.isEmbargoClear(getActivity().getApplicationContext()))
+        if (PlayaClient.isEmbargoClear(getActivity())) {
             inflater.inflate(R.menu.map, menu);
+
+            if (PlayaClient.getHomeLatLng(getActivity()) != null && !settingHomeLocation) {
+                // If a home camp is set, "set home camp" -> "navigate home"
+                menu.findItem(R.id.action_home).setTitle(R.string.action_nav_home);
+            }
+        }
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
@@ -115,6 +138,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     Toast.makeText(GoogleMapFragment.this.getActivity(), "Hold then drag the pin to set your home camp", Toast.LENGTH_LONG).show();
                     addHomePin(new LatLng(Constants.MAN_LAT, Constants.MAN_LON));
                 } else if (!settingHomeLocation) {
+                    // If a home camp is set, "set home camp" -> "navigate home"
                     navigateHome();
                 }
                 break;
@@ -143,6 +167,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     private void initMap() {
         addMBTileOverlay(R.raw.iburn);
         addHomePin(PlayaClient.getHomeLatLng(getActivity()));
+        // TODO: If user location present, start there
         LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
         getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
 
@@ -154,17 +179,20 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
                 if (cameraPosition.zoom >= 19.5) {
-                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.4));
+                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 19.4f));
                 }
                 if (cameraPosition.zoom > 16 && PlayaClient.isEmbargoClear(getActivity())) {
                     visibleRegion = getMap().getProjection().getVisibleRegion();
-                    Log.i(TAG, "visibleRegion set");
-                    restartLoaders(false);
+                    if (mState == STATE.EXPLORE) restartLoaders(false);
                 } else if (cameraPosition.zoom < 16 && lastZoomLevel >= 16) {
-                    clearMap();
-                    markerIdToMeta = new HashMap<String, String>();
+                    if (mState == STATE.EXPLORE) {
+                        markerIdToMeta = new HashMap<String, String>();
+                        clearMap();
+                    }
+                } else if (cameraPosition.zoom < 13) {
+                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 13f));
                 }
-
+                Log.i(TAG, "Zoomlevel " + cameraPosition.zoom);
                 lastZoomLevel = cameraPosition.zoom;
                 lastTarget = cameraPosition.target;
             }
@@ -344,7 +372,20 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public void mapAndCenterOnMarker(MarkerOptions marker) {
         latLngToCenterOn = marker.getPosition();
         mapMarker(marker);
+    }
 
+    public void showcaseMarker(MarkerOptions marker) {
+        mState = STATE.SHOWCASE;
+        mapAndCenterOnMarker(marker);
+
+    }
+
+    public void enableExploreState() {
+        mState = STATE.EXPLORE;
+    }
+
+    public STATE getState() {
+        return mState;
     }
 
     static final String[] PROJECTION = new String[]{
@@ -359,6 +400,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         String[] projection = PROJECTION;
         Uri targetUri = null;
+        String selection = "";
+        ArrayList<String> selectionArgs = new ArrayList<>();
 
         if (visibleRegion == null || !PlayaClient.isDbPopulated(getActivity())) {
             Log.e(TAG, "Visible region null onCreateLoader!");
@@ -376,6 +419,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 break;
             case EVENTS:
                 targetUri = PlayaContentProvider.Events.EVENTS;
+                // Select by event currently ongoing
+                Date now = new Date();
+                selection += String.format("(%s < '%s' AND %s > '%s') AND ",
+                            EventTable.startTime,   dateFormatter.format(now),
+                            EventTable.endTime,     dateFormatter.format(now));
                 break;
             case ALL:
                 //targetUri = PlayaContentProvider.ALL_URI; // TODO
@@ -386,25 +434,25 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             // Add to selection, selectionArgs for name filter
         }
 
-        targetUri = targetUri.buildUpon().appendPath(String.valueOf(visibleRegion.farLeft.latitude))
-                .appendPath(String.valueOf(visibleRegion.farLeft.longitude))
-                .appendPath(String.valueOf(visibleRegion.nearRight.latitude))
-                .appendPath(String.valueOf(visibleRegion.nearRight.longitude))
-                .build();
+        // Select by latitude and longitude within screen-visible region
+        selection += String.format("(%s < ? AND %s > ?) AND (%s < ? AND %s > ?)",
+                PlayaItemTable.latitude, PlayaItemTable.latitude,
+                PlayaItemTable.longitude, PlayaItemTable.longitude);
 
-        String selection = null;
-        String[] selectionArgs = null;
-
+        selectionArgs.add(String.valueOf(visibleRegion.farLeft.latitude));
+        selectionArgs.add(String.valueOf(visibleRegion.nearRight.latitude));
+        selectionArgs.add(String.valueOf(visibleRegion.nearRight.longitude));
+        selectionArgs.add(String.valueOf(visibleRegion.farLeft.longitude));
 
         if (limitListToFavorites) {
-            selection += ArtTable.favorite + " =?";
-            selectionArgs = new String[]{"1"};
+            selection += " AND " + ArtTable.favorite + " =?";
+            selectionArgs.add("1");
         }
 
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
         Log.i(TAG, "Creating loader with uri: " + targetUri.toString());
-        return new CursorLoader(getActivity(), targetUri, projection, selection, selectionArgs,
+        return new CursorLoader(getActivity(), targetUri, projection, selection, selectionArgs.toArray(new String[selectionArgs.size()]),
                 null);
     }
 

@@ -13,7 +13,8 @@
     <string name="no_results">No Results</string>
     <string name="mark_some_favorites">Mark some favorites first</string>
     <string name="no_items_found">No Items Found</string>
-    <string name="action_home">Home</string>
+    <string name="action_home">Set Home Camp</string>
+    <string name="action_nav_home">Navigate to Home Camp</string>
     <string name="unlock">Unlock</string>
     <string name="victory">Victory!</string>
     <string name="location_data_unlocked">Camp, Art, and Event location data unlocked!</string>
@@ -26,7 +27,7 @@
         the Playa. Try everything, piss clear, and stay safe!
     </string>
     <string name="congratulations">Congratulations!</string>
-    <string name="requres_google_play">iBurn requires Google Play Services...</string>
-    <string name="device_not_supported">Your device doesn\'t jive with our mapping tech. So sorry...</string>
+    <string name="requres_google_play">iBurn requires Google Play Services…</string>
+    <string name="device_not_supported">Your device doesn\'t jive with our mapping tech. So sorry…</string>
 
 </resources>

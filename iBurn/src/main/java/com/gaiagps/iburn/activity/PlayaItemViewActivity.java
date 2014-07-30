@@ -102,7 +102,7 @@ public class PlayaItemViewActivity extends FragmentActivity {
                 final GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
                 LatLng start = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
                 Log.i("GoogleMapFragment", "adding / centering marker");
-                mapFragment.mapAndCenterOnMarker(new MarkerOptions().position(latLng));
+                mapFragment.showcaseMarker(new MarkerOptions().position(latLng));
                 mapFragment.getMap().getUiSettings().setMyLocationButtonEnabled(false);
                 mapFragment.getMap().getUiSettings().setZoomControlsEnabled(false);
                 mapFragment.getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
@@ -189,12 +189,12 @@ public class PlayaItemViewActivity extends FragmentActivity {
         public void onClick(View v) {
             ContentValues values = new ContentValues();
             if((Integer)v.getTag(R.id.favorite_button_state) == 0){
-                values.put("favorite", 1);
+                values.put(PlayaItemTable.favorite, 1);
                 v.setTag(R.id.favorite_button_state, 1);
                 ((ImageView)v).setImageResource(android.R.drawable.star_big_on);
             }
             else if((Integer)v.getTag(R.id.favorite_button_state) == 1){
-                values.put("favorite", 0);
+                values.put(PlayaItemTable.favorite, 0);
                 v.setTag(R.id.favorite_button_state, 0);
                 ((ImageView)v).setImageResource(android.R.drawable.star_big_off);
             }
