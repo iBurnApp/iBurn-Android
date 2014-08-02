@@ -11,8 +11,8 @@ import java.util.HashMap;
  */
 public class Constants {
 
-    public static final double MAN_LAT = 40.782622;
-    public static final double MAN_LON = -119.208264;
+    public static final double MAN_LAT = 40.788800;
+    public static final double MAN_LON = -119.203150;
 
     // External storage directory relative to sdcard
     public static final String IBURN_ROOT = "iburn";

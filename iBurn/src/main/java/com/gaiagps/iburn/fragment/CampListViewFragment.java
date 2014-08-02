@@ -31,7 +31,6 @@ public class CampListViewFragment extends PlayaListViewFragment
 
     SimpleCursorAdapter mAdapter;
     protected Uri baseUri = PlayaContentProvider.Camps.CAMPS;                    // Uris corresponding to PlayaContentProvider
-    protected Uri searchUri = PlayaContentProvider.Camps.CAMPS;
 
     String ordering = CampTable.name + " ASC";               // How is the ListView ordered?
     String favoriteSelection = CampTable.favorite + " = ?";  // Statement to filter by favorites.
@@ -42,10 +41,6 @@ public class CampListViewFragment extends PlayaListViewFragment
 
     protected Uri getBaseUri(){
         return baseUri;
-    }
-
-    protected Uri getSearchUri(){
-        return searchUri;
     }
 
     protected SimpleCursorAdapter getAdapter(){

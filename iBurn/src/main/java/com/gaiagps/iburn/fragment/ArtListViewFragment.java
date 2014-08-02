@@ -17,7 +17,7 @@ import com.gaiagps.iburn.database.PlayaContentProvider;
  * a value for PROJECTION, mAdapter, baseUri, and searchUri
  */
 public class ArtListViewFragment extends PlayaListViewFragment
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+        implements LoaderManager.LoaderCallbacks<Cursor>{
     private static final String TAG = "ArtListViewFragment";
 
     static final String[] PROJECTION = new String[] {
@@ -29,7 +29,6 @@ public class ArtListViewFragment extends PlayaListViewFragment
 
     SimpleCursorAdapter mAdapter;
     protected Uri baseUri   = PlayaContentProvider.Art.ART;                    // Uris corresponding to PlayaContentProvider
-    protected Uri searchUri = PlayaContentProvider.Art.ART;
 
     String ordering = ArtTable.name + " ASC";               // How is the ListView ordered?
     String favoriteSelection = ArtTable.favorite + " = ?";  // Statement to filter by favorites.
@@ -40,10 +39,6 @@ public class ArtListViewFragment extends PlayaListViewFragment
 
     protected Uri getBaseUri(){
         return baseUri;
-    }
-
-    protected Uri getSearchUri(){
-        return searchUri;
     }
 
     protected SimpleCursorAdapter getAdapter(){
@@ -72,5 +67,4 @@ public class ArtListViewFragment extends PlayaListViewFragment
         mAdapter = new ArtCursorAdapter(getActivity(), null);
         super.onActivityCreated(savedInstanceState);
     }
-
 }

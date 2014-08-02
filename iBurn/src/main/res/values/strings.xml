@@ -24,10 +24,12 @@
     <string name="youre_so_far">You\'re so far away</string>
     <string name="lets_burn">Let\'s Burn!</string>
     <string name="welcome">With iBurn in your pocket, you\'re ready to find your way around
-        the Playa. Try everything, piss clear, and stay safe!
-    </string>
+        the Playa. Try everything, piss clear, and stay safe!</string>
     <string name="congratulations">Congratulations!</string>
     <string name="requres_google_play">iBurn requires Google Play Services…</string>
     <string name="device_not_supported">Your device doesn\'t jive with our mapping tech. So sorry…</string>
+    <string name="search_title">Search</string>
+    <string name="search_hint">Search</string>
+    <string name="title_activity_search_results">SearchResultsActivity</string>
 
 </resources>

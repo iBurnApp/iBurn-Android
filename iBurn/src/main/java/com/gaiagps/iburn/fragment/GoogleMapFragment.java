@@ -116,15 +116,20 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if (PlayaClient.isEmbargoClear(getActivity())) {
-            inflater.inflate(R.menu.map, menu);
+        inflater.inflate(R.menu.map, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
 
-            if (PlayaClient.getHomeLatLng(getActivity()) != null && !settingHomeLocation) {
+    @Override
+    public void onPrepareOptionsMenu (Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        if (PlayaClient.getHomeLatLng(getActivity()) != null && !settingHomeLocation) {
+            // GoogleMapFragment may be used without its menu
+            if (menu.findItem(R.id.action_home)!= null) {
                 // If a home camp is set, "set home camp" -> "navigate home"
                 menu.findItem(R.id.action_home).setTitle(R.string.action_nav_home);
             }
         }
-        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
@@ -166,6 +171,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     private void initMap() {
         addMBTileOverlay(R.raw.iburn);
+        getMap().getUiSettings().setZoomControlsEnabled(false);
         addHomePin(PlayaClient.getHomeLatLng(getActivity()));
         // TODO: If user location present, start there
         LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
@@ -179,20 +185,19 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
                 if (cameraPosition.zoom >= 19.5) {
-                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 19.4f));
+                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 19.5f));
                 }
                 if (cameraPosition.zoom > 16 && PlayaClient.isEmbargoClear(getActivity())) {
                     visibleRegion = getMap().getProjection().getVisibleRegion();
                     if (mState == STATE.EXPLORE) restartLoaders(false);
                 } else if (cameraPosition.zoom < 16 && lastZoomLevel >= 16) {
                     if (mState == STATE.EXPLORE) {
-                        markerIdToMeta = new HashMap<String, String>();
+                        markerIdToMeta = new HashMap<>();
                         clearMap();
                     }
-                } else if (cameraPosition.zoom < 13) {
-                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 13f));
+                } else if (cameraPosition.zoom < 14) {
+                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 14f));
                 }
-                Log.i(TAG, "Zoomlevel " + cameraPosition.zoom);
                 lastZoomLevel = cameraPosition.zoom;
                 lastTarget = cameraPosition.target;
             }
@@ -284,17 +289,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             new AlertDialog.Builder(getActivity())
                     .setTitle(getActivity().getString(R.string.youre_so_far))
                     .setMessage(String.format("It appears you're %d meters from home. Get closer to the burn before navigating home..", (int) getDistance(start, end)))
-                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-
-                        }
-                    })
+                    .setPositiveButton(getString(R.string.ok), null)
                     .show();
 
-            getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(Constants.MAN_LAT, Constants.MAN_LON)).zoom(15).build()));
+//            getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(Constants.MAN_LAT, Constants.MAN_LON)).zoom(15).build()));
             return;
-
         }
 
         getMap().addMarker(new MarkerOptions()
@@ -561,8 +560,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
             @Override
             public void onMarkerDragEnd(Marker marker) {
-                if (marker.getId().compareTo(homeMarkerId) == 0)
+                if (marker.getId().compareTo(homeMarkerId) == 0) {
                     PlayaClient.setHomeLatLng(GoogleMapFragment.this.getActivity().getApplicationContext(), marker.getPosition());
+                    getActivity().invalidateOptionsMenu();
+                }
             }
         });
     }

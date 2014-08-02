@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.activity;
 
 import android.app.AlertDialog;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,6 +21,7 @@ import com.astuetz.PagerSlidingTabStrip;
 import com.gaiagps.iburn.DataUtils;
 import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.fragment.Searchable;
 import com.gaiagps.iburn.view.MapViewPager;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.fragment.ArtListViewFragment;
@@ -39,6 +41,7 @@ import static com.gaiagps.iburn.PlayaClient.isFirstLaunch;
 import static com.gaiagps.iburn.PlayaClient.validateUnlockPassword;
 
 public class MainActivity extends FragmentActivity {
+    public static final String TAG = "MainActivity";
 
     // Hold display width to allow MapViewPager to calculate
     // swiping margin on screen's right border.
@@ -70,12 +73,13 @@ public class MainActivity extends FragmentActivity {
             setupFragmentStatePagerAdapter();
         } else
             googlePlayServicesMissing = true;
-        checkIntentForExtras(getIntent());
         if (isFirstLaunch(this)) {
             showWelcomeDialog();
         }
         DataUtils.checkAndSetupDB(getApplicationContext());
+        handleIntent(getIntent());
     }
+
 
     @Override
     protected void onResume() {
@@ -90,20 +94,26 @@ public class MainActivity extends FragmentActivity {
         View dialog = getLayoutInflater().inflate(R.layout.dialog_welcome, null);
         new AlertDialog.Builder(this)
                 .setView(dialog)
-                .setPositiveButton(R.string.lets_burn, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                })
+                .setPositiveButton(R.string.lets_burn, null)
                 .show();
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
-        checkIntentForExtras(intent);
+        handleIntent(intent);
     }
 
-    private void checkIntentForExtras(Intent intent) {
+    private void handleIntent(Intent intent) {
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String query = intent.getStringExtra(SearchManager.QUERY);
+            //use the query to search your data somehow
+            if (mPagerAdapter.getCurrentFragment() instanceof Searchable) {
+                dispatchSearchQuery(query);
+            } else
+                Log.i(TAG, "Current fragment does not implement Searchable");
+        }
+
+        // TODO: Unused.. Consider removing
         if (intent.hasExtra("tab")) {
             Constants.TAB_TYPE tab = (Constants.TAB_TYPE) intent.getSerializableExtra("tab");
             switch (tab) {
@@ -116,6 +126,15 @@ public class MainActivity extends FragmentActivity {
                     break;
 
             }
+        }
+    }
+
+    /**
+     * Dispatch a search query to the current Fragment in the FragmentPagerAdapter
+     */
+    private void dispatchSearchQuery(String query) {
+        if (mPagerAdapter.getCurrentFragment() instanceof Searchable) {
+            ((Searchable) mPagerAdapter.getCurrentFragment()).onSearchQueryRequested(query);
         }
     }
 
@@ -133,8 +152,30 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!PlayaClient.isEmbargoClear(getApplicationContext()))
-            getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(R.menu.main, menu);
+
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager =
+                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView =
+                (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.length() == 0 || newText.length() > 2) {
+                    dispatchSearchQuery(newText);
+                }
+                Log.i(TAG, "Query text changed: " + newText);
+                return false;
+            }
+        });
+        searchView.setSearchableInfo(
+                searchManager.getSearchableInfo(getComponentName()));
         return true;
     }
 
@@ -206,6 +247,7 @@ public class MainActivity extends FragmentActivity {
     public static class FragmentWithTitlePagerAdapter extends FragmentStatePagerAdapter {
 
         private static List<Pair<Class<? extends Fragment>, String>> PAGES;
+        private Fragment mCurrentPrimaryItem;
 
         public FragmentWithTitlePagerAdapter(FragmentManager fm, List<Pair<Class<? extends Fragment>, String>> pages) {
             super(fm);
@@ -230,6 +272,16 @@ public class MainActivity extends FragmentActivity {
         @Override
         public CharSequence getPageTitle(int position) {
             return PAGES.get(position).second;
+        }
+
+        @Override
+        public void setPrimaryItem(ViewGroup container, int position, Object object) {
+            super.setPrimaryItem(container, position, object);
+            mCurrentPrimaryItem = (Fragment) object;
+        }
+
+        public Fragment getCurrentFragment() {
+            return mCurrentPrimaryItem;
         }
     }
 
