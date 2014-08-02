@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.view.*;
@@ -21,7 +22,8 @@ import com.astuetz.PagerSlidingTabStrip;
 import com.gaiagps.iburn.DataUtils;
 import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.fragment.Searchable;
+import com.gaiagps.iburn.SearchQueryProvider;
+import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.view.MapViewPager;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.fragment.ArtListViewFragment;
@@ -40,20 +42,24 @@ import java.util.List;
 import static com.gaiagps.iburn.PlayaClient.isFirstLaunch;
 import static com.gaiagps.iburn.PlayaClient.validateUnlockPassword;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends FragmentActivity implements SearchQueryProvider {
     public static final String TAG = "MainActivity";
 
     // Hold display width to allow MapViewPager to calculate
     // swiping margin on screen's right border.
     public static int display_width = -1;
-    LayoutInflater inflater;
     static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
-    boolean googlePlayServicesMissing = false;
+    private boolean googlePlayServicesMissing = false;
 
     private ViewPager mViewPager;
     private FragmentWithTitlePagerAdapter mPagerAdapter;
+    private SearchView mSearchView;
 
-    /** Fragments to appear in main ViewPager */
+    private String mCurFilter;
+
+    /**
+     * Fragments to appear in main ViewPager
+     */
     private static List<Pair<Class<? extends Fragment>, String>> sPages
             = new ArrayList<Pair<Class<? extends Fragment>, String>>() {{
         add(new Pair<Class<? extends Fragment>, String>(GoogleMapFragment.class,        "Map"));
@@ -68,11 +74,11 @@ public class MainActivity extends FragmentActivity {
         getActionBar().setTitle("");
         getDisplayWidth();
         setContentView(R.layout.activity_main);
-        inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();
-        } else
+        } else {
             googlePlayServicesMissing = true;
+        }
         if (isFirstLaunch(this)) {
             showWelcomeDialog();
         }
@@ -133,6 +139,8 @@ public class MainActivity extends FragmentActivity {
      * Dispatch a search query to the current Fragment in the FragmentPagerAdapter
      */
     private void dispatchSearchQuery(String query) {
+        if (TextUtils.isEmpty(query) && TextUtils.isEmpty(mCurFilter)) return;
+        mCurFilter = query;
         if (mPagerAdapter.getCurrentFragment() instanceof Searchable) {
             ((Searchable) mPagerAdapter.getCurrentFragment()).onSearchQueryRequested(query);
         }
@@ -141,6 +149,7 @@ public class MainActivity extends FragmentActivity {
     private void setupFragmentStatePagerAdapter() {
         mViewPager = (MapViewPager) findViewById(R.id.pager);
         mPagerAdapter = new FragmentWithTitlePagerAdapter(getSupportFragmentManager(), sPages);
+        mPagerAdapter.setSearchQueryProvider(this);
         PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
         tabs.setShouldExpand(true);
         tabs.setTabPaddingLeftRight(0);
@@ -152,14 +161,16 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        Log.i(TAG, "onCreateOptionsMenu");
         getMenuInflater().inflate(R.menu.main, menu);
 
         // Associate searchable configuration with the SearchView
         SearchManager searchManager =
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView =
-                (SearchView) menu.findItem(R.id.search).getActionView();
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        final MenuItem searchMenuItem = menu.findItem(R.id.search);
+        mSearchView = (SearchView) searchMenuItem.getActionView();
+//        mSearchView.setFocusable(false);
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 return false;
@@ -170,13 +181,21 @@ public class MainActivity extends FragmentActivity {
                 if (newText.length() == 0 || newText.length() > 2) {
                     dispatchSearchQuery(newText);
                 }
-                Log.i(TAG, "Query text changed: " + newText);
                 return false;
             }
         });
-        searchView.setSearchableInfo(
+        mSearchView.setSearchableInfo(
                 searchManager.getSearchableInfo(getComponentName()));
         return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mSearchView != null && !mSearchView.isIconified()) {
+            mSearchView.setIconified(true);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -238,20 +257,31 @@ public class MainActivity extends FragmentActivity {
         super.onDestroy();
     }
 
+    @Override
+    public String getCurrentQuery() {
+        return mCurFilter;
+    }
+
     /**
      * Adapter that takes a List of Pairs representing a Fragment and Title
      * for pairing with a tabbed ViewPager.
-     *
+     * <p/>
      * Each Fragment must have a no-arg newInstance() method.
      */
     public static class FragmentWithTitlePagerAdapter extends FragmentStatePagerAdapter {
 
         private static List<Pair<Class<? extends Fragment>, String>> PAGES;
         private Fragment mCurrentPrimaryItem;
+        private SearchQueryProvider mSearchQueryProvider;
+        private int mLastPosition;
 
         public FragmentWithTitlePagerAdapter(FragmentManager fm, List<Pair<Class<? extends Fragment>, String>> pages) {
             super(fm);
             PAGES = pages;
+        }
+
+        public void setSearchQueryProvider(SearchQueryProvider provider) {
+            mSearchQueryProvider = provider;
         }
 
         @Override
@@ -278,6 +308,12 @@ public class MainActivity extends FragmentActivity {
         public void setPrimaryItem(ViewGroup container, int position, Object object) {
             super.setPrimaryItem(container, position, object);
             mCurrentPrimaryItem = (Fragment) object;
+            if (mLastPosition != position && mCurrentPrimaryItem instanceof Searchable &&
+                    mSearchQueryProvider != null) {
+                // Update the fragment with the current query
+                ((Searchable) mCurrentPrimaryItem).onSearchQueryRequested(mSearchQueryProvider.getCurrentQuery());
+                mLastPosition = position;
+            }
         }
 
         public Fragment getCurrentFragment() {

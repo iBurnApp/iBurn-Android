@@ -11,6 +11,7 @@ import android.os.Environment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,6 +23,7 @@ import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.FileUtils;
 import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.EventTable;
@@ -51,14 +53,30 @@ import java.util.Locale;
 /**
  * Created by davidbrodsky on 8/3/13.
  */
-public class GoogleMapFragment extends SupportMapFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class GoogleMapFragment extends SupportMapFragment implements LoaderManager.LoaderCallbacks<Cursor>, Searchable {
     private static final String TAG = "GoogleMapFragment";
+
+    @Override
+    public void onSearchQueryRequested(String query) {
+        mCurFilter = query;
+        if (TextUtils.isEmpty(query)) {
+            mState = STATE.EXPLORE;
+            mapCamps = false;
+            Log.i(TAG, "state set to eXPLORE");
+        } else {
+            mState = STATE.SEARCH;
+            mapCamps = true;
+        }
+        restartLoaders(true);
+    }
 
     private enum STATE {
         /** Default. Constantly search and show POIs within the viewable map region */
         EXPLORE,
         /** Showcase a particular POI and its relation to the user home camp / location */
-        SHOWCASE
+        SHOWCASE,
+        /** Show search results **/
+        SEARCH
     }
 
     private STATE mState = STATE.EXPLORE;
@@ -111,7 +129,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
+        setHasOptionsMenu(false);
     }
 
     @Override
@@ -356,11 +374,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     }
 
     public void clearMap() {
-        getMap().clear();
+        for (Marker marker : markerQueue) {
+            marker.remove();
+        }
         markerQueue.clear();
-        addMBTileOverlay(R.raw.iburn);
-        if (PlayaClient.getHomeLatLng(getActivity()) != null)
-            addHomePin(PlayaClient.getHomeLatLng(getActivity()));
+        markerIdToMeta.clear();
         state = 0;
     }
 
@@ -402,11 +420,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         String selection = "";
         ArrayList<String> selectionArgs = new ArrayList<>();
 
-        if (visibleRegion == null || !PlayaClient.isDbPopulated(getActivity())) {
+        if ((visibleRegion == null && mState == STATE.EXPLORE) || !PlayaClient.isDbPopulated(getActivity())) {
+            //TODO: This CursorLoader will cause a crash
             Log.e(TAG, "Visible region null onCreateLoader!");
-            return new CursorLoader(getActivity(), targetUri,
-                    projection, null, null,
-                    null);
+            return null;
         }
 
         switch (i) {
@@ -420,28 +437,35 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 targetUri = PlayaContentProvider.Events.EVENTS;
                 // Select by event currently ongoing
                 Date now = new Date();
-                selection += String.format("(%s < '%s' AND %s > '%s') AND ",
+                selection += String.format("(%s < '%s' AND %s > '%s') ",
                             EventTable.startTime,   dateFormatter.format(now),
                             EventTable.endTime,     dateFormatter.format(now));
                 break;
             case ALL:
-                //targetUri = PlayaContentProvider.ALL_URI; // TODO
-                throw new IllegalArgumentException("ART endpoint not yet supported");
+                //targetUri = PlayaContentProvider.Camps.ALL;
+                throw new IllegalArgumentException("ALL endpoint not yet supported");
         }
 
-        if (mCurFilter != null) {
+        if (!TextUtils.isEmpty(mCurFilter)) {
+            Log.i(TAG, "filtering map by " + mCurFilter);
             // Add to selection, selectionArgs for name filter
+            if (selection.length() > 0) selection += " AND ";
+            selection += PlayaItemTable.name + " LIKE ?";
+            selectionArgs.add("%" + mCurFilter + "%");
         }
 
         // Select by latitude and longitude within screen-visible region
-        selection += String.format("(%s < ? AND %s > ?) AND (%s < ? AND %s > ?)",
-                PlayaItemTable.latitude, PlayaItemTable.latitude,
-                PlayaItemTable.longitude, PlayaItemTable.longitude);
+        if (mState == STATE.EXPLORE) {
+            if (selection.length() > 0) selection += " AND ";
+            selection += String.format("(%s < ? AND %s > ?) AND (%s < ? AND %s > ?)",
+                    PlayaItemTable.latitude, PlayaItemTable.latitude,
+                    PlayaItemTable.longitude, PlayaItemTable.longitude);
 
-        selectionArgs.add(String.valueOf(visibleRegion.farLeft.latitude));
-        selectionArgs.add(String.valueOf(visibleRegion.nearRight.latitude));
-        selectionArgs.add(String.valueOf(visibleRegion.nearRight.longitude));
-        selectionArgs.add(String.valueOf(visibleRegion.farLeft.longitude));
+            selectionArgs.add(String.valueOf(visibleRegion.farLeft.latitude));
+            selectionArgs.add(String.valueOf(visibleRegion.nearRight.latitude));
+            selectionArgs.add(String.valueOf(visibleRegion.nearRight.longitude));
+            selectionArgs.add(String.valueOf(visibleRegion.farLeft.longitude));
+        }
 
         if (limitListToFavorites) {
             selection += " AND " + ArtTable.favorite + " =?";

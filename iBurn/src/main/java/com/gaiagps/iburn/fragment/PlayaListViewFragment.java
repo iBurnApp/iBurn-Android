@@ -1,7 +1,5 @@
 package com.gaiagps.iburn.fragment;
 
-import android.app.SearchManager;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.drawable.ColorDrawable;
@@ -14,18 +12,17 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.PlayaClient;
-import com.gaiagps.iburn.activity.PlayaItemViewActivity;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.SearchQueryProvider;
+import com.gaiagps.iburn.Searchable;
+import com.gaiagps.iburn.activity.PlayaItemViewActivity;
 import com.gaiagps.iburn.database.PlayaItemTable;
 
 import java.util.ArrayList;
@@ -55,20 +52,21 @@ public abstract class PlayaListViewFragment extends ListFragment
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
+        setHasOptionsMenu(false);
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.list, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
+//    @Override
+//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+//        inflater.inflate(R.menu.list, menu);
+//        super.onCreateOptionsMenu(menu, inflater);
+//    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setListAdapter(getAdapter());
         if (PlayaClient.isDbPopulated(getActivity())) {
+            mCurFilter = ((SearchQueryProvider) getActivity()).getCurrentQuery();
             initLoader();
         }
     }
@@ -89,10 +87,12 @@ public abstract class PlayaListViewFragment extends ListFragment
 
 
     public void restartLoader() {
+        Log.i(TAG, "restarting loader");
         getLoaderManager().restartLoader(0, null, PlayaListViewFragment.this);
     }
 
     public void initLoader() {
+        Log.i(TAG, "init loader");
         getLoaderManager().initLoader(0, null, this);
     }
 
@@ -171,6 +171,7 @@ public abstract class PlayaListViewFragment extends ListFragment
 
     @Override
     public void onSearchQueryRequested(String query) {
+        Log.i(TAG, "got search query: " + query);
         mCurFilter = query;
         restartLoader();
     }

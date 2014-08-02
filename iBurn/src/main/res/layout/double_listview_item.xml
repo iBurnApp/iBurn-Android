@@ -24,7 +24,7 @@
         android:singleLine="true"
         android:ellipsize="marquee"
 	    android:padding="2dp"
-	    android:textSize="20dp" >
+	    android:textSize="20sp" >
 	</TextView>
 	    
 	<TextView
@@ -40,7 +40,7 @@
         android:singleLine="true"
         android:ellipsize="marquee"
 	    android:padding="2dp"
-	    android:textSize="18dp" >
+	    android:textSize="18sp" >
 	</TextView>
 
 

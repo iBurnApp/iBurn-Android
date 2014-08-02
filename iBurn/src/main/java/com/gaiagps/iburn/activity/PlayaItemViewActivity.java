@@ -181,6 +181,7 @@ public class PlayaItemViewActivity extends FragmentActivity {
                     break;
             }
         }
+        c.close();
     }
 
     View.OnClickListener favoriteButtonOnClickListener = new View.OnClickListener(){

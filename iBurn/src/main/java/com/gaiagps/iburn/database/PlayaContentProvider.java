@@ -56,15 +56,6 @@ public final class PlayaContentProvider {
                 defaultSort = CampTable.name + " ASC")
         public static final Uri CAMPS = buildUri(ENDPOINT);
 
-        @InexactContentUri(
-                name = "CAMP_ID",
-                path = ENDPOINT + "/#",
-                type = "vnd.android.cursor.item/camp",
-                whereColumn = CampTable.id,
-                pathSegment = 1)
-        public static Uri withId(long id) {
-            return buildUri(ENDPOINT, String.valueOf(id));
-        }
     }
 
     /** Events API **/

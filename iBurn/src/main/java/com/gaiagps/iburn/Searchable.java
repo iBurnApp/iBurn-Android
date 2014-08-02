@@ -1,4 +1,4 @@
-package com.gaiagps.iburn.fragment;
+package com.gaiagps.iburn;
 
 /**
  * Represents an item that can respond to Search queries
