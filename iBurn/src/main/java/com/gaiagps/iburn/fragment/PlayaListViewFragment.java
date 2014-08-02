@@ -10,6 +10,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,7 +38,6 @@ public abstract class PlayaListViewFragment extends ListFragment
         implements LoaderManager.LoaderCallbacks<Cursor>, Searchable {
     private static final String TAG = "PlayaListViewFragment";
 
-    TextView emptyText;                     // TextView to display when no ListView items present
     String mCurFilter;                      // Search string to filter by
 
     protected abstract Uri getBaseUri();
@@ -52,14 +52,7 @@ public abstract class PlayaListViewFragment extends ListFragment
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(false);
     }
-
-//    @Override
-//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-//        inflater.inflate(R.menu.list, menu);
-//        super.onCreateOptionsMenu(menu, inflater);
-//    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -74,7 +67,6 @@ public abstract class PlayaListViewFragment extends ListFragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
-        emptyText = (TextView) v.findViewById(android.R.id.empty);
         ((ListView) v.findViewById(android.R.id.list)).setDivider(new ColorDrawable(0x292929));
         ((ListView) v.findViewById(android.R.id.list)).setFastScrollEnabled(true);
         return v;
@@ -140,18 +132,15 @@ public abstract class PlayaListViewFragment extends ListFragment
             return;
         }
 
-        if (isResumed() && emptyText != null) {
+        if (isResumed()) {
             // If searching, show no camps match query
-            if (data.getCount() == 0 && mCurFilter != null && mCurFilter != "") {
-                emptyText.setVisibility(View.VISIBLE);
-                emptyText.setText(getActivity().getString(com.gaiagps.iburn.R.string.no_results));
+            if (data.getCount() == 0 && !TextUtils.isEmpty(mCurFilter)) {
+                setEmptyText(getActivity().getString(com.gaiagps.iburn.R.string.no_results));
             } else if (data.getCount() == 0)
                 if (getShouldLimitSearchToFavorites())
-                    emptyText.setText(getActivity().getString(com.gaiagps.iburn.R.string.mark_some_favorites));
+                    setEmptyText(getActivity().getString(com.gaiagps.iburn.R.string.mark_some_favorites));
                 else
-                    emptyText.setText(getActivity().getString(com.gaiagps.iburn.R.string.no_items_found));
-            else
-                emptyText.setVisibility(View.GONE);
+                    setEmptyText(getActivity().getString(com.gaiagps.iburn.R.string.no_items_found));
 
             setListShown(true);
         } else {
