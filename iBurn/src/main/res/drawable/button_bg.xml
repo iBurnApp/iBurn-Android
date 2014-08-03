@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thanks! http://android.onyou.ch/2011/01/25/simple-custom-button-using-a-selector-xml-layout/ -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- selected -->
+    <item
+        android:state_selected="true"
+        android:state_pressed="false">
+        <shape>
+            <solid android:color="#ff81815c"/>
+        </shape>
+    </item>
+
+    <!-- pressed -->
+    <item android:state_pressed="true">
+        <shape>
+            <solid android:color="#c7c79d"/>
+        </shape>
+    </item>
+
+    <!-- default -->
+    <item>
+        <shape>
+            <solid android:color="#ff1b1b1b"/>
+        </shape>
+    </item>
+</selector>

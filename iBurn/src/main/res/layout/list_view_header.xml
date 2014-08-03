@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="40dp"
+    android:orientation="horizontal"
+    android:weightSum="1.0">
+
+    <TextView
+        android:id="@+id/name"
+        android:background="@drawable/button_bg"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight=".33"
+        android:gravity="center"
+        android:clickable="true"
+        android:text="Name"/>
+
+    <TextView
+        android:id="@+id/distance"
+        android:background="@drawable/button_bg"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight=".33"
+        android:gravity="center"
+        android:clickable="true"
+        android:text="Distance"/>
+
+    <TextView
+        android:id="@+id/favorites"
+        android:background="@drawable/button_bg"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight=".33"
+        android:gravity="center"
+        android:clickable="true"
+        android:text="Favorites"/>
+
+</LinearLayout>

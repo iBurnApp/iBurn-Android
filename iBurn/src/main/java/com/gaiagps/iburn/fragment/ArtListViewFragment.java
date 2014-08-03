@@ -30,9 +30,6 @@ public class ArtListViewFragment extends PlayaListViewFragment
     SimpleCursorAdapter mAdapter;
     protected Uri baseUri   = PlayaContentProvider.Art.ART;                    // Uris corresponding to PlayaContentProvider
 
-    String ordering = ArtTable.name + " ASC";               // How is the ListView ordered?
-    String favoriteSelection = ArtTable.favorite + " = ?";  // Statement to filter by favorites.
-
     public static ArtListViewFragment newInstance() {
         return new ArtListViewFragment();
     }
@@ -48,15 +45,6 @@ public class ArtListViewFragment extends PlayaListViewFragment
     protected String[] getProjection(){
         return PROJECTION;
     }
-
-    protected String getOrdering(){
-        return ordering;
-    }
-
-    protected String getFavoriteSelection(){
-        return favoriteSelection;
-    }
-
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

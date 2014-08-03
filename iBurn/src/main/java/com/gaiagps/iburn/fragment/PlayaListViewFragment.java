@@ -3,6 +3,7 @@ package com.gaiagps.iburn.fragment;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.drawable.ColorDrawable;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -16,7 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.PlayaClient;
@@ -24,7 +24,10 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
+import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.PlayaItemTable;
+import com.gaiagps.iburn.location.DeviceLocation;
+import com.gaiagps.iburn.view.PlayaListViewHeader;
 
 import java.util.ArrayList;
 
@@ -35,9 +38,11 @@ import java.util.ArrayList;
  * a value for PROJECTION, mAdapter, baseUri, and searchUri
  */
 public abstract class PlayaListViewFragment extends ListFragment
-        implements LoaderManager.LoaderCallbacks<Cursor>, Searchable {
+        implements LoaderManager.LoaderCallbacks<Cursor>, Searchable, PlayaListViewHeader.PlayaListViewHeaderReceiver {
     private static final String TAG = "PlayaListViewFragment";
 
+    private static Location mLastLocation;
+    private SORT mCurrentSort = SORT.NAME;
     String mCurFilter;                      // Search string to filter by
 
     protected abstract Uri getBaseUri();
@@ -46,9 +51,28 @@ public abstract class PlayaListViewFragment extends ListFragment
 
     protected abstract String[] getProjection();
 
-    protected abstract String getOrdering();
+    protected String getOrdering() {
+        switch (mCurrentSort) {
+            case FAVORITE:
+            case NAME:
+                return PlayaItemTable.name + " ASC";
+            case DISTANCE:
+                // TODO: Dispatch a fresh location request and re-sort list?
+                if (mLastLocation != null) {
+                    String dateSearch = String.format("(%1$s - %2$,.2f) * (%1$s - %2$,.2f) + (%3$s - %4$,.2f) * (%3$s - %4$,.2f) ASC",
+                            PlayaItemTable.latitude, mLastLocation.getLatitude(),
+                            PlayaItemTable.longitude, mLastLocation.getLongitude());
+                    Log.i(TAG, "returning location " + dateSearch);
+                    return dateSearch;
+                }
+                return null;
+        }
+        throw new IllegalStateException("Unknown sort requested");
+    }
 
-    protected abstract String getFavoriteSelection();
+    protected String getFavoriteSelection() {
+        return PlayaItemTable.favorite + " = ?";
+    }
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,20 +85,24 @@ public abstract class PlayaListViewFragment extends ListFragment
         if (PlayaClient.isDbPopulated(getActivity())) {
             mCurFilter = ((SearchQueryProvider) getActivity()).getCurrentQuery();
             initLoader();
+            if (mLastLocation == null) getLastDeviceLocation();
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
-        ((ListView) v.findViewById(android.R.id.list)).setDivider(new ColorDrawable(0x292929));
-        ((ListView) v.findViewById(android.R.id.list)).setFastScrollEnabled(true);
+        ListView list = ((ListView) v.findViewById(android.R.id.list));
+        list.setDivider(new ColorDrawable(0x292929));
+        list.setFastScrollEnabled(true);
+        PlayaListViewHeader header = new PlayaListViewHeader(getActivity());
+        list.addHeaderView(header, null, false);
+        header.setReceiver(this);
         return v;
     }
 
     protected boolean getShouldLimitSearchToFavorites() {
-        // TODO
-        return false;
+        return mCurrentSort == SORT.FAVORITE;
     }
 
 
@@ -170,5 +198,27 @@ public abstract class PlayaListViewFragment extends ListFragment
             builder.append(" AND ");
         builder.append(selection);
         selectionArgs.add(value);
+    }
+
+    @Override
+    public void onSelectionChanged(SORT sort) {
+        if (mCurrentSort == sort) return;
+        mCurrentSort = sort;
+        if (mCurrentSort == SORT.DISTANCE) {
+            Log.i(TAG, "Got LOCATION sort request");
+            getLastDeviceLocation();
+        }
+        restartLoader();
+    }
+
+    private void getLastDeviceLocation() {
+        Log.i(TAG, "Getting device location");
+        DeviceLocation.getLastKnownLocation(getActivity(), false, new DeviceLocation.LocationResult() {
+            @Override
+            public void gotLocation(Location location) {
+                Log.i(TAG, "got device location!");
+                mLastLocation = location;
+            }
+        });
     }
 }

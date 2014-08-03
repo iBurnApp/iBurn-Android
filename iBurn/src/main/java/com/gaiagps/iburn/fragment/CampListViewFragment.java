@@ -32,9 +32,6 @@ public class CampListViewFragment extends PlayaListViewFragment
     SimpleCursorAdapter mAdapter;
     protected Uri baseUri = PlayaContentProvider.Camps.CAMPS;                    // Uris corresponding to PlayaContentProvider
 
-    String ordering = CampTable.name + " ASC";               // How is the ListView ordered?
-    String favoriteSelection = CampTable.favorite + " = ?";  // Statement to filter by favorites.
-
     public static CampListViewFragment newInstance() {
         return new CampListViewFragment();
     }
@@ -50,15 +47,6 @@ public class CampListViewFragment extends PlayaListViewFragment
     protected String[] getProjection(){
         return PROJECTION;
     }
-
-    protected String getOrdering(){
-        return ordering;
-    }
-
-    protected String getFavoriteSelection(){
-        return favoriteSelection;
-    }
-
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

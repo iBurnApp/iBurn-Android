@@ -11,3 +11,4 @@ iBurn for Android
 + Provide map UI to set home camp
 + Restrict pannable map boundaries
 + When searching map, smooth zoom to frame results
++ Investigate possible crash caused by restartLoader called before initLoader
