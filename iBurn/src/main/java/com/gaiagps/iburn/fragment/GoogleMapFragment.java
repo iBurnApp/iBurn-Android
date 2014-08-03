@@ -67,7 +67,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             mState = STATE.SEARCH;
             mapCamps = true;
         }
-        restartLoaders(true);
+        if (isResumed()) {
+            restartLoaders(true);
+        }
     }
 
     private enum STATE {
@@ -173,6 +175,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        initLoader();
         initMap();
     }
 
@@ -368,8 +371,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         dist = Math.toDegrees(dist);
         dist = dist * 60 * 1.1515;
         dist = dist * 1609.344; // to km
-
-
         return dist;
     }
 
@@ -442,8 +443,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                             EventTable.endTime,     dateFormatter.format(now));
                 break;
             case ALL:
+            default:
                 //targetUri = PlayaContentProvider.Camps.ALL;
-                throw new IllegalArgumentException("ALL endpoint not yet supported");
+                //throw new IllegalArgumentException("ALL endpoint not yet supported");
+                return null;
         }
 
         if (!TextUtils.isEmpty(mCurFilter)) {
@@ -481,8 +484,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        mLoaderReady = true;
         int id = cursorLoader.getId();
         GoogleMap map = getMap();
+        if (map == null) return;
         String markerMapId;
         while (cursor.moveToNext()) {
             markerMapId = String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.id)));
@@ -553,6 +558,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         }
     }
 
+    private boolean mLoaderInitialized = false;
+    private boolean mLoaderReady = false;
+
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
 
@@ -560,7 +568,16 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     private void restartLoader(int type) {
         state = type;
-        getLoaderManager().restartLoader(type, null, this);
+        if (mLoaderReady) {
+            getLoaderManager().restartLoader(type, null, this);
+        } else if (!mLoaderInitialized) {
+            initLoader();
+        }
+    }
+
+    public void initLoader() {
+        getLoaderManager().initLoader(0, null, this);
+        mLoaderInitialized = true;
     }
 
     private void addHomePin(LatLng latLng) {

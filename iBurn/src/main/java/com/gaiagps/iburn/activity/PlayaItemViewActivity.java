@@ -189,18 +189,16 @@ public class PlayaItemViewActivity extends FragmentActivity {
         @Override
         public void onClick(View v) {
             ContentValues values = new ContentValues();
-            if((Integer)v.getTag(R.id.favorite_button_state) == 0){
+            if ((Integer) v.getTag(R.id.favorite_button_state) == 0) {
                 values.put(PlayaItemTable.favorite, 1);
                 v.setTag(R.id.favorite_button_state, 1);
-                ((ImageView)v).setImageResource(android.R.drawable.star_big_on);
-            }
-            else if((Integer)v.getTag(R.id.favorite_button_state) == 1){
+                ((ImageView) v).setImageResource(android.R.drawable.star_big_on);
+            } else if ((Integer) v.getTag(R.id.favorite_button_state) == 1) {
                 values.put(PlayaItemTable.favorite, 0);
                 v.setTag(R.id.favorite_button_state, 0);
-                ((ImageView)v).setImageResource(android.R.drawable.star_big_off);
+                ((ImageView) v).setImageResource(android.R.drawable.star_big_off);
             }
-            int result = getContentResolver().update(uri.buildUpon().appendPath(String.valueOf(model_id)).build(),
-                    values, null, null);
+            int result = getContentResolver().update(uri, values, PlayaItemTable.id + " = ?", new String[]{String.valueOf(model_id)});
         }
     };
 }

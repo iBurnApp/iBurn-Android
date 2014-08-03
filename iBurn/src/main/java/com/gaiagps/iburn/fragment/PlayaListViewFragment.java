@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.PlayaClient;
@@ -24,7 +25,6 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
-import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.DeviceLocation;
 import com.gaiagps.iburn.view.PlayaListViewHeader;
@@ -45,11 +45,24 @@ public abstract class PlayaListViewFragment extends ListFragment
     private SORT mCurrentSort = SORT.NAME;
     String mCurFilter;                      // Search string to filter by
 
+    static final String[] PROJECTION = new String[] {
+            PlayaItemTable.id,
+            PlayaItemTable.name,
+            PlayaItemTable.favorite,
+            PlayaItemTable.latitude,
+            PlayaItemTable.longitude
+    };
+
+    private ListView mListView;
+    private TextView mEmptyText;
+
     protected abstract Uri getBaseUri();
 
     protected abstract SimpleCursorAdapter getAdapter();
 
-    protected abstract String[] getProjection();
+    protected String[] getProjection() {
+        return PROJECTION;
+    }
 
     protected String getOrdering() {
         switch (mCurrentSort) {
@@ -91,13 +104,14 @@ public abstract class PlayaListViewFragment extends ListFragment
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = super.onCreateView(inflater, container, savedInstanceState);
-        ListView list = ((ListView) v.findViewById(android.R.id.list));
-        list.setDivider(new ColorDrawable(0x292929));
-        list.setFastScrollEnabled(true);
-        PlayaListViewHeader header = new PlayaListViewHeader(getActivity());
-        list.addHeaderView(header, null, false);
-        header.setReceiver(this);
+        View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);
+        //super.onCreateView(inflater, container, savedInstanceState);
+        mEmptyText = (TextView) v.findViewById(android.R.id.empty);
+        mListView = ((ListView) v.findViewById(android.R.id.list));
+        mListView.setEmptyView(mEmptyText);
+        mListView.setDivider(new ColorDrawable(0x292929));
+        mListView.setFastScrollEnabled(true);
+        ((PlayaListViewHeader) v.findViewById(R.id.header)).setReceiver(this);
         return v;
     }
 
@@ -164,16 +178,50 @@ public abstract class PlayaListViewFragment extends ListFragment
             // If searching, show no camps match query
             if (data.getCount() == 0 && !TextUtils.isEmpty(mCurFilter)) {
                 setEmptyText(getActivity().getString(com.gaiagps.iburn.R.string.no_results));
-            } else if (data.getCount() == 0)
+            } else if (data.getCount() == 0) {
                 if (getShouldLimitSearchToFavorites())
                     setEmptyText(getActivity().getString(com.gaiagps.iburn.R.string.mark_some_favorites));
                 else
                     setEmptyText(getActivity().getString(com.gaiagps.iburn.R.string.no_items_found));
-
+            }
             setListShown(true);
         } else {
             setListShownNoAnimation(true);
         }
+    }
+
+    /**
+     * Override per AOSP bug:
+     * https://code.google.com/p/android/issues/detail?id=21742
+     */
+    @Override
+    public void setEmptyText(CharSequence text) {
+        setListShown(false);
+        mEmptyText.setText(text);
+    }
+
+    /**
+     * Override per AOSP bug:
+     * https://code.google.com/p/android/issues/detail?id=21742
+     */
+    @Override
+    public void setListShown(boolean doShow) {
+        if (doShow) {
+            mListView.setVisibility(View.VISIBLE);
+            mEmptyText.setVisibility(View.GONE);
+        } else {
+            mListView.setVisibility(View.GONE);
+            mEmptyText.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * Override per AOSP bug:
+     * https://code.google.com/p/android/issues/detail?id=21742
+     */
+    @Override
+    public void setListShownNoAnimation(boolean doShow) {
+        setListShown(doShow);
     }
 
     @Override

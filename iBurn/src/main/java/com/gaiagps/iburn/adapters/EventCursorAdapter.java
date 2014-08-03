@@ -4,20 +4,19 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.View;
-import android.widget.SectionIndexer;
 import android.widget.TextView;
+
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.EventTable;
 
-public class EventCursorAdapter extends SimpleCursorAdapter{
+public class EventCursorAdapter extends SimpleCursorAdapter {
 
+    public EventCursorAdapter(Context context, Cursor c) {
+        super(context, R.layout.event_listview_item, c, new String[]{} , new int[]{}, 0);
+    }
 
-	public EventCursorAdapter(Context context, Cursor c){
-		super(context, R.layout.double_listview_item, c, new String[]{} , new int[]{}, 0);
-	}
-
-	@Override
+    @Override
     public void bindView(View view, Context context, Cursor cursor) {
         super.bindView(view, context, cursor);
 

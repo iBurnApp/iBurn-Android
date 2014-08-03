@@ -6,8 +6,8 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.SimpleCursorAdapter;
 
-import com.gaiagps.iburn.adapters.CampCursorAdapter;
-import com.gaiagps.iburn.database.CampTable;
+import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.adapters.PlayaItemCursorAdapter;
 import com.gaiagps.iburn.database.PlayaContentProvider;
 
 /**
@@ -19,15 +19,6 @@ import com.gaiagps.iburn.database.PlayaContentProvider;
 public class CampListViewFragment extends PlayaListViewFragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = "CampListViewFragment";
-
-    static final String[] PROJECTION = new String[] {
-            CampTable.id,
-            CampTable.name,
-            CampTable.playaStreet,
-            CampTable.playaHour,
-            CampTable.playaMinute,
-            CampTable.favorite
-    };
 
     SimpleCursorAdapter mAdapter;
     protected Uri baseUri = PlayaContentProvider.Camps.CAMPS;                    // Uris corresponding to PlayaContentProvider
@@ -44,17 +35,13 @@ public class CampListViewFragment extends PlayaListViewFragment
         return mAdapter;
     }
 
-    protected String[] getProjection(){
-        return PROJECTION;
-    }
-
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
 
     @Override public void onActivityCreated(Bundle savedInstanceState) {
-        mAdapter = new CampCursorAdapter(getActivity(), null);
+        mAdapter = new PlayaItemCursorAdapter(getActivity(), null, Constants.PLAYA_ITEM.CAMP);
         super.onActivityCreated(savedInstanceState);
     }
 

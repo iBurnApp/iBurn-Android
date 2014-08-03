@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.view;
 
 import android.content.Context;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -22,6 +23,21 @@ public class PlayaListViewHeader extends RelativeLayout {
     View mFavorite;
 
     private PlayaListViewHeaderReceiver mReceiver;
+
+    public PlayaListViewHeader(Context context) {
+        super(context);
+        init(context);
+    }
+
+    public PlayaListViewHeader(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init(context);
+    }
+
+    public PlayaListViewHeader(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        init(context);
+    }
 
     /** Interface for users to receive feedback from this view */
     public static interface PlayaListViewHeaderReceiver {
@@ -47,8 +63,7 @@ public class PlayaListViewHeader extends RelativeLayout {
         }
     };
 
-    public PlayaListViewHeader(Context context) {
-        super(context);
+    private void init(Context context) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = inflater.inflate(R.layout.list_view_header, this, false);
         mName       = v.findViewById(R.id.name);

@@ -6,8 +6,8 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.SimpleCursorAdapter;
 
-import com.gaiagps.iburn.adapters.ArtCursorAdapter;
-import com.gaiagps.iburn.database.ArtTable;
+import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.adapters.PlayaItemCursorAdapter;
 import com.gaiagps.iburn.database.PlayaContentProvider;
 
 /**
@@ -19,13 +19,6 @@ import com.gaiagps.iburn.database.PlayaContentProvider;
 public class ArtListViewFragment extends PlayaListViewFragment
         implements LoaderManager.LoaderCallbacks<Cursor>{
     private static final String TAG = "ArtListViewFragment";
-
-    static final String[] PROJECTION = new String[] {
-            ArtTable.id,
-            ArtTable.name,
-            ArtTable.artist,
-            ArtTable.favorite
-    };
 
     SimpleCursorAdapter mAdapter;
     protected Uri baseUri   = PlayaContentProvider.Art.ART;                    // Uris corresponding to PlayaContentProvider
@@ -42,17 +35,13 @@ public class ArtListViewFragment extends PlayaListViewFragment
         return mAdapter;
     }
 
-    protected String[] getProjection(){
-        return PROJECTION;
-    }
-
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
 
     @Override public void onActivityCreated(Bundle savedInstanceState) {
-        mAdapter = new ArtCursorAdapter(getActivity(), null);
+        mAdapter = new PlayaItemCursorAdapter(getActivity(), null, Constants.PLAYA_ITEM.ART);
         super.onActivityCreated(savedInstanceState);
     }
 }

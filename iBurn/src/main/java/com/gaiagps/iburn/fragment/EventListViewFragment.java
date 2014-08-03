@@ -29,12 +29,13 @@ public class EventListViewFragment extends PlayaListViewFragment
             EventTable.startTime,
             EventTable.startTimePrint,
             EventTable.allDay,
-            EventTable.favorite
+            EventTable.favorite,
+            EventTable.latitude,
+            EventTable.longitude
     };
 
     SimpleCursorAdapter mAdapter;
     protected Uri baseUri = PlayaContentProvider.Events.EVENTS;                    // Uris corresponding to PlayaContentProvider
-    protected Uri searchUri = PlayaContentProvider.Events.EVENTS;
 
     String ordering = EventTable.startTime + " ASC";               // How is the ListView ordered?
     String favoriteSelection = EventTable.favorite + " = ?";  // Statement to filter by favorites.
@@ -63,11 +64,9 @@ public class EventListViewFragment extends PlayaListViewFragment
         return favoriteSelection;
     }
 
-
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
 
     @Override public void onActivityCreated(Bundle savedInstanceState) {
         mAdapter = new EventCursorAdapter(getActivity(), null);
