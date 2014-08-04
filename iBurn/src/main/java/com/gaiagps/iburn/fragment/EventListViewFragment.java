@@ -35,10 +35,10 @@ public class EventListViewFragment extends PlayaListViewFragment
     };
 
     SimpleCursorAdapter mAdapter;
-    protected Uri baseUri = PlayaContentProvider.Events.EVENTS;                    // Uris corresponding to PlayaContentProvider
+    protected Uri baseUri = PlayaContentProvider.Events.EVENTS;     // Uris corresponding to PlayaContentProvider
 
-    String ordering = EventTable.startTime + " ASC";               // How is the ListView ordered?
-    String favoriteSelection = EventTable.favorite + " = ?";  // Statement to filter by favorites.
+    String ordering = EventTable.startTime + " ASC";                // How is the ListView ordered?
+    String favoriteSelection = EventTable.favorite + " = ?";        // Statement to filter by favorites.
 
     public static EventListViewFragment newInstance() {
         return new EventListViewFragment();

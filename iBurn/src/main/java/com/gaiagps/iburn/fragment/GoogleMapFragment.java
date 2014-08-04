@@ -62,12 +62,12 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         if (TextUtils.isEmpty(query)) {
             mState = STATE.EXPLORE;
             mapCamps = false;
-            Log.i(TAG, "state set to eXPLORE");
         } else {
             mState = STATE.SEARCH;
             mapCamps = true;
         }
         if (isResumed()) {
+            Log.i(TAG, "restarting loader on search query");
             restartLoaders(true);
         }
     }
@@ -175,8 +175,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        initLoader();
         initMap();
+        initLoader();
     }
 
     @Override
@@ -196,6 +196,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         addHomePin(PlayaClient.getHomeLatLng(getActivity()));
         // TODO: If user location present, start there
         LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
+        visibleRegion = getMap().getProjection().getVisibleRegion();
         getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
 
         if (latLngToCenterOn != null) {
@@ -416,6 +417,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        mLoaderReady = true;
+        Log.i(TAG, "onCreateLoader");
         String[] projection = PROJECTION;
         Uri targetUri = null;
         String selection = "";
@@ -423,6 +426,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
         if ((visibleRegion == null && mState == STATE.EXPLORE) || !PlayaClient.isDbPopulated(getActivity())) {
             //TODO: This CursorLoader will cause a crash
+            // TOOD: Must have initial VisibleRegion for map state!
             Log.e(TAG, "Visible region null onCreateLoader!");
             return null;
         }
@@ -484,7 +488,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        mLoaderReady = true;
         int id = cursorLoader.getId();
         GoogleMap map = getMap();
         if (map == null) return;
@@ -569,13 +572,18 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     private void restartLoader(int type) {
         state = type;
         if (mLoaderReady) {
+            Log.i(TAG, "restart Loader");
             getLoaderManager().restartLoader(type, null, this);
         } else if (!mLoaderInitialized) {
+            Log.i(TAG, "init Loader");
             initLoader();
+        } else {
+            Log.i(TAG, "loader initialized but not ready. Ignoring restart");
         }
     }
 
     public void initLoader() {
+        Log.i(TAG, "initLoader");
         getLoaderManager().initLoader(0, null, this);
         mLoaderInitialized = true;
     }
