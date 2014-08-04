@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 
+import com.gaiagps.iburn.database.DBWrapper;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ import java.util.GregorianCalendar;
  * Created by davidbrodsky on 8/4/13.
  */
 public class PlayaClient {
+
+    private static final boolean USE_BUNDLED_DB = true;
 
     private static final String UNLOCK_PW = "snowden";
 
@@ -70,8 +73,14 @@ public class PlayaClient {
     }
 
     public static boolean isDbPopulated(Context c) {
-        return c.getSharedPreferences(GENERAL_PREFS, Context.MODE_PRIVATE)
-                .getBoolean(DB_POPULATED, false);
+        boolean isPopulated = c.getSharedPreferences(GENERAL_PREFS, Context.MODE_PRIVATE).getBoolean(DB_POPULATED, false);
+        if (!isPopulated && USE_BUNDLED_DB) {
+            // Copy the pre-bundled database
+            DBWrapper wrapper = new DBWrapper(c);
+            wrapper.getReadableDatabase();
+            setDbPopulated(c, true);
+        }
+        return USE_BUNDLED_DB || isPopulated;
     }
 
     public static void setDbPopulated(Context c, boolean isPopulated) {

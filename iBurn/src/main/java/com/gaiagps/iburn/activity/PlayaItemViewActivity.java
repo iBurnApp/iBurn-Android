@@ -155,7 +155,7 @@ public class PlayaItemViewActivity extends FragmentActivity {
                         findViewById(R.id.subitem_3).setVisibility(View.GONE);
                     break;
                 case CAMP:
-                    if(!c.isNull(c.getColumnIndex(CampTable.contact))){
+                    if(!c.isNull(c.getColumnIndex(CampTable.longitude))){
                         ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(CampTable.contact)));
                     }else
                         findViewById(R.id.subitem_1).setVisibility(View.GONE);

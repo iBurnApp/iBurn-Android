@@ -7,21 +7,21 @@
         android:state_selected="true"
         android:state_pressed="false">
         <shape>
-            <solid android:color="#ff81815c"/>
+            <solid android:color="@color/tab_selected"/>
         </shape>
     </item>
 
     <!-- pressed -->
     <item android:state_pressed="true">
         <shape>
-            <solid android:color="@color/highlight"/>
+            <solid android:color="@color/tab_pressed"/>
         </shape>
     </item>
 
     <!-- default -->
-    <item>
+    <item android:state_selected="false">
         <shape>
-            <solid android:color="#ff1b1b1b"/>
+            <solid android:color="@color/off_blk_3"/>
         </shape>
     </item>
 </selector>

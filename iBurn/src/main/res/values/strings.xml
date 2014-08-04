@@ -31,5 +31,8 @@
     <string name="search_title">Search</string>
     <string name="search_hint">Search</string>
     <string name="title_activity_search_results">SearchResultsActivity</string>
+    <string name="tab_favorites">FAVORITES</string>
+    <string name="tab_distance">DISTANCE</string>
+    <string name="tab_name">NAME</string>
 
 </resources>

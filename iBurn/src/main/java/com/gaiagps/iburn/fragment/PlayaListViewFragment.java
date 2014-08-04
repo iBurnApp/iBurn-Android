@@ -97,6 +97,8 @@ public abstract class PlayaListViewFragment extends ListFragment
         setListAdapter(getAdapter());
         if (PlayaClient.isDbPopulated(getActivity())) {
             mCurFilter = ((SearchQueryProvider) getActivity()).getCurrentQuery();
+            mCurrentSort = SORT.NAME;
+            Log.i(TAG, "reset sort to name");
             initLoader();
             if (mLastLocation == null) getLastDeviceLocation();
         }

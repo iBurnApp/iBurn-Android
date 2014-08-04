@@ -19,28 +19,28 @@ import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
  * requires Strings: DATABASE_NAME, DATABASE_VERSION,
  * CREATE_TABLE_STATEMENT, TABLE_NAME
  */
-//public class DBWrapper extends SQLiteAssetHelper {
-//
-//    private static final String DATABASE_NAME = "iburn";
-//    private static final int DATABASE_VERSION = 1;
-//
-//    static Context c;
-//
-//    public DBWrapper(Context context) {
-//        super(context, DATABASE_NAME, null, DATABASE_VERSION);
-//        c = context;
-//    }
-//
-//    /**
-//     * Invoked if a DB upgrade (version change) has been detected
-//     */
-//    @Override
-//    public void onUpgrade(SQLiteDatabase db,
-//       int oldVersion, int newVersion) {
-//        // Drop old table and re-create
-//    	db.execSQL("DROP TABLE IF EXISTS " + PlayaDatabase.CAMPS);
-//    	db.execSQL("DROP TABLE IF EXISTS " + PlayaDatabase.EVENTS);
-//    	db.execSQL("DROP TABLE IF EXISTS " + PlayaDatabase.ART);
-//		onCreate(db);
-//    }
-//}
+public class DBWrapper extends SQLiteAssetHelper {
+
+    private static final String DATABASE_NAME = "playaDatabase.db";
+    private static final int DATABASE_VERSION = 1;
+
+    static Context c;
+
+    public DBWrapper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        c = context;
+    }
+
+    /**
+     * Invoked if a DB upgrade (version change) has been detected
+     */
+    @Override
+    public void onUpgrade(SQLiteDatabase db,
+       int oldVersion, int newVersion) {
+        // Drop old table and re-create
+    	db.execSQL("DROP TABLE IF EXISTS " + PlayaDatabase.CAMPS);
+    	db.execSQL("DROP TABLE IF EXISTS " + PlayaDatabase.EVENTS);
+    	db.execSQL("DROP TABLE IF EXISTS " + PlayaDatabase.ART);
+		onCreate(db);
+    }
+}

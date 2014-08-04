@@ -37,9 +37,6 @@ public class EventListViewFragment extends PlayaListViewFragment
     SimpleCursorAdapter mAdapter;
     protected Uri baseUri = PlayaContentProvider.Events.EVENTS;     // Uris corresponding to PlayaContentProvider
 
-    String ordering = EventTable.startTime + " ASC";                // How is the ListView ordered?
-    String favoriteSelection = EventTable.favorite + " = ?";        // Statement to filter by favorites.
-
     public static EventListViewFragment newInstance() {
         return new EventListViewFragment();
     }
@@ -54,14 +51,6 @@ public class EventListViewFragment extends PlayaListViewFragment
 
     protected String[] getProjection(){
         return PROJECTION;
-    }
-
-    protected String getOrdering(){
-        return ordering;
-    }
-
-    protected String getFavoriteSelection(){
-        return favoriteSelection;
     }
 
     public void onCreate(Bundle savedInstanceState) {

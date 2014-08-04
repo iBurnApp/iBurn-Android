@@ -154,8 +154,10 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
         tabs.setShouldExpand(true);
         tabs.setTabPaddingLeftRight(0);
-        tabs.setIndicatorColor(getResources().getColor(R.color.highlight));
+        tabs.setIndicatorColorResource(R.color.pager_selector);
         tabs.setTextColorResource(R.color.white);
+        tabs.setTextSize(50);
+        tabs.setDividerColorResource(R.color.off_blk);
         mViewPager.setAdapter(mPagerAdapter);
         tabs.setViewPager(mViewPager);
     }

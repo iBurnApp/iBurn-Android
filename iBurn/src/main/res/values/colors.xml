@@ -18,7 +18,14 @@
 -->
 
 <resources>
-    <color name="off_blk">#cc0f0f0f</color>
-    <color name="highlight">#CCC5C599</color>
+    <color name="off_blk_3">#797979</color>
+    <color name="off_blk_2">#262626</color>
+    <color name="off_blk">#030303</color>
+    <color name="pager_selector">#FFE312</color>
+    <color name="tab_pressed">#ffffb658</color>
+    <color name="tab_selected">#FFB712</color>
+    <color name="dull_highlight">#FFE29F</color>
+    <color name="highlight">#FFE29F</color>
     <color name="white">#cceaefdf</color>
+    <color name="ab_bg">#FFCA51</color>
 </resources>

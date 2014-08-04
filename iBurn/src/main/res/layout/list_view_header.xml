@@ -8,32 +8,26 @@
 
     <TextView
         android:id="@+id/name"
-        android:background="@drawable/button_bg"
+        style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight=".33"
-        android:gravity="center"
-        android:clickable="true"
-        android:text="Name"/>
+        android:text="@string/tab_name" />
 
     <TextView
         android:id="@+id/distance"
-        android:background="@drawable/button_bg"
+        style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight=".33"
-        android:gravity="center"
-        android:clickable="true"
-        android:text="Distance"/>
+        android:text="@string/tab_distance" />
 
     <TextView
         android:id="@+id/favorites"
-        android:background="@drawable/button_bg"
+        style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight=".33"
-        android:gravity="center"
-        android:clickable="true"
-        android:text="Favorites"/>
+        android:text="@string/tab_favorites" />
 
 </LinearLayout>
