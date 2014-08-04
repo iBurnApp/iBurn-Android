@@ -66,10 +66,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             mState = STATE.SEARCH;
             mapCamps = true;
         }
-        if (isResumed()) {
-            Log.i(TAG, "restarting loader on search query");
-            restartLoaders(true);
-        }
+
+        restartLoaders(true);
     }
 
     private enum STATE {
@@ -418,7 +416,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         mLoaderReady = true;
-        Log.i(TAG, "onCreateLoader");
         String[] projection = PROJECTION;
         Uri targetUri = null;
         String selection = "";

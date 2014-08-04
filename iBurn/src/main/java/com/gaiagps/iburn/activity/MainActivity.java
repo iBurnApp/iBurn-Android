@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.InputType;
@@ -268,7 +269,7 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
      * <p/>
      * Each Fragment must have a no-arg newInstance() method.
      */
-    public static class FragmentWithTitlePagerAdapter extends FragmentStatePagerAdapter {
+    public static class FragmentWithTitlePagerAdapter extends FragmentPagerAdapter {
 
         private static List<Pair<Class<? extends Fragment>, String>> PAGES;
         private Fragment mCurrentPrimaryItem;

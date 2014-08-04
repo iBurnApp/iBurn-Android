@@ -174,19 +174,21 @@ public abstract class PlayaListViewFragment extends ListFragment
             return;
         }
 
-        if (isResumed()) {
-            // If searching, show no camps match query
-            if (data.getCount() == 0 && !TextUtils.isEmpty(mCurFilter)) {
+        if (data.getCount() == 0) {
+            // No items to display
+            if (!TextUtils.isEmpty(mCurFilter)) {
+                // This should only happen if the db isn't populated
                 setEmptyText(getActivity().getString(com.gaiagps.iburn.R.string.no_results));
-            } else if (data.getCount() == 0) {
+            } else {
                 if (getShouldLimitSearchToFavorites())
                     setEmptyText(getActivity().getString(com.gaiagps.iburn.R.string.mark_some_favorites));
                 else
                     setEmptyText(getActivity().getString(com.gaiagps.iburn.R.string.no_items_found));
             }
-            setListShown(true);
         } else {
-            setListShownNoAnimation(true);
+            // We have some results to show
+            if   (isResumed()) setListShown(true);
+            else setListShownNoAnimation(true);
         }
     }
 
