@@ -2,17 +2,23 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:padding="5dp">
+    android:orientation="vertical">
+
+    <fragment
+        android:id="@+id/map"
+        class="com.gaiagps.iburn.fragment.GoogleMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_alignParentTop="true" />
 
     <ImageView
         android:id="@+id/favorite_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/map"
         android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
         android:layout_marginRight="5dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
         android:src="@android:drawable/star_big_off" />
 
     <TextView
@@ -20,20 +26,12 @@
         style="@style/PlayaTextItem"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@id/favorite_button"
+        android:layout_below="@id/map"
         android:ellipsize="marquee"
         android:text="Title"
-        android:textSize="32dp"
+        android:textSize="26sp"
+        android:padding="8dp"
         android:textStyle="bold" />
-
-    <fragment
-        android:id="@+id/map"
-        class="com.gaiagps.iburn.fragment.GoogleMapFragment"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_below="@id/title"
-        android:layout_marginTop="5dp" />
 
 
     <ScrollView
@@ -41,12 +39,14 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_below="@id/map"
+        android:layout_below="@id/title"
         android:layout_marginTop="5dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
             android:orientation="vertical">
 
             <TextView
@@ -56,7 +56,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="marquee"
                 android:text="artist"
-                android:textSize="26dp"
+                android:textSize="26sp"
                 android:visibility="visible" />
 
             <TextView
@@ -66,7 +66,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="marquee"
                 android:text="contact"
-                android:textSize="20dp"
+                android:textSize="20sp"
                 android:visibility="visible" />
 
             <TextView
@@ -76,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="marquee"
                 android:text="hometown"
-                android:textSize="20dp"
+                android:textSize="20sp"
                 android:visibility="visible" />
 
 
@@ -88,7 +88,7 @@
                 android:ellipsize="marquee"
                 android:singleLine="false"
                 android:text="description"
-                android:textSize="18dp"
+                android:textSize="18sp"
                 android:visibility="visible" />
 
         </LinearLayout>

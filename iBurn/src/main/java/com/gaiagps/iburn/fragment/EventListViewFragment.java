@@ -69,6 +69,27 @@ public class EventListViewFragment extends PlayaListViewFragment
         return PROJECTION;
     }
 
+    protected String getOrdering() {
+        switch (mCurrentSort) {
+            case FAVORITE:
+                return PlayaItemTable.name + " ASC";
+            case NAME:
+                // HERE+NOW
+                return EventTable.startTime + " ASC";
+            case DISTANCE:
+                // TODO: Dispatch a fresh location request and re-sort list?
+                if (mLastLocation != null) {
+                    String dateSearch = String.format("(%1$s - %2$,.2f) * (%1$s - %2$,.2f) + (%3$s - %4$,.2f) * (%3$s - %4$,.2f) ASC",
+                            PlayaItemTable.latitude, mLastLocation.getLatitude(),
+                            PlayaItemTable.longitude, mLastLocation.getLongitude());
+                    Log.i(TAG, "returning location " + dateSearch);
+                    return dateSearch;
+                }
+                return null;
+        }
+        throw new IllegalStateException("Unknown sort requested");
+    }
+
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
@@ -93,10 +114,10 @@ public class EventListViewFragment extends PlayaListViewFragment
         } else if (mCurrentSort == SORT.DISTANCE) {
             // Has not ended more than 1 hr ago
             Date now = new Date();
-            Calendar nowPlusOneHr = Calendar.getInstance();
-            nowPlusOneHr.setTime(now);
-            nowPlusOneHr.add(Calendar.HOUR, 1);
-            String nowPlusOneHrStr = PlayaClient.getISOString(nowPlusOneHr.getTime());
+            Calendar nowMinusOneHr = Calendar.getInstance();
+            nowMinusOneHr.setTime(now);
+            nowMinusOneHr.add(Calendar.HOUR, -1);
+            String nowPlusOneHrStr = PlayaClient.getISOString(nowMinusOneHr.getTime());
             if(selection.length() > 0) selection.append(" AND ");
             selection.append(String.format("(%1$s > ? )", EventTable.endTime));
             selectionArgs.add(nowPlusOneHrStr);

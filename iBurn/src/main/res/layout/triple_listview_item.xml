@@ -8,7 +8,8 @@
     android:id="@+id/list_item_container"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:padding="5dp">
+    android:background="@drawable/card_btn_bg"
+    android:padding="8dp">
 
     <TextView
         android:id="@+id/list_item_title"
@@ -22,6 +23,7 @@
         android:ellipsize="marquee"
         android:gravity="center_vertical"
         android:padding="2dp"
+        android:paddingTop="0dp"
         android:singleLine="true"
         android:textSize="20sp"/>
 

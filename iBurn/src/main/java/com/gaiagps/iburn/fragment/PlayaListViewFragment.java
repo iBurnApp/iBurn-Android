@@ -111,8 +111,8 @@ public abstract class PlayaListViewFragment extends ListFragment
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mListView = ((ListView) v.findViewById(android.R.id.list));
         mListView.setEmptyView(mEmptyText);
-        mListView.setDivider(new ColorDrawable(0x292929));
         mListView.setFastScrollEnabled(true);
+        mListView.setDividerHeight(10);
         ((PlayaListViewHeader) v.findViewById(R.id.header)).setReceiver(this);
         return v;
     }
@@ -160,7 +160,7 @@ public abstract class PlayaListViewFragment extends ListFragment
 
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
-        Log.i(TAG, "Creating loader with uri: " + getBaseUri().toString());
+        Log.i(TAG, "Creating loader with uri: " + getBaseUri().toString() + " " + selection.toString() + selectionArgs);
         return new CursorLoader(getActivity(),
                 getBaseUri(),
                 getProjection(),

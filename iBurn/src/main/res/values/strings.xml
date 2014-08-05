@@ -38,5 +38,6 @@
     <string name="starts">Starts </string>
     <string name="ended">Ended </string>
     <string name="ends">Ends </string>
+    <string name="home">Home</string>
 
 </resources>

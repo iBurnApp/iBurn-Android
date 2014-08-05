@@ -61,18 +61,19 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
     /**
      * Fragments to appear in main ViewPager
      */
-    private static List<Pair<Class<? extends Fragment>, String>> sPages
-            = new ArrayList<Pair<Class<? extends Fragment>, String>>() {{
-        add(new Pair<Class<? extends Fragment>, String>(GoogleMapFragment.class,        "Map"));
-        add(new Pair<Class<? extends Fragment>, String>(ArtListViewFragment.class,      "Art"));
-        add(new Pair<Class<? extends Fragment>, String>(CampListViewFragment.class,     "Camps"));
-        add(new Pair<Class<? extends Fragment>, String>(EventListViewFragment.class,    "Events"));
+    private static List<Pair<Class<? extends Fragment>, Integer>> sPages
+            = new ArrayList<Pair<Class<? extends Fragment>, Integer>>() {{
+        add(new Pair<Class<? extends Fragment>, Integer>(GoogleMapFragment.class,        R.drawable.ic_map));
+        add(new Pair<Class<? extends Fragment>, Integer>(ArtListViewFragment.class,      R.drawable.ic_brush));
+        add(new Pair<Class<? extends Fragment>, Integer>(CampListViewFragment.class,     R.drawable.ic_tent));
+        add(new Pair<Class<? extends Fragment>, Integer>(EventListViewFragment.class,    R.drawable.ic_clock));
     }};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getActionBar().setTitle("");
+        getActionBar().hide();
         getDisplayWidth();
         setContentView(R.layout.activity_main);
         if (checkPlayServices()) {
@@ -157,8 +158,8 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         tabs.setTabPaddingLeftRight(0);
         tabs.setIndicatorColorResource(R.color.tab_selector);
         tabs.setTextColorResource(R.color.tab_text);
-        tabs.setTextSize(50);
-        tabs.setDividerColorResource(R.color.map_streets);
+        tabs.setTextSize(10);
+        tabs.setDividerColorResource(R.color.tab_divider);
         mViewPager.setAdapter(mPagerAdapter);
         tabs.setViewPager(mViewPager);
     }
@@ -272,14 +273,14 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
      * <p/>
      * Each Fragment must have a no-arg newInstance() method.
      */
-    public static class FragmentWithTitlePagerAdapter extends FragmentPagerAdapter {
+    public static class FragmentWithTitlePagerAdapter extends FragmentPagerAdapter implements PagerSlidingTabStrip.IconTabProvider {
 
-        private static List<Pair<Class<? extends Fragment>, String>> PAGES;
+        private static List<Pair<Class<? extends Fragment>, Integer>> PAGES;
         private Fragment mCurrentPrimaryItem;
         private SearchQueryProvider mSearchQueryProvider;
         private int mLastPosition;
 
-        public FragmentWithTitlePagerAdapter(FragmentManager fm, List<Pair<Class<? extends Fragment>, String>> pages) {
+        public FragmentWithTitlePagerAdapter(FragmentManager fm, List<Pair<Class<? extends Fragment>, Integer>> pages) {
             super(fm);
             PAGES = pages;
         }
@@ -304,11 +305,6 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         }
 
         @Override
-        public CharSequence getPageTitle(int position) {
-            return PAGES.get(position).second;
-        }
-
-        @Override
         public void setPrimaryItem(ViewGroup container, int position, Object object) {
             super.setPrimaryItem(container, position, object);
             mCurrentPrimaryItem = (Fragment) object;
@@ -322,6 +318,11 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
 
         public Fragment getCurrentFragment() {
             return mCurrentPrimaryItem;
+        }
+
+        @Override
+        public int getPageIconResId(int i) {
+            return PAGES.get(i).second;
         }
     }
 

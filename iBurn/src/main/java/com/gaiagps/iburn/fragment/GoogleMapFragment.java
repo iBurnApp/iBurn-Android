@@ -43,12 +43,10 @@ import com.google.android.gms.maps.model.VisibleRegion;
 
 import java.io.File;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 
 /**
  * Created by davidbrodsky on 8/3/13.
@@ -62,12 +60,13 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         if (TextUtils.isEmpty(query)) {
             mState = STATE.EXPLORE;
             mapCamps = false;
+            if (lastZoomLevel > POI_ZOOM_LEVEL) restartLoaders(true);
+
         } else {
             mState = STATE.SEARCH;
             mapCamps = true;
+            restartLoaders(true);
         }
-
-        restartLoaders(true);
     }
 
     private enum STATE {
@@ -92,9 +91,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     boolean mapArt = true;
     boolean mapEvents = true;
 
+    private final int POI_ZOOM_LEVEL = 16;
     float lastZoomLevel = 0;
     LatLng lastTarget;
-    int state = 0;
+    int mLoaderType = 0;
 
     private static final int MAX_POIS = 200;
     ArrayDeque<Marker> markerQueue = new ArrayDeque<>(MAX_POIS);
@@ -172,7 +172,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         initMap();
-        initLoader();
     }
 
     @Override
@@ -205,10 +204,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 if (cameraPosition.zoom >= 19.5) {
                     getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 19.5f));
                 }
-                if (cameraPosition.zoom > 16 && PlayaClient.isEmbargoClear(getActivity())) {
+                if (cameraPosition.zoom > POI_ZOOM_LEVEL && PlayaClient.isEmbargoClear(getActivity())) {
                     visibleRegion = getMap().getProjection().getVisibleRegion();
                     if (mState == STATE.EXPLORE) restartLoaders(false);
-                } else if (cameraPosition.zoom < 16 && lastZoomLevel >= 16) {
+                } else if (cameraPosition.zoom < POI_ZOOM_LEVEL && areMarkersVisible()) {
                     if (mState == STATE.EXPLORE) {
                         markerIdToMeta = new HashMap<>();
                         clearMap();
@@ -371,13 +370,17 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         return dist;
     }
 
+    public boolean areMarkersVisible() {
+        return markerQueue.size() > 0;
+    }
+
     public void clearMap() {
         for (Marker marker : markerQueue) {
             marker.remove();
         }
         markerQueue.clear();
         markerIdToMeta.clear();
-        state = 0;
+        mLoaderType = 0;
     }
 
     public void mapMarker(MarkerOptions marker) {
@@ -399,10 +402,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         mState = STATE.EXPLORE;
     }
 
-    public STATE getState() {
-        return mState;
-    }
-
     static final String[] PROJECTION = new String[]{
             PlayaItemTable.name,
             PlayaItemTable.id,
@@ -413,18 +412,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-//        mLoaderReady = true;
         String[] projection = PROJECTION;
         Uri targetUri = null;
         String selection = "";
         ArrayList<String> selectionArgs = new ArrayList<>();
-
-        if ((visibleRegion == null && mState == STATE.EXPLORE) || !PlayaClient.isDbPopulated(getActivity())) {
-            //TODO: This CursorLoader will cause a crash
-            // TOOD: Must have initial VisibleRegion for map state!
-            Log.e(TAG, "Visible region null onCreateLoader!");
-            return null;
-        }
 
         switch (i) {
             case ART:
@@ -556,32 +547,19 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         }
     }
 
-//    private boolean mLoaderInitialized = false;
-//    private boolean mLoaderReady = false;
-
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
 
     }
 
     private void restartLoader(int type) {
-        state = type;
-//        getLoaderManager().restartLoader(type, null, this);
-//        if (mLoaderReady) {
-//            Log.i(TAG, "restart Loader");
-//            getLoaderManager().restartLoader(type, null, this);
-//        } else if (!mLoaderInitialized) {
-//            Log.i(TAG, "init Loader");
-//            initLoader();
-//        } else {
-//            Log.i(TAG, "loader initialized but not ready. Ignoring restart");
-//        }
+        mLoaderType = type;
+        getLoaderManager().restartLoader(type, null, this);
+
     }
 
     public void initLoader() {
-        Log.i(TAG, "initLoader");
         getLoaderManager().initLoader(0, null, this);
-//        mLoaderInitialized = true;
     }
 
     private void addHomePin(LatLng latLng) {
@@ -590,7 +568,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         Marker marker = getMap().addMarker(new MarkerOptions()
                 .position(latLng)
                 .draggable(true)
-                .title("Home")
+                .title(getActivity().getString(R.string.home))
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_marker)));
         final String homeMarkerId = marker.getId();
         getMap().setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {

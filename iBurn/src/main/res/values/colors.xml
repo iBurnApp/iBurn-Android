@@ -29,21 +29,22 @@
     <color name="sub_sub_text">@color/map_text_extra_light</color>
 
     <!-- Map, Camp, Art, Events Tabs -->
-    <color name="tab_bg">@color/map_bg</color>
-    <color name="tab_text">@color/map_text</color>
+    <color name="tab_bg">@color/off_blk_2</color>
+    <color name="tab_text">@color/white</color>
     <color name="tab_selector">@color/highlight_comp</color><!--@color/map_highlight-->
     <color name="tab_pressed">@color/map_bg</color>
     <color name="tab_selected">@color/map_highlight</color>
+    <color name="tab_divider">@color/off_blk_3</color>
 
     <!-- Name, Distance, Favorites Tabs -->
-
-    <color name="sub_tab_bg">@color/map_streets_dark</color>
-    <color name="sub_tab_text">@color/map_text</color>
+    <color name="sub_tab_bg">@color/off_blk_3</color>
+    <color name="sub_tab_text">@color/white</color>
     <color name="sub_tab_selector">@color/map_highlight</color>
     <color name="sub_tab_pressed">@color/map_bg</color>
     <color name="sub_tab_selected">@color/map_highlight</color>
 
 
+    <color name="off_blk_4">#ffbcbcbc</color>
     <color name="off_blk_3">#797979</color>
     <color name="off_blk_2">#262626</color>
     <color name="off_blk">#030303</color>

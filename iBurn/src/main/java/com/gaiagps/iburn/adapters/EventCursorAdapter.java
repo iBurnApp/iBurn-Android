@@ -113,22 +113,22 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
             if (nowDate.before(startDate)) {
                 // Has not yet started
                 if (nowPlusOneHrDate.getTime().after(startDate)) {
-                    return mContext.getString(R.string.starts) + DateUtils.getRelativeTimeSpanString(startDate.getTime()).toString();
+                    return mContext.getString(R.string.starts) + " " + DateUtils.getRelativeTimeSpanString(startDate.getTime()).toString();
                 }
-                return mContext.getString(R.string.starts) + prettyStartDateStr;
+                return mContext.getString(R.string.starts) + " " + prettyStartDateStr;
             } else {
                 // Already started
                 Date endDate = PlayaClient.parseISODate(endDateStr);
                 if (endDate.before(nowDate.getTime())) {
                     if (nowPlusOneHrDate.getTime().after(endDate)) {
-                        return mContext.getString(R.string.ended) + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
+                        return mContext.getString(R.string.ended) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
                     }
-                    return mContext.getString(R.string.ended) + prettyEndDateStr;
+                    return mContext.getString(R.string.ended) + " " + prettyEndDateStr;
                 } else {
                     if (nowPlusOneHrDate.getTime().after(endDate)) {
-                        return mContext.getString(R.string.ends) + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
+                        return mContext.getString(R.string.ends) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
                     }
-                    return mContext.getString(R.string.ends) + prettyEndDateStr;
+                    return mContext.getString(R.string.ends) + " " + prettyEndDateStr;
                 }
 
             }
