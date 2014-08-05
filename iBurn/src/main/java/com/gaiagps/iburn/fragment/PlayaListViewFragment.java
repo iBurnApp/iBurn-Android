@@ -41,8 +41,8 @@ public abstract class PlayaListViewFragment extends ListFragment
         implements LoaderManager.LoaderCallbacks<Cursor>, Searchable, PlayaListViewHeader.PlayaListViewHeaderReceiver {
     private static final String TAG = "PlayaListViewFragment";
 
-    private static Location mLastLocation;
-    private SORT mCurrentSort = SORT.NAME;
+    protected static Location mLastLocation;
+    protected SORT mCurrentSort = SORT.NAME;
     String mCurFilter;                      // Search string to filter by
 
     static final String[] PROJECTION = new String[] {
@@ -156,6 +156,8 @@ public abstract class PlayaListViewFragment extends ListFragment
             appendSelection(selection, PlayaItemTable.name + " LIKE ?", "%" + mCurFilter + "%");
         }
 
+        addCursorLoaderSelectionArgs(selection, selectionArgs);
+
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
         Log.i(TAG, "Creating loader with uri: " + getBaseUri().toString());
@@ -165,6 +167,10 @@ public abstract class PlayaListViewFragment extends ListFragment
                 selection.toString(),
                 selectionArgs.toArray(new String[selectionArgs.size()]),
                 getOrdering());
+    }
+
+    protected void addCursorLoaderSelectionArgs(StringBuilder selection, ArrayList<String> selectionArgs) {
+        // childclasses can add selections here
     }
 
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {

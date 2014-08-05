@@ -152,12 +152,13 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         mPagerAdapter = new FragmentWithTitlePagerAdapter(getSupportFragmentManager(), sPages);
         mPagerAdapter.setSearchQueryProvider(this);
         PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
+        tabs.setBackgroundResource(R.drawable.pager_tab_bg);
         tabs.setShouldExpand(true);
         tabs.setTabPaddingLeftRight(0);
-        tabs.setIndicatorColorResource(R.color.pager_selector);
-        tabs.setTextColorResource(R.color.white);
+        tabs.setIndicatorColorResource(R.color.tab_selector);
+        tabs.setTextColorResource(R.color.tab_text);
         tabs.setTextSize(50);
-        tabs.setDividerColorResource(R.color.off_blk);
+        tabs.setDividerColorResource(R.color.map_streets);
         mViewPager.setAdapter(mPagerAdapter);
         tabs.setViewPager(mViewPager);
     }

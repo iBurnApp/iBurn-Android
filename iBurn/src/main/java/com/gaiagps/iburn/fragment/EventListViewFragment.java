@@ -8,10 +8,24 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
+import com.gaiagps.iburn.PlayaClient;
+import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.EventCursorAdapter;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaContentProvider;
+import com.gaiagps.iburn.database.PlayaItemTable;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Created by davidbrodsky on 8/3/13.
@@ -28,6 +42,8 @@ public class EventListViewFragment extends PlayaListViewFragment
             EventTable.name,
             EventTable.startTime,
             EventTable.startTimePrint,
+            EventTable.endTime,
+            EventTable.endTimePrint,
             EventTable.allDay,
             EventTable.favorite,
             EventTable.latitude,
@@ -55,6 +71,35 @@ public class EventListViewFragment extends PlayaListViewFragment
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    protected void addCursorLoaderSelectionArgs(StringBuilder selection, ArrayList<String> selectionArgs) {
+        // childclasses can add selections here
+        if (mCurrentSort == SORT.DISTANCE) {
+            // Do a HERE + NOW
+            Date now = new Date();
+            Calendar nowPlusOneHr = Calendar.getInstance();
+            nowPlusOneHr.setTime(now);
+            nowPlusOneHr.add(Calendar.HOUR, 1);
+            String nowPlusOneHrStr = PlayaClient.getISOString(nowPlusOneHr.getTime());
+            String nowStr = PlayaClient.getISOString(now);
+            if(selection.length() > 0) selection.append(" AND ");
+            // Starts within next hour or ends after now
+            selection.append(String.format("(%1$s < ? AND %1$s > ?) OR (%1$s < ? AND %2$s > ?)", EventTable.startTime, EventTable.endTime));
+            selectionArgs.add(nowPlusOneHrStr);
+            selectionArgs.add(nowStr);
+
+            selectionArgs.add(nowStr);
+            selectionArgs.add(nowStr);
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = super.onCreateView(inflater, container, savedInstanceState);
+        ((TextView) v.findViewById(R.id.distance)).setText(getActivity().getString(R.string.here_now));
+        return v;
     }
 
     @Override public void onActivityCreated(Bundle savedInstanceState) {

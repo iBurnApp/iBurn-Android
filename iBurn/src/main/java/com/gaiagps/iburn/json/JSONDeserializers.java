@@ -200,7 +200,10 @@ public class JSONDeserializers {
                                         cv.put(EventTable.startTime, occurence.get(EventJSON.KEY_OCCURENCE_START_TIME).getAsString());
                                         // Pre-compute the 'prettified' start date String.
                                         Date startDate = dateFormatter.parse(occurence.get(EventJSON.KEY_OCCURENCE_START_TIME).getAsString());
-                                        cv.put(EventTable.startTimePrint, datePrinter.format(startDate));
+                                        if (cv.getAsBoolean(EventTable.allDay))
+                                            cv.put(EventTable.startTimePrint, dayPrinter.format(startDate));
+                                        else
+                                            cv.put(EventTable.startTimePrint, datePrinter.format(startDate));
                                     }
 
                                 if (occurence.has(EventJSON.KEY_OCCURENCE_END_TIME))

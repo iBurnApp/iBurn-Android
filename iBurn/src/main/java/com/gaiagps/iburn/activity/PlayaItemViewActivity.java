@@ -38,7 +38,7 @@ public class PlayaItemViewActivity extends FragmentActivity {
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getActionBar().setTitle("");
+        getActionBar().hide();
         setContentView(R.layout.activity_playa_item_view);
         populateViews(getIntent());
     }

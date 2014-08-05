@@ -109,8 +109,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     boolean settingHomeLocation = false;
 
-    private static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-
     public static GoogleMapFragment newInstance() {
         return new GoogleMapFragment();
     }
@@ -415,7 +413,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        mLoaderReady = true;
+//        mLoaderReady = true;
         String[] projection = PROJECTION;
         Uri targetUri = null;
         String selection = "";
@@ -439,9 +437,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 targetUri = PlayaContentProvider.Events.EVENTS;
                 // Select by event currently ongoing
                 Date now = new Date();
-                selection += String.format("(%s < '%s' AND %s > '%s') ",
-                            EventTable.startTime,   dateFormatter.format(now),
-                            EventTable.endTime,     dateFormatter.format(now));
+                selection += String.format("(%1$s < '%2$s' AND %3$s > '%2$s') ",
+                            EventTable.startTime,   PlayaClient.getISOString(now),
+                            EventTable.endTime);
                 break;
             case ALL:
             default:
@@ -558,8 +556,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         }
     }
 
-    private boolean mLoaderInitialized = false;
-    private boolean mLoaderReady = false;
+//    private boolean mLoaderInitialized = false;
+//    private boolean mLoaderReady = false;
 
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
@@ -568,21 +566,22 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     private void restartLoader(int type) {
         state = type;
-        if (mLoaderReady) {
-            Log.i(TAG, "restart Loader");
-            getLoaderManager().restartLoader(type, null, this);
-        } else if (!mLoaderInitialized) {
-            Log.i(TAG, "init Loader");
-            initLoader();
-        } else {
-            Log.i(TAG, "loader initialized but not ready. Ignoring restart");
-        }
+//        getLoaderManager().restartLoader(type, null, this);
+//        if (mLoaderReady) {
+//            Log.i(TAG, "restart Loader");
+//            getLoaderManager().restartLoader(type, null, this);
+//        } else if (!mLoaderInitialized) {
+//            Log.i(TAG, "init Loader");
+//            initLoader();
+//        } else {
+//            Log.i(TAG, "loader initialized but not ready. Ignoring restart");
+//        }
     }
 
     public void initLoader() {
         Log.i(TAG, "initLoader");
         getLoaderManager().initLoader(0, null, this);
-        mLoaderInitialized = true;
+//        mLoaderInitialized = true;
     }
 
     private void addHomePin(LatLng latLng) {

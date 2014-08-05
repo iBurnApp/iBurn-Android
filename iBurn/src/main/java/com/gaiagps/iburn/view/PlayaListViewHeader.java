@@ -5,6 +5,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
 
@@ -18,9 +19,9 @@ import com.gaiagps.iburn.R;
  */
 public class PlayaListViewHeader extends RelativeLayout {
 
-    View mName;
-    View mDistance;
-    View mFavorite;
+    protected TextView mName;
+    protected TextView mDistance;
+    protected TextView mFavorite;
 
     private PlayaListViewHeaderReceiver mReceiver;
 
@@ -63,12 +64,12 @@ public class PlayaListViewHeader extends RelativeLayout {
         }
     };
 
-    private void init(Context context) {
+    protected void init(Context context) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = inflater.inflate(R.layout.list_view_header, this, false);
-        mName       = v.findViewById(R.id.name);
-        mDistance   = v.findViewById(R.id.distance);
-        mFavorite   = v.findViewById(R.id.favorites);
+        mName       = (TextView) v.findViewById(R.id.name);
+        mDistance   = (TextView) v.findViewById(R.id.distance);
+        mFavorite   = (TextView) v.findViewById(R.id.favorites);
         mName.setSelected(true);
         setupTouchListeners();
         addView(v);

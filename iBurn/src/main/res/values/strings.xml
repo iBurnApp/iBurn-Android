@@ -34,5 +34,6 @@
     <string name="tab_favorites">FAVORITES</string>
     <string name="tab_distance">DISTANCE</string>
     <string name="tab_name">NAME</string>
+    <string name="here_now">HERE+NOW</string>
 
 </resources>

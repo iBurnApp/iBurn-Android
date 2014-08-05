@@ -2,18 +2,43 @@ package com.gaiagps.iburn.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.location.Location;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.text.format.DateUtils;
 import android.view.View;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.GeoUtils;
+import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.EventTable;
+import com.gaiagps.iburn.database.PlayaItemTable;
+import com.gaiagps.iburn.location.DeviceLocation;
+
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
 
 public class EventCursorAdapter extends SimpleCursorAdapter {
 
+    private Location mDeviceLocation;
+    Calendar nowPlusOneHrDate = Calendar.getInstance();
+    Calendar nowDate = Calendar.getInstance();
+
     public EventCursorAdapter(Context context, Cursor c) {
         super(context, R.layout.event_listview_item, c, new String[]{} , new int[]{}, 0);
+        Date now = new Date();
+        nowDate.setTime(now);
+        nowPlusOneHrDate.setTime(now);
+        nowPlusOneHrDate.add(Calendar.HOUR, 1);
+
+        DeviceLocation.getLastKnownLocation(context, false, new DeviceLocation.LocationResult() {
+            @Override
+            public void gotLocation(Location location) {
+                mDeviceLocation = location;
+            }
+        });
     }
 
     @Override
@@ -24,11 +49,14 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
         if (view_cache == null) {
         	view_cache = new ViewCache();
         	view_cache.title = (TextView) view.findViewById(R.id.list_item_title);
-        	view_cache.sub = (TextView) view.findViewById(R.id.list_item_sub);
+        	view_cache.subRight = (TextView) view.findViewById(R.id.list_item_sub_right);
+            view_cache.subLeft = (TextView) view.findViewById(R.id.list_item_sub_left);
         	//view_cache.thumbnail = (ImageView) view.findViewById(R.id.list_item_image);
             
         	view_cache.title_col = cursor.getColumnIndexOrThrow(EventTable.name);
         	view_cache.sub_col = cursor.getColumnIndexOrThrow(EventTable.startTime);
+            view_cache.lat_col = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
+            view_cache.lon_col = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
         	view_cache._id_col = cursor.getColumnIndexOrThrow(EventTable.id);
         	if(cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1 ){
         		view_cache.all_day = true;
@@ -36,12 +64,26 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
         	}
         	else {
         		view_cache.all_day = false;
-        		view_cache.time_label = cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
+                view_cache.time_label = getDateString(
+                        cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTime)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTime)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTimePrint)));
         	}
         	view_cache._id_col = cursor.getColumnIndexOrThrow(EventTable.id);
         }
         view_cache.title.setText(cursor.getString(view_cache.title_col));
-        view_cache.sub.setText(view_cache.time_label);
+        view_cache.subRight.setText(view_cache.time_label);
+
+        // Approx distance
+        if (mDeviceLocation != null && cursor.getDouble(view_cache.lat_col) != 0) {
+            view_cache.subLeft.setText(String.format("%d m",
+                    ((Double)(GeoUtils.getDistance(cursor.getDouble(view_cache.lat_col),
+                            cursor.getDouble(view_cache.lon_col), mDeviceLocation))).intValue()));
+        } else {
+            view_cache.subLeft.setText("");
+        }
+
 
         view.setTag(R.id.list_item_related_model, cursor.getInt(view_cache._id_col));
         view.setTag(R.id.list_item_related_model_type, Constants.PLAYA_ITEM.EVENT);
@@ -50,7 +92,8 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
 	// Cache the views within a ListView row item 
     static class ViewCache {
         TextView title;
-        TextView sub;
+        TextView subRight;
+        TextView subLeft;
         
         boolean all_day;
         String time_label;
@@ -58,5 +101,36 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
         int title_col; 
         int sub_col;
         int _id_col;
+        int lat_col;
+        int lon_col;
+    }
+
+    /**
+     * Get a smart date string for an event
+     * e.g: Starts in 23 minutes
+     *      Ends in 3 hours
+     *      Ended 1 hour ago TODO
+     */
+    private String getDateString(String startDateStr, String prettyStartDateStr, String endDateStr, String prettyEndDateStr) {
+        try {
+            Date startDate = PlayaClient.parseISODate(startDateStr);
+            if (nowDate.before(startDate)) {
+                // Has not yet started
+                if (nowPlusOneHrDate.getTime().after(startDate)) {
+                    return "Starts " + DateUtils.getRelativeTimeSpanString(startDate.getTime()).toString();
+                }
+                return "Starts " + prettyStartDateStr;
+            } else {
+                // Already started
+                Date endDate = PlayaClient.parseISODate(endDateStr);
+                if (nowPlusOneHrDate.getTime().after(endDate)) {
+                    return "Ends " + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
+                }
+                return "Ends " + prettyEndDateStr;
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return prettyStartDateStr;
     }
 }

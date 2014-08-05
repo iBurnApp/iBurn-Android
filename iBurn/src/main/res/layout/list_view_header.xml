@@ -11,7 +11,7 @@
         style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight=".33"
+        android:layout_weight=".3333"
         android:text="@string/tab_name" />
 
     <TextView
@@ -19,7 +19,7 @@
         style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight=".33"
+        android:layout_weight=".3333"
         android:text="@string/tab_distance" />
 
     <TextView
@@ -27,7 +27,7 @@
         style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight=".33"
+        android:layout_weight=".3333"
         android:text="@string/tab_favorites" />
 
 </LinearLayout>

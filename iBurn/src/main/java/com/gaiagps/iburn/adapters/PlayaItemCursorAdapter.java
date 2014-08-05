@@ -4,16 +4,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.location.Location;
 import android.support.v4.widget.SimpleCursorAdapter;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.GeoUtils;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.DeviceLocation;
-import com.google.android.gms.maps.model.LatLng;
 
 public class PlayaItemCursorAdapter extends SimpleCursorAdapter {
 
@@ -40,7 +38,7 @@ public class PlayaItemCursorAdapter extends SimpleCursorAdapter {
         if (view_cache == null) {
         	view_cache = new ViewCache();
         	view_cache.title = (TextView) view.findViewById(R.id.list_item_title);
-            view_cache.distance = (TextView) view.findViewById(R.id.list_item_sub);
+            view_cache.distance = (TextView) view.findViewById(R.id.list_item_sub_right);
             
         	view_cache.title_col = cursor.getColumnIndexOrThrow(PlayaItemTable.name);
         	view_cache._id_col = cursor.getColumnIndexOrThrow(PlayaItemTable.id);
@@ -55,8 +53,8 @@ public class PlayaItemCursorAdapter extends SimpleCursorAdapter {
         // Approx distance
         if (mDeviceLocation != null && cursor.getDouble(view_cache.lat_col) != 0) {
             view_cache.distance.setText(String.format("%d m",
-                    ((Double)(getDistance(cursor.getDouble(view_cache.lat_col),
-                    cursor.getDouble(view_cache.lon_col), mDeviceLocation))).intValue()));
+                    ((Double)(GeoUtils.getDistance(cursor.getDouble(view_cache.lat_col),
+                            cursor.getDouble(view_cache.lon_col), mDeviceLocation))).intValue()));
         } else {
             view_cache.distance.setText("");
         }
@@ -74,20 +72,5 @@ public class PlayaItemCursorAdapter extends SimpleCursorAdapter {
         int lat_col;
         int lon_col;
         int _id_col;
-    }
-
-    /**
-     * Returns the distance between a start and end Location
-     * in m
-     */
-    private double getDistance(double startLat, double startLon, Location end) {
-        double theta = startLon - end.getLongitude();
-        double dist = Math.sin(Math.toRadians(startLat)) * Math.sin(Math.toRadians(end.getLatitude())) +
-                Math.cos(Math.toRadians(startLat)) * Math.cos(Math.toRadians(end.getLatitude())) * Math.cos(Math.toRadians(theta));
-        dist = Math.acos(dist);
-        dist = Math.toDegrees(dist);
-        dist = dist * 60 * 1.1515;
-        dist = dist * 1609.344 * 1000; // to meters
-        return dist;
     }
 }

@@ -3,12 +3,12 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- pressed -->
     <item android:state_pressed="true"><shape>
-        <solid android:color="#c7c79d"/>
+        <solid android:color="@color/list_item_bg_pressed"/>
     </shape></item>
 
     <!-- default -->
     <item><shape>
-        <solid android:color="#ff1b1b1b"/>
+        <solid android:color="@color/list_item_bg"/>
     </shape></item>
 
 </selector>

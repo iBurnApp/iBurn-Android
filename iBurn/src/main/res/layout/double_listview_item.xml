@@ -8,13 +8,12 @@
     android:id="@+id/list_item_container"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/list_item_bg"
     android:padding="5dp">
 
      <TextView
 	    android:id="@+id/list_item_title"
-        android:fontFamily="sans-serif-light"
         style="@style/PlayaTextItem"
+        android:textStyle="bold"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
@@ -28,10 +27,9 @@
 	</TextView>
 	    
 	<TextView
-	    android:id="@+id/list_item_sub"
-        android:fontFamily="sans-serif-light"
+	    android:id="@+id/list_item_sub_right"
         style="@style/PlayaTextItem"
-        android:textColor="@color/highlight"
+        android:textColor="@color/sub_text"
 	    android:layout_width="wrap_content"
         android:layout_height="wrap_content" 
         android:layout_below="@id/list_item_title"

@@ -18,14 +18,48 @@
 -->
 
 <resources>
+    <!-- ActionBar -->
+    <color name="ab_bg">@color/map_streets</color>
+
+    <!-- ListView -->
+    <color name="list_item_bg">@color/white</color>
+    <color name="list_item_bg_pressed">@color/map_highlight</color>
+    <color name="regular_text">@color/map_text</color>
+    <color name="sub_text">@color/map_text_light</color>
+
+    <!-- Map, Camp, Art, Events Tabs -->
+    <color name="tab_bg">@color/map_bg</color>
+    <color name="tab_text">@color/map_text</color>
+    <color name="tab_selector">@color/highlight_comp</color><!--@color/map_highlight-->
+    <color name="tab_pressed">@color/map_bg</color>
+    <color name="tab_selected">@color/map_highlight</color>
+
+    <!-- Name, Distance, Favorites Tabs -->
+
+    <color name="sub_tab_bg">@color/map_streets_dark</color>
+    <color name="sub_tab_text">@color/map_text</color>
+    <color name="sub_tab_selector">@color/map_highlight</color>
+    <color name="sub_tab_pressed">@color/map_bg</color>
+    <color name="sub_tab_selected">@color/map_highlight</color>
+
+
     <color name="off_blk_3">#797979</color>
     <color name="off_blk_2">#262626</color>
     <color name="off_blk">#030303</color>
-    <color name="pager_selector">#FFE312</color>
-    <color name="tab_pressed">#ffffb658</color>
-    <color name="tab_selected">#FFB712</color>
     <color name="dull_highlight">#FFE29F</color>
     <color name="highlight">#FFE29F</color>
-    <color name="white">#cceaefdf</color>
-    <color name="ab_bg">#FFCA51</color>
+    <color name="white">#ccfaffef</color>
+
+    <!-- Map Colors -->
+    <color name="map_bg">#E8E0D8</color>
+    <color name="map_highlight">#FFA851</color>
+    <color name="map_streets">#D9CCBE</color>
+    <color name="map_streets_halo">#B2993D</color>
+    <color name="map_text">#3F3F3F</color>
+    <color name="map_halo_text">#F2DBA0</color>
+
+    <!-- Derivative Map Colors -->
+    <color name="map_streets_dark">#ffccc5bd</color>
+    <color name="map_text_light">#ff646464</color>
+    <color name="highlight_comp">#FFC912</color>
 </resources>

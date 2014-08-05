@@ -1,15 +1,17 @@
 package com.gaiagps.iburn;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.Uri;
 
 import com.gaiagps.iburn.database.DBWrapper;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.util.ArrayList;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * An API for interacting with iBurn application state. Wraps interacting
@@ -19,6 +21,12 @@ import java.util.GregorianCalendar;
  * Created by davidbrodsky on 8/4/13.
  */
 public class PlayaClient {
+
+    private static SimpleDateFormat sDateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
+    static {
+        sDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
 
     private static final boolean USE_BUNDLED_DB = true;
 
@@ -31,6 +39,13 @@ public class PlayaClient {
     private static final String FIRST_TIME = "first_time";
     private static final String DB_POPULATED = "db_populated";
 
+    public static Date parseISODate(String isoDate) throws ParseException {
+        return sDateFormatter.parse(isoDate);
+    }
+
+    public static String getISOString(Date date) {
+        return sDateFormatter.format(date);
+    }
 
     /**
      * Will return true the first time this method is called
