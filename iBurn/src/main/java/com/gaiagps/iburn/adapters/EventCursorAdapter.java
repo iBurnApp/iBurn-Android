@@ -78,9 +78,6 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
         view_cache.title.setText(cursor.getString(view_cache.title_col));
         view_cache.subRight.setText(view_cache.time_label);
 
-        AdapterUtils.setDistanceText(mDeviceLocation, view_cache.subLeft,
-                cursor.getDouble(view_cache.lat_col), cursor.getDouble(view_cache.lon_col));
-
         view.setTag(R.id.list_item_related_model, cursor.getInt(view_cache._id_col));
         view.setTag(R.id.list_item_related_model_type, Constants.PLAYA_ITEM.EVENT);
     }

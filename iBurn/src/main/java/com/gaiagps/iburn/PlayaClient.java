@@ -47,8 +47,8 @@ public class PlayaClient {
         return sDateFormatter.format(date);
     }
 
-    public static int getWalkingEstimateHour(int meters) {
-        return 60 * (meters / 4);
+    public static double getWalkingEstimateMinutes(double miles) {
+        return 60 * (miles / 3.1);
     }
 
     /**

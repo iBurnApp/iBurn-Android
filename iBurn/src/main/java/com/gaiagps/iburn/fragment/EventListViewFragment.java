@@ -75,9 +75,9 @@ public class EventListViewFragment extends PlayaListViewFragment
 
     @Override
     protected void addCursorLoaderSelectionArgs(StringBuilder selection, ArrayList<String> selectionArgs) {
-        // childclasses can add selections here
-        if (mCurrentSort == SORT.DISTANCE) {
+        if (mCurrentSort == SORT.NAME) {
             // Do a HERE + NOW
+            // Starts within next hour or ends after now
             Date now = new Date();
             Calendar nowPlusOneHr = Calendar.getInstance();
             nowPlusOneHr.setTime(now);
@@ -85,20 +85,28 @@ public class EventListViewFragment extends PlayaListViewFragment
             String nowPlusOneHrStr = PlayaClient.getISOString(nowPlusOneHr.getTime());
             String nowStr = PlayaClient.getISOString(now);
             if(selection.length() > 0) selection.append(" AND ");
-            // Starts within next hour or ends after now
             selection.append(String.format("(%1$s < ? AND %1$s > ?) OR (%1$s < ? AND %2$s > ?)", EventTable.startTime, EventTable.endTime));
             selectionArgs.add(nowPlusOneHrStr);
             selectionArgs.add(nowStr);
-
             selectionArgs.add(nowStr);
             selectionArgs.add(nowStr);
+        } else if (mCurrentSort == SORT.DISTANCE) {
+            // Has not ended more than 1 hr ago
+            Date now = new Date();
+            Calendar nowPlusOneHr = Calendar.getInstance();
+            nowPlusOneHr.setTime(now);
+            nowPlusOneHr.add(Calendar.HOUR, 1);
+            String nowPlusOneHrStr = PlayaClient.getISOString(nowPlusOneHr.getTime());
+            if(selection.length() > 0) selection.append(" AND ");
+            selection.append(String.format("(%1$s > ? )", EventTable.endTime));
+            selectionArgs.add(nowPlusOneHrStr);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
-        ((TextView) v.findViewById(R.id.distance)).setText(getActivity().getString(R.string.here_now));
+        ((TextView) v.findViewById(R.id.name)).setText(getActivity().getString(R.string.here_now));
         return v;
     }
 

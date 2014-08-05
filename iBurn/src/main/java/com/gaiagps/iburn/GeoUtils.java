@@ -1,24 +1,21 @@
 package com.gaiagps.iburn;
 
 import android.location.Location;
+import android.util.Log;
 
 /**
  * Created by davidbrodsky on 8/4/14.
  */
 public class GeoUtils {
 
+    private static float[] sResult = new float[1];
+
     /**
      * Returns the distance between a start and end Location
-     * in m
+     * in meters
      */
     public static double getDistance(double startLat, double startLon, Location end) {
-        double theta = startLon - end.getLongitude();
-        double dist = Math.sin(Math.toRadians(startLat)) * Math.sin(Math.toRadians(end.getLatitude())) +
-                Math.cos(Math.toRadians(startLat)) * Math.cos(Math.toRadians(end.getLatitude())) * Math.cos(Math.toRadians(theta));
-        dist = Math.acos(dist);
-        dist = Math.toDegrees(dist);
-        dist = dist * 60 * 1.1515;
-        dist = dist * 1609.344 * 1000; // to meters
-        return dist;
+        Location.distanceBetween(startLat, startLon, end.getLatitude(), end.getLongitude(), sResult);
+        return sResult[0];
     }
 }
