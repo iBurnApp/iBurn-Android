@@ -26,6 +26,7 @@
     <color name="list_item_bg_pressed">@color/map_highlight</color>
     <color name="regular_text">@color/map_text</color>
     <color name="sub_text">@color/map_text_light</color>
+    <color name="sub_sub_text">@color/map_text_extra_light</color>
 
     <!-- Map, Camp, Art, Events Tabs -->
     <color name="tab_bg">@color/map_bg</color>
@@ -61,5 +62,6 @@
     <!-- Derivative Map Colors -->
     <color name="map_streets_dark">#ffccc5bd</color>
     <color name="map_text_light">#ff646464</color>
-    <color name="highlight_comp">#FFC912</color>
+    <color name="map_text_extra_light">#ff989898</color>
+    <color name="highlight_comp">#ffff8d1c</color>
 </resources>

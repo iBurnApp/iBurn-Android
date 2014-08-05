@@ -4,7 +4,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.location.Location;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.format.DateUtils;
+import android.text.style.TextAppearanceSpan;
 import android.view.View;
 import android.widget.TextView;
 
@@ -27,7 +30,7 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
     Calendar nowDate = Calendar.getInstance();
 
     public EventCursorAdapter(Context context, Cursor c) {
-        super(context, R.layout.event_listview_item, c, new String[]{} , new int[]{}, 0);
+        super(context, R.layout.triple_listview_item, c, new String[]{} , new int[]{}, 0);
         Date now = new Date();
         nowDate.setTime(now);
         nowPlusOneHrDate.setTime(now);
@@ -75,15 +78,8 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
         view_cache.title.setText(cursor.getString(view_cache.title_col));
         view_cache.subRight.setText(view_cache.time_label);
 
-        // Approx distance
-        if (mDeviceLocation != null && cursor.getDouble(view_cache.lat_col) != 0) {
-            view_cache.subLeft.setText(String.format("%d m",
-                    ((Double)(GeoUtils.getDistance(cursor.getDouble(view_cache.lat_col),
-                            cursor.getDouble(view_cache.lon_col), mDeviceLocation))).intValue()));
-        } else {
-            view_cache.subLeft.setText("");
-        }
-
+        AdapterUtils.setDistanceText(mDeviceLocation, view_cache.subLeft,
+                cursor.getDouble(view_cache.lat_col), cursor.getDouble(view_cache.lon_col));
 
         view.setTag(R.id.list_item_related_model, cursor.getInt(view_cache._id_col));
         view.setTag(R.id.list_item_related_model_type, Constants.PLAYA_ITEM.EVENT);
@@ -117,16 +113,24 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
             if (nowDate.before(startDate)) {
                 // Has not yet started
                 if (nowPlusOneHrDate.getTime().after(startDate)) {
-                    return "Starts " + DateUtils.getRelativeTimeSpanString(startDate.getTime()).toString();
+                    return mContext.getString(R.string.starts) + DateUtils.getRelativeTimeSpanString(startDate.getTime()).toString();
                 }
-                return "Starts " + prettyStartDateStr;
+                return mContext.getString(R.string.starts) + prettyStartDateStr;
             } else {
                 // Already started
                 Date endDate = PlayaClient.parseISODate(endDateStr);
-                if (nowPlusOneHrDate.getTime().after(endDate)) {
-                    return "Ends " + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
+                if (endDate.before(nowDate.getTime())) {
+                    if (nowPlusOneHrDate.getTime().after(endDate)) {
+                        return mContext.getString(R.string.ended) + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
+                    }
+                    return mContext.getString(R.string.ended) + prettyEndDateStr;
+                } else {
+                    if (nowPlusOneHrDate.getTime().after(endDate)) {
+                        return mContext.getString(R.string.ends) + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
+                    }
+                    return mContext.getString(R.string.ends) + prettyEndDateStr;
                 }
-                return "Ends " + prettyEndDateStr;
+
             }
         } catch (ParseException e) {
             e.printStackTrace();

@@ -47,6 +47,10 @@ public class PlayaClient {
         return sDateFormatter.format(date);
     }
 
+    public static int getWalkingEstimateHour(int meters) {
+        return 60 * (meters / 4);
+    }
+
     /**
      * Will return true the first time this method is called
      * per app-installation.

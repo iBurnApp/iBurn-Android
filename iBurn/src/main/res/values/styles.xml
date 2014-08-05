@@ -22,15 +22,15 @@
         <item name="android:background">@color/ab_bg</item>
     </style>
 
-    <style name="PlayaTextItem" >
-    <item name="android:textColor">@color/regular_text</item>
-    <item name="android:shadowColor">#ff393939</item>
-    <item name="android:shadowDy">-2</item>
-    <item name="android:shadowRadius">.1</item>
-    <item name="android:layout_marginTop">5dp</item>
-</style>
+    <style name="PlayaTextItem">
+        <item name="android:textColor">@color/regular_text</item>
+        <item name="android:shadowColor">#ff393939</item>
+        <item name="android:shadowDy">-2</item>
+        <item name="android:shadowRadius">.1</item>
+        <item name="android:layout_marginTop">5dp</item>
+    </style>
 
-    <style name="PlayaListViewHeaderItem" >
+    <style name="PlayaListViewHeaderItem">
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">20sp</item>
         <item name="android:fontFamily">sans-serif-condensed</item>
@@ -38,6 +38,11 @@
         <item name="android:gravity">center</item>
         <item name="android:clickable">true</item>
         <item name="android:background">@drawable/sub_pager_tab_bg</item>
+    </style>
+
+    <style name="Subdued">
+        <item name="android:textColor">@color/sub_sub_text</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
 </resources>

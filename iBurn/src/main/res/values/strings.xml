@@ -35,5 +35,8 @@
     <string name="tab_distance">DISTANCE</string>
     <string name="tab_name">NAME</string>
     <string name="here_now">HERE+NOW</string>
+    <string name="starts">Starts </string>
+    <string name="ended">Ended </string>
+    <string name="ends">Ends </string>
 
 </resources>
