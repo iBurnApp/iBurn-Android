@@ -19,7 +19,7 @@
 
 <resources>
     <!-- ActionBar -->
-    <color name="ab_bg">@color/map_streets</color>
+    <color name="ab_bg">@color/off_blk_2</color>
 
     <!-- ListView -->
     <color name="list_item_bg">@color/white</color>
@@ -64,4 +64,7 @@
     <color name="map_text_light">#ff646464</color>
     <color name="map_text_extra_light">#ff989898</color>
     <color name="highlight_comp">#ffff8d1c</color>
+
+    <!-- Derivative Icon Colos -->
+    <color name="icon_fire_red">#ff4a22</color>
 </resources>
