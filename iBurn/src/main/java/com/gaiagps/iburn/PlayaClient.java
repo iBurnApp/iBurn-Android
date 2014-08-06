@@ -2,6 +2,7 @@ package com.gaiagps.iburn;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.gaiagps.iburn.database.DBWrapper;
 import com.google.android.gms.maps.model.LatLng;
@@ -21,6 +22,9 @@ import java.util.TimeZone;
  * Created by davidbrodsky on 8/4/13.
  */
 public class PlayaClient {
+
+    /** Used by PlayaDatabase and DBWrapper */
+    public static final int DATABASE_VERSION = 2;
 
     private static SimpleDateFormat sDateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
@@ -91,9 +95,14 @@ public class PlayaClient {
                 .apply();
     }
 
+    public static boolean isUsingBundledDb() {
+        return USE_BUNDLED_DB;
+    }
+
     public static boolean isDbPopulated(Context c) {
         boolean isPopulated = c.getSharedPreferences(GENERAL_PREFS, Context.MODE_PRIVATE).getBoolean(DB_POPULATED, false);
         if (!isPopulated && USE_BUNDLED_DB) {
+            Log.i("PC", "copying database");
             // Copy the pre-bundled database
             DBWrapper wrapper = new DBWrapper(c);
             wrapper.getReadableDatabase();

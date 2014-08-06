@@ -3,6 +3,7 @@ package com.gaiagps.iburn.database;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.gaiagps.iburn.PlayaClient;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
 
@@ -22,7 +23,7 @@ import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 public class DBWrapper extends SQLiteAssetHelper {
 
     private static final String DATABASE_NAME = "playaDatabase.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = PlayaClient.DATABASE_VERSION;
 
     static Context c;
 

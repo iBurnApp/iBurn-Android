@@ -29,9 +29,7 @@ public interface ArtTable extends PlayaItemTable{
     @DataType(TEXT)                                 String description      = "desc";
     @DataType(TEXT)                                 String url              = "url";
     @DataType(TEXT)                                 String contact          = "contact";
-    @DataType(TEXT)                                 String playaStreet      = "p_st";
-    @DataType(TEXT)                                 String playaHour        = "p_hr";
-    @DataType(TEXT)                                 String playaMinute      = "p_min";
+    @DataType(TEXT)                                 String playaAddress     = "p_addr";
     @DataType(INTEGER)                              String playaId          = "p_id";
     @DataType(REAL)                                 String latitude         = "lat";
     @DataType(REAL)                                 String longitude        = "lon";

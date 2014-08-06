@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.GeoUtils;
 import com.gaiagps.iburn.PlayaClient;
+import com.gaiagps.iburn.PlayaUtils;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaItemTable;
@@ -67,7 +68,7 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
         	}
         	else {
         		view_cache.all_day = false;
-                view_cache.time_label = getDateString(
+                view_cache.time_label = PlayaUtils.getDateString(mContext, nowDate.getTime(), nowPlusOneHrDate.getTime(),
                         cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTime)),
                         cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint)),
                         cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTime)),
@@ -99,42 +100,5 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
         int _id_col;
         int lat_col;
         int lon_col;
-    }
-
-    /**
-     * Get a smart date string for an event
-     * e.g: Starts in 23 minutes
-     *      Ends in 3 hours
-     *      Ended 1 hour ago TODO
-     */
-    private String getDateString(String startDateStr, String prettyStartDateStr, String endDateStr, String prettyEndDateStr) {
-        try {
-            Date startDate = PlayaClient.parseISODate(startDateStr);
-            if (nowDate.before(startDate)) {
-                // Has not yet started
-                if (nowPlusOneHrDate.getTime().after(startDate)) {
-                    return mContext.getString(R.string.starts) + " " + DateUtils.getRelativeTimeSpanString(startDate.getTime()).toString();
-                }
-                return mContext.getString(R.string.starts) + " " + prettyStartDateStr;
-            } else {
-                // Already started
-                Date endDate = PlayaClient.parseISODate(endDateStr);
-                if (endDate.before(nowDate.getTime())) {
-                    if (nowPlusOneHrDate.getTime().after(endDate)) {
-                        return mContext.getString(R.string.ended) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
-                    }
-                    return mContext.getString(R.string.ended) + " " + prettyEndDateStr;
-                } else {
-                    if (nowPlusOneHrDate.getTime().after(endDate)) {
-                        return mContext.getString(R.string.ends) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
-                    }
-                    return mContext.getString(R.string.ends) + " " + prettyEndDateStr;
-                }
-
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return prettyStartDateStr;
     }
 }

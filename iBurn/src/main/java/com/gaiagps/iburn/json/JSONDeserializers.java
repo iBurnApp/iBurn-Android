@@ -85,8 +85,9 @@ public class JSONDeserializers {
             mAdapter.adapt(PlayaItemTable.latitude, PlayaItemJSON.KEY_LATITUDE, Double.class);
             mAdapter.adapt(PlayaItemTable.longitude, PlayaItemJSON.KEY_LONGITUDE, Double.class);
             mAdapter.adapt(PlayaItemTable.url, PlayaItemJSON.KEY_URL, String.class);
+            mAdapter.adapt(PlayaItemTable.playaAddress, PlayaItemJSON.KEY_LOCATION, String.class);
 
-            /* Json fields massaged into ContentValues */
+//            /* Json fields massaged into ContentValues */
 //            if (object.has(PlayaItemJSON.KEY_LOCATION)
 //                    && !object.get(PlayaItemJSON.KEY_LOCATION).isJsonNull()) {
 //                // TODO: Prase playa address? e.g: Alyssum & 8:30

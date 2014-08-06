@@ -1,5 +1,7 @@
 package com.gaiagps.iburn.database;
 
+import com.gaiagps.iburn.PlayaClient;
+
 import net.simonvt.schematic.annotation.Database;
 import net.simonvt.schematic.annotation.Table;
 
@@ -8,9 +10,8 @@ import net.simonvt.schematic.annotation.Table;
  *
  * Created by davidbrodsky on 7/28/14.
  */
-@Database(version = PlayaDatabase.VERSION)
+@Database(version = PlayaClient.DATABASE_VERSION)
 public class PlayaDatabase {
-    public static final int VERSION = 1;
 
     /** Table Definition        Reference Name                        SQL Tablename */
     @Table(ArtTable.class)      public static final String  ART     = "art";

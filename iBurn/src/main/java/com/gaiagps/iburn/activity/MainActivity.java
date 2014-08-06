@@ -98,7 +98,9 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         if (isFirstLaunch(this)) {
             showWelcomeDialog();
         }
-        DataUtils.checkAndSetupDB(getApplicationContext());
+        if (!PlayaClient.isUsingBundledDb()) {
+            DataUtils.checkAndSetupDB(getApplicationContext());
+        }
         handleIntent(getIntent());
     }
 
