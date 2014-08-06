@@ -92,7 +92,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     boolean mapArt = true;
     boolean mapEvents = true;
 
-    private final int POI_ZOOM_LEVEL = 16;
+    private final int POI_ZOOM_LEVEL = 18;
     float lastZoomLevel = 0;
     LatLng lastTarget;
     int mLoaderType = 0;
