@@ -209,7 +209,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             private final double BUFFER = .00005;
 
             private final double MAX_ZOOM = 19.5;
-            private final double MIN_ZOOM = 14;
+            private final double MIN_ZOOM = 12;
 
             private final int CAMERA_MOVE_REACT_THRESHOLD_MS = 500;
             private long lastCallMs = Long.MIN_VALUE;

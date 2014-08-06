@@ -24,9 +24,7 @@
 
     <style name="PlayaTextItem">
         <item name="android:textColor">@color/regular_text</item>
-        <item name="android:shadowColor">#ff393939</item>
-        <item name="android:shadowDy">-2</item>
-        <item name="android:shadowRadius">.1</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
         <item name="android:layout_marginTop">5dp</item>
     </style>
 

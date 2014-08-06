@@ -106,7 +106,7 @@ public class EventListViewFragment extends PlayaListViewFragment
             String nowPlusOneHrStr = PlayaClient.getISOString(nowPlusOneHr.getTime());
             String nowStr = PlayaClient.getISOString(now);
             if(selection.length() > 0) selection.append(" AND ");
-            selection.append(String.format("(%1$s < ? AND %1$s > ?) OR (%1$s < ? AND %2$s > ?)", EventTable.startTime, EventTable.endTime));
+            selection.append(String.format("( (%1$s < ? AND %1$s > ?) OR (%1$s < ? AND %2$s > ?)) ", EventTable.startTime, EventTable.endTime));
             selectionArgs.add(nowPlusOneHrStr);
             selectionArgs.add(nowStr);
             selectionArgs.add(nowStr);

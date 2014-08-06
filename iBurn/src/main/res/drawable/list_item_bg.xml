@@ -8,7 +8,7 @@
 
     <!-- default -->
     <item><shape>
-        <solid android:color="@color/list_item_bg"/>
+        <solid android:color="@color/background"/>
     </shape></item>
 
 </selector>

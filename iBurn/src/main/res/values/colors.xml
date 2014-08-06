@@ -22,11 +22,11 @@
     <color name="ab_bg">@color/off_blk_2</color>
 
     <!-- ListView -->
-    <color name="list_item_bg">@color/white</color>
+    <color name="background">@color/off_blk</color>
     <color name="list_item_bg_pressed">@color/map_highlight</color>
-    <color name="regular_text">@color/map_text</color>
-    <color name="sub_text">@color/map_text_light</color>
-    <color name="sub_sub_text">@color/map_text_extra_light</color>
+    <color name="regular_text">@color/white</color>
+    <color name="sub_text">@color/dull_white</color>
+    <color name="sub_sub_text">@color/dull_white_2</color>
 
     <!-- Map, Camp, Art, Events Tabs -->
     <color name="tab_bg">@color/off_blk_2</color>
@@ -47,10 +47,12 @@
     <color name="off_blk_4">#ffbcbcbc</color>
     <color name="off_blk_3">#797979</color>
     <color name="off_blk_2">#262626</color>
-    <color name="off_blk">#030303</color>
+    <color name="off_blk">#ff151515</color>
     <color name="dull_highlight">#FFE29F</color>
     <color name="highlight">#FFE29F</color>
     <color name="white">#ccfaffef</color>
+    <color name="dull_white">#ccb9beb0</color>
+    <color name="dull_white_2">#cc989d91</color>
 
     <!-- Map Colors -->
     <color name="map_bg">#E8E0D8</color>
