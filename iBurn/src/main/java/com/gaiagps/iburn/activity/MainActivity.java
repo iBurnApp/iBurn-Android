@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.activity;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -52,6 +53,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.gaiagps.iburn.PlayaClient.isEmbargoClear;
 import static com.gaiagps.iburn.PlayaClient.isFirstLaunch;
 import static com.gaiagps.iburn.PlayaClient.validateUnlockPassword;
 
@@ -101,6 +103,9 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         if (!PlayaClient.isUsingBundledDb()) {
             DataUtils.checkAndSetupDB(getApplicationContext());
         }
+        if (PlayaClient.isEmbargoClear(this)) {
+            findViewById(R.id.unlockBtn).setVisibility(View.GONE);
+        }
         handleIntent(getIntent());
     }
 
@@ -146,6 +151,9 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
 
     private void expandSearchView() {
         if (mSearchView == null) return;
+        if (!isEmbargoClear(this)) {
+            findViewById(R.id.unlockBtn).setVisibility(View.GONE);
+        }
         mSearching = true;
         mSearchBtn.animate().alpha(1.0f).setDuration(300);
         mSearchView.animate().scaleX(1f).alpha(1.0f).translationX(0).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
@@ -157,6 +165,9 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
 
     private void collapseSearchView() {
         if (mSearchView == null) return;
+        if (!isEmbargoClear(this)) {
+            findViewById(R.id.unlockBtn).setVisibility(View.VISIBLE);
+        }
         mSearching = false;
         mSearchBtn.animate().alpha(0.7f).setDuration(300);
         mSearchView.animate().scaleX(.01f).alpha(0).translationX(330).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
@@ -179,11 +190,56 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
     }
 
     private void showWelcomeDialog() {
-        View dialog = getLayoutInflater().inflate(R.layout.dialog_welcome, null);
-        new AlertDialog.Builder(this)
-                .setView(dialog)
-                .setPositiveButton(R.string.lets_burn, null)
-                .show();
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_welcome, null);
+        final Dialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView).create();
+        dialogView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
+    public void showUnlockDialog(final View v) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+        alert.setTitle("Enter Unlock Password");
+        // Set an EditText view to get user input
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        alert.setView(input);
+        alert.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String pwGuess = input.getText().toString();
+                if (validateUnlockPassword(pwGuess)) {
+                    PlayaClient.setEmbargoClear(MainActivity.this, true);
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setTitle(getString(R.string.victory))
+                            .setMessage(getString(R.string.location_data_unlocked))
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            })
+                            .show();
+                    v.setVisibility(View.GONE);
+                } else {
+                    dialog.cancel();
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setTitle(getString(R.string.invalid_password))
+                            .show();
+                }
+            }
+        });
+
+        alert.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+            }
+        });
+
+        alert.show();
     }
 
     @Override
@@ -243,14 +299,6 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         mViewPager.setAdapter(mPagerAdapter);
         tabs.setViewPager(mViewPager);
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        Log.i(TAG, "onCreateOptionsMenu");
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
     @Override
     public void onBackPressed() {
         if (mSearching) {
@@ -258,60 +306,6 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         } else {
             super.onBackPressed();
         }
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        if (PlayaClient.isEmbargoClear(getApplicationContext()))
-            menu.removeItem(R.id.action_unlock);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_unlock) {
-            AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
-            alert.setTitle("Enter Unlock Password");
-
-            // Set an EditText view to get user input
-            final EditText input = new EditText(this);
-            input.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
-            alert.setView(input);
-            alert.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                    String pwGuess = input.getText().toString();
-                    if (validateUnlockPassword(pwGuess)) {
-                        PlayaClient.setEmbargoClear(MainActivity.this, true);
-                        new AlertDialog.Builder(MainActivity.this)
-                                .setTitle(getString(R.string.victory))
-                                .setMessage(getString(R.string.location_data_unlocked))
-                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                    }
-                                })
-                                .show();
-                    } else {
-                        dialog.cancel();
-                        new AlertDialog.Builder(MainActivity.this)
-                                .setTitle(getString(R.string.invalid_password))
-                                .show();
-                    }
-                }
-            });
-
-            alert.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                }
-            });
-
-            alert.show();
-            return true;
-        }
-
-        return false;
     }
 
     @Override

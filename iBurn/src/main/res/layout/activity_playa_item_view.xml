@@ -15,14 +15,10 @@
 
     <at.markushi.ui.CircleButton
         android:id="@+id/favorite_button"
-        android:alpha=".8"
         android:layout_width="70dip"
         android:layout_height="70dip"
-        android:layout_alignBottom="@id/map"
+        android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_marginTop="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
         android:layout_margin="16dp"
         android:src="@drawable/ic_heart"
         app:cb_color="@color/white"

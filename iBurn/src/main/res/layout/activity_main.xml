@@ -48,4 +48,16 @@
         app:cb_color="@color/highlight_comp"
         app:cb_pressed_ring_width="8dip" />
 
+    <at.markushi.ui.CircleButton
+        android:id="@+id/unlockBtn"
+        android:alpha=".8"
+        android:layout_width="80dip"
+        android:layout_height="80dip"
+        android:layout_gravity="bottom|left"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_unlock"
+        android:onClick="showUnlockDialog"
+        app:cb_color="@color/highlight_comp"
+        app:cb_pressed_ring_width="8dip" />
+
 </FrameLayout>

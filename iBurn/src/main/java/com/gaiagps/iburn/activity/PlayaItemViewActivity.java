@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.activity;
 
+import android.app.ActionBar;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -9,7 +10,9 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.PlayaClient;
@@ -139,8 +142,13 @@ public class PlayaItemViewActivity extends FragmentActivity {
 
                 });
                 */
-                } else
-                    findViewById(R.id.map).setVisibility(View.GONE);
+                } else {
+                    // Adjust the margin / padding show the heart icon doesn't
+                    // overlap title + descrition
+                    findViewById(R.id.map).setVisibility(View.INVISIBLE);
+                    RelativeLayout.LayoutParams parms = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 150);
+                    findViewById(R.id.map).setLayoutParams(parms);
+                }
 
                 switch (model_type) {
                     case ART:

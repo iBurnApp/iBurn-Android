@@ -38,5 +38,5 @@ public class Constants {
         put(TAB_TYPE.EVENTS, R.string.events_tab);
     }};
 
-    static final GregorianCalendar EMBARGO_DATE = new GregorianCalendar(2013, Calendar.AUGUST, 26);
+    static final GregorianCalendar EMBARGO_DATE = new GregorianCalendar(2014, Calendar.AUGUST, 25, 12, 0);
 }
