@@ -10,27 +10,39 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Pair;
-import android.view.*;
-import android.widget.*;
+import android.view.Display;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.SearchView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.astuetz.PagerSlidingTabStrip;
+import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.DataUtils;
 import com.gaiagps.iburn.PlayaClient;
-import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
-import com.gaiagps.iburn.view.MapViewPager;
-import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.fragment.ArtListViewFragment;
 import com.gaiagps.iburn.fragment.CampListViewFragment;
 import com.gaiagps.iburn.fragment.EventListViewFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
+import com.gaiagps.iburn.view.MapViewPager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.model.LatLng;
@@ -54,7 +66,8 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
 
     private ViewPager mViewPager;
     private FragmentWithTitlePagerAdapter mPagerAdapter;
-    private SearchView mSearchView;
+    private ImageView mSearchBtn;
+    private EditText mSearchView;
 
     private String mCurFilter;
 
@@ -76,6 +89,7 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         getActionBar().hide();
         getDisplayWidth();
         setContentView(R.layout.activity_main);
+        setupSearchButton();
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();
         } else {
@@ -86,6 +100,70 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         }
         DataUtils.checkAndSetupDB(getApplicationContext());
         handleIntent(getIntent());
+    }
+
+    private boolean mSearching = false;
+
+    private void setupSearchButton() {
+        mSearchView = (EditText) findViewById(R.id.searchView);
+        mSearchBtn = (ImageView) findViewById(R.id.searchBtn);
+
+        mSearchView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() == 0 || s.length() > 1) {
+                    dispatchSearchQuery(s.toString());
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        findViewById(R.id.searchBtn).setOnClickListener(new View.OnClickListener() {
+
+            boolean isShowing = false;
+
+            @Override
+            public void onClick(View v) {
+                if (!isShowing) {
+                    expandSearchView();
+                } else {
+                    collapseSearchView();
+                }
+                isShowing = !isShowing;
+            }
+        });
+    }
+
+    private void expandSearchView() {
+        if (mSearchView == null) return;
+        mSearching = true;
+        mSearchBtn.animate().alpha(1.0f).setDuration(300);
+        mSearchView.animate().scaleX(1f).alpha(1.0f).translationX(0).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
+        mSearchView.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(mSearchView, InputMethodManager.SHOW_FORCED);
+        mSearchBtn.setImageResource(R.drawable.ic_x);
+    }
+
+    private void collapseSearchView() {
+        if (mSearchView == null) return;
+        mSearching = false;
+        mSearchBtn.animate().alpha(0.7f).setDuration(300);
+        mSearchView.animate().scaleX(.01f).alpha(0).translationX(330).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0);
+        mSearchBtn.setImageResource(R.drawable.ic_search);
+        mSearchView.setText("");
+        mCurFilter = "";
+        dispatchSearchQuery(mCurFilter);
     }
 
 
@@ -141,9 +219,9 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
      * Dispatch a search query to the current Fragment in the FragmentPagerAdapter
      */
     private void dispatchSearchQuery(String query) {
-        if (TextUtils.isEmpty(query) && TextUtils.isEmpty(mCurFilter)) return;
         mCurFilter = query;
         if (mPagerAdapter.getCurrentFragment() instanceof Searchable) {
+            Log.i(TAG, "dispatch query " + query);
             ((Searchable) mPagerAdapter.getCurrentFragment()).onSearchQueryRequested(query);
         }
     }
@@ -168,36 +246,13 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
     public boolean onCreateOptionsMenu(Menu menu) {
         Log.i(TAG, "onCreateOptionsMenu");
         getMenuInflater().inflate(R.menu.main, menu);
-
-        // Associate searchable configuration with the SearchView
-        SearchManager searchManager =
-                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        final MenuItem searchMenuItem = menu.findItem(R.id.search);
-        mSearchView = (SearchView) searchMenuItem.getActionView();
-//        mSearchView.setFocusable(false);
-        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                if (newText.length() == 0 || newText.length() > 2) {
-                    dispatchSearchQuery(newText);
-                }
-                return false;
-            }
-        });
-        mSearchView.setSearchableInfo(
-                searchManager.getSearchableInfo(getComponentName()));
         return true;
     }
 
     @Override
     public void onBackPressed() {
-        if (mSearchView != null && !mSearchView.isIconified()) {
-            mSearchView.setIconified(true);
+        if (mSearching) {
+            collapseSearchView();
         } else {
             super.onBackPressed();
         }

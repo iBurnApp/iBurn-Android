@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="@color/map_bg"
     android:orientation="vertical">
 
     <fragment
@@ -17,9 +18,10 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@id/map"
         android:layout_alignParentRight="true"
-        android:layout_marginRight="5dp"
-        android:layout_marginBottom="5dp"
-        android:src="@android:drawable/star_big_off" />
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/ic_heart" />
 
     <TextView
         android:id="@+id/title"
@@ -28,7 +30,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/map"
         android:ellipsize="marquee"
-        android:text="Title"
         android:textSize="26sp"
         android:padding="8dp"
         android:textStyle="bold" />
@@ -55,7 +56,6 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="marquee"
-                android:text="artist"
                 android:textSize="26sp"
                 android:visibility="visible" />
 
@@ -65,7 +65,6 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="marquee"
-                android:text="contact"
                 android:textSize="20sp"
                 android:visibility="visible" />
 
@@ -75,7 +74,6 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="marquee"
-                android:text="hometown"
                 android:textSize="20sp"
                 android:visibility="visible" />
 
@@ -87,7 +85,6 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="marquee"
                 android:singleLine="false"
-                android:text="description"
                 android:textSize="18sp"
                 android:visibility="visible" />
 

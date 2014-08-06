@@ -58,6 +58,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public void onSearchQueryRequested(String query) {
         mCurFilter = query;
         if (TextUtils.isEmpty(query)) {
+            if (areMarkersVisible()) clearMap();
             mState = STATE.EXPLORE;
             mapCamps = false;
             if (lastZoomLevel > POI_ZOOM_LEVEL) restartLoaders(true);
@@ -198,25 +199,52 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(latLngToCenterOn, 14));
             latLngToCenterOn = null;
         }
+
         getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+
+            private final double MAX_LAT = 40.810716;
+            private final double MAX_LON = -119.176357;
+            private final double MIN_LAT = 40.765293;
+            private final double MIN_LON = -119.232981;
+            private final double BUFFER = .00005;
+
+            private final double MAX_ZOOM = 19.5;
+            private final double MIN_ZOOM = 14;
+
+            private final int CAMERA_MOVE_REACT_THRESHOLD_MS = 500;
+            private long lastCallMs = Long.MIN_VALUE;
+
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
-                if (cameraPosition.zoom >= 19.5) {
-                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 19.5f));
-                }
-                if (cameraPosition.zoom > POI_ZOOM_LEVEL && PlayaClient.isEmbargoClear(getActivity())) {
-                    visibleRegion = getMap().getProjection().getVisibleRegion();
-                    if (mState == STATE.EXPLORE) restartLoaders(false);
-                } else if (cameraPosition.zoom < POI_ZOOM_LEVEL && areMarkersVisible()) {
-                    if (mState == STATE.EXPLORE) {
-                        markerIdToMeta = new HashMap<>();
-                        clearMap();
+                final long snap = System.currentTimeMillis();
+                if (cameraPosition.target.longitude > MAX_LON || cameraPosition.target.longitude < MIN_LON ||
+                        cameraPosition.target.latitude > MAX_LAT || cameraPosition.target.latitude < MIN_LAT ||
+                        cameraPosition.zoom > MAX_ZOOM || cameraPosition.zoom < MIN_ZOOM) {
+                    // Ensure map view is within valid bounds
+                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(
+                            new LatLng(Math.min(MAX_LAT - BUFFER, Math.max(cameraPosition.target.latitude, MIN_LAT + BUFFER)),
+                                       Math.min(MAX_LON - BUFFER, Math.max(cameraPosition.target.longitude, MIN_LON + BUFFER))),
+                            (float) Math.min(Math.max(cameraPosition.zoom, MIN_ZOOM), MAX_ZOOM)));
+                } else {
+                    // Map view bounds valid. Load POIs if necessary
+                    if (cameraPosition.zoom > POI_ZOOM_LEVEL && PlayaClient.isEmbargoClear(getActivity())) {
+                        visibleRegion = getMap().getProjection().getVisibleRegion();
+                        if (mState == STATE.EXPLORE) {
+                            // Don't bother restartingLoader more than THRESHOLD_MS
+                            if (lastCallMs + CAMERA_MOVE_REACT_THRESHOLD_MS > snap) {
+                                lastCallMs = snap;
+                                return;
+                            }
+                            restartLoaders(false);
+                        }
+                    } else if (cameraPosition.zoom < POI_ZOOM_LEVEL && areMarkersVisible()) {
+                        if (mState == STATE.EXPLORE) {
+                            markerIdToMeta = new HashMap<>();
+                            clearMap();
+                        }
                     }
-                } else if (cameraPosition.zoom < 14) {
-                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 14f));
                 }
-                lastZoomLevel = cameraPosition.zoom;
-                lastTarget = cameraPosition.target;
+                lastCallMs = snap;
             }
         });
 

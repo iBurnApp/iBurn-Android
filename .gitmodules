@@ -7,3 +7,6 @@
 [submodule "libraries/schematic"]
 	path = libraries/schematic
 	url = https://github.com/SimonVT/schematic.git
+[submodule "libraries/android-circlebutton"]
+	path = libraries/android-circlebutton
+	url = https://github.com/markushi/android-circlebutton.git

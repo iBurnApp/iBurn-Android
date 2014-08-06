@@ -83,9 +83,9 @@ public class PlayaItemViewActivity extends FragmentActivity {
             int isFavorite = c.getInt(c.getColumnIndex(PlayaItemTable.favorite));
             View favoriteBtn = findViewById(R.id.favorite_button);
             if(isFavorite == 1)
-                ((ImageView)favoriteBtn).setImageResource(android.R.drawable.star_big_on);
+                ((ImageView)favoriteBtn).setImageResource(R.drawable.ic_heart_pressed);
             else
-                ((ImageView)favoriteBtn).setImageResource(android.R.drawable.star_big_off);
+                ((ImageView)favoriteBtn).setImageResource(R.drawable.ic_heart);
             favoriteBtn.setTag(R.id.list_item_related_model, model_id);
             favoriteBtn.setTag(R.id.list_item_related_model_type, model_type);
             favoriteBtn.setTag(R.id.favorite_button_state, isFavorite);
@@ -192,11 +192,11 @@ public class PlayaItemViewActivity extends FragmentActivity {
             if ((Integer) v.getTag(R.id.favorite_button_state) == 0) {
                 values.put(PlayaItemTable.favorite, 1);
                 v.setTag(R.id.favorite_button_state, 1);
-                ((ImageView) v).setImageResource(android.R.drawable.star_big_on);
+                ((ImageView) v).setImageResource(R.drawable.ic_heart_pressed);
             } else if ((Integer) v.getTag(R.id.favorite_button_state) == 1) {
                 values.put(PlayaItemTable.favorite, 0);
                 v.setTag(R.id.favorite_button_state, 0);
-                ((ImageView) v).setImageResource(android.R.drawable.star_big_off);
+                ((ImageView) v).setImageResource(R.drawable.ic_heart);
             }
             int result = getContentResolver().update(uri, values, PlayaItemTable.id + " = ?", new String[]{String.valueOf(model_id)});
         }
