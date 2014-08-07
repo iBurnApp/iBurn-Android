@@ -14,22 +14,16 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.Editable;
 import android.text.InputType;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.SearchView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.astuetz.PagerSlidingTabStrip;
@@ -37,6 +31,7 @@ import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.DataUtils;
 import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.fragment.ArtListViewFragment;
@@ -49,6 +44,9 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import net.hockeyapp.android.CrashManager;
+import net.hockeyapp.android.UpdateManager;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +58,7 @@ import static com.gaiagps.iburn.PlayaClient.validateUnlockPassword;
 public class MainActivity extends FragmentActivity implements SearchQueryProvider {
     public static final String TAG = "MainActivity";
 
+    private static final String HOCKEY_ID = SECRETS.HOCKEY_ID;
     // Hold display width to allow MapViewPager to calculate
     // swiping margin on screen's right border.
     public static int display_width = -1;
@@ -107,6 +106,7 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
             findViewById(R.id.unlockBtn).setVisibility(View.GONE);
         }
         handleIntent(getIntent());
+        checkForUpdates();
     }
 
     private boolean mSearching = false;
@@ -183,6 +183,7 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
     @Override
     protected void onResume() {
         super.onResume();
+        checkForCrashes();
         if (googlePlayServicesMissing && checkPlayServices()) {
             setupFragmentStatePagerAdapter();
             googlePlayServicesMissing = false;
@@ -419,5 +420,14 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
                 return;
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void checkForCrashes() {
+        CrashManager.register(this, HOCKEY_ID);
+    }
+
+    private void checkForUpdates() {
+        // Remove this for store builds!
+        UpdateManager.register(this, HOCKEY_ID);
     }
 }

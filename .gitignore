@@ -1,6 +1,9 @@
 # Keystore
 dbro.pro
 
+#Secrets
+SECRETS.java
+
 #Embargo Data
 playaDatabase.db.zip
 iBurn/src/main/assets/playa-json/art_data.json
