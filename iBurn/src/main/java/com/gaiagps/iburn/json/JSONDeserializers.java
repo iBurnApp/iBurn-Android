@@ -146,9 +146,9 @@ public class JSONDeserializers {
             // Playa-data date input format
             SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             // Date print format E hh:mm
-            SimpleDateFormat datePrinter = new SimpleDateFormat("EEEE h:mm a");
+            SimpleDateFormat datePrinter = new SimpleDateFormat("EE M/d h:mm a");
             // All day date print format E
-            SimpleDateFormat dayPrinter = new SimpleDateFormat("EEEE");
+            SimpleDateFormat dayPrinter = new SimpleDateFormat("EE M/d");
             ArrayList<ContentValues> result = new ArrayList<>();
 
             JsonArray array = json.getAsJsonArray();
