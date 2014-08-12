@@ -39,5 +39,6 @@
     <string name="ended">Ended </string>
     <string name="ends">Ends </string>
     <string name="home">Home</string>
+    <string name="time">TIME</string>
 
 </resources>

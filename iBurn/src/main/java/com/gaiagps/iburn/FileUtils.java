@@ -50,6 +50,7 @@ public class FileUtils {
     private static void copyRawFileToSD(Context c, int resourceId, String outputPath){
         try {
             File tempFile = new File(outputPath);
+            // TODO: Handle case where device has no SD card
             if(!tempFile.exists())
                 tempFile.createNewFile();
 

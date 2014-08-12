@@ -43,4 +43,14 @@
         <item name="android:textStyle">normal</item>
     </style>
 
+    <style name="GreenText">
+        <item name="android:textColor">@color/green_text</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="OrangeText">
+        <item name="android:textColor">@color/orange_text</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
 </resources>

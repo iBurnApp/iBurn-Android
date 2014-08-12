@@ -1,7 +1,9 @@
 package com.gaiagps.iburn;
 
 import android.content.Context;
+import android.text.Spannable;
 import android.text.format.DateUtils;
+import android.widget.TextView;
 
 import java.text.ParseException;
 import java.util.Date;
@@ -14,11 +16,14 @@ public class PlayaUtils {
     /**
      * Get a human description of an event's state
      * (e.g: Starts in XX, Ends in XX)
-     * @param startDateStr
-     * @param prettyStartDateStr
-     * @param endDateStr
-     * @param prettyEndDateStr
-     * @return
+     *
+     * @param context The application {@link android.content.Context}
+     * @param nowDate The date to treat as 'now'
+     * @param relativeTimeCutoff The date before which to use relative date descriptors. e.g: (in 2 minutes)
+     * @param startDateStr An ISO start date string
+     * @param prettyStartDateStr A 'prettified' start date string
+     * @param endDateStr An ISO end date string
+     * @param prettyEndDateStr A 'prettified' end date string
      */
     public static String getDateString(Context context, Date nowDate, Date relativeTimeCutoff, String startDateStr, String prettyStartDateStr, String endDateStr, String prettyEndDateStr) {
         try {

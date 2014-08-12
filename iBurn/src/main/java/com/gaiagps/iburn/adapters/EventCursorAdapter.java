@@ -62,25 +62,31 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
             view_cache.lat_col = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
             view_cache.lon_col = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
         	view_cache._id_col = cursor.getColumnIndexOrThrow(EventTable.id);
-        	if(cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1 ){
-        		view_cache.all_day = true;
-        		view_cache.time_label = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
-        	}
-        	else {
-        		view_cache.all_day = false;
-                view_cache.time_label = PlayaUtils.getDateString(mContext, nowDate.getTime(), nowPlusOneHrDate.getTime(),
-                        cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTime)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTime)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTimePrint)));
-        	}
-        	view_cache._id_col = cursor.getColumnIndexOrThrow(EventTable.id);
         }
+
+        if(cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1 ){
+            view_cache.all_day = true;
+            view_cache.time_label = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
+        }
+        else {
+            view_cache.all_day = false;
+            view_cache.time_label = PlayaUtils.getDateString(mContext, nowDate.getTime(), nowPlusOneHrDate.getTime(),
+                    cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTime)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTime)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTimePrint)));
+        }
+
+        AdapterUtils.setDistanceText(mDeviceLocation,
+                nowDate.getTime(),
+                cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTime)),
+                cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTime)),
+                view_cache.subLeft,
+                cursor.getDouble(view_cache.lat_col),
+                cursor.getDouble(view_cache.lon_col));
+
         view_cache.title.setText(cursor.getString(view_cache.title_col));
         view_cache.subRight.setText(view_cache.time_label);
-
-        AdapterUtils.setDistanceText(mDeviceLocation, view_cache.subLeft,
-                cursor.getDouble(view_cache.lat_col), cursor.getDouble(view_cache.lon_col));
 
         view.setTag(R.id.list_item_related_model, cursor.getInt(view_cache._id_col));
         view.setTag(R.id.list_item_related_model_type, Constants.PLAYA_ITEM.EVENT);

@@ -73,19 +73,10 @@ public class EventListViewFragment extends PlayaListViewFragment
         switch (mCurrentSort) {
             case FAVORITE:
                 return PlayaItemTable.name + " ASC";
+            case DISTANCE:
             case NAME:
                 // HERE+NOW
                 return EventTable.startTime + " ASC";
-            case DISTANCE:
-                // TODO: Dispatch a fresh location request and re-sort list?
-                if (mLastLocation != null) {
-                    String dateSearch = String.format("(%1$s - %2$,.2f) * (%1$s - %2$,.2f) + (%3$s - %4$,.2f) * (%3$s - %4$,.2f) ASC",
-                            PlayaItemTable.latitude, mLastLocation.getLatitude(),
-                            PlayaItemTable.longitude, mLastLocation.getLongitude());
-                    Log.i(TAG, "returning location " + dateSearch);
-                    return dateSearch;
-                }
-                return null;
         }
         throw new IllegalStateException("Unknown sort requested");
     }
@@ -112,6 +103,7 @@ public class EventListViewFragment extends PlayaListViewFragment
             selectionArgs.add(nowStr);
             selectionArgs.add(nowStr);
         } else if (mCurrentSort == SORT.DISTANCE) {
+            // TIME
             // Has not ended more than 1 hr ago
             Date now = new Date();
             Calendar nowMinusOneHr = Calendar.getInstance();
@@ -128,6 +120,7 @@ public class EventListViewFragment extends PlayaListViewFragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
         ((TextView) v.findViewById(R.id.name)).setText(getActivity().getString(R.string.here_now));
+        ((TextView) v.findViewById(R.id.distance)).setText(getActivity().getString(R.string.time));
         return v;
     }
 
