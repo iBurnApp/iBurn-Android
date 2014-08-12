@@ -30,6 +30,7 @@
         style="@style/PlayaTextItem"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_toLeftOf="@id/favorite_button"
         android:layout_below="@id/map"
         android:ellipsize="marquee"
         android:textSize="26sp"

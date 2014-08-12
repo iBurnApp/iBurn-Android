@@ -53,8 +53,8 @@ public abstract class PlayaListViewFragment extends ListFragment
             PlayaItemTable.longitude
     };
 
-    private ListView mListView;
-    private TextView mEmptyText;
+    protected ListView mListView;
+    protected TextView mEmptyText;
 
     protected abstract Uri getBaseUri();
 
@@ -67,7 +67,7 @@ public abstract class PlayaListViewFragment extends ListFragment
     protected String getOrdering() {
         switch (mCurrentSort) {
             case FAVORITE:
-            case NAME:
+            case NAME:  // Technically this should never be invoked
                 return PlayaItemTable.name + " ASC";
             case DISTANCE:
                 // TODO: Dispatch a fresh location request and re-sort list?
@@ -154,6 +154,11 @@ public abstract class PlayaListViewFragment extends ListFragment
 
         if (mCurFilter != null && mCurFilter.length() > 0) {
             appendSelection(selection, PlayaItemTable.name + " LIKE ?", "%" + mCurFilter + "%");
+        }
+
+        if (mCurrentSort == SORT.DISTANCE) {
+            appendSelection(selection, PlayaItemTable.latitude + " != ?", "0");
+            appendSelection(selection, PlayaItemTable.longitude + " != ?", "0");
         }
 
         addCursorLoaderSelectionArgs(selection, selectionArgs);

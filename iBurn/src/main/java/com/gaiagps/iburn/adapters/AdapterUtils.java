@@ -57,7 +57,7 @@ public class AdapterUtils {
                     Date endDate = PlayaClient.parseISODate(endDateStr);
                     long duration = endDate.getTime() - startDate.getTime();
 
-                    if (startDate.before(nowDate)) {
+                    if (startDate.before(nowDate) && endDate.after(nowDate)) {
                         // Event already started
                         long timeLeftMinutes = ( endDate.getTime() - nowDate.getTime() ) / 1000 / 60;
                         if ( (timeLeftMinutes - minutesToTarget) >= duration / 2.0f) {
@@ -67,7 +67,7 @@ public class AdapterUtils {
                             TextAppearanceSpan tas = new TextAppearanceSpan(textView.getContext(), R.style.OrangeText);
                             spanRange.setSpan(tas, 0, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                         }
-                    } else {
+                    } else if (endDate.after(nowDate) && startDate.before(nowDate)) {
                         long timeUntilStartMinutes = ( startDate.getTime() - nowDate.getTime() ) / 1000 / 60;
                         if ( (timeUntilStartMinutes - minutesToTarget) > 0) {
                             // If we'll make the event start, Color it green

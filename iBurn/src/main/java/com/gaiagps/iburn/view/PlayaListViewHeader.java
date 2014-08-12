@@ -48,15 +48,15 @@ public class PlayaListViewHeader extends RelativeLayout {
     }
 
     /** Click listener for Sort buttons */
-    private OnClickListener mOnClickListener = new OnClickListener() {
+    protected OnClickListener mOnClickListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (!v.isSelected()) {
                 v.setSelected(true);
                 if (v.getTag() instanceof PlayaListViewHeaderReceiver.SORT) {
-                    mName.setSelected(false);
-                    mDistance.setSelected(false);
-                    mFavorite.setSelected(false);
+                    if (mName != null)      mName.setSelected(false);
+                    if (mDistance != null)  mDistance.setSelected(false);
+                    if (mFavorite != null)  mFavorite.setSelected(false);
                     v.setSelected(true);
                     dispatchSelection((PlayaListViewHeaderReceiver.SORT) v.getTag());
                 }
@@ -66,7 +66,7 @@ public class PlayaListViewHeader extends RelativeLayout {
 
     protected void init(Context context) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View v = inflater.inflate(R.layout.list_view_header, this, false);
+        View v = inflater.inflate(R.layout.list_view_header_three, this, false);
         mName       = (TextView) v.findViewById(R.id.name);
         mDistance   = (TextView) v.findViewById(R.id.distance);
         mFavorite   = (TextView) v.findViewById(R.id.favorites);
@@ -79,7 +79,7 @@ public class PlayaListViewHeader extends RelativeLayout {
         mReceiver = receiver;
     }
 
-    private void setupTouchListeners() {
+    protected void setupTouchListeners() {
         mName       .setTag(PlayaListViewHeaderReceiver.SORT.NAME);
         mDistance   .setTag(PlayaListViewHeaderReceiver.SORT.DISTANCE);
         mFavorite   .setTag(PlayaListViewHeaderReceiver.SORT.FAVORITE);
@@ -89,7 +89,7 @@ public class PlayaListViewHeader extends RelativeLayout {
         mFavorite   .setOnClickListener(mOnClickListener);
     }
 
-    private void dispatchSelection(PlayaListViewHeaderReceiver.SORT sort) {
+    protected void dispatchSelection(PlayaListViewHeaderReceiver.SORT sort) {
         if (mReceiver != null) {
             mReceiver.onSelectionChanged(sort);
         }

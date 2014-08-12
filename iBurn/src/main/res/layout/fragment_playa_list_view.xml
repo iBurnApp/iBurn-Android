@@ -6,7 +6,7 @@
     android:background="@color/background"
     android:orientation="vertical">
 
-    <com.gaiagps.iburn.view.PlayaListViewHeader
+    <com.gaiagps.iburn.view.PlayaFavoriteFilterListViewHeader
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

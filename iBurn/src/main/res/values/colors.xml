@@ -22,7 +22,7 @@
     <color name="ab_bg">@color/off_blk_2</color>
 
     <!-- ListView -->
-    <color name="background">@color/off_blk</color>
+    <color name="background">@android:color/transparent</color>
     <color name="list_item_bg_pressed">@color/map_highlight</color>
     <color name="regular_text">@color/white</color>
     <color name="sub_text">@color/dull_white</color>
@@ -31,7 +31,7 @@
     <color name="orange_text">@color/highlight_comp</color>
 
     <!-- Map, Camp, Art, Events Tabs -->
-    <color name="tab_bg">@color/off_blk</color>
+    <color name="tab_bg">@color/off_blk_2</color>
     <color name="tab_text">@color/white</color>
     <color name="tab_selector">@color/highlight_comp</color><!--@color/map_highlight-->
     <color name="tab_pressed">@color/map_bg</color>

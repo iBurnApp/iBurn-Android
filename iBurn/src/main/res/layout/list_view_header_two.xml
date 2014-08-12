@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="40dp"
+    android:orientation="horizontal"
+    android:weightSum="1.0">
+
+    <TextView
+        android:id="@+id/distance"
+        style="@style/PlayaListViewHeaderItem"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight=".5"
+        android:text="@string/tab_distance" />
+
+    <TextView
+        android:id="@+id/favorites"
+        style="@style/PlayaListViewHeaderItem"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight=".5"
+        android:text="@string/tab_favorites" />
+
+</LinearLayout>
