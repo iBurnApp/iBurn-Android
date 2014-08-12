@@ -31,7 +31,7 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
     Calendar nowDate = Calendar.getInstance();
 
     public EventCursorAdapter(Context context, Cursor c) {
-        super(context, R.layout.triple_listview_item, c, new String[]{} , new int[]{}, 0);
+        super(context, R.layout.quad_listview_item, c, new String[]{} , new int[]{}, 0);
         Date now = new Date();
         nowDate.setTime(now);
         nowPlusOneHrDate.setTime(now);
@@ -55,9 +55,10 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
         	view_cache.title = (TextView) view.findViewById(R.id.list_item_title);
         	view_cache.subRight = (TextView) view.findViewById(R.id.list_item_sub_right);
             view_cache.subLeft = (TextView) view.findViewById(R.id.list_item_sub_left);
-        	//view_cache.thumbnail = (ImageView) view.findViewById(R.id.list_item_image);
+        	view_cache.subTitle = (TextView) view.findViewById(R.id.list_item_subtitle);
             
         	view_cache.title_col = cursor.getColumnIndexOrThrow(EventTable.name);
+            view_cache.subTitle_col = cursor.getColumnIndexOrThrow(EventTable.eventType);
         	view_cache.sub_col = cursor.getColumnIndexOrThrow(EventTable.startTime);
             view_cache.lat_col = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
             view_cache.lon_col = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
@@ -77,6 +78,9 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
                     cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTimePrint)));
         }
 
+        view_cache.subTitle.setText(AdapterUtils.getStringForEventType(
+                cursor.getString(cursor.getColumnIndexOrThrow(EventTable.eventType))));
+
         AdapterUtils.setDistanceText(mDeviceLocation,
                 nowDate.getTime(),
                 cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTime)),
@@ -95,13 +99,15 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
 	// Cache the views within a ListView row item 
     static class ViewCache {
         TextView title;
+        TextView subTitle;
         TextView subRight;
         TextView subLeft;
         
         boolean all_day;
         String time_label;
         
-        int title_col; 
+        int title_col;
+        int subTitle_col;
         int sub_col;
         int _id_col;
         int lat_col;

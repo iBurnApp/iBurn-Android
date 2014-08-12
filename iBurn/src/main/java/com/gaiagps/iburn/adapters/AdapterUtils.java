@@ -19,6 +19,37 @@ import java.util.Date;
  */
 public class AdapterUtils {
 
+    public static String getStringForEventType(String typeAbbreviation) {
+        if (typeAbbreviation == null) return null;
+        switch (typeAbbreviation) {
+            case "work":
+                return "Workshop";
+            case "game":
+                return "Game";
+            case "adlt":
+                return "Adult";
+            case "prty":
+                return "Party";
+            case "perf":
+                return "Performance";
+            case "none":
+                return null;
+            case "kid":
+                return "Kid";
+            case "para":
+                return "Parade";
+            case "food":
+                return "Food";
+            case "cere":
+                return "Ceremony";
+            case "care":
+                return "Care";
+            case "fire":
+                return "Fire";
+        }
+        return null;
+    }
+
     public static double setDistanceText(Location deviceLocation, TextView textView, double lat, double lon) {
         return setDistanceText(deviceLocation, null, null, null, textView, lat, lon);
     }

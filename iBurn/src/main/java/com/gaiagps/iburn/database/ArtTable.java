@@ -34,4 +34,5 @@ public interface ArtTable extends PlayaItemTable{
     @DataType(REAL)                                 String latitude         = "lat";
     @DataType(REAL)                                 String longitude        = "lon";
     @DataType(INTEGER)  @DefaultValue("0")          String favorite         = "fav";
+
 }

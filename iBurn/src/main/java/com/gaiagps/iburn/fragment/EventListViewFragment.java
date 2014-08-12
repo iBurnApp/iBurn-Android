@@ -43,7 +43,8 @@ public class EventListViewFragment extends PlayaListViewFragment
             EventTable.allDay,
             EventTable.favorite,
             EventTable.latitude,
-            EventTable.longitude
+            EventTable.longitude,
+            EventTable.eventType
     };
 
     SimpleCursorAdapter mAdapter;

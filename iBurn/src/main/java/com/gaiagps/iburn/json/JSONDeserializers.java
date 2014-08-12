@@ -189,6 +189,13 @@ public class JSONDeserializers {
                                 cv.put(EventTable.campPlayaId, camp.get(EventJSON.KEY_HOST_CAMP_ID).getAsString());
                     }
 
+                    if (object.has(EventJSON.KEY_EVENT_TYPE) && !object.get(EventJSON.KEY_EVENT_TYPE).isJsonNull()) {
+                        JsonObject eventType = object.get(EventJSON.KEY_EVENT_TYPE).getAsJsonObject();
+                        if (eventType.has(EventJSON.KEY_EVENT_ABBREV) && !object.get(EventJSON.KEY_EVENT_TYPE).isJsonNull()) {
+                            cv.put(EventTable.eventType, eventType.get(EventJSON.KEY_EVENT_ABBREV).getAsString());
+                        }
+                    }
+
                     if (object.has(EventJSON.KEY_OCCURENCE_SET)) {
                         if (!object.get(EventJSON.KEY_OCCURENCE_SET).isJsonNull()) {
                             JsonArray occurences = object.get(EventJSON.KEY_OCCURENCE_SET).getAsJsonArray();
@@ -220,6 +227,7 @@ public class JSONDeserializers {
                             }
                         }
                     }
+
                 } catch (Throwable t) {
                     throw new JsonParseException(t);
                 }
