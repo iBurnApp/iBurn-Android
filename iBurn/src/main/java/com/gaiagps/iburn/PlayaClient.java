@@ -34,7 +34,7 @@ public class PlayaClient {
 
     private static final boolean USE_BUNDLED_DB = false;
 
-    private static final String UNLOCK_PW = "snowden";
+    private static final String UNLOCK_PW = SECRETS.UNLOCK_CODE;
 
     /**
      * SharedPreferences Keys
