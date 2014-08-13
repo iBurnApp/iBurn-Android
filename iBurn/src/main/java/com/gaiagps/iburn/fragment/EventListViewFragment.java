@@ -89,15 +89,15 @@ public class EventListViewFragment extends PlayaListViewFragment
 
     @Override
     protected void addCursorLoaderSelectionArgs(StringBuilder selection, ArrayList<String> selectionArgs) {
-        if (mCurrentSort == SORT.DISTANCE || mCurrentSort == SORT.NAME) {
-            // Has not ended more than 1 hr ago
-            Date now = new Date();
-            Calendar nowMinusOneHr = Calendar.getInstance();
-            nowMinusOneHr.setTime(now);
-            nowMinusOneHr.add(Calendar.HOUR, -1);
-            String nowPlusOneHrStr = PlayaClient.getISOString(nowMinusOneHr.getTime());
-            appendSelection(selection, String.format("(%1$s > ? )", EventTable.endTime), nowPlusOneHrStr);
-        }
+//        if (mCurrentSort == SORT.DISTANCE || mCurrentSort == SORT.NAME) {
+//            // Has not ended more than 1 hr ago
+//            Date now = new Date();
+//            Calendar nowMinusOneHr = Calendar.getInstance();
+//            nowMinusOneHr.setTime(now);
+//            nowMinusOneHr.add(Calendar.HOUR, -1);
+//            String nowPlusOneHrStr = PlayaClient.getISOString(nowMinusOneHr.getTime());
+//            appendSelection(selection, String.format("(%1$s > ? )", EventTable.endTime), nowPlusOneHrStr);
+//        }
         if (mDaySelection != null) {
             appendSelection(selection, EventTable.startTimePrint + " LIKE ?", "%" + mDaySelection + "%");
         }

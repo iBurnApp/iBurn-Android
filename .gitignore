@@ -11,6 +11,7 @@ iBurn/src/main/assets/playa-json/camp_data.json
 iBurn/src/main/assets/playa-json/event_data.json
 .DS_Store
 *.class
+data/
 
 # Android Studio
 .idea/
