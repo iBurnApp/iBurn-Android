@@ -622,11 +622,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     private void restartLoaders(boolean clearMap) {
         if (clearMap)
             clearMap();
-        if (mapCamps)
+        if (mapCamps && PlayaClient.isEmbargoClear(getActivity()))
             restartLoader(CAMPS);
         if (mapArt)
             restartLoader(ART);
-        if (mapEvents)
+        if (mapEvents && PlayaClient.isEmbargoClear(getActivity()))
             restartLoader(EVENTS);
     }
 }
