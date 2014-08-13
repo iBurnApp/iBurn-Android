@@ -27,7 +27,7 @@
     <color name="regular_text">@color/white</color>
     <color name="sub_text">@color/dull_white</color>
     <color name="sub_sub_text">@color/dull_white_3</color>
-    <color name="green_text">#ff67ff3f</color>
+    <color name="green_text">#ff53ce33</color>
     <color name="orange_text">@color/highlight_comp</color>
 
     <!-- Map, Camp, Art, Events Tabs -->

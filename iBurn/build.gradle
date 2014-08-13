@@ -32,15 +32,24 @@ android {
             // We'll read release signingConfig's data from
             // gradle.properties in the project's root directory
         }
+        unsigned{
+            storePassword = ""
+            keyAlias = ""
+            keyPassword = ""
+        }
     }
 
     buildTypes {
+
         release {
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
             signingConfig signingConfigs.release
             debuggable false
             zipAlign true
+        }
+        unsigned {
+            signingConfig signingConfigs.unsigned
         }
     }
 
@@ -69,7 +78,7 @@ dependencies {
     compile 'com.astuetz:pagerslidingtabstrip:1.0.1'
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:+'
-    compile 'com.google.android.gms:play-services:5.0.77'
+    compile 'com.google.android.gms:play-services:5.0.89'
     compile project(':libraries:android-circlebutton:library')
     compile project(':libraries:android-gmaps-addons')
     compile 'com.android.support:support-v4:20.0.0'

@@ -31,6 +31,7 @@ import java.util.Date;
  * Created by davidbrodsky on 8/4/14.
  */
 public class AdapterUtils {
+    private static final String TAG = "AdapterUtils";
 
     public static ArrayList<String> sEventTypeAbbreviations = new ArrayList<>();
     public static ArrayList<String> sEventTypeNames = new ArrayList<>();
@@ -111,7 +112,7 @@ public class AdapterUtils {
                 Spannable spanRange;
 
                 if (milesToTarget < 0.01) {
-                    distanceText = "<1 m danger close";
+                    distanceText = "<1 m";
                     spanRange = new SpannableString(distanceText);
                 } else {
                     distanceText = String.format("%.0f min %.2f miles", minutesToTarget, milesToTarget);
@@ -125,20 +126,22 @@ public class AdapterUtils {
                     // If a date is given, attempt to do coloring of the time estimate (e.g: green if arrival estimate before start date)
                     Date startDate = PlayaClient.parseISODate(startDateStr);
                     Date endDate = PlayaClient.parseISODate(endDateStr);
-                    long duration = endDate.getTime() - startDate.getTime();
+                    long duration = endDate.getTime() - startDate.getTime() / 1000 / 60; //minutes
 
                     if (startDate.before(nowDate) && endDate.after(nowDate)) {
                         // Event already started
                         long timeLeftMinutes = ( endDate.getTime() - nowDate.getTime() ) / 1000 / 60;
-                        if ( (timeLeftMinutes - minutesToTarget) >= duration / 2.0f) {
-                            // If we'll make at least half the event, Color it yellow
+//                        Log.i(TAG, "ongoing event ends in " + timeLeftMinutes + " minutes ( " + endDateStr + ") eta " + minutesToTarget + " duration " + duration);
+                        if ( (timeLeftMinutes - minutesToTarget) >= duration / 4.0f) {
+                            // If we'll make at least a quarter of the event, Color it yellow
                             int endSpan = distanceText.indexOf("min") + 3;
                             spanRange = new SpannableString(distanceText);
                             TextAppearanceSpan tas = new TextAppearanceSpan(textView.getContext(), R.style.OrangeText);
                             spanRange.setSpan(tas, 0, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                         }
-                    } else if (endDate.after(nowDate) && startDate.before(nowDate)) {
+                    } else if (startDate.after(nowDate)) {
                         long timeUntilStartMinutes = ( startDate.getTime() - nowDate.getTime() ) / 1000 / 60;
+//                        Log.i(TAG, "fugure event starts in " + timeUntilStartMinutes + " minutes ( " + startDateStr + ") eta " + minutesToTarget + " duration " + duration);
                         if ( (timeUntilStartMinutes - minutesToTarget) > 0) {
                             // If we'll make the event start, Color it green
                             int endSpan = distanceText.indexOf("min") + 3;

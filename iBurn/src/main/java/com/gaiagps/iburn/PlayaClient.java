@@ -29,7 +29,7 @@ public class PlayaClient {
     private static SimpleDateFormat sDateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
     static {
-        sDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        sDateFormatter.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
     }
 
     private static final boolean USE_BUNDLED_DB = true;
