@@ -67,8 +67,8 @@ public abstract class PlayaListViewFragment extends ListFragment
     protected String getOrdering() {
         switch (mCurrentSort) {
             case FAVORITE:
-            case NAME:  // Technically this should never be invoked
                 return PlayaItemTable.name + " ASC";
+            case NAME:  // Technically this should never be invoked
             case DISTANCE:
                 // TODO: Dispatch a fresh location request and re-sort list?
                 if (mLastLocation != null) {
@@ -256,7 +256,7 @@ public abstract class PlayaListViewFragment extends ListFragment
         restartLoader();
     }
 
-    private void appendSelection(StringBuilder builder, String selection, String value) {
+    protected void appendSelection(StringBuilder builder, String selection, String value) {
         if (builder.length() > 0)
             builder.append(" AND ");
         builder.append(selection);
@@ -264,7 +264,7 @@ public abstract class PlayaListViewFragment extends ListFragment
     }
 
     @Override
-    public void onSelectionChanged(SORT sort) {
+    public void onSelectionChanged(SORT sort, String day, ArrayList<String> types) {
         if (mCurrentSort == sort) return;
         mCurrentSort = sort;
         if (mCurrentSort == SORT.DISTANCE) {
@@ -274,7 +274,7 @@ public abstract class PlayaListViewFragment extends ListFragment
         restartLoader();
     }
 
-    private void getLastDeviceLocation() {
+    protected void getLastDeviceLocation() {
         Log.i(TAG, "Getting device location");
         DeviceLocation.getLastKnownLocation(getActivity(), false, new DeviceLocation.LocationResult() {
             @Override

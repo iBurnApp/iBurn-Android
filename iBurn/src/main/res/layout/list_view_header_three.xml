@@ -2,32 +2,64 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="40dp"
-    android:orientation="horizontal"
-    android:weightSum="1.0">
+    android:layout_height="80dp"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/name"
-        style="@style/PlayaListViewHeaderItem"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight=".3333"
-        android:text="@string/tab_name" />
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:weightSum="1.0">
 
-    <TextView
-        android:id="@+id/distance"
-        style="@style/PlayaListViewHeaderItem"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight=".3333"
-        android:text="@string/tab_distance" />
+        <TextView
+            android:id="@+id/distance"
+            style="@style/PlayaListViewHeaderItem"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight=".5"
+            android:text="ALL" />
 
-    <TextView
-        android:id="@+id/favorites"
-        style="@style/PlayaListViewHeaderItem"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight=".3333"
-        android:text="@string/tab_favorites" />
+        <TextView
+            android:id="@+id/favorites"
+            style="@style/PlayaListViewHeaderItem"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight=".5"
+            android:text="@string/tab_favorites" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/off_blk"/>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:weightSum="1.0">
+
+        <TextView
+            android:id="@+id/typeFilter"
+            style="@style/PlayaListViewHeaderItem"
+            android:layout_width="0dp"
+            android:layout_weight=".5"
+            android:gravity="center"
+            android:ellipsize="marquee"
+            android:layout_height="match_parent"
+            android:text="@string/any_type" />
+
+        <TextView
+            android:id="@+id/dateFilter"
+            style="@style/PlayaListViewHeaderItem"
+            android:layout_width="0dp"
+            android:layout_weight=".5"
+            android:gravity="center"
+            android:ellipsize="marquee"
+            android:layout_height="match_parent"
+            android:text="@string/any_day" />
+
+    </LinearLayout>
 
 </LinearLayout>

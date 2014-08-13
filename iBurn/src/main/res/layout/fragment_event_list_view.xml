@@ -7,6 +7,7 @@
 
     <com.gaiagps.iburn.view.PlayaListViewHeader
         android:id="@+id/header"
+        android:layout_marginTop="@dimen/top_margin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
@@ -20,6 +21,6 @@
         android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="@android:color/transparent" />
+        android:divider="@android:color/transparent"/>
 
 </LinearLayout>

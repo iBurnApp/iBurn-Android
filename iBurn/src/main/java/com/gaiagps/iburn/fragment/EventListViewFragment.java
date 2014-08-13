@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,6 +51,9 @@ public class EventListViewFragment extends PlayaListViewFragment
     SimpleCursorAdapter mAdapter;
     protected Uri baseUri = PlayaContentProvider.Events.EVENTS;     // Uris corresponding to PlayaContentProvider
 
+    private String mDaySelection;
+    private ArrayList<String> mTypeSelection;
+
     public static EventListViewFragment newInstance() {
         return new EventListViewFragment();
     }
@@ -71,7 +75,6 @@ public class EventListViewFragment extends PlayaListViewFragment
             case FAVORITE:
                 return PlayaItemTable.name + " ASC";
             case DISTANCE:
-                return super.getOrdering();
             case NAME:
                 // TIME
                 return EventTable.startTime + " ASC";
@@ -92,9 +95,22 @@ public class EventListViewFragment extends PlayaListViewFragment
             nowMinusOneHr.setTime(now);
             nowMinusOneHr.add(Calendar.HOUR, -1);
             String nowPlusOneHrStr = PlayaClient.getISOString(nowMinusOneHr.getTime());
-            if(selection.length() > 0) selection.append(" AND ");
-            selection.append(String.format("(%1$s > ? )", EventTable.endTime));
-            selectionArgs.add(nowPlusOneHrStr);
+            appendSelection(selection, String.format("(%1$s > ? )", EventTable.endTime), nowPlusOneHrStr);
+        }
+        if (mDaySelection != null) {
+            appendSelection(selection, EventTable.startTimePrint + " LIKE ?", "%" + mDaySelection + "%");
+        }
+        if (mTypeSelection != null && mTypeSelection.size() > 0) {
+            if (selection.length() > 0) selection.append(" AND (");
+            for (int x = 0; x < mTypeSelection.size(); x++) {
+                selection.append(String.format("%s = ?", EventTable.eventType));
+                selectionArgs.add(mTypeSelection.get(x));
+                if (x < mTypeSelection.size() - 1) {
+                    selection.append(" OR ");
+                }
+            }
+            selection.append(")");
+
         }
     }
 
@@ -108,8 +124,8 @@ public class EventListViewFragment extends PlayaListViewFragment
         mListView.setFastScrollEnabled(true);
         mListView.setDividerHeight(10);
         ((PlayaListViewHeader) v.findViewById(R.id.header)).setReceiver(this);
-        ((TextView) v.findViewById(R.id.name)).setText(getActivity().getString(R.string.tab_time));
-        ((TextView) v.findViewById(R.id.distance)).setText(getActivity().getString(R.string.tab_distance));
+//        ((TextView) v.findViewById(R.id.distance)).setText(getActivity().getString(R.string.tab_time));
+//        ((TextView) v.findViewById(R.id.favorites)).setText(getActivity().getString(R.string.tab_distance));
         return v;
     }
 
@@ -118,4 +134,17 @@ public class EventListViewFragment extends PlayaListViewFragment
         super.onActivityCreated(savedInstanceState);
     }
 
+    @Override
+    public void onSelectionChanged(SORT sort, String day, ArrayList<String> types) {
+        // day may be null
+        if (mCurrentSort == sort && day != null && day.equals(mDaySelection) && types.equals(mTypeSelection)) return;
+        if (sort == SORT.DISTANCE && mCurrentSort != SORT.DISTANCE) {
+            getLastDeviceLocation();
+        }
+        mCurrentSort = sort;
+        mDaySelection = day;
+        mTypeSelection = types;
+
+        restartLoader();
+    }
 }

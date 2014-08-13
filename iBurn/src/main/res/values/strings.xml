@@ -40,5 +40,10 @@
     <string name="ends">Ends </string>
     <string name="home">Home</string>
     <string name="tab_time">TIME</string>
+    <string name="any_type">ANY TYPE</string>
+    <string name="any_day">ANY DAY</string>
+    <string name="filter_by_day">Filter by Day</string>
+    <string name="filter_by_type">Filter by Type</string>
+    <string name="all">ALL</string>
 
 </resources>

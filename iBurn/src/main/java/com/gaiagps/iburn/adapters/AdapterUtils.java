@@ -12,41 +12,69 @@ import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * Created by davidbrodsky on 8/4/14.
  */
 public class AdapterUtils {
 
+    public static ArrayList<String> mEventTypeAbbreviations = new ArrayList<>();
+    public static ArrayList<String> mEventTypeNames = new ArrayList<>();
+
+    public static ArrayList<String> mDayAbbreviations = new ArrayList<>();
+    public static ArrayList<String> mDayNames = new ArrayList<>();
+
+    static {
+        mDayNames        .add("All Days");
+        mDayAbbreviations.add(null);
+        mDayNames        .add("Monday 8/25");
+        mDayAbbreviations.add("8/25");
+        mDayNames        .add("Tuesday 8/26");
+        mDayAbbreviations.add("8/26");
+        mDayNames        .add("Wednesday 8/27");
+        mDayAbbreviations.add("8/27");
+        mDayNames        .add("Thursday 8/28");
+        mDayAbbreviations.add("8/28");
+        mDayNames        .add("Friday 8/29");
+        mDayAbbreviations.add("8/29");
+        mDayNames        .add("Saturday 8/30");
+        mDayAbbreviations.add("8/30");
+        mDayNames        .add("Sunday 8/31");
+        mDayAbbreviations.add("8/31");
+        mDayNames        .add("Monday 9/1");
+        mDayAbbreviations.add("9/1");
+        mDayNames        .add("Monday 9/2");
+        mDayAbbreviations.add("9/2");
+
+        mEventTypeAbbreviations.add("work");
+        mEventTypeNames        .add("Work");
+        mEventTypeAbbreviations.add("game");
+        mEventTypeNames        .add("Game");
+        mEventTypeAbbreviations.add("adlt");
+        mEventTypeNames        .add("Adult");
+        mEventTypeAbbreviations.add("prty");
+        mEventTypeNames        .add("Party");
+        mEventTypeAbbreviations.add("perf");
+        mEventTypeNames        .add("Performance");
+        mEventTypeAbbreviations.add("kid");
+        mEventTypeNames        .add("Kid");
+        mEventTypeAbbreviations.add("food");
+        mEventTypeNames        .add("Food");
+        mEventTypeAbbreviations.add("cere");
+        mEventTypeNames        .add("Ceremony");
+        mEventTypeAbbreviations.add("care");
+        mEventTypeNames        .add("Care");
+        mEventTypeAbbreviations.add("fire");
+        mEventTypeNames        .add("Fire");
+    }
+
     public static String getStringForEventType(String typeAbbreviation) {
         if (typeAbbreviation == null) return null;
-        switch (typeAbbreviation) {
-            case "work":
-                return "Workshop";
-            case "game":
-                return "Game";
-            case "adlt":
-                return "Adult";
-            case "prty":
-                return "Party";
-            case "perf":
-                return "Performance";
-            case "none":
-                return null;
-            case "kid":
-                return "Kid";
-            case "para":
-                return "Parade";
-            case "food":
-                return "Food";
-            case "cere":
-                return "Ceremony";
-            case "care":
-                return "Care";
-            case "fire":
-                return "Fire";
-        }
+        if (mEventTypeAbbreviations.contains(typeAbbreviation))
+            return mEventTypeNames.get(mEventTypeAbbreviations.indexOf(typeAbbreviation));
         return null;
     }
 

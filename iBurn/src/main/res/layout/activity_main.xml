@@ -9,9 +9,7 @@
         android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="48dip"
-        android:layout_marginLeft="0dp"
-        android:layout_marginRight="0dp" />
+        android:layout_marginTop="48dip"/>
 
     <com.astuetz.PagerSlidingTabStrip
         android:id="@+id/tabs"
@@ -21,20 +19,20 @@
 
     <EditText
         android:id="@+id/searchView"
+        android:inputType="textAutoCorrect"
         android:fontFamily="sans-serif-condensed"
         android:singleLine="true"
         android:layout_width="match_parent"
         android:padding="8dp"
         android:layout_height="40dip"
         android:textColor="@color/white"
-        android:alpha="0"
         android:scaleX=".01"
         android:translationX="330dp"
-        android:animateLayoutChanges="true"
+        android:enabled="false"
         android:visibility="visible"
         android:background="@color/highlight_comp"
         android:layout_marginRight="36dp"
-        android:layout_marginBottom="36dp"
+        android:layout_marginBottom="@dimen/search_margin_bottom"
         android:layout_marginLeft="16dp"
         android:layout_gravity="bottom|right" />
 
@@ -44,7 +42,8 @@
         android:layout_width="80dip"
         android:layout_height="80dip"
         android:layout_gravity="bottom|right"
-        android:layout_margin="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="@dimen/bottom_margin"
         android:src="@drawable/ic_search"
         app:cb_color="@color/highlight_comp"
         app:cb_pressed_ring_width="8dip" />
@@ -56,6 +55,7 @@
         android:layout_height="80dip"
         android:layout_gravity="bottom|left"
         android:layout_margin="16dp"
+        android:layout_marginBottom="@dimen/bottom_margin"
         android:src="@drawable/ic_unlock"
         android:onClick="showUnlockDialog"
         app:cb_color="@color/highlight_comp"

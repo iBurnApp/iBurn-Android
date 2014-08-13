@@ -12,7 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight=".5"
-        android:text="@string/tab_distance" />
+        android:text="@string/all" />
 
     <TextView
         android:id="@+id/favorites"

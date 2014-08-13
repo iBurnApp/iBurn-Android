@@ -43,6 +43,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
@@ -149,6 +150,7 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         });
     }
 
+
     private void expandSearchView() {
         if (mSearchView == null) return;
         if (!isEmbargoClear(this)) {
@@ -158,6 +160,7 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         mSearchBtn.animate().alpha(1.0f).setDuration(300);
         mSearchView.animate().scaleX(1f).alpha(1.0f).translationX(0).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
         mSearchView.requestFocus();
+        mSearchView.setEnabled(true);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.showSoftInput(mSearchView, InputMethodManager.SHOW_FORCED);
         mSearchBtn.setImageResource(R.drawable.ic_x);
@@ -171,6 +174,7 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         mSearching = false;
         mSearchBtn.animate().alpha(0.7f).setDuration(300);
         mSearchView.animate().scaleX(.01f).alpha(0).translationX(330).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
+        mSearchView.setEnabled(false);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0);
         mSearchBtn.setImageResource(R.drawable.ic_search);
