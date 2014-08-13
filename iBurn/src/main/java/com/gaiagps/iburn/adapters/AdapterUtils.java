@@ -57,7 +57,7 @@ public class AdapterUtils {
         sDayAbbreviations.add("8/31");
         sDayNames.add("Monday 9/1");
         sDayAbbreviations.add("9/1");
-        sDayNames.add("Monday 9/2");
+        sDayNames.add("Tuesday 9/2");
         sDayAbbreviations.add("9/2");
 
         sEventTypeAbbreviations.add("work");
