@@ -25,6 +25,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
+import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.DeviceLocation;
 import com.gaiagps.iburn.view.PlayaListViewHeader;
@@ -110,6 +111,7 @@ public abstract class PlayaListViewFragment extends ListFragment
         //super.onCreateView(inflater, container, savedInstanceState);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mListView = ((ListView) v.findViewById(android.R.id.list));
+        mListView.setOnItemLongClickListener(AdapterUtils.mListItemLongClickListener);
         mListView.setEmptyView(mEmptyText);
         mListView.setFastScrollEnabled(true);
         mListView.setDividerHeight(10);

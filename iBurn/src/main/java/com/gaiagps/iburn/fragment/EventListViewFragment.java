@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.adapters.EventCursorAdapter;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaContentProvider;
@@ -120,6 +121,7 @@ public class EventListViewFragment extends PlayaListViewFragment
         //super.onCreateView(inflater, container, savedInstanceState);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mListView = ((ListView) v.findViewById(android.R.id.list));
+        mListView.setOnItemLongClickListener(AdapterUtils.mListItemLongClickListener);
         mListView.setEmptyView(mEmptyText);
         mListView.setFastScrollEnabled(true);
         mListView.setDividerHeight(10);

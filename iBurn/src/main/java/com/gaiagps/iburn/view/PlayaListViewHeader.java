@@ -76,11 +76,11 @@ public class PlayaListViewHeader extends RelativeLayout {
                     if (v.getTag().equals("type") ) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                         builder.setTitle(getContext().getString(R.string.filter_by_type));
-                        builder.setMultiChoiceItems(AdapterUtils.mEventTypeNames.toArray(new CharSequence[AdapterUtils.mEventTypeNames.size()]),
+                        builder.setMultiChoiceItems(AdapterUtils.sEventTypeNames.toArray(new CharSequence[AdapterUtils.sEventTypeNames.size()]),
                                mTypeSelectionIndexes, new DialogInterface.OnMultiChoiceClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                                        CharSequence selection = AdapterUtils.mEventTypeAbbreviations.toArray(new CharSequence[AdapterUtils.mEventTypeAbbreviations.size()])[which];
+                                        CharSequence selection = AdapterUtils.sEventTypeAbbreviations.toArray(new CharSequence[AdapterUtils.sEventTypeAbbreviations.size()])[which];
                                         if (isChecked) {
                                             mTypeSelectionIndexes[which] = true;
                                             mTypeSelection.add( (selection == null) ? null : selection.toString());
@@ -88,7 +88,7 @@ public class PlayaListViewHeader extends RelativeLayout {
                                             mTypeSelectionIndexes[which] = false;
                                             mTypeSelection.remove( (selection == null) ? null : selection.toString());
                                         }
-                                        String tabTitle = (selection == null) ? getResources().getString(R.string.any_type) : AdapterUtils.mEventTypeNames.toArray(new CharSequence[AdapterUtils.mEventTypeNames.size()])[which].toString();
+                                        String tabTitle = (selection == null) ? getResources().getString(R.string.any_type) : AdapterUtils.sEventTypeNames.toArray(new CharSequence[AdapterUtils.sEventTypeNames.size()])[which].toString();
                                         if (mTypeSelection.size() > 1) tabTitle += "+";
                                         ((TextView) v).setText(tabTitle.toUpperCase());
                                         dispatchSelection();
@@ -106,16 +106,16 @@ public class PlayaListViewHeader extends RelativeLayout {
                     } else if (v.getTag().equals("day")) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                         builder.setTitle(getContext().getString(R.string.filter_by_day));
-                        builder.setSingleChoiceItems(AdapterUtils.mDayNames.toArray(new CharSequence[AdapterUtils.mDayNames.size()]),
+                        builder.setSingleChoiceItems(AdapterUtils.sDayNames.toArray(new CharSequence[AdapterUtils.sDayNames.size()]),
                                 mDaySelectionIndex,
                                 new DialogInterface.OnClickListener() {
 
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         mDaySelectionIndex = which;
-                                        CharSequence selection = AdapterUtils.mDayAbbreviations.toArray(new CharSequence[AdapterUtils.mDayAbbreviations.size()])[which];
+                                        CharSequence selection = AdapterUtils.sDayAbbreviations.toArray(new CharSequence[AdapterUtils.sDayAbbreviations.size()])[which];
                                         mDaySelection = (selection == null) ? null : selection.toString();
-                                        String tabTitle = (selection == null) ? getResources().getString(R.string.any_day) : AdapterUtils.mDayNames.toArray(new CharSequence[AdapterUtils.mDayNames.size()])[which].toString();
+                                        String tabTitle = (selection == null) ? getResources().getString(R.string.any_day) : AdapterUtils.sDayNames.toArray(new CharSequence[AdapterUtils.sDayNames.size()])[which].toString();
                                         ((TextView) v).setText(tabTitle.toUpperCase());
                                         dispatchSelection();
                                     }

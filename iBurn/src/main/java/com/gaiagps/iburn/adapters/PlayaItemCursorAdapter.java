@@ -43,9 +43,9 @@ public class PlayaItemCursorAdapter extends SimpleCursorAdapter {
         	view_cache = new ViewCache();
         	view_cache.title = (TextView) view.findViewById(R.id.list_item_title);
             view_cache.distance = (TextView) view.findViewById(R.id.list_item_sub_left);
-            
-        	view_cache.title_col = cursor.getColumnIndexOrThrow(PlayaItemTable.name);
-        	view_cache._id_col = cursor.getColumnIndexOrThrow(PlayaItemTable.id);
+
+            view_cache.title_col = cursor.getColumnIndexOrThrow(PlayaItemTable.name);
+            view_cache._id_col = cursor.getColumnIndexOrThrow(PlayaItemTable.id);
             view_cache.lat_col = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
             view_cache.lon_col = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
             view.setTag(R.id.list_item_cache, view_cache);

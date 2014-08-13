@@ -56,7 +56,7 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
         	view_cache.subRight = (TextView) view.findViewById(R.id.list_item_sub_right);
             view_cache.subLeft = (TextView) view.findViewById(R.id.list_item_sub_left);
         	view_cache.subTitle = (TextView) view.findViewById(R.id.list_item_subtitle);
-            
+
         	view_cache.title_col = cursor.getColumnIndexOrThrow(EventTable.name);
             view_cache.subTitle_col = cursor.getColumnIndexOrThrow(EventTable.eventType);
         	view_cache.sub_col = cursor.getColumnIndexOrThrow(EventTable.startTime);

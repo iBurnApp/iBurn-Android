@@ -1,80 +1,91 @@
 package com.gaiagps.iburn.adapters;
 
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.Cursor;
 import android.location.Location;
+import android.net.Uri;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.TextAppearanceSpan;
+import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.GeoUtils;
 import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.activity.PlayaItemViewActivity;
+import com.gaiagps.iburn.database.PlayaContentProvider;
+import com.gaiagps.iburn.database.PlayaItemTable;
 
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 
 /**
  * Created by davidbrodsky on 8/4/14.
  */
 public class AdapterUtils {
 
-    public static ArrayList<String> mEventTypeAbbreviations = new ArrayList<>();
-    public static ArrayList<String> mEventTypeNames = new ArrayList<>();
+    public static ArrayList<String> sEventTypeAbbreviations = new ArrayList<>();
+    public static ArrayList<String> sEventTypeNames = new ArrayList<>();
 
-    public static ArrayList<String> mDayAbbreviations = new ArrayList<>();
-    public static ArrayList<String> mDayNames = new ArrayList<>();
+    public static ArrayList<String> sDayAbbreviations = new ArrayList<>();
+    public static ArrayList<String> sDayNames = new ArrayList<>();
 
     static {
-        mDayNames        .add("All Days");
-        mDayAbbreviations.add(null);
-        mDayNames        .add("Monday 8/25");
-        mDayAbbreviations.add("8/25");
-        mDayNames        .add("Tuesday 8/26");
-        mDayAbbreviations.add("8/26");
-        mDayNames        .add("Wednesday 8/27");
-        mDayAbbreviations.add("8/27");
-        mDayNames        .add("Thursday 8/28");
-        mDayAbbreviations.add("8/28");
-        mDayNames        .add("Friday 8/29");
-        mDayAbbreviations.add("8/29");
-        mDayNames        .add("Saturday 8/30");
-        mDayAbbreviations.add("8/30");
-        mDayNames        .add("Sunday 8/31");
-        mDayAbbreviations.add("8/31");
-        mDayNames        .add("Monday 9/1");
-        mDayAbbreviations.add("9/1");
-        mDayNames        .add("Monday 9/2");
-        mDayAbbreviations.add("9/2");
+        sDayNames.add("All Days");
+        sDayAbbreviations.add(null);
+        sDayNames.add("Monday 8/25");
+        sDayAbbreviations.add("8/25");
+        sDayNames.add("Tuesday 8/26");
+        sDayAbbreviations.add("8/26");
+        sDayNames.add("Wednesday 8/27");
+        sDayAbbreviations.add("8/27");
+        sDayNames.add("Thursday 8/28");
+        sDayAbbreviations.add("8/28");
+        sDayNames.add("Friday 8/29");
+        sDayAbbreviations.add("8/29");
+        sDayNames.add("Saturday 8/30");
+        sDayAbbreviations.add("8/30");
+        sDayNames.add("Sunday 8/31");
+        sDayAbbreviations.add("8/31");
+        sDayNames.add("Monday 9/1");
+        sDayAbbreviations.add("9/1");
+        sDayNames.add("Monday 9/2");
+        sDayAbbreviations.add("9/2");
 
-        mEventTypeAbbreviations.add("work");
-        mEventTypeNames        .add("Work");
-        mEventTypeAbbreviations.add("game");
-        mEventTypeNames        .add("Game");
-        mEventTypeAbbreviations.add("adlt");
-        mEventTypeNames        .add("Adult");
-        mEventTypeAbbreviations.add("prty");
-        mEventTypeNames        .add("Party");
-        mEventTypeAbbreviations.add("perf");
-        mEventTypeNames        .add("Performance");
-        mEventTypeAbbreviations.add("kid");
-        mEventTypeNames        .add("Kid");
-        mEventTypeAbbreviations.add("food");
-        mEventTypeNames        .add("Food");
-        mEventTypeAbbreviations.add("cere");
-        mEventTypeNames        .add("Ceremony");
-        mEventTypeAbbreviations.add("care");
-        mEventTypeNames        .add("Care");
-        mEventTypeAbbreviations.add("fire");
-        mEventTypeNames        .add("Fire");
+        sEventTypeAbbreviations.add("work");
+        sEventTypeNames.add("Work");
+        sEventTypeAbbreviations.add("game");
+        sEventTypeNames.add("Game");
+        sEventTypeAbbreviations.add("adlt");
+        sEventTypeNames.add("Adult");
+        sEventTypeAbbreviations.add("prty");
+        sEventTypeNames.add("Party");
+        sEventTypeAbbreviations.add("perf");
+        sEventTypeNames.add("Performance");
+        sEventTypeAbbreviations.add("kid");
+        sEventTypeNames.add("Kid");
+        sEventTypeAbbreviations.add("food");
+        sEventTypeNames.add("Food");
+        sEventTypeAbbreviations.add("cere");
+        sEventTypeNames.add("Ceremony");
+        sEventTypeAbbreviations.add("care");
+        sEventTypeNames.add("Care");
+        sEventTypeAbbreviations.add("fire");
+        sEventTypeNames.add("Fire");
     }
 
     public static String getStringForEventType(String typeAbbreviation) {
         if (typeAbbreviation == null) return null;
-        if (mEventTypeAbbreviations.contains(typeAbbreviation))
-            return mEventTypeNames.get(mEventTypeAbbreviations.indexOf(typeAbbreviation));
+        if (sEventTypeAbbreviations.contains(typeAbbreviation))
+            return sEventTypeNames.get(sEventTypeAbbreviations.indexOf(typeAbbreviation));
         return null;
     }
 
@@ -150,4 +161,42 @@ public class AdapterUtils {
             return -1;
         }
     }
+
+    public static AdapterView.OnItemLongClickListener mListItemLongClickListener = new AdapterView.OnItemLongClickListener(){
+
+        @Override
+        public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
+            int model_id = (Integer) v.getTag(R.id.list_item_related_model);
+            Constants.PLAYA_ITEM playa_item = (Constants.PLAYA_ITEM) v.getTag(R.id.list_item_related_model_type);
+            Uri uri = null;
+            switch (playa_item) {
+                case ART:
+                    uri = PlayaContentProvider.Art.ART;
+                    break;
+                case CAMP:
+                    uri = PlayaContentProvider.Camps.CAMPS;
+                    break;
+                case EVENT:
+                    uri = PlayaContentProvider.Events.EVENTS;
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown PLAYA_ITEM");
+            }
+            Cursor result = v.getContext().getContentResolver().query(uri, new String[] { PlayaItemTable.favorite }, PlayaItemTable.id + " = ?", new String[] { String.valueOf(model_id) }, null);
+            if (result != null && result.moveToFirst()) {
+                ContentValues values = new ContentValues();
+                int isFavorite = result.getInt(result.getColumnIndex(PlayaItemTable.favorite));
+                values.put(PlayaItemTable.favorite, (isFavorite == 1 ? 0 : 1));
+
+                if (isFavorite == 1) {
+                    Toast.makeText(v.getContext(), "Removed from Favorites", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(v.getContext(), "Added to Favorites", Toast.LENGTH_SHORT).show();
+                }
+
+                v.getContext().getContentResolver().update(uri, values, PlayaItemTable.id + " = ?", new String[]{String.valueOf(model_id)});
+            }
+            return true;
+        }
+    };
 }
