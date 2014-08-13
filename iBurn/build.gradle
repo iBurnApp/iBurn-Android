@@ -50,6 +50,7 @@ android {
         }
         unsigned {
             signingConfig signingConfigs.unsigned
+            zipAlign true
         }
     }
 

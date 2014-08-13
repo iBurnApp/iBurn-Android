@@ -78,7 +78,7 @@ public class EventListViewFragment extends PlayaListViewFragment
             case DISTANCE:
             case NAME:
                 // TIME
-                return EventTable.startTime + " ASC";
+                return EventTable.endTime + " ASC";
         }
         throw new IllegalStateException("Unknown sort requested");
     }
@@ -111,7 +111,6 @@ public class EventListViewFragment extends PlayaListViewFragment
                 }
             }
             selection.append(")");
-
         }
     }
 
@@ -139,7 +138,6 @@ public class EventListViewFragment extends PlayaListViewFragment
     @Override
     public void onSelectionChanged(SORT sort, String day, ArrayList<String> types) {
         // day may be null
-        if (mCurrentSort == sort && day != null && day.equals(mDaySelection) && types.equals(mTypeSelection)) return;
         if (sort == SORT.DISTANCE && mCurrentSort != SORT.DISTANCE) {
             getLastDeviceLocation();
         }

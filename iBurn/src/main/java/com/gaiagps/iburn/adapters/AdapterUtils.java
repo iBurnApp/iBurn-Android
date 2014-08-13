@@ -132,7 +132,7 @@ public class AdapterUtils {
                         // Event already started
                         long timeLeftMinutes = ( endDate.getTime() - nowDate.getTime() ) / 1000 / 60;
 //                        Log.i(TAG, "ongoing event ends in " + timeLeftMinutes + " minutes ( " + endDateStr + ") eta " + minutesToTarget + " duration " + duration);
-                        if ( (timeLeftMinutes - minutesToTarget) >= duration / 4.0f) {
+                        if ( (timeLeftMinutes - minutesToTarget) > 0) {
                             // If we'll make at least a quarter of the event, Color it yellow
                             int endSpan = distanceText.indexOf("min") + 3;
                             spanRange = new SpannableString(distanceText);

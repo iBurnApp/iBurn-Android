@@ -283,9 +283,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             @Override
             protected Void doInBackground(Integer... params) {
                 int MBTileAssetId = params[0];
-                if (getActivity() != null)
+                if (getActivity() != null) {
                     FileUtils.copyMBTilesToSD(getActivity().getApplicationContext(), MBTileAssetId, Constants.MBTILE_DESTINATION);
-                else {
+                } else {
                     Log.e(TAG, "getActivity() null on addMBTileOverlay");
                     this.cancel(true);
                 }

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
  * Created by davidbrodsky on 8/2/14.
  */
 public class PlayaListViewHeader extends RelativeLayout {
+    public static final String TAG = "PlayaListViewHeader";
 
     protected TextView mDistance;
     protected TextView mFavorite;
