@@ -83,27 +83,23 @@ public class PlayaListViewHeader extends RelativeLayout {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                                         CharSequence selection = AdapterUtils.sEventTypeAbbreviations.toArray(new CharSequence[AdapterUtils.sEventTypeAbbreviations.size()])[which];
+                                        String tabTitle = null;
                                         if (isChecked) {
                                             mTypeSelectionIndexes[which] = true;
                                             mTypeSelection.add( (selection == null) ? null : selection.toString());
+                                            tabTitle = (selection == null) ? getResources().getString(R.string.any_type) : AdapterUtils.sEventTypeNames.toArray(new CharSequence[AdapterUtils.sEventTypeNames.size()])[which].toString();
                                         } else {
                                             mTypeSelectionIndexes[which] = false;
                                             mTypeSelection.remove( (selection == null) ? null : selection.toString());
+                                            tabTitle = (mTypeSelection.size() == 0) ? getResources().getString(R.string.any_type) : AdapterUtils.sEventTypeNames.get(AdapterUtils.sEventTypeAbbreviations.indexOf(mTypeSelection.get(mTypeSelection.size()-1)));
                                         }
-                                        String tabTitle = (selection == null) ? getResources().getString(R.string.any_type) : AdapterUtils.sEventTypeNames.toArray(new CharSequence[AdapterUtils.sEventTypeNames.size()])[which].toString();
+
                                         if (mTypeSelection.size() > 1) tabTitle += "+";
                                         ((TextView) v).setText(tabTitle.toUpperCase());
                                         dispatchSelection();
                                     }
                                 });
-                        builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (mTypeSelection.size() == 0) {
-                                    ((TextView) v).setText(getResources().getString(R.string.any_type));
-                                }
-                            }
-                        });
+                        builder.setPositiveButton(getContext().getString(R.string.done), null);
                         builder.show();
                     } else if (v.getTag().equals("day")) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());

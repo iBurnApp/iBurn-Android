@@ -45,5 +45,6 @@
     <string name="filter_by_day">Filter by Day</string>
     <string name="filter_by_type">Filter by Type</string>
     <string name="all">ALL</string>
+    <string name="done">Done</string>
 
 </resources>
