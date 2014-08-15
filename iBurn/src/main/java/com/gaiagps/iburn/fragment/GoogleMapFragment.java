@@ -520,24 +520,25 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     switch (id) {
                         case ALL:
                             if (cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0) {
-                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
+                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
                             } else if (cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0) {
-                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
+                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
                             } else {
-                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
+                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
                             }
                             break;
                         case ART:
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
                             break;
                         case CAMPS:
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
                             break;
                         case EVENTS:
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
                             break;
                     }
 
+                    marker.setAnchor(0.5f, 0.5f);
                     markerQueue.add(marker);
                     markerIdToMeta.put(marker.getId(), String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.id))));
                 } else {
@@ -549,24 +550,25 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     switch (id) {
                         case ALL:
                             if (cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0) {
-                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
+                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_pin));
                             } else if (cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0) {
-                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
+                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_pin));
                             } else {
-                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
+                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_pin));
                             }
                             break;
                         case ART:
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_marker));
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_pin));
                             break;
                         case CAMPS:
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_marker));
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_pin));
                             break;
                         case EVENTS:
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_marker));
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_pin));
                             break;
                     }
 
+                    markerOptions.anchor(0.5f, 0.5f);
                     Marker marker = map.addMarker(markerOptions);
                     markerIdToMeta.put(marker.getId(), String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.id))));
                     markerQueue.add(marker);

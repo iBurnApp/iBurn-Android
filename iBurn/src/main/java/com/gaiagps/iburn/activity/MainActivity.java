@@ -77,10 +77,10 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
      */
     private static List<Pair<Class<? extends Fragment>, Integer>> sPages
             = new ArrayList<Pair<Class<? extends Fragment>, Integer>>() {{
-        add(new Pair<Class<? extends Fragment>, Integer>(GoogleMapFragment.class,        R.drawable.ic_map));
-        add(new Pair<Class<? extends Fragment>, Integer>(ArtListViewFragment.class,      R.drawable.ic_brush));
-        add(new Pair<Class<? extends Fragment>, Integer>(CampListViewFragment.class,     R.drawable.ic_tent));
-        add(new Pair<Class<? extends Fragment>, Integer>(EventListViewFragment.class,    R.drawable.ic_clock));
+        add(new Pair<Class<? extends Fragment>, Integer>(GoogleMapFragment.class,        R.drawable.ic_brc));
+        add(new Pair<Class<? extends Fragment>, Integer>(ArtListViewFragment.class,      R.drawable.ic_monument));
+        add(new Pair<Class<? extends Fragment>, Integer>(CampListViewFragment.class,     R.drawable.ic_camp));
+        add(new Pair<Class<? extends Fragment>, Integer>(EventListViewFragment.class,    R.drawable.ic_calendar));
     }};
 
     @Override

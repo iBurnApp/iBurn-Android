@@ -9,13 +9,13 @@
         android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="48dip"/>
+        android:layout_marginTop="54dip"/>
 
     <com.astuetz.PagerSlidingTabStrip
         android:id="@+id/tabs"
         android:layout_gravity="top"
         android:layout_width="match_parent"
-        android:layout_height="48dip" />
+        android:layout_height="54dip" />
 
     <EditText
         android:id="@+id/searchView"
