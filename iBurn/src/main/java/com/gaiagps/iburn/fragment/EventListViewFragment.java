@@ -101,8 +101,12 @@ public class EventListViewFragment extends PlayaListViewFragment
         if (mDaySelection != null) {
             appendSelection(selection, EventTable.startTimePrint + " LIKE ?", "%" + mDaySelection + "%");
         }
+        boolean enclosedInParens = false;
         if (mTypeSelection != null && mTypeSelection.size() > 0) {
-            if (selection.length() > 0) selection.append(" AND (");
+            if (selection.length() > 0) {
+                selection.append(" AND (");
+                enclosedInParens = true;
+            }
             for (int x = 0; x < mTypeSelection.size(); x++) {
                 selection.append(String.format("%s = ?", EventTable.eventType));
                 selectionArgs.add(mTypeSelection.get(x));
@@ -110,7 +114,7 @@ public class EventListViewFragment extends PlayaListViewFragment
                     selection.append(" OR ");
                 }
             }
-            selection.append(")");
+            if (enclosedInParens) selection.append(")");
         }
     }
 
