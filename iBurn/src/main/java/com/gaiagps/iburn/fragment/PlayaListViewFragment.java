@@ -31,6 +31,7 @@ import com.gaiagps.iburn.location.DeviceLocation;
 import com.gaiagps.iburn.view.PlayaListViewHeader;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * Created by davidbrodsky on 8/3/13.
@@ -73,7 +74,7 @@ public abstract class PlayaListViewFragment extends ListFragment
             case DISTANCE:
                 // TODO: Dispatch a fresh location request and re-sort list?
                 if (mLastLocation != null) {
-                    String dateSearch = String.format("(%1$s - %2$,.2f) * (%1$s - %2$,.2f) + (%3$s - %4$,.2f) * (%3$s - %4$,.2f) ASC",
+                    String dateSearch = String.format(Locale.US, "(%1$s - %2$,.2f) * (%1$s - %2$,.2f) + (%3$s - %4$,.2f) * (%3$s - %4$,.2f) ASC",
                             PlayaItemTable.latitude, mLastLocation.getLatitude(),
                             PlayaItemTable.longitude, mLastLocation.getLongitude());
                     Log.i(TAG, "returning location " + dateSearch);
