@@ -17,4 +17,5 @@ public class PlayaDatabase {
     @Table(ArtTable.class)      public static final String  ART     = "art";
     @Table(CampTable.class)     public static final String  CAMPS   = "camps";
     @Table(EventTable.class)    public static final String  EVENTS  = "events";
+    @Table(UserPoiTable.class)  public static final String  POIS    = "pois";
 }

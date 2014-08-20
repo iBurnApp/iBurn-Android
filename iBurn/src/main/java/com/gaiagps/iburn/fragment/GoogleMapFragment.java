@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.fragment;
 
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -13,22 +14,31 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.FileUtils;
 import com.gaiagps.iburn.PlayaClient;
+import com.gaiagps.iburn.PlayaUtils;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
+import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaContentProvider;
 import com.gaiagps.iburn.database.PlayaItemTable;
+import com.gaiagps.iburn.database.UserPoiTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -60,12 +70,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         if (TextUtils.isEmpty(query)) {
             if (areMarkersVisible()) clearMap();
             mState = STATE.EXPLORE;
-            mapCamps = false;
             if (lastZoomLevel > POI_ZOOM_LEVEL) restartLoaders(true);
 
         } else {
             mState = STATE.SEARCH;
-            mapCamps = true;
             restartLoaders(true);
         }
     }
@@ -85,20 +93,24 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     final int ART = 1;
     final int CAMPS = 2;
     final int EVENTS = 3;
-    final int ALL = 4;
+    final int POIS = 4;
+    final int ALL = 5;
 
     // Limit mapped pois
-    boolean mapCamps = false;
+    boolean mapCamps = true;
     boolean mapArt = true;
     boolean mapEvents = true;
+    boolean mapUserPois = true;
 
     private final int POI_ZOOM_LEVEL = 18;
     float lastZoomLevel = 0;
-    LatLng lastTarget;
     int mLoaderType = 0;
 
+    /** Map of user added pins. Google Marker Id -> Database Id */
+    HashMap<String, String> mMappedCustomMarkerIds = new HashMap<>();
+    /** Map of pins shown in response to explore or search */
     private static final int MAX_POIS = 200;
-    ArrayDeque<Marker> markerQueue = new ArrayDeque<>(MAX_POIS);
+    ArrayDeque<Marker> mMappedMarkers = new ArrayDeque<>(MAX_POIS);
     HashMap<String, String> markerIdToMeta = new HashMap<>();
     MapBoxOfflineTileProvider tileProvider;
     TileOverlay overlay;
@@ -109,6 +121,98 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     boolean limitListToFavorites = false;   // Limit display to favorites?
 
     boolean settingHomeLocation = false;
+
+    private View.OnClickListener mOnAddPinBtnListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            showEditPinDialog(addCustomPin(null, null, 0));
+        }
+    };
+
+    private void showEditPinDialog(final Marker marker) {
+        View dialogBody = getActivity().getLayoutInflater().inflate(R.layout.dialog_poi, null);
+        final RadioGroup iconGroup = ((RadioGroup) dialogBody.findViewById(R.id.iconGroup));
+        // Fetch current Marker icon
+        Cursor poi = getActivity().getContentResolver().query(PlayaContentProvider.Pois.POIS,
+                new String[] {PlayaItemTable.id, UserPoiTable.drawableResId},
+                PlayaItemTable.id + " = ?",
+                new String[] { String.valueOf(getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId())))}, null);
+        if (poi != null && poi.moveToFirst()) {
+            int drawableResId = poi.getInt(poi.getColumnIndex(UserPoiTable.drawableResId));
+            switch (drawableResId) {
+                case R.drawable.puck_star:
+                    ((RadioButton) iconGroup.findViewById(R.id.btn_star)).setChecked(true);
+                    break;
+                case R.drawable.puck_heart:
+                    ((RadioButton) iconGroup.findViewById(R.id.btn_heart)).setChecked(true);
+                    break;
+                case R.drawable.puck_home:
+                    ((RadioButton) iconGroup.findViewById(R.id.btn_home)).setChecked(true);
+                    break;
+                case R.drawable.puck_bicycle:
+                    ((RadioButton) iconGroup.findViewById(R.id.btn_bike)).setChecked(true);
+                    break;
+            }
+        }
+
+        iconGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId) {
+                    case R.id.btn_star:
+                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_star));
+                        break;
+                    case R.id.btn_heart:
+                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_heart));
+                        break;
+                    case R.id.btn_home:
+                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_home));
+                        break;
+                    case R.id.btn_bike:
+                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_bicycle));
+                        break;
+                }
+            }
+        });
+        final EditText markerTitle = (EditText) dialogBody.findViewById(R.id.markerTitle);
+        markerTitle.setText(marker.getTitle());
+        new AlertDialog.Builder(getActivity())
+                .setTitle(getActivity().getString(R.string.dialog_edit_marker_title))
+                .setView(dialogBody)
+                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Save the title
+                        marker.setTitle(markerTitle.getText().toString());
+                        marker.hideInfoWindow();
+
+                        int drawableId = 0;
+                        switch (iconGroup.getCheckedRadioButtonId()) {
+                            case R.id.btn_star:
+                               drawableId = R.drawable.puck_star;
+                                break;
+                            case R.id.btn_heart:
+                                drawableId = R.drawable.puck_heart;
+                                break;
+                            case R.id.btn_home:
+                                drawableId = R.drawable.puck_home;
+                                break;
+                            case R.id.btn_bike:
+                                drawableId = R.drawable.puck_bicycle;
+                                break;
+                        }
+                        updateCustomPinWithMarker(marker, drawableId);
+                    }
+                })
+                .setNegativeButton("Delete", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Delete Pin
+                        removeCustomPin(marker);
+                    }
+                })
+                .show();
+    }
 
     public static GoogleMapFragment newInstance() {
         return new GoogleMapFragment();
@@ -132,41 +236,25 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.map, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View parent = super.onCreateView(inflater, container, savedInstanceState);
+        ImageButton addPoiBtn = (ImageButton) inflater.inflate(R.layout.add_poi_map_btn, container, false);
+        addPoiBtn.setOnClickListener(mOnAddPinBtnListener);
+        ((ViewGroup) parent).addView(addPoiBtn);
+        setMargins(addPoiBtn, 32, 32, 0 , 0);
+        return parent;
     }
 
-    @Override
-    public void onPrepareOptionsMenu (Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        if (PlayaClient.getHomeLatLng(getActivity()) != null && !settingHomeLocation) {
-            // GoogleMapFragment may be used without its menu
-            if (menu.findItem(R.id.action_home)!= null) {
-                // If a home camp is set, "set home camp" -> "navigate home"
-                menu.findItem(R.id.action_home).setTitle(R.string.action_nav_home);
-            }
+    /**
+     * Thanks to SO:
+     * http://stackoverflow.com/questions/4472429/change-the-right-margin-of-a-view-programmatically
+     */
+    public static void setMargins (View v, int l, int t, int r, int b) {
+        if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            p.setMargins(l, t, r, b);
+            v.requestLayout();
         }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        switch (id) {
-            case R.id.action_home:
-                if (PlayaClient.getHomeLatLng(getActivity()) == null && !settingHomeLocation) {
-                    settingHomeLocation = true;
-                    Toast.makeText(GoogleMapFragment.this.getActivity(), "Hold then drag the pin to set your home camp", Toast.LENGTH_LONG).show();
-                    addHomePin(new LatLng(Constants.MAN_LAT, Constants.MAN_LON));
-                } else if (!settingHomeLocation) {
-                    // If a home camp is set, "set home camp" -> "navigate home"
-                    navigateHome();
-                }
-                break;
-        }
-
-        return true;
     }
 
     @Override
@@ -186,10 +274,37 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         latLngToCenterOn = null;
     }
 
+    /**
+     * Load all user placeable POIs and attach
+     * a {@link com.google.android.gms.maps.GoogleMap.OnMarkerDragListener}
+     * on pins of that type
+     */
+    private void loadCustomPins() {
+        restartLoader(POIS);
+        getMap().setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+            @Override
+            public void onMarkerDragStart(Marker marker) {
+            }
+
+            @Override
+            public void onMarkerDrag(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDragEnd(Marker marker) {
+                if ( mMappedCustomMarkerIds.containsKey(marker.getId()) ) {
+                    updateCustomPinWithMarker(marker, 0);
+                }
+            }
+        });
+    }
+
     private void initMap() {
         addMBTileOverlay(R.raw.iburn);
         getMap().getUiSettings().setZoomControlsEnabled(false);
-        addHomePin(PlayaClient.getHomeLatLng(getActivity()));
+        loadCustomPins();
+        //addCustomPin(PlayaClient.getHomeLatLng(getActivity()));
         // TODO: If user location present, start there
         LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
         visibleRegion = getMap().getProjection().getVisibleRegion();
@@ -271,6 +386,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     i.putExtra("model_id", model_id);
                     i.putExtra("playa_item", playaItem);
                     getActivity().startActivity(i);
+                } else if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
+                    showEditPinDialog(marker);
                 }
             }
         });
@@ -399,14 +516,14 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     }
 
     public boolean areMarkersVisible() {
-        return markerQueue.size() > 0;
+        return mMappedMarkers.size() > 0;
     }
 
     public void clearMap() {
-        for (Marker marker : markerQueue) {
+        for (Marker marker : mMappedMarkers) {
             marker.remove();
         }
-        markerQueue.clear();
+        mMappedMarkers.clear();
         markerIdToMeta.clear();
         mLoaderType = 0;
     }
@@ -430,22 +547,21 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         mState = STATE.EXPLORE;
     }
 
-    static final String[] PROJECTION = new String[]{
-            PlayaItemTable.name,
-            PlayaItemTable.id,
-            PlayaItemTable.latitude,
-            PlayaItemTable.longitude,
-            PlayaItemTable.favorite
-    };
+    static final ArrayList<String> PROJECTION = new ArrayList<String>() {{
+        add(PlayaItemTable.name);
+        add(PlayaItemTable.id);
+        add(PlayaItemTable.latitude);
+        add(PlayaItemTable.longitude);
+        add(PlayaItemTable.favorite);
+    }};
 
     @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        String[] projection = PROJECTION;
+    public Loader<Cursor> onCreateLoader(int loaderId, Bundle bundle) {
         Uri targetUri = null;
         String selection = "";
         ArrayList<String> selectionArgs = new ArrayList<>();
 
-        switch (i) {
+        switch (loaderId) {
             case ART:
                 targetUri = PlayaContentProvider.Art.ART;
                 break;
@@ -459,6 +575,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 selection += String.format("(%1$s < '%2$s' AND %3$s > '%2$s') ",
                             EventTable.startTime,   PlayaClient.getISOString(now),
                             EventTable.endTime);
+                break;
+            case POIS:
+                targetUri = PlayaContentProvider.Pois.POIS;
                 break;
             case ALL:
             default:
@@ -476,7 +595,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         }
 
         // Select by latitude and longitude within screen-visible region
-        if (mState == STATE.EXPLORE) {
+        if (mState == STATE.EXPLORE && visibleRegion != null) {
             if (selection.length() > 0) selection += " AND ";
             selection += String.format("(%s < ? AND %s > ?) AND (%s < ? AND %s > ?)",
                     PlayaItemTable.latitude, PlayaItemTable.latitude,
@@ -493,6 +612,15 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             selectionArgs.add("1");
         }
 
+        String[] projection = null;
+        if (loaderId == POIS) {
+            // If we're fetching POIs, add the drawableResourceId column
+            projection = PROJECTION.toArray(new String[PROJECTION.size() + 1]);
+            projection[projection.length-1] = UserPoiTable.drawableResId;
+        } else {
+            projection = PROJECTION.toArray(new String[PROJECTION.size()]);
+        }
+
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
         Log.i(TAG, "Creating loader with uri: " + targetUri.toString());
@@ -503,78 +631,125 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         int id = cursorLoader.getId();
+//        Log.i(TAG, "Loader finished for id " + id + " with items " + cursor.getCount());
         GoogleMap map = getMap();
         if (map == null) return;
         String markerMapId;
         while (cursor.moveToNext()) {
-            markerMapId = String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.id)));
-            if (!markerIdToMeta.containsValue(markerMapId)) {
-                // This POI is not yet mapped
-                LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.latitude)), cursor.getDouble(cursor.getColumnIndex(ArtTable.longitude)));
-                if (markerQueue.size() == MAX_POIS) {
-                    // We should re-use the eldest Marker
-                    Marker marker = markerQueue.remove();
-                    marker.setPosition(pos);
-                    marker.setTitle(cursor.getString(cursor.getColumnIndex(ArtTable.name)));
-
-                    switch (id) {
-                        case ALL:
-                            if (cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0) {
-                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
-                            } else if (cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0) {
-                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
-                            } else {
-                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
-                            }
-                            break;
-                        case ART:
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
-                            break;
-                        case CAMPS:
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
-                            break;
-                        case EVENTS:
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
-                            break;
-                    }
-
-                    marker.setAnchor(0.5f, 0.5f);
-                    markerQueue.add(marker);
-                    markerIdToMeta.put(marker.getId(), String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.id))));
-                } else {
-                    // We shall create a new Marker
-                    MarkerOptions markerOptions;
-                    markerOptions = new MarkerOptions().position(pos)
-                            .title(cursor.getString(cursor.getColumnIndex(ArtTable.name)));
-
-                    switch (id) {
-                        case ALL:
-                            if (cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0) {
-                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_pin));
-                            } else if (cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0) {
-                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_pin));
-                            } else {
-                                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_pin));
-                            }
-                            break;
-                        case ART:
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_pin));
-                            break;
-                        case CAMPS:
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_pin));
-                            break;
-                        case EVENTS:
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_pin));
-                            break;
-                    }
-
-                    markerOptions.anchor(0.5f, 0.5f);
-                    Marker marker = map.addMarker(markerOptions);
-                    markerIdToMeta.put(marker.getId(), String.format("%d-%d", id, cursor.getInt(cursor.getColumnIndex(ArtTable.id))));
-                    markerQueue.add(marker);
+            markerMapId = generateDataIdForItem(id, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id)));
+            if (id == POIS) {
+                if (!mMappedCustomMarkerIds.containsValue(markerMapId)) {
+                    Marker marker = addNewMarkerForCursorItem(id, cursor);
+                    mMappedCustomMarkerIds.put(marker.getId(), markerMapId);
                 }
+            } else {
+                mapRecyclableMarker(id, markerMapId, cursor);
+            }
+
+        }
+    }
+
+    /**
+     * Return a key used internally to keep track of data items currently mapped,
+     * helping us avoid mapping duplicate points.
+     * @param loaderId The id of the loader
+     * @param itemId The database id of the item
+     */
+    private String generateDataIdForItem(int loaderId, int itemId) {
+        return String.format("%d-%d", loaderId, itemId);
+    }
+
+    /**
+     * Return the internal database id for an item given the string id
+     * generated by {@link #generateDataIdForItem(int, int)}
+     */
+    private int getDatabaseIdFromGeneratedDataId(String dataId) {
+        return Integer.parseInt(dataId.split("-")[1]);
+    }
+
+    /**
+     * Map a marker as part of a finite set of markers, limiting the total markers
+     * displayed and recycling markers if this limit is exceeded.
+     */
+    private void mapRecyclableMarker(int loaderId, String markerMapId, Cursor cursor) {
+        if (!markerIdToMeta.containsValue(markerMapId)) {
+            // This POI is not yet mapped
+            LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.latitude)), cursor.getDouble(cursor.getColumnIndex(ArtTable.longitude)));
+            if (mMappedMarkers.size() == MAX_POIS) {
+                // We should re-use the eldest Marker
+                Marker marker = mMappedMarkers.remove();
+                marker.setPosition(pos);
+                marker.setTitle(cursor.getString(cursor.getColumnIndex(ArtTable.name)));
+
+                switch (loaderId) {
+                    case ALL:
+                        if (cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0) {
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
+                        } else if (cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0) {
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
+                        } else {
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
+                        }
+                        break;
+                    case ART:
+                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
+                        break;
+                    case CAMPS:
+                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
+                        break;
+                    case EVENTS:
+                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
+                        break;
+                }
+
+                marker.setAnchor(0.5f, 0.5f);
+                mMappedMarkers.add(marker);
+                markerIdToMeta.put(marker.getId(), String.format("%d-%d", loaderId, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id))));
+            } else {
+                // We shall create a new Marker
+                Marker marker = addNewMarkerForCursorItem(loaderId, cursor);
+                markerIdToMeta.put(marker.getId(), String.format("%d-%d", loaderId, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id))));
+                mMappedMarkers.add(marker);
             }
         }
+    }
+
+    private Marker addNewMarkerForCursorItem(int loaderId, Cursor cursor) {
+        LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)),
+                                cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.longitude)));
+        MarkerOptions markerOptions;
+        markerOptions = new MarkerOptions().position(pos)
+                .title(cursor.getString(cursor.getColumnIndex(PlayaItemTable.name)));
+
+        switch (loaderId) {
+            case POIS:
+                styleCustomMarkerOption(markerOptions);
+                markerOptions.icon(BitmapDescriptorFactory.fromResource(cursor.getInt(cursor.getColumnIndex(UserPoiTable.drawableResId))));
+                Log.i(TAG, "Loading POI pin with drawable: " + cursor.getInt(cursor.getColumnIndex(UserPoiTable.drawableResId)));
+                break;
+            case ALL:
+                if (cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0) {
+                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_pin));
+                } else if (cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0) {
+                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_pin));
+                } else {
+                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_pin));
+                }
+                break;
+            case ART:
+                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_pin));
+                break;
+            case CAMPS:
+                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_pin));
+                break;
+            case EVENTS:
+                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_pin));
+                break;
+        }
+
+        markerOptions.anchor(0.5f, 0.5f);
+        Marker marker = getMap().addMarker(markerOptions);
+        return marker;
     }
 
     @Override
@@ -592,33 +767,80 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         getLoaderManager().initLoader(0, null, this);
     }
 
-    private void addHomePin(LatLng latLng) {
-        if (latLng == null)
-            return;
-        Marker marker = getMap().addMarker(new MarkerOptions()
+    private void removeCustomPin(Marker marker) {
+        marker.remove();
+        if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
+            int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
+            int numDeleted = getActivity().getContentResolver().delete(PlayaContentProvider.Pois.POIS, PlayaItemTable.id + " = ?", new String[] { String.valueOf(itemId)});
+            if (numDeleted != 1) Log.w(TAG, "Unable to delete marker " + marker.getTitle());
+        } else Log.w(TAG, "Unable to delete marker " + marker.getTitle());
+    }
+
+    /**
+     * Adds a custom pin to the current map and database
+     */
+    private Marker addCustomPin(LatLng latLng, String title, int drawableResId) {
+        if (latLng == null) {
+            LatLng mapCenter = getMap().getCameraPosition().target;
+            latLng = new LatLng(mapCenter.latitude, mapCenter.longitude);
+        }
+        if (title == null)
+            title = getActivity().getString(R.string.default_custom_pin_title);
+        if (drawableResId == 0)
+            drawableResId = R.drawable.puck_star;
+
+        MarkerOptions markerOptions = new MarkerOptions()
                 .position(latLng)
+                .title(title)
+                .anchor(0.5f, 0.5f)
+                .icon(BitmapDescriptorFactory.fromResource(drawableResId));
+
+        styleCustomMarkerOption(markerOptions);
+
+        Marker marker = getMap().addMarker(markerOptions);
+        ContentValues poiValues = new ContentValues();
+        poiValues.put(UserPoiTable.name, title);
+        poiValues.put(UserPoiTable.latitude, latLng.latitude);
+        poiValues.put(UserPoiTable.longitude, latLng.longitude);
+        poiValues.put(UserPoiTable.drawableResId, drawableResId);
+        try {
+            int newId = Integer.parseInt(getActivity().getContentResolver().insert(PlayaContentProvider.Pois.POIS, poiValues).getLastPathSegment());
+            mMappedCustomMarkerIds.put(marker.getId(), generateDataIdForItem(POIS, newId));
+        } catch (NumberFormatException e) {
+                Log.w(TAG, "Unable to get id for new custom marker");
+        }
+
+        return marker;
+    }
+
+    /**
+     * Apply style to a custom MarkerOptions before
+     * adding to Map
+     */
+    private void styleCustomMarkerOption(MarkerOptions markerOption) {
+        markerOption
                 .draggable(true)
-                .title(getActivity().getString(R.string.home))
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_marker)));
-        final String homeMarkerId = marker.getId();
-        getMap().setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
-            @Override
-            public void onMarkerDragStart(Marker marker) {
-            }
+                .flat(true);
+    }
 
-            @Override
-            public void onMarkerDrag(Marker marker) {
-
-            }
-
-            @Override
-            public void onMarkerDragEnd(Marker marker) {
-                if (marker.getId().compareTo(homeMarkerId) == 0) {
-                    PlayaClient.setHomeLatLng(GoogleMapFragment.this.getActivity().getApplicationContext(), marker.getPosition());
-                    getActivity().invalidateOptionsMenu();
-                }
-            }
-        });
+    /**
+     * Update a Custom pin placed by a user with state of a map marker.
+     *
+     * Note: If drawableResId is 0, it is ignored
+     */
+    private void updateCustomPinWithMarker(Marker marker, int drawableResId) {
+        if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
+            ContentValues poiValues = new ContentValues();
+            poiValues.put(UserPoiTable.name, marker.getTitle());
+            poiValues.put(UserPoiTable.latitude, marker.getPosition().latitude);
+            poiValues.put(UserPoiTable.longitude, marker.getPosition().longitude);
+            if (drawableResId != 0)
+                poiValues.put(UserPoiTable.drawableResId, drawableResId);
+            int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
+            int numUpdated = getActivity().getContentResolver().update(PlayaContentProvider.Pois.POIS, poiValues, PlayaItemTable.id + " = ?", new String[] { String.valueOf(itemId)});
+            if (numUpdated != 1) Log.w(TAG, "Failed to update custom pin with marker");
+        } else
+            Log.w(TAG, "Unable to find custom marker in map for updating");
     }
 
     private void restartLoaders(boolean clearMap) {
@@ -630,5 +852,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             restartLoader(ART);
         if (mapEvents && PlayaClient.isEmbargoClear(getActivity()))
             restartLoader(EVENTS);
+        if (mapUserPois)
+            restartLoader(POIS);
     }
 }

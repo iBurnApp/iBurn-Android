@@ -22,13 +22,12 @@ Fortunately, you can still run and test the app with the previous year's data.
 
 ## TODO
 
+* Place POI at screen center.
+
 * On-Boarder
-* Better organize the Event ListView. I wrote a sectionizer by date last year that I'll plop in at minimum.
-* Provide map UI to set home camp?
 * When searching map, smooth zoom to frame results
 * Pretty up that item detail view.
 * Show Favorites on the Map
-* Favorite items by long-pressing on cell
 * Scroll back to top when switching sort
 * Put Playa location as first item in detail view (e.g. 7:45 & E)
 * Put distance as second item in detail view

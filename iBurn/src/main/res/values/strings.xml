@@ -46,5 +46,7 @@
     <string name="filter_by_type">Filter by Type</string>
     <string name="all">ALL</string>
     <string name="done">Done</string>
+    <string name="default_custom_pin_title">A Special Place</string>
+    <string name="dialog_edit_marker_title">Edit Marker</string>
 
 </resources>

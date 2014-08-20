@@ -24,7 +24,7 @@ import java.util.TimeZone;
 public class PlayaClient {
 
     /** Used by PlayaDatabase and DBWrapper */
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 3;
 
     private static SimpleDateFormat sDateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
@@ -32,7 +32,7 @@ public class PlayaClient {
         sDateFormatter.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
     }
 
-    private static final boolean USE_BUNDLED_DB = true;
+    private static final boolean USE_BUNDLED_DB = false;
 
     private static final String UNLOCK_PW = SECRETS.UNLOCK_CODE;
 
