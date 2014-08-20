@@ -520,6 +520,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     public void showcaseMarker(MarkerOptions marker) {
         mState = STATE.SHOWCASE;
         mapAndCenterOnMarker(marker);
+        ImageButton poiBtn = (ImageButton) getActivity().findViewById(R.id.mapPoiBtn);
+        if (poiBtn != null) {
+            poiBtn.setVisibility(View.GONE);
+        }
 
     }
 

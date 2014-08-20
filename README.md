@@ -22,8 +22,6 @@ Fortunately, you can still run and test the app with the previous year's data.
 
 ## TODO
 
-* Place POI at screen center.
-
 * On-Boarder
 * When searching map, smooth zoom to frame results
 * Pretty up that item detail view.
