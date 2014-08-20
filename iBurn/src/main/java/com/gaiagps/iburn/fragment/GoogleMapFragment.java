@@ -14,6 +14,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -176,8 +177,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         });
         final EditText markerTitle = (EditText) dialogBody.findViewById(R.id.markerTitle);
         markerTitle.setText(marker.getTitle());
-        new AlertDialog.Builder(getActivity())
-                .setTitle(getActivity().getString(R.string.dialog_edit_marker_title))
+        new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.Theme_Iburn))
                 .setView(dialogBody)
                 .setPositiveButton("Done", new DialogInterface.OnClickListener() {
                     @Override

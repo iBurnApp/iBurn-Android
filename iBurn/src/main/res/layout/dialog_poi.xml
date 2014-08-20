@@ -8,27 +8,40 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         android:paddingTop="8dp"
-        android:fontFamily="sans-serif-black"
-        android:text="Title" />
-    <EditText
-        android:id="@+id/markerTitle"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Home, Bike, etc." />
+        android:text="@string/dialog_edit_marker_title"
+        android:textSize="30sp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="8dp"
+        android:text="Title" />
+
+    <EditText
+        android:id="@+id/markerTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Home, Bike, etc."
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         android:paddingTop="16dp"
-        android:fontFamily="sans-serif-black"
-        android:text="Icon" />
+        android:text="Icon"
+        android:textSize="18sp" />
 
     <RadioGroup
         android:id="@+id/iconGroup"
@@ -43,7 +56,7 @@
             android:layout_height="wrap_content"
             android:checked="true"
             android:drawablePadding="-8dp"
-            android:drawableRight="@drawable/puck_star"/>
+            android:drawableRight="@drawable/puck_star" />
 
         <RadioButton
             android:id="@+id/btn_home"
@@ -57,7 +70,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:drawablePadding="-8dp"
-            android:drawableRight="@drawable/puck_bicycle"/>
+            android:drawableRight="@drawable/puck_bicycle" />
 
         <RadioButton
             android:id="@+id/btn_heart"

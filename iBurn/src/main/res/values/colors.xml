@@ -18,6 +18,9 @@
 -->
 
 <resources>
+
+    <!-- Highlight Color -->
+    <color name="iburn_color">@color/highlight_comp</color>
     <!-- ActionBar -->
     <color name="ab_bg">@color/off_blk_2</color>
 

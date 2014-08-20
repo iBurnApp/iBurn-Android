@@ -16,6 +16,36 @@
     <style name="Theme.Iburn" parent="Theme.Iburn.Base">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
         <item name="android:actionBarStyle">@style/ActionBar.Transparent.Iburn</item>
+
+        <item name="android:editTextBackground">@drawable/iburn_edit_text_holo_dark</item>
+
+        <item name="android:textColorHighlight">#99ff8d1c</item>
+        <item name="android:textSelectHandleLeft">@drawable/iburn_text_select_handle_left</item>
+        <item name="android:textSelectHandleRight">@drawable/iburn_text_select_handle_right</item>
+        <item name="android:textSelectHandle">@drawable/iburn_text_select_handle_middle</item>
+
+        <item name="android:listChoiceIndicatorMultiple">@drawable/iburn_btn_check_holo_dark</item>
+
+        <item name="android:listChoiceIndicatorSingle">@drawable/iburn_btn_radio_holo_dark</item>
+
+        <item name="android:fastScrollThumbDrawable">@drawable/iburn_fastscroll_thumb_holo</item>
+
+        <item name="sdlDialogStyle">@style/DialogStyleDark.Custom</item>
+    </style>
+
+    <style name="DialogStyleDark.Custom">
+        <!-- anything can be left out: -->
+        <item name="titleTextColor">@color/iburn_color</item>
+        <item name="titleSeparatorColor">@color/iburn_color</item>
+        <!--
+        <item name="messageTextColor">@color/dialog_message_text</item>
+        <item name="buttonTextColor">@color/dialog_button_text</item>
+        <item name="buttonSeparatorColor">@color/dialog_button_separator</item>
+        <item name="buttonBackgroundColorNormal">@color/dialog_button_normal</item>
+        <item name="buttonBackgroundColorPressed">@color/dialog_button_pressed</item>
+        <item name="buttonBackgroundColorFocused">@color/dialog_button_focused</item>
+        <item name="dialogBackground">@drawable/dialog_background</item>
+        -->
     </style>
 
     <style name="ActionBar.Transparent.Iburn" parent="@android:style/Widget.Holo.ActionBar">
