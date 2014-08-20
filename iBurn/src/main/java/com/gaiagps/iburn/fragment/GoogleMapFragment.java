@@ -15,10 +15,12 @@ import android.support.v4.content.Loader;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -120,7 +122,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     private View.OnClickListener mOnAddPinBtnListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            showEditPinDialog(addCustomPin(null, null, UserPoiTable.STAR));
+            Marker marker = addCustomPin(null, null, UserPoiTable.STAR);
+            showEditPinDialog(marker);
         }
     };
 
@@ -221,7 +224,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         ImageButton addPoiBtn = (ImageButton) inflater.inflate(R.layout.add_poi_map_btn, container, false);
         addPoiBtn.setOnClickListener(mOnAddPinBtnListener);
         ((ViewGroup) parent).addView(addPoiBtn);
-        setMargins(addPoiBtn, 32, 32, 0 , 0);
+        setMargins(addPoiBtn, 0, 32 + 150, 32 , 0);
         return parent;
     }
 
@@ -233,8 +236,12 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
             p.setMargins(l, t, r, b);
+            if (p instanceof FrameLayout.LayoutParams) {
+                ((FrameLayout.LayoutParams) p).gravity = Gravity.TOP | Gravity.RIGHT;
+            }
             v.requestLayout();
         }
+
     }
 
     @Override
@@ -708,7 +715,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         switch (loaderId) {
             case POIS:
                 styleCustomMarkerOption(markerOptions, cursor.getInt(cursor.getColumnIndex(UserPoiTable.drawableResId)));
-                Log.i(TAG, "Loading POI pin with drawable: " + cursor.getInt(cursor.getColumnIndex(UserPoiTable.drawableResId)));
+//                Log.i(TAG, "Loading POI pin with drawable: " + cursor.getInt(cursor.getColumnIndex(UserPoiTable.drawableResId)));
                 break;
             case ALL:
                 if (cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0) {
@@ -851,4 +858,5 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         if (mapUserPois)
             restartLoader(POIS);
     }
+
 }

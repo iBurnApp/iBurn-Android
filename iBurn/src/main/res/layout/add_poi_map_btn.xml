@@ -4,6 +4,7 @@
     android:id="@+id/mapPoiBtn"
     android:layout_width="40dp"
     android:layout_height="40dp"
+    android:layout_gravity="right|top"
     android:background="@drawable/map_btn_bg"
     android:scaleType="fitCenter"
     android:padding="6dp"
