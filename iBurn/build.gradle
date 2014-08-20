@@ -86,7 +86,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:19.1.0'
     apt 'net.simonvt.schematic:schematic-compiler:0.5.1'
     compile 'net.simonvt.schematic:schematic:0.5.1'
-    
+
 }
 
 apt {

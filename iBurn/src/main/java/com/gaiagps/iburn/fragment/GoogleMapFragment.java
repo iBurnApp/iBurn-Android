@@ -15,12 +15,10 @@ import android.support.v4.content.Loader;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -30,11 +28,9 @@ import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.FileUtils;
 import com.gaiagps.iburn.PlayaClient;
-import com.gaiagps.iburn.PlayaUtils;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
-import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaContentProvider;
@@ -121,12 +117,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     String mCurFilter;                      // Search string to filter by
     boolean limitListToFavorites = false;   // Limit display to favorites?
 
-    boolean settingHomeLocation = false;
-
     private View.OnClickListener mOnAddPinBtnListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            showEditPinDialog(addCustomPin(null, null, 0));
+            showEditPinDialog(addCustomPin(null, null, UserPoiTable.STAR));
         }
     };
 
@@ -141,40 +135,22 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         if (poi != null && poi.moveToFirst()) {
             int drawableResId = poi.getInt(poi.getColumnIndex(UserPoiTable.drawableResId));
             switch (drawableResId) {
-                case R.drawable.puck_star:
+                case UserPoiTable.STAR:
                     ((RadioButton) iconGroup.findViewById(R.id.btn_star)).setChecked(true);
                     break;
-                case R.drawable.puck_heart:
+                case UserPoiTable.HEART:
                     ((RadioButton) iconGroup.findViewById(R.id.btn_heart)).setChecked(true);
                     break;
-                case R.drawable.puck_home:
+                case UserPoiTable.HOME:
                     ((RadioButton) iconGroup.findViewById(R.id.btn_home)).setChecked(true);
                     break;
-                case R.drawable.puck_bicycle:
+                case UserPoiTable.BIKE:
                     ((RadioButton) iconGroup.findViewById(R.id.btn_bike)).setChecked(true);
                     break;
+                default:
+                    Log.e(TAG, "Unknown custom marker type");
             }
         }
-
-        iconGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                switch (checkedId) {
-                    case R.id.btn_star:
-                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_star));
-                        break;
-                    case R.id.btn_heart:
-                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_heart));
-                        break;
-                    case R.id.btn_home:
-                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_home));
-                        break;
-                    case R.id.btn_bike:
-                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_bicycle));
-                        break;
-                }
-            }
-        });
         final EditText markerTitle = (EditText) dialogBody.findViewById(R.id.markerTitle);
         markerTitle.setText(marker.getTitle());
         new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.Theme_Iburn))
@@ -189,16 +165,20 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                         int drawableId = 0;
                         switch (iconGroup.getCheckedRadioButtonId()) {
                             case R.id.btn_star:
-                               drawableId = R.drawable.puck_star;
+                               drawableId = UserPoiTable.STAR;
+                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_star));
                                 break;
                             case R.id.btn_heart:
-                                drawableId = R.drawable.puck_heart;
+                                drawableId = UserPoiTable.HEART;
+                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_heart));
                                 break;
                             case R.id.btn_home:
-                                drawableId = R.drawable.puck_home;
+                                drawableId = UserPoiTable.HOME;
+                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_home));
                                 break;
                             case R.id.btn_bike:
-                                drawableId = R.drawable.puck_bicycle;
+                                drawableId = UserPoiTable.BIKE;
+                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_bicycle));
                                 break;
                         }
                         updateCustomPinWithMarker(marker, drawableId);
@@ -723,8 +703,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
         switch (loaderId) {
             case POIS:
-                styleCustomMarkerOption(markerOptions);
-                markerOptions.icon(BitmapDescriptorFactory.fromResource(cursor.getInt(cursor.getColumnIndex(UserPoiTable.drawableResId))));
+                styleCustomMarkerOption(markerOptions, cursor.getInt(cursor.getColumnIndex(UserPoiTable.drawableResId)));
                 Log.i(TAG, "Loading POI pin with drawable: " + cursor.getInt(cursor.getColumnIndex(UserPoiTable.drawableResId)));
                 break;
             case ALL:
@@ -786,16 +765,13 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         }
         if (title == null)
             title = getActivity().getString(R.string.default_custom_pin_title);
-        if (drawableResId == 0)
-            drawableResId = R.drawable.puck_star;
 
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(latLng)
                 .title(title)
-                .anchor(0.5f, 0.5f)
-                .icon(BitmapDescriptorFactory.fromResource(drawableResId));
+                .anchor(0.5f, 0.5f);
 
-        styleCustomMarkerOption(markerOptions);
+        styleCustomMarkerOption(markerOptions, drawableResId);
 
         Marker marker = getMap().addMarker(markerOptions);
         ContentValues poiValues = new ContentValues();
@@ -816,11 +792,27 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     /**
      * Apply style to a custom MarkerOptions before
      * adding to Map
+     *
+     * Note: drawableResId is an int constant from {@link com.gaiagps.iburn.database.UserPoiTable}
      */
-    private void styleCustomMarkerOption(MarkerOptions markerOption) {
+    private void styleCustomMarkerOption(MarkerOptions markerOption, int drawableResId) {
         markerOption
                 .draggable(true)
                 .flat(true);
+        switch (drawableResId) {
+            case UserPoiTable.HOME:
+                markerOption.icon(BitmapDescriptorFactory.fromResource(R.drawable.puck_home));
+                break;
+            case UserPoiTable.STAR:
+                markerOption.icon(BitmapDescriptorFactory.fromResource(R.drawable.puck_star));
+                break;
+            case UserPoiTable.BIKE:
+                markerOption.icon(BitmapDescriptorFactory.fromResource(R.drawable.puck_bicycle));
+                break;
+            case UserPoiTable.HEART:
+                markerOption.icon(BitmapDescriptorFactory.fromResource(R.drawable.puck_heart));
+                break;
+        }
     }
 
     /**

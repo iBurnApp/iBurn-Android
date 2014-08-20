@@ -13,7 +13,6 @@
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
         android:fontFamily="sans-serif-condensed"
         android:text="@string/welcome_iburn"
@@ -24,10 +23,9 @@
         android:id="@+id/message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/title"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
         android:fontFamily="sans-serif-condensed"
+        android:gravity="center_horizontal"
         android:text="@string/welcome"
         android:textColor="#ffe6e0dd"
         android:textSize="22sp" />
@@ -36,8 +34,6 @@
         android:id="@+id/heart"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/message"
-        android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="20dp"
         android:src="@drawable/heart" />
@@ -46,13 +42,11 @@
         android:id="@+id/salutation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/heart"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
         android:fontFamily="sans-serif-condensed"
         android:text="Team iBurn"
-        android:textStyle="bold"
         android:textColor="#ffe6e0dd"
-        android:textSize="22sp" />
+        android:textSize="22sp"
+        android:textStyle="bold" />
 
 </LinearLayout>

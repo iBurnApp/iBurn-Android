@@ -29,24 +29,8 @@
         <item name="android:listChoiceIndicatorSingle">@drawable/iburn_btn_radio_holo_dark</item>
 
         <item name="android:fastScrollThumbDrawable">@drawable/iburn_fastscroll_thumb_holo</item>
-
-        <item name="sdlDialogStyle">@style/DialogStyleDark.Custom</item>
     </style>
 
-    <style name="DialogStyleDark.Custom">
-        <!-- anything can be left out: -->
-        <item name="titleTextColor">@color/iburn_color</item>
-        <item name="titleSeparatorColor">@color/iburn_color</item>
-        <!--
-        <item name="messageTextColor">@color/dialog_message_text</item>
-        <item name="buttonTextColor">@color/dialog_button_text</item>
-        <item name="buttonSeparatorColor">@color/dialog_button_separator</item>
-        <item name="buttonBackgroundColorNormal">@color/dialog_button_normal</item>
-        <item name="buttonBackgroundColorPressed">@color/dialog_button_pressed</item>
-        <item name="buttonBackgroundColorFocused">@color/dialog_button_focused</item>
-        <item name="dialogBackground">@drawable/dialog_background</item>
-        -->
-    </style>
 
     <style name="ActionBar.Transparent.Iburn" parent="@android:style/Widget.Holo.ActionBar">
         <item name="android:background">@color/ab_bg</item>
