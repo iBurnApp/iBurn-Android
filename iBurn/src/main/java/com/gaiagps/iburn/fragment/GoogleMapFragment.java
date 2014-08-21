@@ -44,6 +44,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
@@ -73,6 +74,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
         } else {
             mState = STATE.SEARCH;
+            // TODO: Better way of counting all loaders in a query
+            // Camps, Art, Events. Manually counting on restartLoader etc. causes mismatches
+            mLoaderResponsesExpected = 3;
             restartLoaders(true);
         }
     }
@@ -104,6 +108,14 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     private final int POI_ZOOM_LEVEL = 18;
     float lastZoomLevel = 0;
     int mLoaderType = 0;
+    /** When restartLoaders is called, how many loaders were simultaneously started.
+     *  We use this number to collect a batch of loader results into a single collection
+     *  to center the camera on.
+     *
+     *  Set on each call to {@link #restartLoaders(boolean)}, Read on each call to
+     *  {@link #onLoadFinished(android.support.v4.content.Loader, android.database.Cursor)}
+     */
+    private int mLoaderResponsesExpected;
 
     /** Map of user added pins. Google Marker Id -> Database Id */
     HashMap<String, String> mMappedCustomMarkerIds = new HashMap<>();
@@ -303,29 +315,26 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         }
 
         getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-
-            private final double MAX_LAT = 40.810716;
-            private final double MAX_LON = -119.176357;
-            private final double MIN_LAT = 40.765293;
-            private final double MIN_LON = -119.232981;
+            /** Lat, Lon tolerance used to determine if location within BRC boundaries */
             private final double BUFFER = .00005;
 
+            /** Map zoom limits */
             private final double MAX_ZOOM = 19.5;
             private final double MIN_ZOOM = 12;
 
+            /** POI Search throttling */
             private final int CAMERA_MOVE_REACT_THRESHOLD_MS = 500;
             private long lastCallMs = Long.MIN_VALUE;
 
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
                 final long snap = System.currentTimeMillis();
-                if (cameraPosition.target.longitude > MAX_LON || cameraPosition.target.longitude < MIN_LON ||
-                        cameraPosition.target.latitude > MAX_LAT || cameraPosition.target.latitude < MIN_LAT ||
+                if (!PlayaClient.BRC_BOUNDS.contains(cameraPosition.target) ||
                         cameraPosition.zoom > MAX_ZOOM || cameraPosition.zoom < MIN_ZOOM) {
-                    // Ensure map view is within valid bounds
                     getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(Math.min(MAX_LAT - BUFFER, Math.max(cameraPosition.target.latitude, MIN_LAT + BUFFER)),
-                                       Math.min(MAX_LON - BUFFER, Math.max(cameraPosition.target.longitude, MIN_LON + BUFFER))),
+                            new LatLng(
+                                    Math.min(PlayaClient.MAX_LAT - BUFFER, Math.max(cameraPosition.target.latitude, PlayaClient.MIN_LAT + BUFFER)),
+                                    Math.min(PlayaClient.MAX_LON - BUFFER, Math.max(cameraPosition.target.longitude, PlayaClient.MIN_LON + BUFFER))),
                             (float) Math.min(Math.max(cameraPosition.zoom, MIN_ZOOM), MAX_ZOOM)));
                 } else {
                     // Map view bounds valid. Load POIs if necessary
@@ -619,13 +628,21 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 null);
     }
 
+    /** Keep track of the bounds describing a batch of results across Loaders */
+    private LatLngBounds.Builder mResultBounds = new LatLngBounds.Builder();
+
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        if (mState == STATE.SEARCH)
+            mLoaderResponsesExpected--;
         int id = cursorLoader.getId();
-//        Log.i(TAG, "Loader finished for id " + id + " with items " + cursor.getCount());
+        Log.i(TAG, "Loader finished for id " + id + " with items " + cursor.getCount());
         GoogleMap map = getMap();
         if (map == null) return;
         String markerMapId;
+        // Sorry, but Java has no immutable primitives and LatLngBounds has no indicator
+        // of when calling .build() will throw IllegalStateException due to including no points
+        boolean[] areBoundsValid = new boolean[1];
         while (cursor.moveToNext()) {
             markerMapId = generateDataIdForItem(id, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id)));
             if (id == POIS) {
@@ -634,10 +651,23 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     mMappedCustomMarkerIds.put(marker.getId(), markerMapId);
                 }
             } else {
-                mapRecyclableMarker(id, markerMapId, cursor);
+                mapRecyclableMarker(id, markerMapId, cursor, mResultBounds, areBoundsValid);
             }
-
         }
+        if (mState == STATE.SEARCH)
+            Log.i(TAG, "Loader responses expected " + mLoaderResponsesExpected);
+        if (areBoundsValid[0] && mState == STATE.SEARCH && mLoaderResponsesExpected == 0) {
+            map.animateCamera(CameraUpdateFactory.newLatLngBounds(mResultBounds.build(), 80));
+        } else if (!areBoundsValid[0] && mState == STATE.SEARCH && mLoaderResponsesExpected == 0) {
+            // No results
+            Log.i(TAG, "Resetting map view");
+            resetMapView();
+        }
+        if (mLoaderResponsesExpected == 0) {
+            // Reset query bounds
+            mResultBounds = new LatLngBounds.Builder();
+        }
+
     }
 
     /**
@@ -661,11 +691,20 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     /**
      * Map a marker as part of a finite set of markers, limiting the total markers
      * displayed and recycling markers if this limit is exceeded.
+     *
+     * @param areBoundsValid a hack one-dimensional boolean array used to report whether boundsBuilder
+     *                       includes at least one point and will not throw an exception on its build()
      */
-    private void mapRecyclableMarker(int loaderId, String markerMapId, Cursor cursor) {
+    private void mapRecyclableMarker(int loaderId, String markerMapId, Cursor cursor, LatLngBounds.Builder boundsBuilder, boolean[] areBoundsValid) {
         if (!markerIdToMeta.containsValue(markerMapId)) {
             // This POI is not yet mapped
             LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.latitude)), cursor.getDouble(cursor.getColumnIndex(ArtTable.longitude)));
+            if (loaderId != POIS && boundsBuilder != null && mState == STATE.SEARCH) {
+                if (PlayaClient.BRC_BOUNDS.contains(pos)) {
+                    boundsBuilder.include(pos);
+                    areBoundsValid[0] = true;
+                }
+            }
             if (mMappedMarkers.size() == MAX_POIS) {
                 // We should re-use the eldest Marker
                 Marker marker = mMappedMarkers.remove();
@@ -855,8 +894,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             restartLoader(ART);
         if (mapEvents && PlayaClient.isEmbargoClear(getActivity()))
             restartLoader(EVENTS);
-        if (mapUserPois)
-            restartLoader(POIS);
+        // User POIs are never cleared
+        // and so shouldn't need to be reset
     }
 
+    private void resetMapView() {
+        getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Constants.MAN_LAT, Constants.MAN_LON), 14));
+    }
 }

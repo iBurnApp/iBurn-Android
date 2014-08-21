@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.gaiagps.iburn.database.DBWrapper;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -25,6 +26,20 @@ public class PlayaClient {
 
     /** Used by PlayaDatabase and DBWrapper */
     public static final int DATABASE_VERSION = 3;
+
+    /** Geographic Bounds of Black Rock City
+     * Used to determining whether a location lies
+     * within the general vicinity
+     * */
+    public static final double MAX_LAT = 40.812161;
+    public static final double MAX_LON = -119.170061;
+    public static final double MIN_LAT = 40.764702;
+    public static final double MIN_LON = -119.247798;
+
+    public static LatLngBounds BRC_BOUNDS = LatLngBounds.builder()
+            .include(new LatLng(MAX_LAT, MIN_LON))
+            .include(new LatLng(MIN_LAT, MAX_LON))
+            .build();
 
     private static SimpleDateFormat sDateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
