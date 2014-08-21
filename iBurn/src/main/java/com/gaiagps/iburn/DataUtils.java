@@ -112,7 +112,7 @@ public class DataUtils {
 
         @Override
         protected void onPostExecute(Integer result) {
-            PlayaClient.setDbPopulated(c, true);
+            PlayaClient.setDbPopulated(c, PlayaClient.DATABASE_VERSION);
             sendDbReadyMessage(result);
             super.onPostExecute(result);
 

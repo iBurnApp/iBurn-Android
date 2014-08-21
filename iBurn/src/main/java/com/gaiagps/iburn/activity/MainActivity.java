@@ -86,6 +86,7 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        DataUtils.checkAndSetupDB(getApplicationContext());
         getActionBar().setTitle("");
         getActionBar().hide();
         getDisplayWidth();
@@ -98,9 +99,6 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         }
         if (isFirstLaunch(this)) {
             showWelcomeDialog();
-        }
-        if (!PlayaClient.isUsingBundledDb()) {
-            DataUtils.checkAndSetupDB(getApplicationContext());
         }
         if (PlayaClient.isEmbargoClear(this)) {
             findViewById(R.id.unlockBtn).setVisibility(View.GONE);

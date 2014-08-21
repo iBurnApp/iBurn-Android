@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.gaiagps.iburn.database.DBWrapper;
+import com.gaiagps.iburn.database.PlayaDatabase;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
@@ -56,7 +57,7 @@ public class PlayaClient {
      */
     private static final String GENERAL_PREFS = "gen";
     private static final String FIRST_TIME = "first_time";
-    private static final String DB_POPULATED = "db_populated";
+    private static final String POPULATED_DB_VERSION = "db_populated_ver";
 
     public static Date parseISODate(String isoDate) throws ParseException {
         return sDateFormatter.parse(isoDate);
@@ -115,20 +116,21 @@ public class PlayaClient {
     }
 
     public static boolean isDbPopulated(Context c) {
-        boolean isPopulated = c.getSharedPreferences(GENERAL_PREFS, Context.MODE_PRIVATE).getBoolean(DB_POPULATED, false);
-        if (!isPopulated && USE_BUNDLED_DB) {
+        // We added populated db ver tracking at DB version 2
+        int dbVer = c.getSharedPreferences(GENERAL_PREFS, Context.MODE_PRIVATE).getInt(POPULATED_DB_VERSION, 2);
+        if (USE_BUNDLED_DB && dbVer < DATABASE_VERSION) {
             Log.i("PC", "copying database");
             // Copy the pre-bundled database
             DBWrapper wrapper = new DBWrapper(c);
             wrapper.getReadableDatabase();
-            setDbPopulated(c, true);
+            setDbPopulated(c, DATABASE_VERSION);
         }
-        return USE_BUNDLED_DB || isPopulated;
+        return USE_BUNDLED_DB || (dbVer > 0);
     }
 
-    public static void setDbPopulated(Context c, boolean isPopulated) {
+    public static void setDbPopulated(Context c, int populatedVer) {
         c.getSharedPreferences(GENERAL_PREFS, Context.MODE_PRIVATE).edit()
-                .putBoolean(DB_POPULATED, isPopulated)
+                .putInt(POPULATED_DB_VERSION, populatedVer)
                 .apply();
     }
 
