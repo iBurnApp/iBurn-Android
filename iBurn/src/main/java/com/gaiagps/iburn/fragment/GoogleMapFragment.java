@@ -236,7 +236,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         ImageButton addPoiBtn = (ImageButton) inflater.inflate(R.layout.add_poi_map_btn, container, false);
         addPoiBtn.setOnClickListener(mOnAddPinBtnListener);
         ((ViewGroup) parent).addView(addPoiBtn);
-        setMargins(addPoiBtn, 0, 32 + 150, 32 , 0);
+        int dpValue = 10; // margin in dips
+        float d = getActivity().getResources().getDisplayMetrics().density;
+        int margin = (int)(dpValue * d); // margin in pixels
+        setMargins(addPoiBtn, 0, margin * 6, margin , 0);
         return parent;
     }
 
