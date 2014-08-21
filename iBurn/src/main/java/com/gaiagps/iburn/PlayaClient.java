@@ -47,7 +47,7 @@ public class PlayaClient {
         sDateFormatter.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
     }
 
-    private static final boolean USE_BUNDLED_DB = false;
+    private static final boolean USE_BUNDLED_DB = true;
 
     private static final String UNLOCK_PW = SECRETS.UNLOCK_CODE;
 
