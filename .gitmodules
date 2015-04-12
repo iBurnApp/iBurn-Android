@@ -1,12 +1,6 @@
 [submodule "libraries/android-gmaps-addons"]
 	path = libraries/android-gmaps-addons
 	url = git@github.com:OnlyInAmerica/android-gmaps-addons.git
-[submodule "libraries/Android-ViewPagerIndicator"]
-	path = libraries/Android-ViewPagerIndicator
-	url = git@github.com:OnlyInAmerica/Android-ViewPagerIndicator.git
-[submodule "libraries/schematic"]
-	path = libraries/schematic
-	url = https://github.com/SimonVT/schematic.git
 [submodule "libraries/android-circlebutton"]
 	path = libraries/android-circlebutton
-	url = https://github.com/markushi/android-circlebutton.git
+	url = https://github.com/OnlyInAmerica/android-circlebutton.git

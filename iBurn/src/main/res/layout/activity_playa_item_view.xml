@@ -22,7 +22,7 @@
         android:layout_margin="16dp"
         android:src="@drawable/ic_heart"
         app:cb_color="@color/off_blk_2"
-        app:cb_pressed_ring_width="8dip" />
+        app:cb_pressedRingWidth="8dip" />
 
 
     <TextView
