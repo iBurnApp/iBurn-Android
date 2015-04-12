@@ -14,6 +14,19 @@ For users of iOS devices, we also developed a completely re-written version of [
 * Make sure your Android SDK packages are up to date.
 * `$ git clone https://github.com/Burning-Man-Earth/iBurn-Android --recursive`
 * `$ cd ./iBurn-Android`
+* `$ touch ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.java && open ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.java`
+* Copy the following into SECRETS.java:
+
+    ```java
+    package com.gaiagps.iburn;
+
+    public class SECRETS {
+
+        public static final String HOCKEY_ID = "YOUR_HOCKEYAPP_ID";
+        public static final String UNLOCK_CODE = "WHATEVER";
+
+    }
+    ```
 * `$ ./gradlew assembleDebug`
 
 **Note**: Camp, Art and Event location data (`camps.json`, `art.json`, `events.json`) are embargoed by BMorg until the gates open each year. There isn't anything we can do about this until BMorg changes their policy. Sorry!
