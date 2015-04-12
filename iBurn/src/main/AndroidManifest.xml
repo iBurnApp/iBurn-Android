@@ -24,7 +24,7 @@
             android:value="@integer/google_play_services_version" />
 
         <provider
-            android:name=".schematic.PlayaContentProvider"
+            android:name=".database.generated.PlayaContentProvider"
             android:authorities="com.gaiagps.iburn.playacontentprovider"
             android:exported="false" >
         </provider>

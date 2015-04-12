@@ -81,15 +81,9 @@ dependencies {
     compile 'com.google.android.gms:play-services-maps:7.0.0'
     compile project(':libraries:android-circlebutton:library')
     compile project(':libraries:android-gmaps-addons')
-    compile 'com.android.support:support-v4:20.0.0'
-    compile 'com.android.support:appcompat-v7:19.1.0'
-    apt 'net.simonvt.schematic:schematic-compiler:0.5.1'
-    compile 'net.simonvt.schematic:schematic:0.5.1'
+    compile 'com.android.support:support-v4:21.0.3'
+    compile 'com.android.support:appcompat-v7:21.0.3'
+    apt 'net.simonvt.schematic:schematic-compiler:0.6.1'
+    compile 'net.simonvt.schematic:schematic:0.6.1'
 
-}
-
-apt {
-    arguments {
-        schematicOutPackage 'com.gaiagps.iburn.schematic'
-    }
 }
