@@ -27,7 +27,7 @@ For users of iOS devices, we also developed a completely re-written version of [
 
     }
     ```
-* `$ ./gradlew assembleDebug`
+* `$ ./gradlew assembleDebug` or 'Import Project' with Android Studio.
 
 **Note**: Camp, Art and Event location data (`camps.json`, `art.json`, `events.json`) are embargoed by BMorg until the gates open each year. There isn't anything we can do about this until BMorg changes their policy. Sorry!
 
