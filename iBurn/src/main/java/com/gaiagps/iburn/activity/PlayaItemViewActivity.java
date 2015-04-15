@@ -45,8 +45,8 @@ public class PlayaItemViewActivity extends FragmentActivity {
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getActionBar().hide();
         setContentView(R.layout.activity_playa_item_view);
+        // TODO : Assure you can't scroll favorite button off-screen
         populateViews(getIntent());
     }
 

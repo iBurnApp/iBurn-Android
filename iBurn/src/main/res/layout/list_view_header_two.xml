@@ -7,7 +7,7 @@
     android:weightSum="1.0">
 
     <TextView
-        android:id="@+id/distance"
+        android:id="@+id/all"
         style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"

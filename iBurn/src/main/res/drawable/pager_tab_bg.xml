@@ -21,7 +21,7 @@
     <!-- default -->
     <item android:state_selected="false">
         <shape>
-            <solid android:color="@color/tab_bg"/>
+            <solid android:color="@android:color/transparent"/>
         </shape>
     </item>
 </selector>

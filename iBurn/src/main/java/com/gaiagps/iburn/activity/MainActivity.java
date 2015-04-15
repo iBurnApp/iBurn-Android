@@ -1,29 +1,32 @@
 package com.gaiagps.iburn.activity;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.Pair;
-import android.view.Display;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.astuetz.PagerSlidingTabStrip;
@@ -38,7 +41,6 @@ import com.gaiagps.iburn.fragment.ArtListViewFragment;
 import com.gaiagps.iburn.fragment.CampListViewFragment;
 import com.gaiagps.iburn.fragment.EventListViewFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
-import com.gaiagps.iburn.view.MapViewPager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.model.LatLng;
@@ -47,50 +49,54 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.gaiagps.iburn.PlayaClient.isEmbargoClear;
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+
 import static com.gaiagps.iburn.PlayaClient.isFirstLaunch;
 import static com.gaiagps.iburn.PlayaClient.validateUnlockPassword;
 
-public class MainActivity extends FragmentActivity implements SearchQueryProvider {
+public class MainActivity extends ActionBarActivity implements SearchQueryProvider {
     public static final String TAG = "MainActivity";
 
     private static final String HOCKEY_ID = SECRETS.HOCKEY_ID;
-    // Hold display width to allow MapViewPager to calculate
-    // swiping margin on screen's right border.
-    public static int display_width = -1;
-    static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
+    private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private boolean googlePlayServicesMissing = false;
 
-    private ViewPager mViewPager;
-    private FragmentWithTitlePagerAdapter mPagerAdapter;
-    private ImageView mSearchBtn;
-    private EditText mSearchView;
+    @InjectView(R.id.title)            TextView mTitleTextView;
+    @InjectView(R.id.toolbar)          Toolbar mToolbar;
+    @InjectView(R.id.pager)            ViewPager mViewPager;
+    @InjectView(R.id.search_button)    View mSearchButton;
+    @InjectView(R.id.search_container) ViewGroup mSearchContainer;
+    @InjectView(R.id.search)           EditText mSearchEntry;
+    @InjectView(R.id.search_cancel)    View mSearchCancel;
+    @InjectView(R.id.unlock_container) View mUnlockContainer;
+    @InjectView(R.id.tabs)             PagerSlidingTabStrip mTabs;
 
+    private IBurnPagerAdapter mPagerAdapter;
     private String mCurFilter;
 
     /**
      * Fragments to appear in main ViewPager
      */
-    private static List<Pair<Class<? extends Fragment>, Integer>> sPages
-            = new ArrayList<Pair<Class<? extends Fragment>, Integer>>() {{
-        add(new Pair<Class<? extends Fragment>, Integer>(GoogleMapFragment.class,        R.drawable.ic_brc));
-        add(new Pair<Class<? extends Fragment>, Integer>(ArtListViewFragment.class,      R.drawable.ic_monument));
-        add(new Pair<Class<? extends Fragment>, Integer>(CampListViewFragment.class,     R.drawable.ic_camp));
-        add(new Pair<Class<? extends Fragment>, Integer>(EventListViewFragment.class,    R.drawable.ic_calendar));
+    private static List<IBurnPagerAdapter.IBurnTab> sTabs
+            = new ArrayList<IBurnPagerAdapter.IBurnTab>() {{
+        add(IBurnPagerAdapter.IBurnTab.MAP);
+        add(IBurnPagerAdapter.IBurnTab.ART);
+        add(IBurnPagerAdapter.IBurnTab.CAMPS);
+        add(IBurnPagerAdapter.IBurnTab.EVENTS);
     }};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         DataUtils.checkAndSetupDB(getApplicationContext());
-        getActionBar().setTitle("");
-        getActionBar().hide();
-        getDisplayWidth();
+
         setContentView(R.layout.activity_main);
+        ButterKnife.inject(this);
+
         setupSearchButton();
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();
@@ -101,7 +107,7 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
             showWelcomeDialog();
         }
         if (PlayaClient.isEmbargoClear(this)) {
-            findViewById(R.id.unlockBtn).setVisibility(View.GONE);
+            mUnlockContainer.setVisibility(View.GONE);
         }
         handleIntent(getIntent());
         checkForUpdates();
@@ -110,10 +116,8 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
     private boolean mSearching = false;
 
     private void setupSearchButton() {
-        mSearchView = (EditText) findViewById(R.id.searchView);
-        mSearchBtn = (ImageView) findViewById(R.id.searchBtn);
 
-        mSearchView.addTextChangedListener(new TextWatcher() {
+        mSearchEntry.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -131,53 +135,102 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
 
             }
         });
-        findViewById(R.id.searchBtn).setOnClickListener(new View.OnClickListener() {
 
-            boolean isShowing = false;
+        mSearchEntry.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(mSearchEntry.getWindowToken(), 0);
+                return true;
+            }
+        });
+
+        mSearchButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                if (!isShowing) {
-                    expandSearchView();
-                } else {
-                    collapseSearchView();
-                }
-                isShowing = !isShowing;
+                expandSearchView();
+            }
+        });
+
+        mSearchCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                collapseSearchView();
             }
         });
     }
 
 
     private void expandSearchView() {
-        if (mSearchView == null) return;
-        if (!isEmbargoClear(this)) {
-            findViewById(R.id.unlockBtn).setVisibility(View.GONE);
+        if (mSearchContainer == null) return;
+//        mSearching = true;
+//        mSearchBtn.animate().alpha(1.0f).setDuration(300);
+//        mSearchView.animate().scaleX(1f).alpha(1.0f).translationX(0).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
+//        mSearchView.requestFocus();
+//        mSearchView.setEnabled(true);
+//        mSearchBtn.setImageResource(R.drawable.ic_x);
+
+        // get the center for the clipping circle
+        int cx = mToolbar.getWidth();//(myView.getLeft() + myView.getRight()) / 2;
+        int cy = (mSearchButton.getTop() + mSearchButton.getBottom()) / 2;
+
+        // get the final radius for the clipping circle
+        int finalRadius = mToolbar.getWidth(); //Math.max(myView.getWidth(), myView.getHeight());
+
+        // create the animator for this view (the start radius is zero)
+        Animator anim = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            anim = ViewAnimationUtils.createCircularReveal(mSearchContainer, cx, cy, 0, finalRadius);
+            anim.start();
         }
-        mSearching = true;
-        mSearchBtn.animate().alpha(1.0f).setDuration(300);
-        mSearchView.animate().scaleX(1f).alpha(1.0f).translationX(0).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
-        mSearchView.requestFocus();
-        mSearchView.setEnabled(true);
+
+        mSearchContainer.setVisibility(View.VISIBLE);
+
+        // Focus and bring up keyboard
+        mSearchEntry.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(mSearchView, InputMethodManager.SHOW_FORCED);
-        mSearchBtn.setImageResource(R.drawable.ic_x);
+        imm.showSoftInput(mSearchEntry, InputMethodManager.SHOW_FORCED);
     }
 
     private void collapseSearchView() {
-        if (mSearchView == null) return;
-        if (!isEmbargoClear(this)) {
-            findViewById(R.id.unlockBtn).setVisibility(View.VISIBLE);
-        }
-        mSearching = false;
-        mSearchBtn.animate().alpha(0.7f).setDuration(300);
-        mSearchView.animate().scaleX(.01f).alpha(0).translationX(330).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
-        mSearchView.setEnabled(false);
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0);
-        mSearchBtn.setImageResource(R.drawable.ic_search);
-        mSearchView.setText("");
+        if (mSearchContainer == null) return;
+//        mSearching = false;
+//        mSearchBtn.animate().alpha(0.7f).setDuration(300);
+//        mSearchView.animate().scaleX(.01f).alpha(0).translationX(330).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
+//        mSearchView.setEnabled(false);
+//        mSearchBtn.setImageResource(R.drawable.ic_search);
+        mSearchEntry.setText("");
         mCurFilter = "";
         dispatchSearchQuery(mCurFilter);
+
+        // get the center for the clipping circle
+        int cx = mToolbar.getWidth();//(myView.getLeft() + myView.getRight()) / 2;
+        int cy = (mSearchButton.getTop() + mSearchButton.getBottom()) / 2;
+
+        // get the final radius for the clipping circle
+        int initialRadius = mToolbar.getWidth(); //Math.max(myView.getWidth(), myView.getHeight());
+
+        // create the animation (the final radius is zero)
+        Animator anim = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            anim = ViewAnimationUtils.createCircularReveal(mSearchContainer, cx, cy, initialRadius, 0);
+
+            anim.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    mSearchContainer.setVisibility(View.GONE);
+                }
+            });
+
+            anim.start();
+        } else {
+            mSearchContainer.setVisibility(View.GONE);
+        }
+
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(mSearchEntry.getWindowToken(), 0);
     }
 
 
@@ -207,7 +260,7 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
     public void showUnlockDialog(final View v) {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
-        alert.setTitle("Enter Unlock Password");
+        alert.setTitle(getString(R.string.enter_unlock_password));
         // Set an EditText view to get user input
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -226,11 +279,12 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
                                 }
                             })
                             .show();
-                    v.setVisibility(View.GONE);
+                    mUnlockContainer.setVisibility(View.GONE);
                 } else {
                     dialog.cancel();
                     new AlertDialog.Builder(MainActivity.this)
                             .setTitle(getString(R.string.invalid_password))
+                            .setMessage("Bummer.")
                             .show();
                 }
             }
@@ -242,6 +296,9 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         });
 
         alert.show();
+//        No effect :(
+//        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//        imm.showSoftInput(input, InputMethodManager.SHOW_FORCED);
     }
 
     @Override
@@ -287,20 +344,20 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
     }
 
     private void setupFragmentStatePagerAdapter() {
-        mViewPager = (MapViewPager) findViewById(R.id.pager);
-        mPagerAdapter = new FragmentWithTitlePagerAdapter(getSupportFragmentManager(), sPages);
+        mPagerAdapter = new IBurnPagerAdapter(this, mTitleTextView, sTabs);
         mPagerAdapter.setSearchQueryProvider(this);
-        PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
-        tabs.setBackgroundResource(R.drawable.pager_tab_bg);
-        tabs.setShouldExpand(true);
-        tabs.setTabPaddingLeftRight(0);
-        tabs.setIndicatorColorResource(R.color.tab_selector);
-        tabs.setTextColorResource(R.color.tab_text);
-        tabs.setTextSize(10);
-        tabs.setDividerColorResource(R.color.tab_divider);
+
+        mTabs.setBackgroundResource(R.drawable.pager_tab_bg);
+        mTabs.setShouldExpand(true);
+        mTabs.setTabPaddingLeftRight(0);
+        mTabs.setIndicatorColorResource(R.color.tab_selector);
+        mTabs.setTextColorResource(R.color.tab_text);
+        mTabs.setTextSize(10);
+        mTabs.setDividerColorResource(R.color.tab_divider);
         mViewPager.setAdapter(mPagerAdapter);
-        tabs.setViewPager(mViewPager);
+        mTabs.setViewPager(mViewPager);
     }
+
     @Override
     public void onBackPressed() {
         if (mSearching) {
@@ -322,20 +379,55 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
 
     /**
      * Adapter that takes a List of Pairs representing a Fragment and Title
-     * for pairing with a tabbed ViewPager.
+     * for pairing with a tabbed ViewPager. Remove the IconTabProvider implementation
      * <p/>
      * Each Fragment must have a no-arg newInstance() method.
      */
-    public static class FragmentWithTitlePagerAdapter extends FragmentPagerAdapter implements PagerSlidingTabStrip.IconTabProvider {
+    public static class IBurnPagerAdapter extends FragmentPagerAdapter implements PagerSlidingTabStrip.IconTabProvider {
 
-        private static List<Pair<Class<? extends Fragment>, Integer>> PAGES;
+        private Context mContext;
+        private List<IBurnTab> mTabs;
         private Fragment mCurrentPrimaryItem;
+        private TextView mTitleTextView;
         private SearchQueryProvider mSearchQueryProvider;
-        private int mLastPosition;
+        private int mLastPosition = -1;
 
-        public FragmentWithTitlePagerAdapter(FragmentManager fm, List<Pair<Class<? extends Fragment>, Integer>> pages) {
-            super(fm);
-            PAGES = pages;
+        public static enum IBurnTab {
+            MAP     (R.string.map_tab,    R.drawable.ic_brc,      GoogleMapFragment.class),
+            ART     (R.string.art_tab,    R.drawable.ic_monument, ArtListViewFragment.class),
+            CAMPS   (R.string.camps_tab,  R.drawable.ic_camp,     CampListViewFragment.class),
+            EVENTS  (R.string.events_tab, R.drawable.ic_calendar, EventListViewFragment.class);
+
+            private final Class<? extends Fragment> mFragClass;
+            private final Integer mTitleResId;
+            private final Integer mIconResId;
+
+            private IBurnTab(final Integer titleResId,
+                             final Integer iconResId,
+                             final Class<? extends Fragment> fragClass) {
+                mTitleResId = titleResId;
+                mIconResId = iconResId;
+                mFragClass = fragClass;
+            }
+
+            public Class<? extends Fragment> getFragmentClass() {
+                return mFragClass;
+            }
+
+            public Integer getTitleResId() {
+                return mTitleResId;
+            }
+
+            public Integer getIconResId() {
+                return mIconResId;
+            }
+        }
+
+        public IBurnPagerAdapter(FragmentActivity host, TextView titleTextView, List<IBurnTab> tabs) {
+            super(host.getSupportFragmentManager());
+            mContext = host;
+            mTitleTextView = titleTextView;
+            mTabs = tabs;
         }
 
         public void setSearchQueryProvider(SearchQueryProvider provider) {
@@ -344,14 +436,14 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
 
         @Override
         public int getCount() {
-            return PAGES.size();
+            return mTabs.size();
         }
 
         @Override
         public Fragment getItem(int position) {
             try {
-                return (Fragment) PAGES.get(position).first.getMethod("newInstance", null).invoke(null, null);
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                return mTabs.get(position).getFragmentClass().newInstance(); //.getMethod("newInstance", null).invoke(null, null);
+            } catch (InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
                 throw new IllegalStateException("Unexpected ViewPager item requested: " + position);
             }
@@ -361,10 +453,17 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         public void setPrimaryItem(ViewGroup container, int position, Object object) {
             super.setPrimaryItem(container, position, object);
             mCurrentPrimaryItem = (Fragment) object;
-            if (mLastPosition != position && mCurrentPrimaryItem instanceof Searchable &&
-                    mSearchQueryProvider != null) {
-                // Update the fragment with the current query
-                ((Searchable) mCurrentPrimaryItem).onSearchQueryRequested(mSearchQueryProvider.getCurrentQuery());
+            if (mLastPosition != position) {
+
+                if (mCurrentPrimaryItem instanceof Searchable && mSearchQueryProvider != null) {
+                    // Update the fragment with the current query
+                    ((Searchable) mCurrentPrimaryItem).onSearchQueryRequested(mSearchQueryProvider.getCurrentQuery());
+                }
+
+                String title = mContext.getString(sTabs.get(position).getTitleResId());
+                Log.i(TAG, "Setting tab title " + title);
+                mTitleTextView.setText(title);
+
                 mLastPosition = position;
             }
         }
@@ -374,18 +473,14 @@ public class MainActivity extends FragmentActivity implements SearchQueryProvide
         }
 
         @Override
-        public int getPageIconResId(int i) {
-            return PAGES.get(i).second;
+        public CharSequence getPageTitle(int position) {
+            return mContext.getString(mTabs.get(position).getTitleResId());
         }
-    }
 
-    /**
-     * Measure display width so the view pager can implement its
-     * custom behavior re: paging on the map view
-     */
-    private void getDisplayWidth() {
-        Display display = getWindowManager().getDefaultDisplay();
-        display_width = display.getWidth();
+        @Override
+        public int getPageIconResId(int i) {
+            return mTabs.get(i).getIconResId();
+        }
     }
 
     private boolean checkPlayServices() {

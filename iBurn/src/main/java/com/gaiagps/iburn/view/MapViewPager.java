@@ -7,7 +7,10 @@ package com.gaiagps.iburn.view;
 import android.content.Context;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewTreeObserver;
 
 import com.gaiagps.iburn.activity.MainActivity;
 
@@ -34,10 +37,12 @@ public class MapViewPager extends ViewPager {
     public MapViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        if(MainActivity.display_width != -1)
-            maxX = MainActivity.display_width - cutoff_threshold;
-        else
-            maxX = cutoff_threshold;
+        this.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                maxX = getWidth() - cutoff_threshold;
+            }
+        });
     }
 
     @Override
@@ -51,12 +56,12 @@ public class MapViewPager extends ViewPager {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     lastX = event.getX();
-                    //Log.d("PAGER-DOWN", "X: " + String.valueOf(lastX) + " MaxX: " + String.valueOf(maxX));
+//                    Log.d("PAGER-DOWN", "X: " + String.valueOf(lastX) + " MaxX: " + String.valueOf(maxX));
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    //Log.d("PAGER-MOVE", "X: " + String.valueOf(lastX) + " MaxX: " + String.valueOf(maxX));
+//                    Log.d("PAGER-MOVE", "X: " + String.valueOf(lastX) + " MaxX: " + String.valueOf(maxX));
                     if(lastX > maxX){
-                        //Log.d("PAGER-MOVE", "interpreting touch as page right");
+//                        Log.d("PAGER-MOVE", "interpreting touch as page right");
                         return true;
                     }else
                         return false;

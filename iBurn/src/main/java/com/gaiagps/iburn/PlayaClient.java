@@ -25,6 +25,10 @@ import java.util.TimeZone;
  */
 public class PlayaClient {
 
+    private static final boolean USE_BUNDLED_DB = true;
+    private static final boolean DEBUG_FORCE_EMBARGO = false;
+    private static final boolean DEBUG_FORCE_EMBARGO_CLEAR = false;
+
     /** Used by PlayaDatabase and DBWrapper */
     public static final int DATABASE_VERSION = 3;
 
@@ -47,8 +51,6 @@ public class PlayaClient {
     static {
         sDateFormatter.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
     }
-
-    private static final boolean USE_BUNDLED_DB = true;
 
     private static final String UNLOCK_PW = SECRETS.UNLOCK_CODE;
 
@@ -97,10 +99,13 @@ public class PlayaClient {
     }
 
     public static boolean isEmbargoClear(Context c) {
+        if (DEBUG_FORCE_EMBARGO) return false;
+        if (DEBUG_FORCE_EMBARGO_CLEAR) return true;
+
         boolean isClear = c.getSharedPreferences(GENERAL_PREFS, Context.MODE_PRIVATE).getBoolean(Constants.EMBARGO_CLEAR, false);
         if (!isClear && Constants.EMBARGO_DATE.before(new GregorianCalendar())) {
             setEmbargoClear(c, true);
-            isClear = !isClear;
+            isClear = true;
         }
         return isClear;
     }

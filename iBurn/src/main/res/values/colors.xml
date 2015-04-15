@@ -21,6 +21,7 @@
 
     <!-- Highlight Color -->
     <color name="iburn_color">@color/highlight_comp</color>
+    <color name="iburn_color_dark">#ffdd7a1b</color>
     <!-- ActionBar -->
     <color name="ab_bg">@color/off_blk_2</color>
 
@@ -73,6 +74,6 @@
     <color name="map_text_extra_light">#ff989898</color>
     <color name="highlight_comp">#ffff8d1c</color>
 
-    <!-- Derivative Icon Colos -->
+    <!-- Derivative Icon Colors -->
     <color name="icon_fire_red">#ff4a22</color>
 </resources>

@@ -3,11 +3,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipToPadding="false"
     android:orientation="vertical">
 
     <com.gaiagps.iburn.view.PlayaFavoriteFilterListViewHeader
         android:id="@+id/header"
         android:layout_marginTop="@dimen/top_margin"
+        android:elevation="20dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 

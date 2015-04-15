@@ -1,64 +1,204 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        app:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="bottom">
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:paddingTop="8dp"
+                android:paddingStart="16dp"
+                android:textStyle="bold"
+                android:textAppearance="@android:style/TextAppearance.Large" />
+
+            <ImageView
+                android:id="@+id/search_button"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:paddingBottom="10dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="16dp"
+                android:src="@drawable/ic_search" />
+
+            <RelativeLayout
+                android:id="@+id/search_container"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:visibility="gone"
+                android:elevation="2dp"
+                android:background="#ffffff">
+
+                <ImageView
+                    android:id="@+id/search_cancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:paddingStart="16dp"
+                    android:paddingLeft="16dp"
+                    android:src="@drawable/ic_arrow_back_grey600_36dp"/>
+
+                <EditText
+                    android:id="@+id/search"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_toEndOf="@id/search_cancel"
+                    android:layout_toRightOf="@id/search_cancel"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignBottom="@id/search"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="18dp"
+                    android:paddingRight="18dp"
+                    android:textColor="@color/off_blk"
+                    android:singleLine="true"
+                    android:imeOptions="actionSearch"
+                    android:background="@null" />
+
+                </RelativeLayout>
+
+            <com.astuetz.PagerSlidingTabStrip
+                android:id="@+id/tabs"
+                android:paddingTop="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="60dip"
+                android:layout_below="@id/title"
+                android:visibility="visible"
+                app:pstsIndicatorColor="#ffeb3b"
+                app:pstsTextAllCaps="false"
+                app:pstsUnderlineHeight="0dp" />
+
+        </RelativeLayout>
+
+
+        <!--
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal">
+
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:background="#ffffff"/>
+
+                                    <com.astuetz.PagerSlidingTabStrip
+                                        android:id="@+id/tabs"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="54dip"
+                                        android:layout_gravity="center_horizontal"
+                                        android:foregroundGravity="center_horizontal" />
+
+
+                            </LinearLayout> -->
+
+    </android.support.v7.widget.Toolbar>
+
     <com.gaiagps.iburn.view.MapViewPager
         android:id="@+id/pager"
+        android:layout_below="@id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="54dip"/>
+        android:minHeight="?attr/actionBarSize" />
 
-    <com.astuetz.PagerSlidingTabStrip
-        android:id="@+id/tabs"
-        android:layout_gravity="top"
-        android:layout_width="match_parent"
-        android:layout_height="54dip" />
-
+    <!--
     <EditText
         android:id="@+id/searchView"
-        android:inputType="textAutoCorrect"
-        android:fontFamily="sans-serif-condensed"
-        android:singleLine="true"
         android:layout_width="match_parent"
-        android:padding="8dp"
         android:layout_height="40dip"
-        android:textColor="@color/white"
-        android:scaleX=".01"
-        android:translationX="330dp"
-        android:enabled="false"
-        android:visibility="visible"
-        android:background="@color/highlight_comp"
-        android:layout_marginRight="36dp"
+        android:layout_gravity="bottom|right"
         android:layout_marginBottom="@dimen/search_margin_bottom"
         android:layout_marginLeft="16dp"
-        android:layout_gravity="bottom|right" />
+        android:layout_marginRight="36dp"
+        android:background="@color/highlight_comp"
+        android:enabled="false"
+        android:fontFamily="sans-serif-condensed"
+        android:inputType="textAutoCorrect"
+        android:padding="8dp"
+        android:scaleX=".01"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        android:translationX="330dp"
+        android:visibility="visible" />
 
     <at.markushi.ui.CircleButton
         android:id="@+id/searchBtn"
-        android:alpha=".8"
         android:layout_width="80dip"
         android:layout_height="80dip"
         android:layout_gravity="bottom|right"
-        android:layout_marginRight="16dp"
         android:layout_marginBottom="@dimen/bottom_margin"
+        android:layout_marginRight="16dp"
+        android:alpha=".8"
         android:src="@drawable/ic_search"
         app:cb_color="@color/highlight_comp"
         app:cb_pressedRingWidth="8dip" />
 
     <at.markushi.ui.CircleButton
         android:id="@+id/unlockBtn"
-        android:alpha=".8"
         android:layout_width="80dip"
         android:layout_height="80dip"
         android:layout_gravity="bottom|left"
         android:layout_margin="16dp"
         android:layout_marginBottom="@dimen/bottom_margin"
-        android:src="@drawable/ic_unlock"
+        android:alpha=".8"
         android:onClick="showUnlockDialog"
+        android:src="@drawable/ic_unlock"
         app:cb_color="@color/highlight_comp"
         app:cb_pressedRingWidth="8dip" />
 
-</FrameLayout>
+        -->
+
+    <RelativeLayout
+        android:id="@+id/unlock_container"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:background="@color/off_blk"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/unlock_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:onClick="showUnlockDialog"
+            android:text="@string/enter_unlock_code"/>
+
+        <TextView
+            android:id="@+id/unlock_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@id/unlock_button"
+            android:layout_toLeftOf="@id/unlock_button"
+            android:text="@string/unlock_description"/>
+
+        </RelativeLayout>
+
+</RelativeLayout>

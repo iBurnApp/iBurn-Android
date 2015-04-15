@@ -4,12 +4,9 @@
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="Theme.Iburn.Base" parent="android:Theme.Holo">
-        <!--
-            Theme customizations available in newer API levels can go in
-            res/values-vXX/styles.xml, while customizations related to
-            backward-compatibility can go here.
-        -->
+    <style name="Theme.Iburn.Base" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/iburn_color</item>
+        <item name="colorPrimaryDark">@color/iburn_color_dark</item>
     </style>
 
     <!-- Application theme. -->

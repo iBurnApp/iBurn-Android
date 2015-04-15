@@ -2,8 +2,6 @@
 <resources>
 
     <string name="app_name">iBurn</string>
-    <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
 
     <!-- MainActivity Tabs -->
     <string name="map_tab">Map</string>
@@ -20,7 +18,7 @@
     <string name="location_data_unlocked">Camp, Art, and Event location data unlocked!</string>
     <string name="invalid_password">Invalid Password</string>
     <string name="cancel">Cancel</string>
-    <string name="ok">Ok!</string>
+    <string name="ok">OK</string>
     <string name="youre_so_far">You\'re so far away</string>
     <string name="lets_burn">Let\'s Burn!</string>
     <string name="welcome">With iBurn in your pocket, you\'re ready to find your way around
@@ -48,5 +46,8 @@
     <string name="done">Done</string>
     <string name="default_custom_pin_title">A Special Place</string>
     <string name="dialog_edit_marker_title">Edit Marker</string>
+    <string name="enter_unlock_code">Enter Unlock Code</string>
+    <string name="unlock_description">Location info is hidden until gates open.</string>
+    <string name="enter_unlock_password">Enter Unlock Password</string>
 
 </resources>

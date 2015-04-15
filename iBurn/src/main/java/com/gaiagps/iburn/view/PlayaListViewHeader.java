@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -131,7 +130,7 @@ public class PlayaListViewHeader extends RelativeLayout {
     protected void init(Context context) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = inflater.inflate(R.layout.list_view_header_three, this, false);
-        mDistance   = (TextView) v.findViewById(R.id.distance);
+        mDistance   = (TextView) v.findViewById(R.id.all);
         mFavorite   = (TextView) v.findViewById(R.id.favorites);
         mTypeFilter = (TextView) v.findViewById(R.id.typeFilter);
         mDayFilter  = (TextView) v.findViewById(R.id.dateFilter);
