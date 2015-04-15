@@ -37,7 +37,7 @@
     <!-- Map, Camp, Art, Events Tabs -->
     <color name="tab_bg">@color/off_blk_2</color>
     <color name="tab_text">@color/white</color>
-    <color name="tab_selector">@color/highlight_comp</color><!--@color/map_highlight-->
+    <color name="tab_selector">#ffffe0c6</color><!--@color/map_highlight-->
     <color name="tab_pressed">@color/map_bg</color>
     <color name="tab_selected">@color/map_highlight</color>
     <color name="tab_divider">@color/off_blk_3</color>

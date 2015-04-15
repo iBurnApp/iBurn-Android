@@ -87,34 +87,11 @@
                 android:layout_height="60dip"
                 android:layout_below="@id/title"
                 android:visibility="visible"
-                app:pstsIndicatorColor="#ffeb3b"
                 app:pstsTextAllCaps="false"
-                app:pstsUnderlineHeight="0dp" />
+                app:pstsUnderlineHeight="0dp"
+                app:pstsIndicatorHeight="4dp"/>
 
         </RelativeLayout>
-
-
-        <!--
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center_horizontal">
-
-                                    <TextView
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:background="#ffffff"/>
-
-                                    <com.astuetz.PagerSlidingTabStrip
-                                        android:id="@+id/tabs"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="54dip"
-                                        android:layout_gravity="center_horizontal"
-                                        android:foregroundGravity="center_horizontal" />
-
-
-                            </LinearLayout> -->
 
     </android.support.v7.widget.Toolbar>
 
@@ -124,53 +101,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:minHeight="?attr/actionBarSize" />
-
-    <!--
-    <EditText
-        android:id="@+id/searchView"
-        android:layout_width="match_parent"
-        android:layout_height="40dip"
-        android:layout_gravity="bottom|right"
-        android:layout_marginBottom="@dimen/search_margin_bottom"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="36dp"
-        android:background="@color/highlight_comp"
-        android:enabled="false"
-        android:fontFamily="sans-serif-condensed"
-        android:inputType="textAutoCorrect"
-        android:padding="8dp"
-        android:scaleX=".01"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:translationX="330dp"
-        android:visibility="visible" />
-
-    <at.markushi.ui.CircleButton
-        android:id="@+id/searchBtn"
-        android:layout_width="80dip"
-        android:layout_height="80dip"
-        android:layout_gravity="bottom|right"
-        android:layout_marginBottom="@dimen/bottom_margin"
-        android:layout_marginRight="16dp"
-        android:alpha=".8"
-        android:src="@drawable/ic_search"
-        app:cb_color="@color/highlight_comp"
-        app:cb_pressedRingWidth="8dip" />
-
-    <at.markushi.ui.CircleButton
-        android:id="@+id/unlockBtn"
-        android:layout_width="80dip"
-        android:layout_height="80dip"
-        android:layout_gravity="bottom|left"
-        android:layout_margin="16dp"
-        android:layout_marginBottom="@dimen/bottom_margin"
-        android:alpha=".8"
-        android:onClick="showUnlockDialog"
-        android:src="@drawable/ic_unlock"
-        app:cb_color="@color/highlight_comp"
-        app:cb_pressedRingWidth="8dip" />
-
-        -->
 
     <RelativeLayout
         android:id="@+id/unlock_container"

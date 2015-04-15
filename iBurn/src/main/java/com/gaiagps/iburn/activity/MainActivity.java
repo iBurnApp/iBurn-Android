@@ -353,7 +353,7 @@ public class MainActivity extends ActionBarActivity implements SearchQueryProvid
         mTabs.setIndicatorColorResource(R.color.tab_selector);
         mTabs.setTextColorResource(R.color.tab_text);
         mTabs.setTextSize(10);
-        mTabs.setDividerColorResource(R.color.tab_divider);
+        mTabs.setDividerColorResource(R.color.tab_selector);
         mViewPager.setAdapter(mPagerAdapter);
         mTabs.setViewPager(mViewPager);
     }
