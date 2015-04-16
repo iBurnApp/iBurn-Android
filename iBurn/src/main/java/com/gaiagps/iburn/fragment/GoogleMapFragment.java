@@ -332,6 +332,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
                 final long snap = System.currentTimeMillis();
+                /*  For GPS Debugging
                 if (!PlayaClient.BRC_BOUNDS.contains(cameraPosition.target) ||
                         cameraPosition.zoom > MAX_ZOOM || cameraPosition.zoom < MIN_ZOOM) {
                     getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(
@@ -339,7 +340,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                                     Math.min(PlayaClient.MAX_LAT - BUFFER, Math.max(cameraPosition.target.latitude, PlayaClient.MIN_LAT + BUFFER)),
                                     Math.min(PlayaClient.MAX_LON - BUFFER, Math.max(cameraPosition.target.longitude, PlayaClient.MIN_LON + BUFFER))),
                             (float) Math.min(Math.max(cameraPosition.zoom, MIN_ZOOM), MAX_ZOOM)));
-                } else {
+                } else { */
                     // Map view bounds valid. Load POIs if necessary
                     if (cameraPosition.zoom > POI_ZOOM_LEVEL && PlayaClient.isEmbargoClear(getActivity())) {
                         visibleRegion = getMap().getProjection().getVisibleRegion();
@@ -357,7 +358,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                             clearMap();
                         }
                     }
-                }
+//                } // For GPS Debugging
                 lastCallMs = snap;
             }
         });
@@ -416,7 +417,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                         Constants.IBURN_ROOT, Constants.TILES_DIR, Constants.MBTILE_DESTINATION);
                 File MBTFile = new File(tilesPath);
                 GoogleMap map = getMap();
-                map.setMapType(GoogleMap.MAP_TYPE_NONE);
+                map.setMapType(/*GoogleMap.MAP_TYPE_NONE*/ GoogleMap.MAP_TYPE_NORMAL); // For GPS Debugging
                 map.setMyLocationEnabled(true);
                 TileOverlayOptions opts = new TileOverlayOptions();
 
