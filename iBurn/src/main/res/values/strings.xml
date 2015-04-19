@@ -4,6 +4,7 @@
     <string name="app_name">iBurn</string>
 
     <!-- MainActivity Tabs -->
+    <string name="gj_tab">Galactic Jungle</string>
     <string name="map_tab">Map</string>
     <string name="camps_tab">Camps</string>
     <string name="events_tab">Events</string>

@@ -1,7 +1,5 @@
 package com.gaiagps.iburn;
 
-import android.text.format.DateUtils;
-
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -29,9 +27,10 @@ public class Constants {
     public static final String HOME_LON = "home_lon";
 
     public enum PLAYA_ITEM { CAMP, ART, EVENT};
-    public enum TAB_TYPE { MAP, CAMPS, ART, EVENTS};
+    public enum TAB_TYPE { GJ, MAP, CAMPS, ART, EVENTS};
 
     public static HashMap<TAB_TYPE, Integer> TAB_TO_TITLE = new HashMap<TAB_TYPE, Integer>() {{
+        put(TAB_TYPE.GJ, R.string.gj_tab);
         put(TAB_TYPE.MAP, R.string.map_tab);
         put(TAB_TYPE.CAMPS, R.string.camps_tab);
         put(TAB_TYPE.ART, R.string.art_tab);

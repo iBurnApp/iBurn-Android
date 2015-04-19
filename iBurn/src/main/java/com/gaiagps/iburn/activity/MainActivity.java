@@ -40,6 +40,7 @@ import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.fragment.ArtListViewFragment;
 import com.gaiagps.iburn.fragment.CampListViewFragment;
 import com.gaiagps.iburn.fragment.EventListViewFragment;
+import com.gaiagps.iburn.fragment.GalacticJungleFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -83,6 +84,7 @@ public class MainActivity extends ActionBarActivity implements SearchQueryProvid
      */
     private static List<IBurnPagerAdapter.IBurnTab> sTabs
             = new ArrayList<IBurnPagerAdapter.IBurnTab>() {{
+        add(IBurnPagerAdapter.IBurnTab.GJ);
         add(IBurnPagerAdapter.IBurnTab.MAP);
         add(IBurnPagerAdapter.IBurnTab.ART);
         add(IBurnPagerAdapter.IBurnTab.CAMPS);
@@ -393,6 +395,7 @@ public class MainActivity extends ActionBarActivity implements SearchQueryProvid
         private int mLastPosition = -1;
 
         public static enum IBurnTab {
+            GJ      (R.string.gj_tab,     R.drawable.ic_gj,      GalacticJungleFragment.class),
             MAP     (R.string.map_tab,    R.drawable.ic_brc,      GoogleMapFragment.class),
             ART     (R.string.art_tab,    R.drawable.ic_monument, ArtListViewFragment.class),
             CAMPS   (R.string.camps_tab,  R.drawable.ic_camp,     CampListViewFragment.class),
