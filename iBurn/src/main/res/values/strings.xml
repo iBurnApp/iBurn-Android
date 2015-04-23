@@ -5,6 +5,7 @@
 
     <!-- MainActivity Tabs -->
     <string name="gj_tab">Galactic Jungle</string>
+    <string name="set_tab">Settings</string>
     <string name="map_tab">Map</string>
     <string name="camps_tab">Camps</string>
     <string name="events_tab">Events</string>
@@ -50,5 +51,24 @@
     <string name="enter_unlock_code">Enter Unlock Code</string>
     <string name="unlock_description">Location info is hidden until gates open.</string>
     <string name="enter_unlock_password">Enter Unlock Password</string>
+
+
+    <string name="gj_settings_messages">Messages</string>
+
+    <string name="gj_message_type">Message Type</string>
+    <string-array name="gj_message_type_array">
+        <item>Status request</item>
+        <item>Mode</item>
+        <item>Report own GPS location</item>
+        <item>Request buffered GPS locations</item>
+        <item>Lighting cues</item>
+        <item>Text message</item>
+    </string-array>
+
+    <string name="gj_buffer_mode">Message Type</string>
+    <string-array name="gj_buffer_mode_array">
+        <item>Buffered</item>
+        <item>Non Buffered</item>
+    </string-array>
 
 </resources>

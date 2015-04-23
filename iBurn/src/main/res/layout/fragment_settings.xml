@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        style="@style/GjText.title"
+        android:text="@string/gj_settings_messages"/>
+
+    <Spinner
+        style="@style/GjText"
+        android:id="@+id/GjMessageTypeSpinner"
+        android:entries="@array/gj_message_type_array"
+        android:prompt="@string/gj_message_type" />
+
+    <EditText
+        style="@style/GjText"
+        android:maxLength="100"
+        android:textColor="#000000"
+        android:background="#ffffffff"
+        android:id="@+id/GjMessageEditText"/>
+
+    <Spinner
+        style="@style/GjText"
+        android:id="@+id/GjBufferModeSpinner"
+        android:entries="@array/gj_buffer_mode_array"
+        android:prompt="@string/gj_buffer_mode" />
+
+    <Button
+        style="@style/GjText"
+        android:text="Send"
+        android:background="#ff660000"
+        android:id="@+id/GjMessageSendButton"/>
+
+    <TextView
+        android:id="@+id/GjMessageConsole"
+        style="@style/GjText"
+        android:lines="10"
+        android:textColor="#000000"
+        android:scrollbars="vertical"
+        android:background="#ffffffff"/>
+
+    <TextView
+        android:visibility="gone"
+        style="@style/GjText.title"
+        android:text="Receive"/>
+
+    <TextView
+        android:visibility="gone"
+        style="@style/GjText.title"
+        android:text="Audio"/>
+
+    <TextView
+        android:visibility="gone"
+        style="@style/GjText.title"
+        android:text="Lighting"/>
+
+    <TextView
+        android:visibility="gone"
+        style="@style/GjText.title"
+        android:text="Debug"/>
+
+
+</LinearLayout>
