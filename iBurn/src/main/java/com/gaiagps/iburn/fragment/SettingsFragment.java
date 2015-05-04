@@ -14,8 +14,13 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.gj.message.GjMessage;
+import com.gaiagps.iburn.gj.message.GjMessageLighting;
 import com.gaiagps.iburn.gj.message.GjMessageMode;
+import com.gaiagps.iburn.gj.message.GjMessageReportGps;
+import com.gaiagps.iburn.gj.message.GjMessageRequestGps;
+import com.gaiagps.iburn.gj.message.GjMessageStatusRequest;
 import com.gaiagps.iburn.gj.message.GjMessageText;
+import com.google.android.gms.maps.model.LatLng;
 
 /**
  * Created by liorsaar on 4/19/15
@@ -25,6 +30,8 @@ public class SettingsFragment extends Fragment {
 
     private Spinner messageTypeSpinner;
     private Spinner messageModeSpinner;
+    private View messageBufferModeContainer;
+    private View messageEditTextContainer;
     private EditText messageEditText;
     private TextView messageConsole;
     private Button messageSendButton;
@@ -47,6 +54,9 @@ public class SettingsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
 
+
+        messageBufferModeContainer = view.findViewById(R.id.GjBufferModeContainer);
+        messageEditTextContainer = view.findViewById(R.id.GjMessageEditText);
         messageTypeSpinner = (Spinner) view.findViewById(R.id.GjMessageTypeSpinner);
         messageTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -63,7 +73,6 @@ public class SettingsFragment extends Fragment {
         messageModeSpinner = (Spinner) view.findViewById(R.id.GjBufferModeSpinner);
 
         messageEditText = (EditText) view.findViewById(R.id.GjMessageEditText);
-        messageEditText.setEnabled(false);
 
         messageSendButton = (Button) view.findViewById(R.id.GjMessageSendButton);
         messageSendButton.setOnClickListener(new View.OnClickListener() {
@@ -84,14 +93,14 @@ public class SettingsFragment extends Fragment {
 
     private void messageTypeOnItemSelected(int position) {
         GjMessage.Type type = GjMessage.Type.values()[position];
-        messageEditText.setEnabled(false);
-        messageModeSpinner.setEnabled(false);
+        messageEditTextContainer.setVisibility(View.INVISIBLE);
+        messageBufferModeContainer.setVisibility(View.INVISIBLE);
         switch (type) {
             case Text:
-                messageEditText.setEnabled(true);
+                messageEditTextContainer.setVisibility(View.VISIBLE);
                 break;
             case Mode:
-                messageModeSpinner.setEnabled(true);
+                messageBufferModeContainer.setVisibility(View.VISIBLE);
                 break;
             case ReportGps:
             case RequestGps:
@@ -111,14 +120,21 @@ public class SettingsFragment extends Fragment {
                 messageSend(new GjMessageMode(mode));
                 break;
             case ReportGps:
+                LatLng latLng = new LatLng(40.7888, -119.20315);
+                messageSend(new GjMessageReportGps(latLng));
+                break;
             case RequestGps:
+                messageSend(new GjMessageRequestGps());
+                break;
             case StatusRequest:
+                messageSend(new GjMessageStatusRequest());
                 break;
             case Text:
                 String text = messageEditText.getText().toString().trim();
                 messageSend(new GjMessageText(text));
                 break;
             case Lighting:
+                messageSend(new GjMessageLighting(""));
                 break;
         }
     }

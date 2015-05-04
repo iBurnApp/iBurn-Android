@@ -82,9 +82,10 @@ dependencies {
     compile 'com.getbase:floatingactionbutton:1.9.0'
     compile 'com.github.nirhart:parallaxscroll:1.0'
     compile project(':libraries:android-gmaps-addons')
-    compile 'com.android.support:support-v4:21.0.3'
-    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.android.support:support-v4:22.0.0'
+    compile 'com.android.support:appcompat-v7:22.0.0'
     apt 'net.simonvt.schematic:schematic-compiler:0.6.1'
     compile 'net.simonvt.schematic:schematic:0.6.1'
     compile 'com.jakewharton:butterknife:6.1.0'
+    compile files( 'libs/d2xx.jar')
 }

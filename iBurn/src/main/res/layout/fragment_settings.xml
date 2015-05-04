@@ -10,58 +10,87 @@
         style="@style/GjText.title"
         android:text="@string/gj_settings_messages"/>
 
-    <Spinner
-        style="@style/GjText"
-        android:id="@+id/GjMessageTypeSpinner"
-        android:entries="@array/gj_message_type_array"
-        android:prompt="@string/gj_message_type" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/GjText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Type: "/>
+
+        <Spinner
+            android:id="@+id/GjMessageTypeSpinner"
+            style="@style/GjText"
+            android:entries="@array/gj_message_type_array"
+            android:prompt="@string/gj_message_type"/>
+
+    </LinearLayout>
 
     <EditText
+        android:id="@+id/GjMessageEditText"
         style="@style/GjText"
-        android:maxLength="100"
-        android:textColor="#000000"
         android:background="#ffffffff"
-        android:id="@+id/GjMessageEditText"/>
+        android:hint="Enter Text"
+        android:maxLength="100"
+        android:textColor="#000000"/>
 
-    <Spinner
-        style="@style/GjText"
-        android:id="@+id/GjBufferModeSpinner"
-        android:entries="@array/gj_buffer_mode_array"
-        android:prompt="@string/gj_buffer_mode" />
+
+    <LinearLayout
+        android:id="@+id/GjBufferModeContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/GjText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mode: "/>
+
+        <Spinner
+            android:id="@+id/GjBufferModeSpinner"
+            style="@style/GjText"
+            android:entries="@array/gj_buffer_mode_array"
+            android:prompt="@string/gj_buffer_mode"/>
+
+    </LinearLayout>
 
     <Button
+        android:id="@+id/GjMessageSendButton"
         style="@style/GjText"
-        android:text="Send"
         android:background="#ff660000"
-        android:id="@+id/GjMessageSendButton"/>
+        android:text="Send"/>
 
     <TextView
         android:id="@+id/GjMessageConsole"
         style="@style/GjText"
+        android:background="#ffffffff"
         android:lines="10"
-        android:textColor="#000000"
         android:scrollbars="vertical"
-        android:background="#ffffffff"/>
+        android:textColor="#000000"/>
 
     <TextView
-        android:visibility="gone"
         style="@style/GjText.title"
-        android:text="Receive"/>
+        android:text="Receive"
+        android:visibility="gone"/>
 
     <TextView
-        android:visibility="gone"
         style="@style/GjText.title"
-        android:text="Audio"/>
+        android:text="Audio"
+        android:visibility="gone"/>
 
     <TextView
-        android:visibility="gone"
         style="@style/GjText.title"
-        android:text="Lighting"/>
+        android:text="Lighting"
+        android:visibility="gone"/>
 
     <TextView
-        android:visibility="gone"
         style="@style/GjText.title"
-        android:text="Debug"/>
+        android:text="Debug"
+        android:visibility="gone"/>
 
 
 </LinearLayout>

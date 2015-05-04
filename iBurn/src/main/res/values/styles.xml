@@ -82,11 +82,13 @@
     <style name="spinnerItemStyle">
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/sub_tab_text</item>
+        <item name="android:background">#ff666666</item>
     </style>
 
     <style name="spinnerDropDownItemStyle">
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/sub_tab_text</item>
+        <item name="android:background">#ff666666</item>
     </style>
 
     // Settings text
@@ -108,6 +110,8 @@
     </style>
 
     <style name="GjText" parent="GjItem">
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
         <item name="android:textColor">@color/sub_tab_text</item>
         <item name="android:textSize">24sp</item>
     </style>
