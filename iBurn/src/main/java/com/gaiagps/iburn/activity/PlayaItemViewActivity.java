@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -146,7 +147,7 @@ public class PlayaItemViewActivity extends FragmentActivity {
                     // Adjust the margin / padding show the heart icon doesn't
                     // overlap title + descrition
                     findViewById(R.id.map).setVisibility(View.INVISIBLE);
-                    RelativeLayout.LayoutParams parms = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 150);
+                    LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 150);
                     findViewById(R.id.map).setLayoutParams(parms);
                 }
 
