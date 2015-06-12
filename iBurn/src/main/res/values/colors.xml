@@ -19,9 +19,10 @@
 
 <resources>
 
-    <!-- Highlight Color -->
-    <color name="iburn_color">@color/highlight_comp</color>
-    <color name="iburn_color_dark">#ffdd7a1b</color>
+    <!-- Primary Palette -->
+    <color name="iburn_color">#FF9800</color>
+    <color name="iburn_color_dark">#F57C00</color>
+    <color name="iburn_color_accent">#FFD600</color>ma
     <!-- ActionBar -->
     <color name="ab_bg">@color/off_blk_2</color>
 
