@@ -3,13 +3,15 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.1.0'
+        classpath 'com.android.tools.build:gradle:1.2.3'
+        classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.2'
     }
 }
 
 apply plugin: 'com.android.application'
 apply plugin: 'android-apt'
+apply plugin: 'com.jakewharton.hugo'
 
 repositories {
     mavenCentral()
@@ -87,4 +89,6 @@ dependencies {
     apt 'net.simonvt.schematic:schematic-compiler:0.6.1'
     compile 'net.simonvt.schematic:schematic:0.6.1'
     compile 'com.jakewharton:butterknife:6.1.0'
+    compile 'com.android.support:design:22.2.0'
+    compile 'com.jakewharton.timber:timber:3.1.0'
 }
