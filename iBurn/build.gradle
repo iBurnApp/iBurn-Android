@@ -74,16 +74,16 @@ if (project.hasProperty('keyPassword')) {
 }
 
 dependencies {
-    compile 'net.hockeyapp.android:HockeySDK:3.0.2'
+    compile 'net.hockeyapp.android:HockeySDK:3.5.0'
     compile 'com.astuetz:pagerslidingtabstrip:1.0.1'
-    compile 'com.google.code.gson:gson:2.3'
+    compile 'com.google.code.gson:gson:2.3.1'
     compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
-    compile 'com.google.android.gms:play-services-maps:7.0.0'
-    compile 'com.getbase:floatingactionbutton:1.9.0'
+    compile 'com.google.android.gms:play-services-maps:7.5.0'
+    compile 'com.getbase:floatingactionbutton:1.9.1'
     compile 'com.github.nirhart:parallaxscroll:1.0'
     compile project(':libraries:android-gmaps-addons')
-    compile 'com.android.support:support-v4:21.0.3'
-    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.android.support:support-v4:22.2.0'
+    compile 'com.android.support:appcompat-v7:22.2.0'
     apt 'net.simonvt.schematic:schematic-compiler:0.6.1'
     compile 'net.simonvt.schematic:schematic:0.6.1'
     compile 'com.jakewharton:butterknife:6.1.0'
