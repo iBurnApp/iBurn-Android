@@ -3,36 +3,68 @@ package com.gaiagps.iburn.adapters;
 import android.content.Context;
 import android.database.Cursor;
 import android.location.Location;
-import android.support.v4.widget.SimpleCursorAdapter;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.format.DateUtils;
-import android.text.style.TextAppearanceSpan;
-import android.util.Log;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.GeoUtils;
-import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.PlayaUtils;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.DeviceLocation;
 
-import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 
-public class EventCursorAdapter extends SimpleCursorAdapter {
+/**
+ * Bind an event database row to a view with name, distance, and delta time display,
+ * using the device's location and current time when the adapter was constructed.
+ * <p/>
+ * TODO: Update device location and delta time periodically
+ */
+public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAdapter.ViewHolder> {
+
+    private Context context;
+
+    private static int titleCol;
+    private static int eventTypeCol;
+    private static int startTimeCol;
+    private static int startTimePrettyCol;
+    private static int endTimeCol;
+    private static int endTimePrettyCol;
+    private static int idCol;
+    private static int latCol;
+    private static int lonCol;
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView titleView;
+        TextView typeView;
+        TextView timeView;
+        TextView distanceView;
+
+        int modelId;
+        boolean allDay;
+        String timeLabel;
+
+        public ViewHolder(View view) {
+            super(view);
+
+            titleView = (TextView) view.findViewById(R.id.list_item_title);
+            timeView = (TextView) view.findViewById(R.id.list_item_sub_right);
+            distanceView = (TextView) view.findViewById(R.id.list_item_sub_left);
+            typeView = (TextView) view.findViewById(R.id.list_item_subtitle);
+        }
+    }
 
     private Location mDeviceLocation;
     Calendar nowPlusOneHrDate = Calendar.getInstance();
     Calendar nowDate = Calendar.getInstance();
 
     public EventCursorAdapter(Context context, Cursor c) {
-        super(context, R.layout.quad_listview_item, c, new String[]{} , new int[]{}, 0);
+        super(context, c);
+        this.context = context;
         Date now = new Date();
         nowDate.setTime(now);
         nowPlusOneHrDate.setTime(now);
@@ -47,71 +79,55 @@ public class EventCursorAdapter extends SimpleCursorAdapter {
     }
 
     @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-        super.bindView(view, context, cursor);
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View itemView = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.quad_listview_item, parent, false);
+        ViewHolder vh = new ViewHolder(itemView);
+        return vh;
+    }
 
-        ViewCache view_cache = (ViewCache) view.getTag(R.id.list_item_cache);
-        if (view_cache == null) {
-        	view_cache = new ViewCache();
-        	view_cache.title = (TextView) view.findViewById(R.id.list_item_title);
-        	view_cache.subRight = (TextView) view.findViewById(R.id.list_item_sub_right);
-            view_cache.subLeft = (TextView) view.findViewById(R.id.list_item_sub_left);
-        	view_cache.subTitle = (TextView) view.findViewById(R.id.list_item_subtitle);
+    @Override
+    public void onBindViewHolder(ViewHolder viewHolder, Cursor cursor) {
 
-        	view_cache.title_col = cursor.getColumnIndexOrThrow(EventTable.name);
-            view_cache.subTitle_col = cursor.getColumnIndexOrThrow(EventTable.eventType);
-        	view_cache.sub_col = cursor.getColumnIndexOrThrow(EventTable.startTime);
-            view_cache.lat_col = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
-            view_cache.lon_col = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
-        	view_cache._id_col = cursor.getColumnIndexOrThrow(EventTable.id);
+        if (titleCol == 0) {
+            titleCol = cursor.getColumnIndexOrThrow(EventTable.name);
+            eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
+            startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
+            startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
+            endTimeCol = cursor.getColumnIndexOrThrow(EventTable.endTime);
+            endTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.endTimePrint);
+            latCol = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
+            lonCol = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
+            idCol = cursor.getColumnIndexOrThrow(EventTable.id);
         }
 
-        if(cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1 ){
-            view_cache.all_day = true;
-            view_cache.time_label = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
-        }
-        else {
-            view_cache.all_day = false;
-            view_cache.time_label = PlayaUtils.getDateString(mContext, nowDate.getTime(), nowPlusOneHrDate.getTime(),
-                    cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTime)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTime)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTimePrint)));
+        if (cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1) {
+            viewHolder.allDay = true;
+            viewHolder.timeLabel = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
+
+        } else {
+            viewHolder.allDay = false;
+            viewHolder.timeLabel = PlayaUtils.getDateString(context, nowDate.getTime(), nowPlusOneHrDate.getTime(),
+                    cursor.getString(startTimeCol),
+                    cursor.getString(startTimePrettyCol),
+                    cursor.getString(endTimeCol),
+                    cursor.getString(endTimePrettyCol));
         }
 
-        view_cache.subTitle.setText(AdapterUtils.getStringForEventType(
-                cursor.getString(cursor.getColumnIndexOrThrow(EventTable.eventType))));
+        viewHolder.typeView.setText(
+                AdapterUtils.getStringForEventType(cursor.getString(eventTypeCol)));
 
         AdapterUtils.setDistanceText(mDeviceLocation,
                 nowDate.getTime(),
-                cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTime)),
-                cursor.getString(cursor.getColumnIndexOrThrow(EventTable.endTime)),
-                view_cache.subLeft,
-                cursor.getDouble(view_cache.lat_col),
-                cursor.getDouble(view_cache.lon_col));
+                cursor.getString(startTimeCol),
+                cursor.getString(endTimeCol),
+                viewHolder.distanceView,
+                cursor.getDouble(latCol),
+                cursor.getDouble(lonCol));
 
-        view_cache.title.setText(cursor.getString(view_cache.title_col));
-        view_cache.subRight.setText(view_cache.time_label);
+        viewHolder.titleView.setText(cursor.getString(titleCol));
+        viewHolder.timeView.setText(viewHolder.timeLabel);
 
-        view.setTag(R.id.list_item_related_model, cursor.getInt(view_cache._id_col));
-        view.setTag(R.id.list_item_related_model_type, Constants.PLAYA_ITEM.EVENT);
-    }
-	
-	// Cache the views within a ListView row item 
-    static class ViewCache {
-        TextView title;
-        TextView subTitle;
-        TextView subRight;
-        TextView subLeft;
-        
-        boolean all_day;
-        String time_label;
-        
-        int title_col;
-        int subTitle_col;
-        int sub_col;
-        int _id_col;
-        int lat_col;
-        int lon_col;
+        viewHolder.modelId = cursor.getInt(idCol);
     }
 }

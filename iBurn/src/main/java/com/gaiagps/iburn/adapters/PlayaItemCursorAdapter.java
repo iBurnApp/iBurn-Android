@@ -3,73 +3,81 @@ package com.gaiagps.iburn.adapters;
 import android.content.Context;
 import android.database.Cursor;
 import android.location.Location;
-import android.support.v4.widget.SimpleCursorAdapter;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.TextAppearanceSpan;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.GeoUtils;
-import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.DeviceLocation;
 
-public class PlayaItemCursorAdapter extends SimpleCursorAdapter {
+/**
+ * Bind a playa item (camp, art, event) database row to a view with a simple name & distance display,
+ * using the device's location and date when the adapter was constructed.
+ *
+ * TODO: Update device location periodically
+ */
+public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemCursorAdapter.ViewHolder> {
 
-    private Location mDeviceLocation;
-    private Constants.PLAYA_ITEM mType;
+    private Constants.PLAYA_ITEM_TYPE type;
+    private Location deviceLocation;
 
-	public PlayaItemCursorAdapter(Context context, Cursor c, Constants.PLAYA_ITEM type){
-		super(context, R.layout.triple_listview_item, c, new String[]{} , new int[]{}, 0);
-        mType = type;
+    private static int titleCol;
+    private static int latCol;
+    private static int lonCol;
+    private static int idCol;
+
+    public PlayaItemCursorAdapter(Context context, Cursor cursor,  Constants.PLAYA_ITEM_TYPE type) {
+        super(context, cursor);
+        this.type = type;
 
         DeviceLocation.getLastKnownLocation(context, false, new DeviceLocation.LocationResult() {
             @Override
             public void gotLocation(Location location) {
-                mDeviceLocation = location;
+                deviceLocation = location;
             }
         });
-	}
+    }
 
-	@Override
-    public void bindView(View view, Context context, Cursor cursor) {
-        super.bindView(view, context, cursor);
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        int modelId;
+        TextView titleView;
+        TextView distanceView;
 
-        ViewCache view_cache = (ViewCache) view.getTag(R.id.list_item_cache);
-        if (view_cache == null) {
-        	view_cache = new ViewCache();
-        	view_cache.title = (TextView) view.findViewById(R.id.list_item_title);
-            view_cache.distance = (TextView) view.findViewById(R.id.list_item_sub_left);
+        public ViewHolder(View view) {
+            super(view);
 
-            view_cache.title_col = cursor.getColumnIndexOrThrow(PlayaItemTable.name);
-            view_cache._id_col = cursor.getColumnIndexOrThrow(PlayaItemTable.id);
-            view_cache.lat_col = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
-            view_cache.lon_col = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
-            view.setTag(R.id.list_item_cache, view_cache);
-            view.setTag(R.id.list_item_related_model, cursor.getInt(view_cache._id_col));
+            titleView = (TextView) view.findViewById(R.id.list_item_title);
+            distanceView = (TextView) view.findViewById(R.id.list_item_sub_left);
+        }
+    }
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View itemView = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.double_listview_item, parent, false);
+        ViewHolder vh = new ViewHolder(itemView);
+        return vh;
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder viewHolder, Cursor cursor) {
+
+        if (titleCol == 0) {
+            titleCol = cursor.getColumnIndexOrThrow(PlayaItemTable.name);
+            latCol = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
+            lonCol = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
+            idCol = cursor.getColumnIndexOrThrow(PlayaItemTable.id);
         }
 
-        view_cache.title.setText(cursor.getString(view_cache.title_col));
+        viewHolder.titleView.setText(cursor.getString(titleCol));
 
-        // Approx distance
-        AdapterUtils.setDistanceText(mDeviceLocation, view_cache.distance,
-                cursor.getDouble(view_cache.lat_col), cursor.getDouble(view_cache.lon_col));
+        AdapterUtils.setDistanceText(deviceLocation, viewHolder.distanceView,
+                cursor.getDouble(latCol), cursor.getDouble(lonCol));
 
-        view.setTag(R.id.list_item_related_model, cursor.getInt(view_cache._id_col));
-        view.setTag(R.id.list_item_related_model_type, mType);
-    }
-	
-	// Cache the views within a ListView row item 
-    static class ViewCache {
-        TextView title;
-        TextView distance;
-        
-        int title_col;
-        int lat_col;
-        int lon_col;
-        int _id_col;
+        viewHolder.modelId = cursor.getInt(idCol);
     }
 }

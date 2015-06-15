@@ -1,17 +1,14 @@
 package com.gaiagps.iburn.adapters;
 
 import android.content.ContentValues;
-import android.content.Intent;
 import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.TextAppearanceSpan;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,7 +16,6 @@ import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.GeoUtils;
 import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.activity.PlayaItemViewActivity;
 import com.gaiagps.iburn.database.PlayaContentProvider;
 import com.gaiagps.iburn.database.PlayaItemTable;
 
@@ -170,9 +166,9 @@ public class AdapterUtils {
         @Override
         public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
             int model_id = (Integer) v.getTag(R.id.list_item_related_model);
-            Constants.PLAYA_ITEM playa_item = (Constants.PLAYA_ITEM) v.getTag(R.id.list_item_related_model_type);
+            Constants.PLAYA_ITEM_TYPE itemType = (Constants.PLAYA_ITEM_TYPE) v.getTag(R.id.list_item_related_model_type);
             Uri uri = null;
-            switch (playa_item) {
+            switch (itemType) {
                 case ART:
                     uri = PlayaContentProvider.Art.ART;
                     break;

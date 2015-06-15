@@ -7,6 +7,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.SimpleCursorAdapter;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.PlayaItemCursorAdapter;
 import com.gaiagps.iburn.database.PlayaContentProvider;
 
@@ -20,7 +21,7 @@ public class CampListViewFragment extends PlayaListViewFragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = "CampListViewFragment";
 
-    SimpleCursorAdapter mAdapter;
+    PlayaItemCursorAdapter mAdapter;
     protected Uri baseUri = PlayaContentProvider.Camps.CAMPS;                    // Uris corresponding to PlayaContentProvider
 
     public static CampListViewFragment newInstance() {
@@ -31,7 +32,7 @@ public class CampListViewFragment extends PlayaListViewFragment
         return baseUri;
     }
 
-    protected SimpleCursorAdapter getAdapter(){
+    protected CursorRecyclerViewAdapter getAdapter(){
         return mAdapter;
     }
 
@@ -41,7 +42,7 @@ public class CampListViewFragment extends PlayaListViewFragment
 
 
     @Override public void onActivityCreated(Bundle savedInstanceState) {
-        mAdapter = new PlayaItemCursorAdapter(getActivity(), null, Constants.PLAYA_ITEM.CAMP);
+        mAdapter = new PlayaItemCursorAdapter(getActivity(), null, Constants.PLAYA_ITEM_TYPE.CAMP);
         super.onActivityCreated(savedInstanceState);
     }
 

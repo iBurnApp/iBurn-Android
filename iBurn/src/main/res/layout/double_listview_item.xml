@@ -4,42 +4,40 @@
 	  It is more efficient to use RelativeLayout then nested LinearLayouts
 	  see http://developer.android.com/resources/articles/layout-tricks-efficiency.html-->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/list_item_container"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:padding="5dp">
+    android:padding="8dp"
+    android:orientation="vertical">
 
-     <TextView
-	    android:id="@+id/list_item_title"
+    <TextView
+        android:id="@+id/list_item_title"
         style="@style/PlayaTextItem"
         android:textStyle="bold"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignWithParentIfMissing="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="marquee"
         android:gravity="center_vertical"
+        android:padding="2dp"
+        android:paddingTop="0dp"
         android:singleLine="true"
-        android:ellipsize="marquee"
-	    android:padding="2dp"
-	    android:textSize="20sp" >
-	</TextView>
-	    
-	<TextView
-	    android:id="@+id/list_item_sub_right"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:id="@+id/list_item_sub_left"
         style="@style/PlayaTextItem"
-        android:textColor="@color/sub_text"
-	    android:layout_width="wrap_content"
-        android:layout_height="wrap_content" 
-        android:layout_below="@id/list_item_title"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:singleLine="true"
+        android:gravity="center_vertical"
+        android:drawableLeft="@drawable/ic_person"
+        android:drawableStart="@drawable/ic_person"
+        android:drawablePadding="0dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:ellipsize="marquee"
-	    android:padding="2dp"
-	    android:textSize="18sp" >
-	</TextView>
+        android:padding="2dp"
+        android:paddingLeft="0dp"
+        android:singleLine="true"
+        android:textColor="@color/sub_text"
+        android:textSize="18sp"/>
 
-
-</RelativeLayout>
+</LinearLayout>

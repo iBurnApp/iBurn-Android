@@ -51,6 +51,7 @@
         </activity>
         <activity
             android:name=".activity.PlayaItemViewActivity"
+            android:theme="@style/Theme.Iburn.TransparentStatus"
             android:screenOrientation="portrait" />
 
         <meta-data

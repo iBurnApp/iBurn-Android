@@ -1,6 +1,5 @@
 package com.gaiagps.iburn.activity;
 
-import android.app.ActionBar;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -13,7 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.PlayaClient;
@@ -66,7 +64,7 @@ public class PlayaItemViewActivity extends FragmentActivity {
 
     private void populateViews(Intent i){
         model_id = i.getIntExtra("model_id",0);
-        Constants.PLAYA_ITEM model_type = (Constants.PLAYA_ITEM) i.getSerializableExtra("playa_item");
+        Constants.PLAYA_ITEM_TYPE model_type = (Constants.PLAYA_ITEM_TYPE) i.getSerializableExtra("playa_item");
         String selection = "_id = ?";
         String[] projection = null;
         switch(model_type){

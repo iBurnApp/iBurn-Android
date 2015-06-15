@@ -5,16 +5,17 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.SimpleCursorAdapter;
-import android.util.Log;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterUtils;
+import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.EventCursorAdapter;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaContentProvider;
@@ -22,8 +23,6 @@ import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.view.PlayaListViewHeader;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 
 /**
  * Created by davidbrodsky on 8/3/13.
@@ -49,7 +48,7 @@ public class EventListViewFragment extends PlayaListViewFragment
             EventTable.eventType
     };
 
-    SimpleCursorAdapter mAdapter;
+    EventCursorAdapter mAdapter;
     protected Uri baseUri = PlayaContentProvider.Events.EVENTS;     // Uris corresponding to PlayaContentProvider
 
     private String mDaySelection;
@@ -63,7 +62,7 @@ public class EventListViewFragment extends PlayaListViewFragment
         return baseUri;
     }
 
-    protected SimpleCursorAdapter getAdapter(){
+    protected CursorRecyclerViewAdapter getAdapter(){
         return mAdapter;
     }
 
@@ -123,11 +122,12 @@ public class EventListViewFragment extends PlayaListViewFragment
         View v = inflater.inflate(R.layout.fragment_event_list_view, container, false);
         //super.onCreateView(inflater, container, savedInstanceState);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
-        mListView = ((ListView) v.findViewById(android.R.id.list));
-        mListView.setOnItemLongClickListener(AdapterUtils.mListItemLongClickListener);
-        mListView.setEmptyView(mEmptyText);
-        mListView.setFastScrollEnabled(true);
-        mListView.setDividerHeight(10);
+        mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+//        mRecyclerView.setOnItemLongClickListener(AdapterUtils.mListItemLongClickListener);
+//        mRecyclerView.setEmptyView(mEmptyText);
+//        mRecyclerView.setFastScrollEnabled(true);
+//        mRecyclerView.setDividerHeight(10);
         ((PlayaListViewHeader) v.findViewById(R.id.header)).setReceiver(this);
 //        ((TextView) v.findViewById(R.id.distance)).setText(getActivity().getString(R.string.tab_time));
 //        ((TextView) v.findViewById(R.id.favorites)).setText(getActivity().getString(R.string.tab_distance));

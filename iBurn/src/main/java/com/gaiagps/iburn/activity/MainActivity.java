@@ -10,11 +10,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputType;
@@ -58,14 +60,13 @@ import butterknife.InjectView;
 import static com.gaiagps.iburn.PlayaClient.isFirstLaunch;
 import static com.gaiagps.iburn.PlayaClient.validateUnlockPassword;
 
-public class MainActivity extends ActionBarActivity implements SearchQueryProvider {
+public class MainActivity extends AppCompatActivity implements SearchQueryProvider {
     public static final String TAG = "MainActivity";
 
     private static final String HOCKEY_ID = SECRETS.HOCKEY_ID;
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private boolean googlePlayServicesMissing = false;
 
-    @InjectView(R.id.title)            TextView mTitleTextView;
     @InjectView(R.id.toolbar)          Toolbar mToolbar;
     @InjectView(R.id.pager)            ViewPager mViewPager;
     @InjectView(R.id.search_button)    View mSearchButton;
@@ -73,7 +74,7 @@ public class MainActivity extends ActionBarActivity implements SearchQueryProvid
     @InjectView(R.id.search)           EditText mSearchEntry;
     @InjectView(R.id.search_cancel)    View mSearchCancel;
     @InjectView(R.id.unlock_container) View mUnlockContainer;
-    @InjectView(R.id.tabs)             PagerSlidingTabStrip mTabs;
+    @InjectView(R.id.tabs)             TabLayout mTabs;
 
     private IBurnPagerAdapter mPagerAdapter;
     private String mCurFilter;
@@ -96,6 +97,8 @@ public class MainActivity extends ActionBarActivity implements SearchQueryProvid
 
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
+
+//        setSupportActionBar(mToolbar);
 
         setupSearchButton();
         if (checkPlayServices()) {
@@ -344,24 +347,25 @@ public class MainActivity extends ActionBarActivity implements SearchQueryProvid
     }
 
     private void setupFragmentStatePagerAdapter() {
-        mPagerAdapter = new IBurnPagerAdapter(this, mTitleTextView, sTabs);
+        mPagerAdapter = new IBurnPagerAdapter(this, sTabs);
         mPagerAdapter.setSearchQueryProvider(this);
 
         mTabs.setBackgroundResource(R.drawable.pager_tab_bg);
-        mTabs.setShouldExpand(true);
-        mTabs.setTabPaddingLeftRight(0);
-        mTabs.setIndicatorColorResource(R.color.tab_selector);
-        mTabs.setTextColorResource(R.color.tab_text);
-        mTabs.setTextSize(10);
-        mTabs.setDividerColorResource(R.color.tab_selector);
+//        mTabs.setShouldExpand(true);
+//        mTabs.setTabPaddingLeftRight(0);
+//        mTabs.setIndicatorColorResource(R.color.tab_selector);
+//        mTabs.setTextColorResource(R.color.tab_text);
+//        mTabs.setTextSize(10);
+//        mTabs.setDividerColorResource(R.color.tab_selector);
         mViewPager.setAdapter(mPagerAdapter);
-        mTabs.setViewPager(mViewPager);
+//        mTabs.setViewPager(mViewPager);
+        mTabs.setupWithViewPager(mViewPager);
     }
 
     @Override
     public void onBackPressed() {
         if (mSearching) {
-            collapseSearchView();
+            //collapseSearchView();
         } else {
             super.onBackPressed();
         }
@@ -388,7 +392,6 @@ public class MainActivity extends ActionBarActivity implements SearchQueryProvid
         private Context mContext;
         private List<IBurnTab> mTabs;
         private Fragment mCurrentPrimaryItem;
-        private TextView mTitleTextView;
         private SearchQueryProvider mSearchQueryProvider;
         private int mLastPosition = -1;
 
@@ -423,10 +426,9 @@ public class MainActivity extends ActionBarActivity implements SearchQueryProvid
             }
         }
 
-        public IBurnPagerAdapter(FragmentActivity host, TextView titleTextView, List<IBurnTab> tabs) {
+        public IBurnPagerAdapter(FragmentActivity host, List<IBurnTab> tabs) {
             super(host.getSupportFragmentManager());
             mContext = host;
-            mTitleTextView = titleTextView;
             mTabs = tabs;
         }
 
@@ -442,7 +444,8 @@ public class MainActivity extends ActionBarActivity implements SearchQueryProvid
         @Override
         public Fragment getItem(int position) {
             try {
-                return mTabs.get(position).getFragmentClass().newInstance(); //.getMethod("newInstance", null).invoke(null, null);
+                Fragment newFrag = mTabs.get(position).getFragmentClass().newInstance();
+                return newFrag; //.getMethod("newInstance", null).invoke(null, null);
             } catch (InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
                 throw new IllegalStateException("Unexpected ViewPager item requested: " + position);
@@ -455,14 +458,17 @@ public class MainActivity extends ActionBarActivity implements SearchQueryProvid
             mCurrentPrimaryItem = (Fragment) object;
             if (mLastPosition != position) {
 
-                if (mCurrentPrimaryItem instanceof Searchable && mSearchQueryProvider != null) {
-                    // Update the fragment with the current query
-                    ((Searchable) mCurrentPrimaryItem).onSearchQueryRequested(mSearchQueryProvider.getCurrentQuery());
-                }
+                //if (mCurrentPrimaryItem instanceof Searchable && mSearchQueryProvider != null) {
+                    // Remove for now -- With a dedicated search screen we'll focus the list fragments
+                    // on browsing, not showing search results. If we decide to re-enable this
+                    // we should not deliver an unchanged search query for performance
 
-                String title = mContext.getString(sTabs.get(position).getTitleResId());
-                Log.i(TAG, "Setting tab title " + title);
-                mTitleTextView.setText(title);
+                    // Update the fragment with the current query
+                    //((Searchable) mCurrentPrimaryItem).onSearchQueryRequested(mSearchQueryProvider.getCurrentQuery());
+                //}
+
+                //String title = mContext.getString(sTabs.get(position).getTitleResId());
+                //Log.i(TAG, "Setting tab title " + title);
 
                 mLastPosition = position;
             }

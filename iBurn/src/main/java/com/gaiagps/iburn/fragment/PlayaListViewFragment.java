@@ -2,15 +2,16 @@ package com.gaiagps.iburn.fragment;
 
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.ListFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,7 +26,8 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
-import com.gaiagps.iburn.adapters.AdapterUtils;
+import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
+import com.gaiagps.iburn.adapters.PlayaItemCursorAdapter;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.DeviceLocation;
 import com.gaiagps.iburn.view.PlayaListViewHeader;
@@ -39,7 +41,7 @@ import java.util.Locale;
  * Camps, Art, and Events. A subclass should provide
  * a value for PROJECTION, mAdapter, baseUri, and searchUri
  */
-public abstract class PlayaListViewFragment extends ListFragment
+public abstract class PlayaListViewFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor>, Searchable, PlayaListViewHeader.PlayaListViewHeaderReceiver {
     private static final String TAG = "PlayaListViewFragment";
 
@@ -55,12 +57,12 @@ public abstract class PlayaListViewFragment extends ListFragment
             PlayaItemTable.longitude
     };
 
-    protected ListView mListView;
+    protected RecyclerView mRecyclerView;
     protected TextView mEmptyText;
 
     protected abstract Uri getBaseUri();
 
-    protected abstract SimpleCursorAdapter getAdapter();
+    protected abstract CursorRecyclerViewAdapter getAdapter();
 
     protected String[] getProjection() {
         return PROJECTION;
@@ -96,7 +98,8 @@ public abstract class PlayaListViewFragment extends ListFragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        setListAdapter(getAdapter());
+//        setListAdapter(getAdapter());
+        mRecyclerView.setAdapter(getAdapter());
         if (PlayaClient.isDbPopulated(getActivity())) {
             mCurFilter = ((SearchQueryProvider) getActivity()).getCurrentQuery();
             mCurrentSort = SORT.NAME;
@@ -110,11 +113,14 @@ public abstract class PlayaListViewFragment extends ListFragment
         View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);
         //super.onCreateView(inflater, container, savedInstanceState);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
-        mListView = ((ListView) v.findViewById(android.R.id.list));
-        mListView.setOnItemLongClickListener(AdapterUtils.mListItemLongClickListener);
-        mListView.setEmptyView(mEmptyText);
-        mListView.setFastScrollEnabled(true);
-        mListView.setDividerHeight(10);
+        mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+
+//        mListView.setOnItemLongClickListener(AdapterUtils.mListItemLongClickListener);
+//        mListView.setEmptyView(mEmptyText);
+//        mListView.setFastScrollEnabled(true);
+//        mListView.setDividerHeight(10);
         ((PlayaListViewHeader) v.findViewById(R.id.header)).setReceiver(this);
         return v;
     }
@@ -211,7 +217,6 @@ public abstract class PlayaListViewFragment extends ListFragment
      * Override per AOSP bug:
      * https://code.google.com/p/android/issues/detail?id=21742
      */
-    @Override
     public void setEmptyText(CharSequence text) {
         setListShown(false);
         mEmptyText.setText(text);
@@ -221,13 +226,12 @@ public abstract class PlayaListViewFragment extends ListFragment
      * Override per AOSP bug:
      * https://code.google.com/p/android/issues/detail?id=21742
      */
-    @Override
     public void setListShown(boolean doShow) {
         if (doShow) {
-            mListView.setVisibility(View.VISIBLE);
+            mRecyclerView.setVisibility(View.VISIBLE);
             mEmptyText.setVisibility(View.GONE);
         } else {
-            mListView.setVisibility(View.GONE);
+            mRecyclerView.setVisibility(View.GONE);
             mEmptyText.setVisibility(View.VISIBLE);
         }
     }
@@ -236,18 +240,16 @@ public abstract class PlayaListViewFragment extends ListFragment
      * Override per AOSP bug:
      * https://code.google.com/p/android/issues/detail?id=21742
      */
-    @Override
     public void setListShownNoAnimation(boolean doShow) {
         setListShown(doShow);
     }
 
-    @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         int model_id = (Integer) v.getTag(R.id.list_item_related_model);
-        Constants.PLAYA_ITEM playa_item = (Constants.PLAYA_ITEM) v.getTag(R.id.list_item_related_model_type);
+        Constants.PLAYA_ITEM_TYPE itemType = (Constants.PLAYA_ITEM_TYPE) v.getTag(R.id.list_item_related_model_type);
         Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
         i.putExtra("model_id", model_id);
-        i.putExtra("playa_item", playa_item);
+        i.putExtra("playa_item", itemType);
         getActivity().startActivity(i);
     }
 

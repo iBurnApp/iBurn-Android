@@ -60,11 +60,8 @@ public class MapViewPager extends ViewPager {
                     break;
                 case MotionEvent.ACTION_MOVE:
 //                    Log.d("PAGER-MOVE", "X: " + String.valueOf(lastX) + " MaxX: " + String.valueOf(maxX));
-                    if(lastX > maxX){
-//                        Log.d("PAGER-MOVE", "interpreting touch as page right");
-                        return true;
-                    }else
-                        return false;
+                    //                        Log.d("PAGER-MOVE", "interpreting touch as page right");
+                    return lastX > maxX;
             }
         }
         return super.onInterceptTouchEvent(event);
@@ -73,10 +70,7 @@ public class MapViewPager extends ViewPager {
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
         if(positionOffset == 0){
-            if(position == 0)
-                onMap = true;
-            else
-                onMap = false;
+            onMap = (position == 0);
         }
         super.onPageScrolled(position, positionOffset, positionOffsetPixels);
     }

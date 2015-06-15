@@ -10,6 +10,11 @@
         <item name="colorAccent">@color/iburn_color_accent</item>
     </style>
 
+    <!-- PlayaItemViewActivity theme -->
+    <style name="Theme.Iburn.TransparentStatus" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowTranslucentStatus">true</item>
+    </style>
+
     <!-- Application theme. -->
     <style name="Theme.Iburn" parent="Theme.Iburn.Base">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->

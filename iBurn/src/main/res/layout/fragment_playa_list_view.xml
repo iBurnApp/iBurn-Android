@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clipToPadding="false"
     android:orientation="vertical">
 
-    <com.gaiagps.iburn.view.PlayaFavoriteFilterListViewHeader
-        android:id="@+id/header"
-        android:layout_marginTop="@dimen/top_margin"
-        android:elevation="20dp"
+    <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:elevation="20dp">
+
+        <com.gaiagps.iburn.view.PlayaFavoriteFilterListViewHeader
+            android:id="@+id/header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/top_margin"
+            app:layout_scrollFlags="scroll|enterAlways" />
+
+    </android.support.design.widget.AppBarLayout>
 
     <TextView
         android:id="@android:id/empty"
@@ -19,10 +27,11 @@
         android:layout_height="match_parent"
         android:gravity="center" />
 
-    <ListView
+    <android.support.v7.widget.RecyclerView
         android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="@android:color/transparent" />
+        android:divider="@android:color/transparent"
+        app:layout_behavior="android.support.design.widget.AppBarLayout$ScrollingViewBehavior" />
 
-</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>

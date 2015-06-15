@@ -27,21 +27,6 @@
 
         </LinearLayout>
 
-        <com.getbase.floatingactionbutton.FloatingActionButton
-            android:id="@+id/favorite_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/map_container"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_marginBottom="-40dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:elevation="20dp"
-            app:fab_colorNormal="#ffffff"
-            app:fab_colorPressed="#ffcbcbcb"
-            app:fab_icon="@drawable/ic_heart" />
-
         <!--
         <at.markushi.ui.CircleButton
             android:id="@+id/favorite_button"
@@ -126,6 +111,19 @@
             android:visibility="visible" />
 
         </LinearLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/favorite_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/map_container"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginBottom="-40dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:src="@drawable/ic_heart"
+            android:elevation="20dp"/>
 
     </RelativeLayout>
 </com.nirhart.parallaxscroll.views.ParallaxScrollView>

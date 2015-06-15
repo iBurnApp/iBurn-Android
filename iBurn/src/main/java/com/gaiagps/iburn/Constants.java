@@ -28,7 +28,7 @@ public class Constants {
     public static final String HOME_LAT = "home_lat";
     public static final String HOME_LON = "home_lon";
 
-    public enum PLAYA_ITEM { CAMP, ART, EVENT};
+    public enum PLAYA_ITEM_TYPE { CAMP, ART, EVENT};
     public enum TAB_TYPE { MAP, CAMPS, ART, EVENTS};
 
     public static HashMap<TAB_TYPE, Integer> TAB_TO_TITLE = new HashMap<TAB_TYPE, Integer>() {{
