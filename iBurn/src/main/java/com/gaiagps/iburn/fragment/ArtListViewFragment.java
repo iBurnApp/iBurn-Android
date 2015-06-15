@@ -4,7 +4,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.widget.SimpleCursorAdapter;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
@@ -18,8 +17,7 @@ import com.gaiagps.iburn.database.PlayaContentProvider;
  * a value for PROJECTION, mAdapter, baseUri, and searchUri
  */
 public class ArtListViewFragment extends PlayaListViewFragment
-        implements LoaderManager.LoaderCallbacks<Cursor>{
-    private static final String TAG = "ArtListViewFragment";
+        implements LoaderManager.LoaderCallbacks<Cursor> {
 
     PlayaItemCursorAdapter mAdapter;
     protected Uri baseUri   = PlayaContentProvider.Art.ART;                    // Uris corresponding to PlayaContentProvider
@@ -42,7 +40,7 @@ public class ArtListViewFragment extends PlayaListViewFragment
 
 
     @Override public void onActivityCreated(Bundle savedInstanceState) {
-        mAdapter = new PlayaItemCursorAdapter(getActivity(), null, Constants.PLAYA_ITEM_TYPE.ART);
+        mAdapter = new PlayaItemCursorAdapter(getActivity(), null, Constants.PlayaItemType.ART, this);
         super.onActivityCreated(savedInstanceState);
     }
 }

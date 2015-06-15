@@ -11,7 +11,7 @@
     </style>
 
     <!-- PlayaItemViewActivity theme -->
-    <style name="Theme.Iburn.TransparentStatus" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.Iburn.TransparentStatus" parent="Theme.Iburn">
         <item name="android:windowTranslucentStatus">true</item>
     </style>
 

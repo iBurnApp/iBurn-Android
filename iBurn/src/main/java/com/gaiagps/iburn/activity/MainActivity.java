@@ -15,7 +15,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -321,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         // TODO: Unused.. Consider removing
         if (intent.hasExtra("tab")) {
-            Constants.TAB_TYPE tab = (Constants.TAB_TYPE) intent.getSerializableExtra("tab");
+            Constants.TabType tab = (Constants.TabType) intent.getSerializableExtra("tab");
             switch (tab) {
                 case MAP:
                     mViewPager.setCurrentItem(0, true);
@@ -350,15 +349,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         mPagerAdapter = new IBurnPagerAdapter(this, sTabs);
         mPagerAdapter.setSearchQueryProvider(this);
 
-//        mTabs.setBackgroundResource(R.drawable.pager_tab_bg);
-//        mTabs.setShouldExpand(true);
-//        mTabs.setTabPaddingLeftRight(0);
-//        mTabs.setIndicatorColorResource(R.color.tab_selector);
-//        mTabs.setTextColorResource(R.color.tab_text);
-//        mTabs.setTextSize(10);
-//        mTabs.setDividerColorResource(R.color.tab_selector);
         mViewPager.setAdapter(mPagerAdapter);
-//        mTabs.setViewPager(mViewPager);
         mTabs.setupWithViewPager(mViewPager);
     }
 

@@ -135,7 +135,7 @@ public class EventListViewFragment extends PlayaListViewFragment
     }
 
     @Override public void onActivityCreated(Bundle savedInstanceState) {
-        mAdapter = new EventCursorAdapter(getActivity(), null);
+        mAdapter = new EventCursorAdapter(getActivity(), null, this);
         super.onActivityCreated(savedInstanceState);
     }
 

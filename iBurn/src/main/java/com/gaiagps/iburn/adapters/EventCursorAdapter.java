@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.PlayaUtils;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.EventTable;
@@ -27,6 +28,7 @@ import java.util.Date;
 public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAdapter.ViewHolder> {
 
     private Context context;
+    private AdapterItemSelectedListener listener;
 
     private static int titleCol;
     private static int eventTypeCol;
@@ -43,6 +45,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
         TextView typeView;
         TextView timeView;
         TextView distanceView;
+        View container;
 
         int modelId;
         boolean allDay;
@@ -51,6 +54,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
         public ViewHolder(View view) {
             super(view);
 
+            container = view;
             titleView = (TextView) view.findViewById(R.id.list_item_title);
             timeView = (TextView) view.findViewById(R.id.list_item_sub_right);
             distanceView = (TextView) view.findViewById(R.id.list_item_sub_left);
@@ -62,9 +66,10 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
     Calendar nowPlusOneHrDate = Calendar.getInstance();
     Calendar nowDate = Calendar.getInstance();
 
-    public EventCursorAdapter(Context context, Cursor c) {
+    public EventCursorAdapter(Context context, Cursor c, AdapterItemSelectedListener listener) {
         super(context, c);
         this.context = context;
+        this.listener = listener;
         Date now = new Date();
         nowDate.setTime(now);
         nowPlusOneHrDate.setTime(now);
@@ -83,6 +88,15 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.quad_listview_item, parent, false);
         ViewHolder vh = new ViewHolder(itemView);
+
+        itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int modelId = (int) v.getTag();
+                listener.onItemSelected(modelId, Constants.PlayaItemType.EVENT);
+            }
+        });
+
         return vh;
     }
 
@@ -129,5 +143,6 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
         viewHolder.timeView.setText(viewHolder.timeLabel);
 
         viewHolder.modelId = cursor.getInt(idCol);
+        viewHolder.container.setTag(viewHolder.modelId);
     }
 }

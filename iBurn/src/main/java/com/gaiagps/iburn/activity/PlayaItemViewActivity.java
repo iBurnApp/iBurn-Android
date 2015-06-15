@@ -64,7 +64,7 @@ public class PlayaItemViewActivity extends FragmentActivity {
 
     private void populateViews(Intent i){
         model_id = i.getIntExtra("model_id",0);
-        Constants.PLAYA_ITEM_TYPE model_type = (Constants.PLAYA_ITEM_TYPE) i.getSerializableExtra("playa_item");
+        Constants.PlayaItemType model_type = (Constants.PlayaItemType) i.getSerializableExtra("playa_item");
         String selection = "_id = ?";
         String[] projection = null;
         switch(model_type){

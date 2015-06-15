@@ -22,17 +22,19 @@ import com.gaiagps.iburn.location.DeviceLocation;
  */
 public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemCursorAdapter.ViewHolder> {
 
-    private Constants.PLAYA_ITEM_TYPE type;
+    private Constants.PlayaItemType type;
     private Location deviceLocation;
+    private AdapterItemSelectedListener listener;
 
     private static int titleCol;
     private static int latCol;
     private static int lonCol;
     private static int idCol;
 
-    public PlayaItemCursorAdapter(Context context, Cursor cursor,  Constants.PLAYA_ITEM_TYPE type) {
+    public PlayaItemCursorAdapter(Context context, Cursor cursor,  Constants.PlayaItemType type, AdapterItemSelectedListener listener) {
         super(context, cursor);
         this.type = type;
+        this.listener = listener;
 
         DeviceLocation.getLastKnownLocation(context, false, new DeviceLocation.LocationResult() {
             @Override
@@ -46,10 +48,12 @@ public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemC
         int modelId;
         TextView titleView;
         TextView distanceView;
+        View container;
 
         public ViewHolder(View view) {
             super(view);
 
+            container = view;
             titleView = (TextView) view.findViewById(R.id.list_item_title);
             distanceView = (TextView) view.findViewById(R.id.list_item_sub_left);
         }
@@ -60,6 +64,15 @@ public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemC
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.double_listview_item, parent, false);
         ViewHolder vh = new ViewHolder(itemView);
+
+        itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int modelId = (int) v.getTag();
+                listener.onItemSelected(modelId, type);
+            }
+        });
+
         return vh;
     }
 
@@ -79,5 +92,6 @@ public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemC
                 cursor.getDouble(latCol), cursor.getDouble(lonCol));
 
         viewHolder.modelId = cursor.getInt(idCol);
+        viewHolder.container.setTag(viewHolder.modelId);
     }
 }

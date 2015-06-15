@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -26,6 +25,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
+import com.gaiagps.iburn.adapters.AdapterItemSelectedListener;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.PlayaItemCursorAdapter;
 import com.gaiagps.iburn.database.PlayaItemTable;
@@ -42,7 +42,7 @@ import java.util.Locale;
  * a value for PROJECTION, mAdapter, baseUri, and searchUri
  */
 public abstract class PlayaListViewFragment extends Fragment
-        implements LoaderManager.LoaderCallbacks<Cursor>, Searchable, PlayaListViewHeader.PlayaListViewHeaderReceiver {
+        implements LoaderManager.LoaderCallbacks<Cursor>, Searchable, PlayaListViewHeader.PlayaListViewHeaderReceiver, AdapterItemSelectedListener {
     private static final String TAG = "PlayaListViewFragment";
 
     protected static Location mLastLocation;
@@ -244,12 +244,10 @@ public abstract class PlayaListViewFragment extends Fragment
         setListShown(doShow);
     }
 
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        int model_id = (Integer) v.getTag(R.id.list_item_related_model);
-        Constants.PLAYA_ITEM_TYPE itemType = (Constants.PLAYA_ITEM_TYPE) v.getTag(R.id.list_item_related_model_type);
+    public void onItemSelected(int modelId, Constants.PlayaItemType type) {
         Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
-        i.putExtra("model_id", model_id);
-        i.putExtra("playa_item", itemType);
+        i.putExtra("model_id", modelId);
+        i.putExtra("playa_item", type);
         getActivity().startActivity(i);
     }
 

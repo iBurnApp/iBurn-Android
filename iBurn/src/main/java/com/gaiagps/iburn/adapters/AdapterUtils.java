@@ -166,7 +166,7 @@ public class AdapterUtils {
         @Override
         public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
             int model_id = (Integer) v.getTag(R.id.list_item_related_model);
-            Constants.PLAYA_ITEM_TYPE itemType = (Constants.PLAYA_ITEM_TYPE) v.getTag(R.id.list_item_related_model_type);
+            Constants.PlayaItemType itemType = (Constants.PlayaItemType) v.getTag(R.id.list_item_related_model_type);
             Uri uri = null;
             switch (itemType) {
                 case ART:
