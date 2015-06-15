@@ -4,7 +4,7 @@
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="Theme.Iburn.Base" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.Iburn" parent="Theme.AppCompat.NoActionBar">
         <item name="colorPrimary">@color/iburn_color</item>
         <item name="colorPrimaryDark">@color/iburn_color_dark</item>
         <item name="colorAccent">@color/iburn_color_accent</item>
@@ -14,26 +14,6 @@
     <style name="Theme.Iburn.TransparentStatus" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowTranslucentStatus">true</item>
     </style>
-
-    <!-- Application theme. -->
-    <style name="Theme.Iburn" parent="Theme.Iburn.Base">
-        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
-        <item name="android:actionBarStyle">@style/ActionBar.Transparent.Iburn</item>
-
-        <item name="android:editTextBackground">@drawable/iburn_edit_text_holo_dark</item>
-
-        <item name="android:textColorHighlight">#99ff8d1c</item>
-        <item name="android:textSelectHandleLeft">@drawable/iburn_text_select_handle_left</item>
-        <item name="android:textSelectHandleRight">@drawable/iburn_text_select_handle_right</item>
-        <item name="android:textSelectHandle">@drawable/iburn_text_select_handle_middle</item>
-
-        <item name="android:listChoiceIndicatorMultiple">@drawable/iburn_btn_check_holo_dark</item>
-
-        <item name="android:listChoiceIndicatorSingle">@drawable/iburn_btn_radio_holo_dark</item>
-
-        <item name="android:fastScrollThumbDrawable">@drawable/iburn_fastscroll_thumb_holo</item>
-    </style>
-
 
     <style name="ActionBar.Transparent.Iburn" parent="@android:style/Widget.Holo.ActionBar">
         <item name="android:background">@color/ab_bg</item>
