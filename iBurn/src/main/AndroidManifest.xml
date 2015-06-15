@@ -51,8 +51,13 @@
         </activity>
         <activity
             android:name=".activity.PlayaItemViewActivity"
-            android:theme="@style/Theme.Iburn.TransparentStatus"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait" >
+
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activity.MainActivity" />
+
+            </activity>
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"

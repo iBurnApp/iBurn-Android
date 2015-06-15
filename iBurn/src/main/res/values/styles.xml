@@ -4,15 +4,14 @@
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="Theme.Iburn" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.Iburn.Base" parent="Theme.AppCompat.NoActionBar">
         <item name="colorPrimary">@color/iburn_color</item>
         <item name="colorPrimaryDark">@color/iburn_color_dark</item>
         <item name="colorAccent">@color/iburn_color_accent</item>
     </style>
 
-    <!-- PlayaItemViewActivity theme -->
-    <style name="Theme.Iburn.TransparentStatus" parent="Theme.Iburn">
-        <item name="android:windowTranslucentStatus">true</item>
+    <!-- MainActivity theme -->
+    <style name="Theme.Iburn" parent="Theme.Iburn.Base">
     </style>
 
     <style name="ActionBar.Transparent.Iburn" parent="@android:style/Widget.Holo.ActionBar">

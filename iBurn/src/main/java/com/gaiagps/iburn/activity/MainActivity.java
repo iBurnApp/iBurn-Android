@@ -30,7 +30,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.astuetz.PagerSlidingTabStrip;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.DataUtils;
 import com.gaiagps.iburn.PlayaClient;
@@ -378,7 +377,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
      * <p/>
      * Each Fragment must have a no-arg newInstance() method.
      */
-    public static class IBurnPagerAdapter extends FragmentPagerAdapter implements PagerSlidingTabStrip.IconTabProvider {
+    public static class IBurnPagerAdapter extends FragmentPagerAdapter {
 
         private Context mContext;
         private List<IBurnTab> mTabs;
@@ -474,7 +473,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             return mContext.getString(mTabs.get(position).getTitleResId());
         }
 
-        @Override
         public int getPageIconResId(int i) {
             return mTabs.get(i).getIconResId();
         }

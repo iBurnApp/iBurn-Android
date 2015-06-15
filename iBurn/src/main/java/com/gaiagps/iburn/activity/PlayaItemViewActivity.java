@@ -5,9 +5,14 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.NavUtils;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -36,7 +41,7 @@ import java.util.Date;
 /**
  * Created by davidbrodsky on 8/11/13.
  */
-public class PlayaItemViewActivity extends FragmentActivity {
+public class PlayaItemViewActivity extends AppCompatActivity {
 
     Uri uri;
     int model_id;
@@ -45,6 +50,10 @@ public class PlayaItemViewActivity extends FragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playa_item_view);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         // TODO : Assure you can't scroll favorite button off-screen
         populateViews(getIntent());
     }
@@ -52,14 +61,24 @@ public class PlayaItemViewActivity extends FragmentActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        return false;
+        return true;
     }
 
     @Override
     public boolean onPrepareOptionsMenu (Menu menu){
         super.onPrepareOptionsMenu(menu);
-        menu.clear();
-        return false;
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            // Respond to the action bar's Up/Home button
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask(this);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void populateViews(Intent i){
@@ -86,6 +105,9 @@ public class PlayaItemViewActivity extends FragmentActivity {
         try {
             if (c != null && c.moveToFirst()) {
                 final String title = c.getString(c.getColumnIndexOrThrow(PlayaItemTable.name));
+                CollapsingToolbarLayout collapsingToolbar =
+                        (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+                collapsingToolbar.setTitle(title);
                 ((TextView) findViewById(R.id.title)).setText(title);
                 int isFavorite = c.getInt(c.getColumnIndex(PlayaItemTable.favorite));
                 View favoriteBtn = findViewById(R.id.favorite_button);
