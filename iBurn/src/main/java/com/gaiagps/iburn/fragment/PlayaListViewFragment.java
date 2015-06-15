@@ -1,9 +1,11 @@
 package com.gaiagps.iburn.fragment;
 
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -12,10 +14,15 @@ import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.transition.Explode;
+import android.transition.Fade;
+import android.transition.Slide;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -33,6 +40,7 @@ import com.gaiagps.iburn.location.DeviceLocation;
 import com.gaiagps.iburn.view.PlayaListViewHeader;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -245,10 +253,37 @@ public abstract class PlayaListViewFragment extends Fragment
     }
 
     public void onItemSelected(int modelId, Constants.PlayaItemType type) {
+
         Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
         i.putExtra("model_id", modelId);
         i.putExtra("playa_item", type);
-        getActivity().startActivity(i);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            View statusBar = getActivity().findViewById(android.R.id.statusBarBackground);
+            View navigationBar = getActivity().findViewById(android.R.id.navigationBarBackground);
+
+            List<Pair<View, String>> pairs = new ArrayList<>();
+            pairs.add(Pair.create(statusBar, Window.STATUS_BAR_BACKGROUND_TRANSITION_NAME));
+            pairs.add(Pair.create(navigationBar, Window.NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME));
+
+            Bundle options = ActivityOptions.makeSceneTransitionAnimation(getActivity(),
+//                    null).toBundle();
+                    pairs.toArray(new Pair[pairs.size()])).toBundle();
+
+            Explode transition = new Explode();
+            transition.setDuration(250);
+            // with elements excluded, they flicker
+//            transition.excludeTarget(android.R.id.statusBarBackground, true);
+//            transition.excludeTarget(android.R.id.navigationBarBackground, true);
+            getActivity().getWindow().setAllowEnterTransitionOverlap(false);
+            getActivity().getWindow().setAllowReturnTransitionOverlap(false);
+            getActivity().getWindow().setExitTransition(transition);
+            getActivity().getWindow().setEnterTransition(transition);
+            getActivity().startActivity(i, options);
+
+        } else {
+            getActivity().startActivity(i);
+        }
     }
 
     @Override
