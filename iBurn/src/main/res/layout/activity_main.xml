@@ -83,7 +83,8 @@
             android:id="@+id/tabs"
             android:layout_width="match_parent"
             android:layout_height="45dp"
-            app:tabIndicatorHeight="4dp"/>
+            app:tabIndicatorHeight="4dp"
+            app:tabIndicatorColor="@color/iburn_color_accent_yel"/>
 
     </android.support.design.widget.AppBarLayout>
 
@@ -105,7 +106,7 @@
         app:borderWidth="0dp"
         app:elevation="6dp"
         app:pressedTranslationZ="12dp"
-        android:src="@drawable/ic_search_black" />
+        android:src="@drawable/ic_search" />
 
     <RelativeLayout
         android:id="@+id/unlock_container"

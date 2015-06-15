@@ -27,7 +27,7 @@ public class FileUtils {
      * @return true if copy occurred, false if destination already exists
      */
     public static boolean copyMBTilesToSD(Context c, int resourceId, String tilesName){
-        String tilesPath = String.format("%s/%s/%s",Environment.getExternalStorageDirectory().getAbsolutePath().toString(),
+        String tilesPath = String.format("%s/%s/%s", Environment.getExternalStorageDirectory().getAbsolutePath(),
                                                     Constants.IBURN_ROOT, Constants.TILES_DIR);
         try {
             createDirectoryAndParents(c, tilesPath);

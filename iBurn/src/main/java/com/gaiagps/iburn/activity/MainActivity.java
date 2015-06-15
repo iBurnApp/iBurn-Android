@@ -350,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         mPagerAdapter = new IBurnPagerAdapter(this, sTabs);
         mPagerAdapter.setSearchQueryProvider(this);
 
-        mTabs.setBackgroundResource(R.drawable.pager_tab_bg);
+//        mTabs.setBackgroundResource(R.drawable.pager_tab_bg);
 //        mTabs.setShouldExpand(true);
 //        mTabs.setTabPaddingLeftRight(0);
 //        mTabs.setIndicatorColorResource(R.color.tab_selector);
