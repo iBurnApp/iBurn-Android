@@ -4,4 +4,5 @@
     <dimen name="top_margin">0dp</dimen>
     <dimen name="bottom_margin">16dp</dimen>
     <dimen name="search_margin_bottom">36dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
 </resources>

@@ -65,12 +65,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private boolean googlePlayServicesMissing = false;
 
-    @InjectView(R.id.toolbar)          Toolbar mToolbar;
+//    @InjectView(R.id.toolbar)          Toolbar mToolbar;
     @InjectView(R.id.pager)            ViewPager mViewPager;
-    @InjectView(R.id.search_button)    View mSearchButton;
-    @InjectView(R.id.search_container) ViewGroup mSearchContainer;
-    @InjectView(R.id.search)           EditText mSearchEntry;
-    @InjectView(R.id.search_cancel)    View mSearchCancel;
+//    @InjectView(R.id.search_button)    View mSearchButton;
+//    @InjectView(R.id.search_container) ViewGroup mSearchContainer;
+//    @InjectView(R.id.search)           EditText mSearchEntry;
+//    @InjectView(R.id.search_cancel)    View mSearchCancel;
     @InjectView(R.id.unlock_container) View mUnlockContainer;
     @InjectView(R.id.tabs)             TabLayout mTabs;
 
@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
 //        setSupportActionBar(mToolbar);
 
-        setupSearchButton();
+//        setupSearchButton();
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();
         } else {
@@ -116,123 +116,127 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
     private boolean mSearching = false;
 
-    private void setupSearchButton() {
-
-        mSearchEntry.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() == 0 || s.length() > 1) {
-                    dispatchSearchQuery(s.toString());
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        mSearchEntry.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(mSearchEntry.getWindowToken(), 0);
-                return true;
-            }
-        });
-
-        mSearchButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                expandSearchView();
-            }
-        });
-
-        mSearchCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                collapseSearchView();
-            }
-        });
+    public void onSearchClick(View view) {
+        startActivity(new Intent(this, SearchActivity.class));
     }
 
+//    private void setupSearchButton() {
+//
+//        mSearchEntry.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence s, int start, int before, int count) {
+//                if (s.length() == 0 || s.length() > 1) {
+//                    dispatchSearchQuery(s.toString());
+//                }
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable s) {
+//
+//            }
+//        });
+//
+//        mSearchEntry.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+//            @Override
+//            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+//                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//                imm.hideSoftInputFromWindow(mSearchEntry.getWindowToken(), 0);
+//                return true;
+//            }
+//        });
+//
+//        mSearchButton.setOnClickListener(new View.OnClickListener() {
+//
+//            @Override
+//            public void onClick(View v) {
+//                expandSearchView();
+//            }
+//        });
+//
+//        mSearchCancel.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                collapseSearchView();
+//            }
+//        });
+//    }
 
-    private void expandSearchView() {
-        if (mSearchContainer == null) return;
-//        mSearching = true;
-//        mSearchBtn.animate().alpha(1.0f).setDuration(300);
-//        mSearchView.animate().scaleX(1f).alpha(1.0f).translationX(0).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
-//        mSearchView.requestFocus();
-//        mSearchView.setEnabled(true);
-//        mSearchBtn.setImageResource(R.drawable.ic_x);
 
-        // get the center for the clipping circle
-        int cx = mToolbar.getWidth();//(myView.getLeft() + myView.getRight()) / 2;
-        int cy = (mSearchButton.getTop() + mSearchButton.getBottom()) / 2;
-
-        // get the final radius for the clipping circle
-        int finalRadius = mToolbar.getWidth(); //Math.max(myView.getWidth(), myView.getHeight());
-
-        // create the animator for this view (the start radius is zero)
-        Animator anim = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            anim = ViewAnimationUtils.createCircularReveal(mSearchContainer, cx, cy, 0, finalRadius);
-            anim.start();
-        }
-
-        mSearchContainer.setVisibility(View.VISIBLE);
-
-        // Focus and bring up keyboard
-        mSearchEntry.requestFocus();
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(mSearchEntry, InputMethodManager.SHOW_FORCED);
-    }
-
-    private void collapseSearchView() {
-        if (mSearchContainer == null) return;
-//        mSearching = false;
-//        mSearchBtn.animate().alpha(0.7f).setDuration(300);
-//        mSearchView.animate().scaleX(.01f).alpha(0).translationX(330).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
-//        mSearchView.setEnabled(false);
-//        mSearchBtn.setImageResource(R.drawable.ic_search);
-        mSearchEntry.setText("");
-        mCurFilter = "";
-        dispatchSearchQuery(mCurFilter);
-
-        // get the center for the clipping circle
-        int cx = mToolbar.getWidth();//(myView.getLeft() + myView.getRight()) / 2;
-        int cy = (mSearchButton.getTop() + mSearchButton.getBottom()) / 2;
-
-        // get the final radius for the clipping circle
-        int initialRadius = mToolbar.getWidth(); //Math.max(myView.getWidth(), myView.getHeight());
-
-        // create the animation (the final radius is zero)
-        Animator anim = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            anim = ViewAnimationUtils.createCircularReveal(mSearchContainer, cx, cy, initialRadius, 0);
-
-            anim.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-                    mSearchContainer.setVisibility(View.GONE);
-                }
-            });
-
-            anim.start();
-        } else {
-            mSearchContainer.setVisibility(View.GONE);
-        }
-
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(mSearchEntry.getWindowToken(), 0);
-    }
+//    private void expandSearchView() {
+//        if (mSearchContainer == null) return;
+////        mSearching = true;
+////        mSearchBtn.animate().alpha(1.0f).setDuration(300);
+////        mSearchView.animate().scaleX(1f).alpha(1.0f).translationX(0).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
+////        mSearchView.requestFocus();
+////        mSearchView.setEnabled(true);
+////        mSearchBtn.setImageResource(R.drawable.ic_x);
+//
+//        // get the center for the clipping circle
+//        int cx = mToolbar.getWidth();//(myView.getLeft() + myView.getRight()) / 2;
+//        int cy = (mSearchButton.getTop() + mSearchButton.getBottom()) / 2;
+//
+//        // get the final radius for the clipping circle
+//        int finalRadius = mToolbar.getWidth(); //Math.max(myView.getWidth(), myView.getHeight());
+//
+//        // create the animator for this view (the start radius is zero)
+//        Animator anim = null;
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            anim = ViewAnimationUtils.createCircularReveal(mSearchContainer, cx, cy, 0, finalRadius);
+//            anim.start();
+//        }
+//
+//        mSearchContainer.setVisibility(View.VISIBLE);
+//
+//        // Focus and bring up keyboard
+//        mSearchEntry.requestFocus();
+//        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//        imm.showSoftInput(mSearchEntry, InputMethodManager.SHOW_FORCED);
+//    }
+//
+//    private void collapseSearchView() {
+//        if (mSearchContainer == null) return;
+////        mSearching = false;
+////        mSearchBtn.animate().alpha(0.7f).setDuration(300);
+////        mSearchView.animate().scaleX(.01f).alpha(0).translationX(330).setDuration(300).setInterpolator(new AccelerateDecelerateInterpolator()).start();
+////        mSearchView.setEnabled(false);
+////        mSearchBtn.setImageResource(R.drawable.ic_search);
+//        mSearchEntry.setText("");
+//        mCurFilter = "";
+//        dispatchSearchQuery(mCurFilter);
+//
+//        // get the center for the clipping circle
+//        int cx = mToolbar.getWidth();//(myView.getLeft() + myView.getRight()) / 2;
+//        int cy = (mSearchButton.getTop() + mSearchButton.getBottom()) / 2;
+//
+//        // get the final radius for the clipping circle
+//        int initialRadius = mToolbar.getWidth(); //Math.max(myView.getWidth(), myView.getHeight());
+//
+//        // create the animation (the final radius is zero)
+//        Animator anim = null;
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            anim = ViewAnimationUtils.createCircularReveal(mSearchContainer, cx, cy, initialRadius, 0);
+//
+//            anim.addListener(new AnimatorListenerAdapter() {
+//                @Override
+//                public void onAnimationEnd(Animator animation) {
+//                    super.onAnimationEnd(animation);
+//                    mSearchContainer.setVisibility(View.GONE);
+//                }
+//            });
+//
+//            anim.start();
+//        } else {
+//            mSearchContainer.setVisibility(View.GONE);
+//        }
+//
+//        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//        imm.hideSoftInputFromWindow(mSearchEntry.getWindowToken(), 0);
+//    }
 
 
     @Override

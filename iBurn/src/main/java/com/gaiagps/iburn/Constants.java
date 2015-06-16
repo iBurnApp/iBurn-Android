@@ -24,7 +24,7 @@ public class Constants {
     public static final String HOME_LAT = "home_lat";
     public static final String HOME_LON = "home_lon";
 
-    public enum PlayaItemType { CAMP, ART, EVENT};
+    public enum PlayaItemType { CAMP, ART, EVENT, ALL};
     public enum TabType { MAP, CAMPS, ART, EVENTS};
 
     static final GregorianCalendar EMBARGO_DATE = new GregorianCalendar(2014, Calendar.AUGUST, 25, 12, 0);

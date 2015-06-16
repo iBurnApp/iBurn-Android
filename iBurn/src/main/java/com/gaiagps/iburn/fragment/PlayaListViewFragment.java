@@ -270,7 +270,7 @@ public abstract class PlayaListViewFragment extends Fragment
 //                    null).toBundle();
                     pairs.toArray(new Pair[pairs.size()])).toBundle();
 
-            Explode transition = new Explode();
+            Fade transition = new Fade();
             transition.setDuration(250);
             // with elements excluded, they flicker
 //            transition.excludeTarget(android.R.id.statusBarBackground, true);
