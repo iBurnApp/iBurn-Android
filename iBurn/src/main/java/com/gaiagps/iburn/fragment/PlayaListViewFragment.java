@@ -129,7 +129,6 @@ public abstract class PlayaListViewFragment extends Fragment
 //        mListView.setEmptyView(mEmptyText);
 //        mListView.setFastScrollEnabled(true);
 //        mListView.setDividerHeight(10);
-        ((PlayaListViewHeader) v.findViewById(R.id.header)).setReceiver(this);
         return v;
     }
 

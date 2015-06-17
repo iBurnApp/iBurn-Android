@@ -4,6 +4,7 @@
     <string name="app_name">iBurn</string>
 
     <!-- MainActivity Tabs -->
+    <string name="fav_tab">Saved</string>
     <string name="map_tab">Map</string>
     <string name="camps_tab">Camps</string>
     <string name="events_tab">Events</string>
@@ -29,7 +30,7 @@
     <string name="search_title">Search</string>
     <string name="search_hint">Search</string>
     <string name="title_activity_search_results">SearchResultsActivity</string>
-    <string name="tab_favorites">FAVORITES</string>
+    <string name="tab_favorites">FAVORITES  </string>
     <string name="tab_distance">DISTANCE</string>
     <string name="tab_name">NAME</string>
     <string name="here_now">HERE+NOW</string>
@@ -38,8 +39,8 @@
     <string name="ends">Ends </string>
     <string name="home">Home</string>
     <string name="tab_time">TIME</string>
-    <string name="any_type">ANY TYPE</string>
-    <string name="any_day">ANY DAY</string>
+    <string name="any_type">ALL TYPES</string>
+    <string name="any_day">ALL DAYS</string>
     <string name="filter_by_day">Filter by Day</string>
     <string name="filter_by_type">Filter by Type</string>
     <string name="all">ALL</string>

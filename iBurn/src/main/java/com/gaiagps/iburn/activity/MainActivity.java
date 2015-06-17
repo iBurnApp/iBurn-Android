@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         add(IBurnPagerAdapter.IBurnTab.ART);
         add(IBurnPagerAdapter.IBurnTab.CAMPS);
         add(IBurnPagerAdapter.IBurnTab.EVENTS);
+        add(IBurnPagerAdapter.IBurnTab.FAVORITES);
     }};
 
     @Override
@@ -95,6 +96,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
+
+        mTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
 
 //        setSupportActionBar(mToolbar);
 
@@ -393,7 +396,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             MAP     (R.string.map_tab,    R.drawable.ic_brc,      GoogleMapFragment.class),
             ART     (R.string.art_tab,    R.drawable.ic_monument, ArtListViewFragment.class),
             CAMPS   (R.string.camps_tab,  R.drawable.ic_camp,     CampListViewFragment.class),
-            EVENTS  (R.string.events_tab, R.drawable.ic_calendar, EventListViewFragment.class);
+            EVENTS  (R.string.events_tab, R.drawable.ic_calendar, EventListViewFragment.class),
+            FAVORITES  (R.string.tab_favorites, R.drawable.heart, CampListViewFragment.class);
 
             private final Class<? extends Fragment> mFragClass;
             private final Integer mTitleResId;
