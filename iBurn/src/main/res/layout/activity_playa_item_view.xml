@@ -54,8 +54,10 @@
         <LinearLayout
             android:id="@+id/text_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:background="?android:attr/windowBackground"
+            android:padding="8dp"
+            android:layout_marginTop="8dp"
             android:orientation="vertical">
 
             <TextView
@@ -65,7 +67,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginRight="60dp"
                 android:ellipsize="marquee"
-                android:padding="8dp"
+                android:layout_marginBottom="8dp"
                 android:textSize="26sp"
                 android:textStyle="bold" />
 
@@ -76,8 +78,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/title"
                 android:ellipsize="marquee"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
+                android:layout_marginBottom="8dp"
                 android:textSize="26sp"
                 android:visibility="visible" />
 
@@ -88,8 +89,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/subitem_1"
                 android:ellipsize="marquee"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
+                android:layout_marginBottom="8dp"
                 android:textSize="20sp"
                 android:visibility="visible" />
 
@@ -100,8 +100,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/subitem_2"
                 android:ellipsize="marquee"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
+                android:layout_marginBottom="8dp"
                 android:textSize="20sp"
                 android:visibility="visible" />
 
@@ -112,8 +111,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/subitem_3"
                 android:ellipsize="marquee"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
+                android:layout_marginBottom="8dp"
                 android:singleLine="false"
                 android:textSize="18sp"
                 android:visibility="visible" />
@@ -126,6 +124,7 @@
         android:id="@+id/favorite_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        app:backgroundTint="#FFFFFF"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
         android:src="@drawable/ic_heart"
@@ -135,120 +134,3 @@
         app:layout_anchorGravity="bottom|right|end" />
 
 </android.support.design.widget.CoordinatorLayout>
-
-    <!--
-    <com.nirhart.parallaxscroll.views.ParallaxScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/scrollView1"
-    app:parallax_factor="4.2"
-    app:inner_parallax_factor="1"
-    app:parallax_views_num="1"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <RelativeLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/background">
-
-        <LinearLayout
-            android:id="@+id/map_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <fragment
-                android:id="@+id/map"
-                class="com.gaiagps.iburn.fragment.GoogleMapFragment"
-                android:layout_width="match_parent"
-                android:layout_height="300dp" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/text_container"
-            android:background="?android:attr/windowBackground"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/map_container"
-            android:elevation="12dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/title"
-                style="@style/PlayaTextItem"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="60dp"
-                android:ellipsize="marquee"
-                android:padding="8dp"
-                android:textSize="26sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/subitem_1"
-                style="@style/PlayaTextItem"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/title"
-                android:ellipsize="marquee"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
-                android:textSize="26sp"
-                android:visibility="visible" />
-
-            <TextView
-                android:id="@+id/subitem_2"
-                style="@style/PlayaTextItem"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/subitem_1"
-                android:ellipsize="marquee"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
-                android:textSize="20sp"
-                android:visibility="visible" />
-
-            <TextView
-                android:id="@+id/subitem_3"
-                style="@style/PlayaTextItem"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/subitem_2"
-                android:ellipsize="marquee"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
-                android:textSize="20sp"
-                android:visibility="visible" />
-
-            <TextView
-                android:id="@+id/body"
-                style="@style/PlayaTextItem"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/subitem_3"
-                android:ellipsize="marquee"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
-                android:singleLine="false"
-                android:textSize="18sp"
-                android:visibility="visible" />
-
-        </LinearLayout>
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/favorite_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/map_container"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_marginBottom="-30dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:src="@drawable/ic_heart"
-            app:borderWidth="0dp"
-            app:elevation="16dp" />
-
-    </RelativeLayout>
-    </com.nirhart.parallaxscroll.views.ParallaxScrollView>
-    -->

@@ -3,11 +3,15 @@ package com.gaiagps.iburn.activity;
 import android.app.ActivityOptions;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.database.Cursor;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +20,8 @@ import android.transition.Explode;
 import android.transition.Fade;
 import android.util.Log;
 import android.util.Pair;
+import android.util.TypedValue;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -78,6 +84,31 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         // TODO : Assure you can't scroll favorite button off-screen
         populateViews(getIntent());
+
+        setTextContainerMinHeight();
+    }
+
+    /**
+     * Set the text container within NestedScrollView to have height exactly equal to the
+     * full height minus status bar and toolbar. This addresses an issue where the
+     * collapsing toolbar pattern gets all screwed up.
+     */
+    private void setTextContainerMinHeight() {
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int height = size.y;
+
+        int[] textSizeAttr = new int[] { R.attr.actionBarSize };
+        int indexOfAttrTextSize = 0;
+        TypedArray a = obtainStyledAttributes(textSizeAttr);
+        int abHeight = a.getDimensionPixelSize(indexOfAttrTextSize, -1);
+        a.recycle();
+
+        Resources r = getResources();
+        int statusBarPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, r.getDisplayMetrics());
+
+        findViewById(R.id.text_container).setMinimumHeight(height - abHeight - statusBarPx);
     }
 
     @Override
@@ -127,16 +158,14 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         try {
             if (c != null && c.moveToFirst()) {
                 final String title = c.getString(c.getColumnIndexOrThrow(PlayaItemTable.name));
-                CollapsingToolbarLayout collapsingToolbar =
-                        (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
-                collapsingToolbar.setTitle(title);
                 ((TextView) findViewById(R.id.title)).setText(title);
                 int isFavorite = c.getInt(c.getColumnIndex(PlayaItemTable.favorite));
-                View favoriteBtn = findViewById(R.id.favorite_button);
+                FloatingActionButton favoriteBtn = (FloatingActionButton) findViewById(R.id.favorite_button);
                 if (isFavorite == 1)
-                    ((ImageView) favoriteBtn).setImageResource(R.drawable.ic_heart_pressed);
+                    favoriteBtn.setImageResource(R.drawable.ic_heart_pressed);
                 else
-                    ((ImageView) favoriteBtn).setImageResource(R.drawable.ic_heart);
+                    favoriteBtn.setImageResource(R.drawable.ic_heart);
+
                 favoriteBtn.setTag(R.id.list_item_related_model, model_id);
                 favoriteBtn.setTag(R.id.list_item_related_model_type, model_type);
                 favoriteBtn.setTag(R.id.favorite_button_state, isFavorite);
