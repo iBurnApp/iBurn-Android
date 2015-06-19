@@ -4,17 +4,14 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.EventCursorAdapter;
 import com.gaiagps.iburn.database.EventTable;

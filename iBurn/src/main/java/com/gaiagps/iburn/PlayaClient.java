@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.gaiagps.iburn.database.DBWrapper;
-import com.gaiagps.iburn.database.PlayaDatabase;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 

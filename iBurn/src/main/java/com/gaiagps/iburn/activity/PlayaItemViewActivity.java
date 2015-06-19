@@ -1,6 +1,5 @@
 package com.gaiagps.iburn.activity;
 
-import android.app.ActivityOptions;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -10,30 +9,23 @@ import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.transition.Explode;
 import android.transition.Fade;
 import android.util.Log;
-import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.PlayaUtils;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.ArtTable;
@@ -48,12 +40,11 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 /**
+ * Show the detail view for a Camp, Art installation, or Event
  * Created by davidbrodsky on 8/11/13.
  */
 public class PlayaItemViewActivity extends AppCompatActivity {
@@ -194,26 +185,6 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                         }
                     });
                     //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
-                /*
-                mapFragment.setOnTouchListener(new View.OnTouchListener(){
-
-                    @Override
-                    public boolean onTouch(View v, MotionEvent me) {
-                        if(me.getAction() == MotionEvent.ACTION_DOWN){
-                            Intent i = new Intent(PlayaItemViewActivity.this, MainActivity.class);
-                            i.putExtra("tab", Constants.TAB_TYPE.MAP);
-                            i.putExtra("lat", latLng.latitude);
-                            i.putExtra("lon", latLng.longitude);
-                            i.putExtra("title", title);
-                            i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                            PlayaItemViewActivity.this.startActivity(i);
-                            return true;
-                        }
-                        return false;
-                    }
-
-                });
-                */
                 } else {
                     // Adjust the margin / padding show the heart icon doesn't
                     // overlap title + descrition

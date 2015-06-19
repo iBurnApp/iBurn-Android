@@ -1,9 +1,7 @@
 package com.gaiagps.iburn;
 
 import android.content.Context;
-import android.text.Spannable;
 import android.text.format.DateUtils;
-import android.widget.TextView;
 
 import java.text.ParseException;
 import java.util.Date;

@@ -1,7 +1,6 @@
 package com.gaiagps.iburn;
 
 import android.location.Location;
-import android.util.Log;
 
 /**
  * Created by davidbrodsky on 8/4/14.

@@ -3,19 +3,16 @@ package com.gaiagps.iburn.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
+import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,13 +24,10 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.adapters.AdapterItemSelectedListener;
-import com.gaiagps.iburn.adapters.PlayaItemCursorAdapter;
 import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
 import com.gaiagps.iburn.database.PlayaContentProvider;
 import com.gaiagps.iburn.database.PlayaItemTable;
-import com.gaiagps.iburn.view.PlayaListViewHeader;
 
 import java.util.ArrayList;
 

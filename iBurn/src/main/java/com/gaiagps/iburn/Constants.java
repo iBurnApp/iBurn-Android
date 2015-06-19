@@ -2,7 +2,6 @@ package com.gaiagps.iburn;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 
 /**
  * Created by davidbrodsky on 8/3/13.
