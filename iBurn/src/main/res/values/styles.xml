@@ -49,4 +49,12 @@
         <item name="android:textStyle">normal</item>
     </style>
 
+    <!-- Pre Lollipop the FAB provides its own padding -->
+    <style name="FloatingActionButton">
+        <item name="android:layout_marginLeft">0dp</item>
+        <item name="android:layout_marginTop">0dp</item>
+        <item name="android:layout_marginRight">0dp</item>
+        <item name="android:layout_marginBottom">0dp</item>
+    </style>
+
 </resources>

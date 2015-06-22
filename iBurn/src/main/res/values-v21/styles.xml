@@ -6,4 +6,12 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 
+    <!-- Post Lollipop the FAB does not provide its own padding -->
+    <style name="FloatingActionButton">
+        <item name="android:layout_marginLeft">0dp</item>
+        <item name="android:layout_marginTop">0dp</item>
+        <item name="android:layout_marginRight">16dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+    </style>
+
 </resources>
