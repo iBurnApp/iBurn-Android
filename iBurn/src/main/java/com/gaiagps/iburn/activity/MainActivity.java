@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -20,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.DataUtils;
 import com.gaiagps.iburn.PlayaClient;
@@ -78,6 +80,19 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (BuildConfig.DEBUG) {
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                    .detectAll()
+                    .penaltyLog()
+                    .build());
+
+            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                    .detectAll()
+                    .penaltyLog()
+                    .build());
+        }
+
         DataUtils.checkAndSetupDB(getApplicationContext());
 
         setContentView(R.layout.activity_main);
