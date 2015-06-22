@@ -40,15 +40,6 @@ public final class PlayaContentProvider {
                 defaultSort = ArtTable.name + " ASC")
         public static final Uri ART = buildUri(ENDPOINT);
 
-        @InexactContentUri(
-                path = "query/#",
-                name = "LIST_ID",
-                type = "vnd.android.cursor.item/list",
-                whereColumn = "title LIKE ",
-                pathSegment = 1)
-        public static Uri withQuery(String query) {
-            return buildUri("query", String.valueOf(query));
-        }
     }
 
     /** Camps API **/
