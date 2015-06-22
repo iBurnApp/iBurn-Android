@@ -14,10 +14,12 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.DeviceLocation;
 
+import timber.log.Timber;
+
 /**
  * Bind a playa item (camp, art, event) database row to a view with a simple name & distance display,
  * using the device's location and date when the adapter was constructed.
- *
+ * <p/>
  * TODO: Update device location periodically
  */
 public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemCursorAdapter.ViewHolder> {
@@ -26,12 +28,12 @@ public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemC
     private Location deviceLocation;
     private AdapterItemSelectedListener listener;
 
-    private static int titleCol;
-    private static int latCol;
-    private static int lonCol;
-    private static int idCol;
+    private int titleCol;
+    private int latCol;
+    private int lonCol;
+    private int idCol;
 
-    public PlayaItemCursorAdapter(Context context, Cursor cursor,  Constants.PlayaItemType type, AdapterItemSelectedListener listener) {
+    public PlayaItemCursorAdapter(Context context, Cursor cursor, Constants.PlayaItemType type, AdapterItemSelectedListener listener) {
         super(context, cursor);
         this.type = type;
         this.listener = listener;

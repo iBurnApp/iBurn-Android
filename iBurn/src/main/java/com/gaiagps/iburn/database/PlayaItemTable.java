@@ -11,6 +11,7 @@ import static net.simonvt.schematic.annotation.DataType.Type.REAL;
 import static net.simonvt.schematic.annotation.DataType.Type.TEXT;
 
 /**
+ * Base table definition
  * Created by davidbrodsky on 7/28/14.
  */
 public interface PlayaItemTable {

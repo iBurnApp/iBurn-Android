@@ -30,6 +30,7 @@ import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.fragment.ArtListViewFragment;
 import com.gaiagps.iburn.fragment.CampListViewFragment;
 import com.gaiagps.iburn.fragment.EventListViewFragment;
+import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -253,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             ART      (R.string.art_tab,    R.drawable.ic_monument, ArtListViewFragment.class),
             CAMPS    (R.string.camps_tab,   R.drawable.ic_camp,     CampListViewFragment.class),
             EVENTS   (R.string.events_tab,  R.drawable.ic_calendar, EventListViewFragment.class),
-            FAVORITES(R.string.fav_tab, R.drawable.heart, CampListViewFragment.class);
+            FAVORITES(R.string.fav_tab, R.drawable.heart, FavoritesListViewFragment.class);
 
             private final Class<? extends Fragment> mFragClass;
             private final Integer mTitleResId;

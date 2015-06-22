@@ -1,48 +1,45 @@
 package com.gaiagps.iburn.fragment;
 
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.LoaderManager;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.PlayaItemCursorAdapter;
-import com.gaiagps.iburn.database.PlayaContentProvider;
+import com.gaiagps.iburn.database.DataProvider;
+import com.gaiagps.iburn.database.PlayaDatabase;
+import com.squareup.sqlbrite.SqlBrite;
+
+import rx.Subscription;
+import rx.functions.Action1;
 
 /**
+ * Fragment displaying all Playa Camps
+ * <p/>
  * Created by davidbrodsky on 8/3/13.
- * Base class for iBurn ListViews describing
- * Camps, Art, and Events. A subclass should provide
- * a value for PROJECTION, mAdapter, baseUri, and searchUri
  */
-public class CampListViewFragment extends PlayaListViewFragment
-        implements LoaderManager.LoaderCallbacks<Cursor> {
-    private static final String TAG = "CampListViewFragment";
-
-    PlayaItemCursorAdapter mAdapter;
-    protected Uri baseUri = PlayaContentProvider.Camps.CAMPS;                    // Uris corresponding to PlayaContentProvider
+public class CampListViewFragment extends PlayaListViewFragment {
 
     public static CampListViewFragment newInstance() {
         return new CampListViewFragment();
     }
 
-    protected Uri getBaseUri(){
-        return baseUri;
+    protected CursorRecyclerViewAdapter getAdapter() {
+        return new PlayaItemCursorAdapter(getActivity(), null, Constants.PlayaItemType.CAMP, this);
     }
 
-    protected CursorRecyclerViewAdapter getAdapter(){
-        return mAdapter;
+    @Override
+    protected Subscription subscribeToData() {
+        return DataProvider.getInstance(getActivity())
+                .observeTable(PlayaDatabase.CAMPS)
+                .subscribe(new Action1<SqlBrite.Query>() {
+                    @Override
+                    public void call(SqlBrite.Query query) {
+                        onDataChanged(query.run());
+                    }
+                });
     }
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
-
-    @Override public void onActivityCreated(Bundle savedInstanceState) {
-        mAdapter = new PlayaItemCursorAdapter(getActivity(), null, Constants.PlayaItemType.CAMP, this);
-        super.onActivityCreated(savedInstanceState);
-    }
-
 }

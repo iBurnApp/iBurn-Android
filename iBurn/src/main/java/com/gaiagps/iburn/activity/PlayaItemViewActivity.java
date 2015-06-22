@@ -30,9 +30,11 @@ import com.gaiagps.iburn.PlayaUtils;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.CampTable;
+import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaContentProvider;
 import com.gaiagps.iburn.database.PlayaItemTable;
+import com.gaiagps.iburn.database.generated.PlayaDatabase;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -43,33 +45,59 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.Calendar;
 import java.util.Date;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+
 /**
  * Show the detail view for a Camp, Art installation, or Event
  * Created by davidbrodsky on 8/11/13.
  */
 public class PlayaItemViewActivity extends AppCompatActivity {
 
+    String modelTable;
     Uri uri;
-    int model_id;
+    int modelId;
     LatLng latLng;
+
+    @InjectView(R.id.toolbar)
+    Toolbar toolbar;
+
+    @InjectView(R.id.text_container)
+    ViewGroup textContainer;
+
+    @InjectView(R.id.title)
+    TextView titleTextView;
+
+    @InjectView(R.id.favorite_button)
+    FloatingActionButton favoriteButton;
+
+    @InjectView(R.id.subitem_1)
+    TextView subItem1TextView;
+
+    @InjectView(R.id.subitem_2)
+    TextView subItem2TextView;
+
+    @InjectView(R.id.subitem_3)
+    TextView subItem3TextView;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
-            Fade fade = new Fade();
-            fade.setDuration(250);
-//            fade.excludeTarget(android.R.id.statusBarBackground, true);
-//            fade.excludeTarget(android.R.id.navigationBarBackground, true);
-            getWindow().setAllowEnterTransitionOverlap(false);
-            getWindow().setAllowReturnTransitionOverlap(false);
-            getWindow().setExitTransition(fade);
-            getWindow().setEnterTransition(fade);
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//
+//            Fade fade = new Fade();
+//            fade.setDuration(250);
+////            fade.excludeTarget(android.R.id.statusBarBackground, true);
+////            fade.excludeTarget(android.R.id.navigationBarBackground, true);
+//            getWindow().setAllowEnterTransitionOverlap(false);
+//            getWindow().setAllowReturnTransitionOverlap(false);
+//            getWindow().setExitTransition(fade);
+//            getWindow().setEnterTransition(fade);
+//        }
 
         setContentView(R.layout.activity_playa_item_view);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        ButterKnife.inject(this);
+
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -99,7 +127,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         Resources r = getResources();
         int statusBarPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, r.getDisplayMetrics());
 
-        findViewById(R.id.text_container).setMinimumHeight(height - abHeight - statusBarPx);
+        textContainer.setMinimumHeight(height - abHeight - statusBarPx);
     }
 
     @Override
@@ -126,41 +154,43 @@ public class PlayaItemViewActivity extends AppCompatActivity {
     }
 
     private void populateViews(Intent i){
-        model_id = i.getIntExtra("model_id",0);
-        Constants.PlayaItemType model_type = (Constants.PlayaItemType) i.getSerializableExtra("playa_item");
+        modelId = i.getIntExtra("model_id",0);
+        Constants.PlayaItemType model_type = (Constants.PlayaItemType) i.getSerializableExtra("model_type");
         String selection = "_id = ?";
         String[] projection = null;
         switch(model_type){
             case CAMP:
                 projection = null;
                 uri = PlayaContentProvider.Camps.CAMPS;
+                modelTable = com.gaiagps.iburn.database.PlayaDatabase.CAMPS;
                 break;
             case ART:
                 projection = null;
                 uri = PlayaContentProvider.Art.ART;
+                modelTable = com.gaiagps.iburn.database.PlayaDatabase.ART;
                 break;
             case EVENT:
                 projection = null;
                 uri = PlayaContentProvider.Events.EVENTS;
+                modelTable = com.gaiagps.iburn.database.PlayaDatabase.EVENTS;
                 break;
         }
 
-        Cursor c = getContentResolver().query(uri, projection, selection, new String[]{String.valueOf(model_id)}, null);
+        Cursor c = getContentResolver().query(uri, projection, selection, new String[]{String.valueOf(modelId)}, null);
         try {
             if (c != null && c.moveToFirst()) {
                 final String title = c.getString(c.getColumnIndexOrThrow(PlayaItemTable.name));
-                ((TextView) findViewById(R.id.title)).setText(title);
+                titleTextView.setText(title);
                 int isFavorite = c.getInt(c.getColumnIndex(PlayaItemTable.favorite));
-                FloatingActionButton favoriteBtn = (FloatingActionButton) findViewById(R.id.favorite_button);
                 if (isFavorite == 1)
-                    favoriteBtn.setImageResource(R.drawable.ic_heart_pressed);
+                    favoriteButton.setImageResource(R.drawable.ic_heart_pressed);
                 else
-                    favoriteBtn.setImageResource(R.drawable.ic_heart);
+                    favoriteButton.setImageResource(R.drawable.ic_heart);
 
-                favoriteBtn.setTag(R.id.list_item_related_model, model_id);
-                favoriteBtn.setTag(R.id.list_item_related_model_type, model_type);
-                favoriteBtn.setTag(R.id.favorite_button_state, isFavorite);
-                favoriteBtn.setOnClickListener(favoriteButtonOnClickListener);
+                favoriteButton.setTag(R.id.list_item_related_model, modelId);
+                favoriteButton.setTag(R.id.list_item_related_model_type, model_type);
+                favoriteButton.setTag(R.id.favorite_button_state, isFavorite);
+                favoriteButton.setOnClickListener(favoriteButtonOnClickListener);
 
                 if (!c.isNull(c.getColumnIndex(PlayaItemTable.description))) {
                     ((TextView) findViewById(R.id.body)).setText(c.getString(c.getColumnIndexOrThrow(PlayaItemTable.description)));
@@ -196,49 +226,49 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                 switch (model_type) {
                     case ART:
                         if (!c.isNull(c.getColumnIndex(ArtTable.playaAddress))) {
-                            ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.playaAddress)));
+                            subItem1TextView.setText(c.getString(c.getColumnIndexOrThrow(ArtTable.playaAddress)));
                         } else
-                            findViewById(R.id.subitem_1).setVisibility(View.GONE);
+                            subItem1TextView.setVisibility(View.GONE);
 
                         if (!c.isNull(c.getColumnIndex(ArtTable.artist))) {
-                            ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.artist)));
+                            subItem2TextView.setText(c.getString(c.getColumnIndexOrThrow(ArtTable.artist)));
                         } else
-                            findViewById(R.id.subitem_2).setVisibility(View.GONE);
+                            subItem2TextView.setVisibility(View.GONE);
 
                         if (!c.isNull(c.getColumnIndex(ArtTable.artistLoc))) {
-                            ((TextView) findViewById(R.id.subitem_3)).setText(c.getString(c.getColumnIndexOrThrow(ArtTable.artistLoc)));
+                            subItem3TextView.setText(c.getString(c.getColumnIndexOrThrow(ArtTable.artistLoc)));
                         } else
-                            findViewById(R.id.subitem_3).setVisibility(View.GONE);
+                            subItem3TextView.setVisibility(View.GONE);
                         break;
                     case CAMP:
                         if (!c.isNull(c.getColumnIndex(CampTable.playaAddress))) {
-                            ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(CampTable.playaAddress)));
+                            subItem1TextView.setText(c.getString(c.getColumnIndexOrThrow(CampTable.playaAddress)));
                         } else
-                            findViewById(R.id.subitem_1).setVisibility(View.GONE);
+                            subItem1TextView.setVisibility(View.GONE);
 
                         if (!c.isNull(c.getColumnIndex(CampTable.hometown))) {
-                            ((TextView) findViewById(R.id.subitem_2)).setText(c.getString(c.getColumnIndexOrThrow(CampTable.hometown)));
+                            subItem2TextView.setText(c.getString(c.getColumnIndexOrThrow(CampTable.hometown)));
                         } else
-                            findViewById(R.id.subitem_2).setVisibility(View.GONE);
-                        findViewById(R.id.subitem_3).setVisibility(View.GONE);
+                            subItem2TextView.setVisibility(View.GONE);
+                        subItem3TextView.setVisibility(View.GONE);
                         break;
                     case EVENT:
                         if (!c.isNull(c.getColumnIndex(EventTable.playaAddress))) {
-                            ((TextView) findViewById(R.id.subitem_1)).setText(c.getString(c.getColumnIndexOrThrow(EventTable.playaAddress)));
+                            subItem1TextView.setText(c.getString(c.getColumnIndexOrThrow(EventTable.playaAddress)));
                         } else
-                            findViewById(R.id.subitem_1).setVisibility(View.GONE);
+                            subItem1TextView.setVisibility(View.GONE);
 
                         Date nowDate = new Date();
                         Calendar nowPlusOneHrDate = Calendar.getInstance();
                         nowPlusOneHrDate.setTime(nowDate);
                         nowPlusOneHrDate.add(Calendar.HOUR, 1);
 
-                        ((TextView) findViewById(R.id.subitem_2)).setText(PlayaUtils.getDateString(this, nowDate, nowPlusOneHrDate.getTime(),
+                        subItem2TextView.setText(PlayaUtils.getDateString(this, nowDate, nowPlusOneHrDate.getTime(),
                                 c.getString(c.getColumnIndexOrThrow(EventTable.startTime)),
                                 c.getString(c.getColumnIndexOrThrow(EventTable.startTimePrint)),
                                 c.getString(c.getColumnIndexOrThrow(EventTable.endTime)),
                                 c.getString(c.getColumnIndexOrThrow(EventTable.endTimePrint))));
-                        findViewById(R.id.subitem_3).setVisibility(View.GONE);
+                        subItem3TextView.setVisibility(View.GONE);
                         break;
                 }
             }
@@ -251,17 +281,17 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
         @Override
         public void onClick(View v) {
-            ContentValues values = new ContentValues();
+            boolean makeFavorite = false;
             if ((Integer) v.getTag(R.id.favorite_button_state) == 0) {
-                values.put(PlayaItemTable.favorite, 1);
+                makeFavorite = true;
                 v.setTag(R.id.favorite_button_state, 1);
                 ((ImageView) v).setImageResource(R.drawable.ic_heart_pressed);
             } else if ((Integer) v.getTag(R.id.favorite_button_state) == 1) {
-                values.put(PlayaItemTable.favorite, 0);
                 v.setTag(R.id.favorite_button_state, 0);
                 ((ImageView) v).setImageResource(R.drawable.ic_heart);
             }
-            int result = getContentResolver().update(uri, values, PlayaItemTable.id + " = ?", new String[]{String.valueOf(model_id)});
+            DataProvider.getInstance(PlayaItemViewActivity.this).updateFavorite(modelTable, modelId, makeFavorite);
+//            int result = getContentResolver().update(uri, values, PlayaItemTable.id + " = ?", new String[]{String.valueOf(modelId)});
         }
     };
 }

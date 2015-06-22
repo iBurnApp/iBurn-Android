@@ -4,13 +4,12 @@ import android.net.Uri;
 
 import net.simonvt.schematic.annotation.ContentProvider;
 import net.simonvt.schematic.annotation.ContentUri;
+import net.simonvt.schematic.annotation.InexactContentUri;
 import net.simonvt.schematic.annotation.TableEndpoint;
 
 /**
  * ContentProvider definition. This defines a familiar API
  * for Android framework components to utilize.
- * See {@link com.gaiagps.iburn.database.PlayaClient} for
- * an abstracted, human-friendly interface.
  *
  * Created by davidbrodsky on 7/28/14.
  */
@@ -40,6 +39,16 @@ public final class PlayaContentProvider {
                 type = "vnd.android.cursor.dir/list",
                 defaultSort = ArtTable.name + " ASC")
         public static final Uri ART = buildUri(ENDPOINT);
+
+        @InexactContentUri(
+                path = "query/#",
+                name = "LIST_ID",
+                type = "vnd.android.cursor.item/list",
+                whereColumn = "title LIKE ",
+                pathSegment = 1)
+        public static Uri withQuery(String query) {
+            return buildUri("query", String.valueOf(query));
+        }
     }
 
     /** Camps API **/

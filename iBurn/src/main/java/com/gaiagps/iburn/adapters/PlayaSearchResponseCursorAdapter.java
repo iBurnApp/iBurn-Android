@@ -9,8 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.DeviceLocation;
 
@@ -29,6 +29,7 @@ public class PlayaSearchResponseCursorAdapter extends CursorRecyclerViewAdapter<
     private static int latCol;
     private static int lonCol;
     private static int idCol;
+    private static int typeCol;
 
     public PlayaSearchResponseCursorAdapter(Context context, Cursor cursor, AdapterItemSelectedListener listener) {
         super(context, cursor);
@@ -43,7 +44,6 @@ public class PlayaSearchResponseCursorAdapter extends CursorRecyclerViewAdapter<
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        int modelId;
         TextView titleView;
         TextView distanceView;
         View container;
@@ -66,8 +66,9 @@ public class PlayaSearchResponseCursorAdapter extends CursorRecyclerViewAdapter<
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int modelId = (int) v.getTag();
-                listener.onItemSelected(modelId, Constants.PlayaItemType.CAMP);
+                int modelId = (int) v.getTag(R.id.list_item_related_model);
+                int modelType = (int) v.getTag(R.id.list_item_related_model_type);
+                listener.onItemSelected(modelId, DataProvider.getTypeValue(modelType));
             }
         });
 
@@ -82,6 +83,7 @@ public class PlayaSearchResponseCursorAdapter extends CursorRecyclerViewAdapter<
             latCol = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
             lonCol = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
             idCol = cursor.getColumnIndexOrThrow(PlayaItemTable.id);
+            typeCol = cursor.getColumnIndexOrThrow(DataProvider.VirtualType); // This is a virtual column created during UNION queries of multiple tables
         }
 
         viewHolder.titleView.setText(cursor.getString(titleCol));
@@ -89,7 +91,7 @@ public class PlayaSearchResponseCursorAdapter extends CursorRecyclerViewAdapter<
         AdapterUtils.setDistanceText(deviceLocation, viewHolder.distanceView,
                 cursor.getDouble(latCol), cursor.getDouble(lonCol));
 
-        viewHolder.modelId = cursor.getInt(idCol);
-        viewHolder.container.setTag(viewHolder.modelId);
+        viewHolder.container.setTag(R.id.list_item_related_model, cursor.getInt(idCol));
+        viewHolder.container.setTag(R.id.list_item_related_model_type, cursor.getInt(typeCol));
     }
 }

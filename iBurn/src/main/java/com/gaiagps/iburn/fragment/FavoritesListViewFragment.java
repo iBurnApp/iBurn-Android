@@ -1,36 +1,30 @@
 package com.gaiagps.iburn.fragment;
 
-import android.os.Bundle;
-
-import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
-import com.gaiagps.iburn.adapters.PlayaItemCursorAdapter;
+import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 
 import rx.Subscription;
 import rx.functions.Action1;
 
 /**
- * Fragment displaying all Playa Art
- * <p/>
  * Created by davidbrodsky on 8/3/13.
  */
-public class ArtListViewFragment extends PlayaListViewFragment {
+public class FavoritesListViewFragment extends PlayaListViewFragment {
 
-    public static ArtListViewFragment newInstance() {
-        return new ArtListViewFragment();
+    public static CampListViewFragment newInstance() {
+        return new CampListViewFragment();
     }
 
     protected CursorRecyclerViewAdapter getAdapter() {
-        return new PlayaItemCursorAdapter(getActivity(), null, Constants.PlayaItemType.ART, this);
+        return new PlayaSearchResponseCursorAdapter(getActivity(), null, this);
     }
 
     @Override
     protected Subscription subscribeToData() {
         return DataProvider.getInstance(getActivity())
-                .observeTable(PlayaDatabase.ART)
+                .observeFavorites()
                 .subscribe(new Action1<SqlBrite.Query>() {
                     @Override
                     public void call(SqlBrite.Query query) {
@@ -39,7 +33,4 @@ public class ArtListViewFragment extends PlayaListViewFragment {
                 });
     }
 
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 }

@@ -5,7 +5,6 @@ import android.content.Context;
 import com.gaiagps.iburn.PlayaClient;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
-
 /**
  *
  * This class handles bootstrapping the application database

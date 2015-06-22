@@ -5,6 +5,8 @@ import com.gaiagps.iburn.PlayaClient;
 import net.simonvt.schematic.annotation.Database;
 import net.simonvt.schematic.annotation.Table;
 
+import java.util.HashSet;
+
 /**
  * SQL Database definition.
  *
@@ -18,4 +20,6 @@ public class PlayaDatabase {
     @Table(CampTable.class)     public static final String  CAMPS   = "camps";
     @Table(EventTable.class)    public static final String  EVENTS  = "events";
     @Table(UserPoiTable.class)  public static final String  POIS    = "pois";
+
+    static HashSet<String> ALL_TABLES = new HashSet<String>() {{ add(ART); add(CAMPS); add(EVENTS); add(POIS); }};
 }

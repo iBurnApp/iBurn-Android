@@ -28,7 +28,6 @@ public class PlayaListViewHeader extends RelativeLayout {
     protected TextView mTypeFilter;
     protected TextView mDayFilter;
 
-    protected PlayaListViewHeaderReceiver.SORT mSort = PlayaListViewHeaderReceiver.SORT.DISTANCE;
     protected String mDaySelection;
     protected ArrayList<String> mTypeSelection = new ArrayList<>();
     protected int mDaySelectionIndex;
@@ -55,10 +54,8 @@ public class PlayaListViewHeader extends RelativeLayout {
     /**
      * Interface for users to receive feedback from this view
      */
-    public static interface PlayaListViewHeaderReceiver {
-        public static enum SORT {NAME, DISTANCE, FAVORITE}
-
-        public void onSelectionChanged(SORT sort, String day, ArrayList<String> types);
+    public interface PlayaListViewHeaderReceiver {
+        void onSelectionChanged(String day, ArrayList<String> types);
     }
 
     /**
@@ -144,7 +141,7 @@ public class PlayaListViewHeader extends RelativeLayout {
 
     protected void dispatchSelection() {
         if (mReceiver != null) {
-            mReceiver.onSelectionChanged(mSort, mDaySelection, mTypeSelection);
+            mReceiver.onSelectionChanged(mDaySelection, mTypeSelection);
         }
     }
 

@@ -19,6 +19,8 @@ import com.gaiagps.iburn.location.DeviceLocation;
 import java.util.Calendar;
 import java.util.Date;
 
+import timber.log.Timber;
+
 /**
  * Bind an event database row to a view with name, distance, and delta time display,
  * using the device's location and current time when the adapter was constructed.
@@ -115,19 +117,23 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
             idCol = cursor.getColumnIndexOrThrow(EventTable.id);
         }
 
-        if (cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1) {
-            viewHolder.allDay = true;
-            viewHolder.timeLabel = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
+        try {
+            if (cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1) {
+                viewHolder.allDay = true;
+                viewHolder.timeLabel = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
 
-        } else {
-            viewHolder.allDay = false;
-            viewHolder.timeLabel = PlayaUtils.getDateString(context, nowDate.getTime(), nowPlusOneHrDate.getTime(),
-                    cursor.getString(startTimeCol),
-                    cursor.getString(startTimePrettyCol),
-                    cursor.getString(endTimeCol),
-                    cursor.getString(endTimePrettyCol));
+            } else {
+                viewHolder.allDay = false;
+                viewHolder.timeLabel = PlayaUtils.getDateString(context, nowDate.getTime(), nowPlusOneHrDate.getTime(),
+                        cursor.getString(startTimeCol),
+                        cursor.getString(startTimePrettyCol),
+                        cursor.getString(endTimeCol),
+                        cursor.getString(endTimePrettyCol));
+            }
+
+        } catch (IllegalArgumentException e) {
+            Timber.d("ok");
         }
-
         viewHolder.typeView.setText(
                 AdapterUtils.getStringForEventType(cursor.getString(eventTypeCol)));
 
