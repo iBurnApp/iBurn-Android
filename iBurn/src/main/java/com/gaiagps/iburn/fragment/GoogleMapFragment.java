@@ -1,6 +1,5 @@
 package com.gaiagps.iburn.fragment;
 
-import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,6 +11,7 @@ import android.os.Environment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -40,7 +40,9 @@ import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.database.UserPoiTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -57,6 +59,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by davidbrodsky on 8/3/13.
@@ -123,7 +126,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     private static final int MAX_POIS = 200;
     ArrayDeque<Marker> mMappedMarkers = new ArrayDeque<>(MAX_POIS);
     HashMap<String, String> markerIdToMeta = new HashMap<>();
-    MapBoxOfflineTileProvider tileProvider;
+    private static MapBoxOfflineTileProvider tileProvider; // Re-use tileProvider
+    private static AtomicInteger tileProviderHolds = new AtomicInteger();
     TileOverlay overlay;
     LatLng latLngToCenterOn;
 
@@ -220,8 +224,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (tileProvider != null)
+        if (tileProvider != null && tileProviderHolds.decrementAndGet() == 0) {
             tileProvider.close();
+        }
     }
 
     @Override
@@ -239,7 +244,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         int dpValue = 10; // margin in dips
         float d = getActivity().getResources().getDisplayMetrics().density;
         int margin = (int)(dpValue * d); // margin in pixels
-        setMargins(addPoiBtn, 0, margin * 6, margin , 0);
+        setMargins(addPoiBtn, 0, margin * 6, margin, 0);
         return parent;
     }
 
@@ -303,19 +308,17 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     }
 
     private void initMap() {
+
         addMBTileOverlay(R.raw.iburn);
-        getMap().getUiSettings().setZoomControlsEnabled(false);
+        UiSettings settings = getMap().getUiSettings();
+        settings.setZoomControlsEnabled(false);
+        settings.setMapToolbarEnabled(false);
         loadCustomPins();
         //addCustomPin(PlayaClient.getHomeLatLng(getActivity()));
         // TODO: If user location present, start there
         LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
         visibleRegion = getMap().getProjection().getVisibleRegion();
         getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
-
-        if (latLngToCenterOn != null) {
-            getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(latLngToCenterOn, 14));
-            latLngToCenterOn = null;
-        }
 
         getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             /** Lat, Lon tolerance used to determine if location within BRC boundaries */
@@ -369,31 +372,36 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     String markerMeta = markerIdToMeta.get(marker.getId());
                     int model_id = Integer.parseInt(markerMeta.split("-")[1]);
                     int model_type = Integer.parseInt(markerMeta.split("-")[0]);
-                    Constants.PLAYA_ITEM playaItem = null;
+                    Constants.PlayaItemType modelType = null;
                     switch (model_type) {
                         case ART:
-                            playaItem = Constants.PLAYA_ITEM.ART;
+                            modelType = Constants.PlayaItemType.ART;
                             break;
                         case EVENTS:
-                            playaItem = Constants.PLAYA_ITEM.EVENT;
+                            modelType = Constants.PlayaItemType.EVENT;
                             break;
                         case CAMPS:
-                            playaItem = Constants.PLAYA_ITEM.CAMP;
+                            modelType = Constants.PlayaItemType.CAMP;
                             break;
                     }
                     Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
                     i.putExtra("model_id", model_id);
-                    i.putExtra("playa_item", playaItem);
+                    i.putExtra("model_type", modelType);
                     getActivity().startActivity(i);
                 } else if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
                     showEditPinDialog(marker);
                 }
             }
         });
-
     }
 
     private void addMBTileOverlay(int MBTileAssetId) {
+        if (tileProvider != null) {
+            Log.d("GoogleMapFragment", "Reusing tileProvider");
+            _addMBTilesOverlay();
+            return;
+        }
+
         new AsyncTask<Integer, Void, Void>() {
 
             @Override
@@ -414,19 +422,30 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     return;
                 String tilesPath = String.format("%s/%s/%s/%s", Environment.getExternalStorageDirectory().getAbsolutePath(),
                         Constants.IBURN_ROOT, Constants.TILES_DIR, Constants.MBTILE_DESTINATION);
+
                 File MBTFile = new File(tilesPath);
-                GoogleMap map = getMap();
+                tileProvider = new MapBoxOfflineTileProvider(MBTFile);
+
+                _addMBTilesOverlay();
+            }
+        }.execute(MBTileAssetId);
+
+    }
+
+    /** Add {@link #tileProvider} to the current Map and increment the num of tileProvider holds */
+    private void _addMBTilesOverlay() {
+        getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap map) {
+                tileProviderHolds.incrementAndGet();
                 map.setMapType(GoogleMap.MAP_TYPE_NONE);
                 map.setMyLocationEnabled(true);
                 TileOverlayOptions opts = new TileOverlayOptions();
 
-                tileProvider = new MapBoxOfflineTileProvider(MBTFile);
                 opts.tileProvider(tileProvider);
                 overlay = map.addTileOverlay(opts);
-
             }
-        }.execute(MBTileAssetId);
-
+        });
     }
 
     private void navigateHome() {
@@ -527,13 +546,15 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         mLoaderType = 0;
     }
 
-    public void mapMarker(MarkerOptions marker) {
-        getMap().addMarker(marker);
-    }
-
-    public void mapAndCenterOnMarker(MarkerOptions marker) {
+    public void mapAndCenterOnMarker(final MarkerOptions marker) {
         latLngToCenterOn = marker.getPosition();
-        mapMarker(marker);
+        getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                googleMap.addMarker(marker);
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLngToCenterOn, 14));
+            }
+        });
     }
 
     public void showcaseMarker(MarkerOptions marker) {
