@@ -313,6 +313,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         UiSettings settings = getMap().getUiSettings();
         settings.setZoomControlsEnabled(false);
         settings.setMapToolbarEnabled(false);
+        settings.setScrollGesturesEnabled(mState != STATE.SHOWCASE);
         loadCustomPins();
         //addCustomPin(PlayaClient.getHomeLatLng(getActivity()));
         // TODO: If user location present, start there
