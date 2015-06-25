@@ -23,6 +23,7 @@
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
             <FrameLayout
+                android:id="@+id/map_container"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 android:fitsSystemWindows="true"
@@ -56,8 +57,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?android:attr/windowBackground"
-            android:padding="8dp"
-            android:layout_marginTop="8dp"
+            android:paddingStart="16dp"
+            android:paddingLeft="16dp"
+            android:paddingEnd="16dp"
+            android:paddingRight="16dp"
+            android:paddingTop="16dp"
             android:orientation="vertical">
 
             <TextView
@@ -67,8 +71,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginRight="60dp"
                 android:ellipsize="marquee"
-                android:layout_marginBottom="8dp"
-                android:textSize="26sp"
+                android:textSize="40sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -78,8 +81,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/title"
                 android:ellipsize="marquee"
-                android:layout_marginBottom="8dp"
-                android:textSize="26sp"
+                android:textSize="32sp"
                 android:visibility="visible" />
 
             <TextView
@@ -90,7 +92,7 @@
                 android:layout_below="@id/subitem_1"
                 android:ellipsize="marquee"
                 android:layout_marginBottom="8dp"
-                android:textSize="20sp"
+                android:textSize="32sp"
                 android:visibility="visible" />
 
             <TextView
@@ -101,7 +103,7 @@
                 android:layout_below="@id/subitem_2"
                 android:ellipsize="marquee"
                 android:layout_marginBottom="8dp"
-                android:textSize="20sp"
+                android:textSize="32sp"
                 android:visibility="visible" />
 
             <TextView
@@ -113,7 +115,7 @@
                 android:ellipsize="marquee"
                 android:layout_marginBottom="8dp"
                 android:singleLine="false"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:visibility="visible" />
 
         </LinearLayout>

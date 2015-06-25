@@ -1,22 +1,21 @@
 package com.gaiagps.iburn.activity;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.transition.Fade;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +33,6 @@ import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaContentProvider;
 import com.gaiagps.iburn.database.PlayaItemTable;
-import com.gaiagps.iburn.database.generated.PlayaDatabase;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -59,8 +57,16 @@ public class PlayaItemViewActivity extends AppCompatActivity {
     int modelId;
     LatLng latLng;
 
+    boolean isFavorite;
+    boolean showingLocation;
+
+    MenuItem favoriteMenuItem;
+
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
+
+    @InjectView(R.id.map_container)
+    FrameLayout mapContainer;
 
     @InjectView(R.id.text_container)
     ViewGroup textContainer;
@@ -105,6 +111,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         populateViews(getIntent());
 
         setTextContainerMinHeight();
+
     }
 
     /**
@@ -118,7 +125,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         display.getSize(size);
         int height = size.y;
 
-        int[] textSizeAttr = new int[] { R.attr.actionBarSize };
+        int[] textSizeAttr = new int[]{R.attr.actionBarSize};
         int indexOfAttrTextSize = 0;
         TypedArray a = obtainStyledAttributes(textSizeAttr);
         int abHeight = a.getDimensionPixelSize(indexOfAttrTextSize, -1);
@@ -132,14 +139,13 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        return true;
-    }
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.activity_playa_item, menu);
 
-    @Override
-    public boolean onPrepareOptionsMenu (Menu menu){
-        super.onPrepareOptionsMenu(menu);
-        return true;
+        favoriteMenuItem = menu.findItem(R.id.favorite_menu);
+        if (isFavorite) favoriteMenuItem.setIcon(R.drawable.ic_heart_pressed);
+        if (showingLocation) favoriteMenuItem.setVisible(false);
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -149,16 +155,23 @@ public class PlayaItemViewActivity extends AppCompatActivity {
             case android.R.id.home:
                 onBackPressed();
                 return true;
+            case R.id.favorite_menu:
+                int newDrawableResId = isFavorite ? R.drawable.ic_heart : R.drawable.ic_heart_pressed;
+                favoriteMenuItem.setIcon(newDrawableResId);
+                favoriteButton.setImageResource(newDrawableResId);
+                setFavorite(!isFavorite);
+                return true;
+
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void populateViews(Intent i){
-        modelId = i.getIntExtra("model_id",0);
+    private void populateViews(Intent i) {
+        modelId = i.getIntExtra("model_id", 0);
         Constants.PlayaItemType model_type = (Constants.PlayaItemType) i.getSerializableExtra("model_type");
         String selection = "_id = ?";
         String[] projection = null;
-        switch(model_type){
+        switch (model_type) {
             case CAMP:
                 projection = null;
                 uri = PlayaContentProvider.Camps.CAMPS;
@@ -181,15 +194,14 @@ public class PlayaItemViewActivity extends AppCompatActivity {
             if (c != null && c.moveToFirst()) {
                 final String title = c.getString(c.getColumnIndexOrThrow(PlayaItemTable.name));
                 titleTextView.setText(title);
-                int isFavorite = c.getInt(c.getColumnIndex(PlayaItemTable.favorite));
-                if (isFavorite == 1)
+                isFavorite = c.getInt(c.getColumnIndex(PlayaItemTable.favorite)) == 1;
+                if (isFavorite)
                     favoriteButton.setImageResource(R.drawable.ic_heart_pressed);
                 else
                     favoriteButton.setImageResource(R.drawable.ic_heart);
 
                 favoriteButton.setTag(R.id.list_item_related_model, modelId);
                 favoriteButton.setTag(R.id.list_item_related_model_type, model_type);
-                favoriteButton.setTag(R.id.favorite_button_state, isFavorite);
                 favoriteButton.setOnClickListener(favoriteButtonOnClickListener);
 
                 if (!c.isNull(c.getColumnIndex(PlayaItemTable.description))) {
@@ -197,7 +209,15 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                 } else
                     findViewById(R.id.body).setVisibility(View.GONE);
 
-                if (PlayaClient.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex(PlayaItemTable.latitude))) {
+                showingLocation = PlayaClient.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex(PlayaItemTable.latitude));
+                if (showingLocation) {
+                    favoriteButton.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                        @Override
+                        public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                            if (favoriteMenuItem != null)
+                                favoriteMenuItem.setVisible(v.getVisibility() == View.GONE);
+                        }
+                    });
                     latLng = new LatLng(c.getDouble(c.getColumnIndexOrThrow(PlayaItemTable.latitude)), c.getDouble(c.getColumnIndexOrThrow(PlayaItemTable.longitude)));
                     //TextView locationView = ((TextView) findViewById(R.id.location));
                     final GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -214,13 +234,16 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                             }
                         }
                     });
+                    //favoriteMenuItem.setVisible(false);
                     //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
                 } else {
                     // Adjust the margin / padding show the heart icon doesn't
                     // overlap title + descrition
-                    findViewById(R.id.map).setVisibility(View.INVISIBLE);
-                    FrameLayout.LayoutParams parms = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 150);
-                    findViewById(R.id.map).setLayoutParams(parms);
+                    findViewById(R.id.map).setVisibility(View.GONE);
+                    CollapsingToolbarLayout.LayoutParams parms = new CollapsingToolbarLayout.LayoutParams(CollapsingToolbarLayout.LayoutParams.MATCH_PARENT, 24);
+                    mapContainer.setLayoutParams(parms);
+                    favoriteButton.setVisibility(View.GONE);
+                    //favoriteMenuItem.setVisible(true);
                 }
 
                 switch (model_type) {
@@ -277,21 +300,21 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         }
     }
 
-    View.OnClickListener favoriteButtonOnClickListener = new View.OnClickListener(){
+    View.OnClickListener favoriteButtonOnClickListener = new View.OnClickListener() {
 
         @Override
         public void onClick(View v) {
-            boolean makeFavorite = false;
-            if ((Integer) v.getTag(R.id.favorite_button_state) == 0) {
-                makeFavorite = true;
-                v.setTag(R.id.favorite_button_state, 1);
-                ((ImageView) v).setImageResource(R.drawable.ic_heart_pressed);
-            } else if ((Integer) v.getTag(R.id.favorite_button_state) == 1) {
-                v.setTag(R.id.favorite_button_state, 0);
-                ((ImageView) v).setImageResource(R.drawable.ic_heart);
-            }
-            DataProvider.getInstance(PlayaItemViewActivity.this).updateFavorite(modelTable, modelId, makeFavorite);
-//            int result = getContentResolver().update(uri, values, PlayaItemTable.id + " = ?", new String[]{String.valueOf(modelId)});
+
+            int newDrawableResId = isFavorite ? R.drawable.ic_heart : R.drawable.ic_heart_pressed;
+            ((ImageView) v).setImageResource(newDrawableResId);
+            favoriteMenuItem.setIcon(newDrawableResId);
+
+            setFavorite(!isFavorite);
         }
     };
+
+    private void setFavorite(boolean isFavorite) {
+        DataProvider.getInstance(PlayaItemViewActivity.this).updateFavorite(modelTable, modelId, isFavorite);
+        this.isFavorite = isFavorite;
+    }
 }
