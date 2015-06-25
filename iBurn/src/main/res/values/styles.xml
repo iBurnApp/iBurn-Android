@@ -21,7 +21,6 @@
     <style name="PlayaTextItem">
         <item name="android:textColor">@color/regular_text</item>
         <item name="android:fontFamily">sans-serif-condensed</item>
-        <item name="android:layout_marginTop">5dp</item>
     </style>
 
     <style name="PlayaListViewHeaderItem">

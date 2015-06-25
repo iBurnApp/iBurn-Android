@@ -8,7 +8,10 @@
     android:id="@+id/list_item_container"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp"
     android:orientation="vertical"
     android:focusable="true"
     android:clickable="true"
@@ -22,8 +25,6 @@
         android:layout_height="wrap_content"
         android:ellipsize="marquee"
         android:gravity="center_vertical"
-        android:padding="2dp"
-        android:paddingTop="0dp"
         android:singleLine="true"
         android:textSize="20sp"/>
 
@@ -37,7 +38,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ellipsize="marquee"
-        android:padding="2dp"
         android:paddingLeft="0dp"
         android:singleLine="true"
         android:textColor="@color/sub_text"

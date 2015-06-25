@@ -156,7 +156,7 @@ public class AdapterUtils {
             return minutesToTarget;
         } else {
             textView.setText("");
-            textView.setVisibility(View.GONE);
+            textView.setVisibility(View.INVISIBLE);
             return -1;
         }
     }
