@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.fragment;
 
+import android.animation.ValueAnimator;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,6 +20,10 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -62,6 +67,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import hugo.weaving.DebugLog;
+import timber.log.Timber;
+
 /**
  * Created by davidbrodsky on 8/3/13.
  */
@@ -86,11 +94,17 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     }
 
     private enum STATE {
-        /** Default. Constantly search and show POIs within the viewable map region */
+        /**
+         * Default. Constantly search and show POIs within the viewable map region
+         */
         EXPLORE,
-        /** Showcase a particular POI and its relation to the user home camp / location */
+        /**
+         * Showcase a particular POI and its relation to the user home camp / location
+         */
         SHOWCASE,
-        /** Show search results **/
+        /**
+         * Show search results
+         **/
         SEARCH
     }
 
@@ -112,18 +126,23 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     private final int POI_ZOOM_LEVEL = 18;
     float lastZoomLevel = 0;
     int mLoaderType = 0;
-    /** When restartLoaders is called, how many loaders were simultaneously started.
-     *  We use this number to collect a batch of loader results into a single collection
-     *  to center the camera on.
-     *
-     *  Set on each call to {@link #restartLoaders(boolean)}, Read on each call to
-     *  {@link #onLoadFinished(android.support.v4.content.Loader, android.database.Cursor)}
+    /**
+     * When restartLoaders is called, how many loaders were simultaneously started.
+     * We use this number to collect a batch of loader results into a single collection
+     * to center the camera on.
+     * <p/>
+     * Set on each call to {@link #restartLoaders(boolean)}, Read on each call to
+     * {@link #onLoadFinished(android.support.v4.content.Loader, android.database.Cursor)}
      */
     private int mLoaderResponsesExpected;
 
-    /** Map of user added pins. Google Marker Id -> Database Id */
+    /**
+     * Map of user added pins. Google Marker Id -> Database Id
+     */
     HashMap<String, String> mMappedCustomMarkerIds = new HashMap<>();
-    /** Map of pins shown in response to explore or search */
+    /**
+     * Map of pins shown in response to explore or search
+     */
     private static final int MAX_POIS = 200;
     ArrayDeque<Marker> mMappedMarkers = new ArrayDeque<>(MAX_POIS);
     HashMap<String, String> markerIdToMeta = new HashMap<>();
@@ -145,35 +164,19 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     };
 
     private void dropPinAndShowEditDialog(final Marker marker) {
-        // Handler allows us to repeat a code block after a specified delay
-        final android.os.Handler handler = new android.os.Handler();
-        final long start = SystemClock.uptimeMillis();
-        final long duration = 500;
-
-        // Use the bounce interpolator
-        final android.view.animation.Interpolator interpolator =
-                new DecelerateInterpolator();
-
-        // Animate marker with a bounce updating its position every 15ms
-        handler.post(new Runnable() {
+        ValueAnimator animator = new ValueAnimator();
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
-            public void run() {
-                long elapsed = SystemClock.uptimeMillis() - start;
-                // Calculate t for bounce based on elapsed time
-                float t = Math.max(
-                        1 - interpolator.getInterpolation((float) elapsed
-                                / duration), 0);
-                // Set the anchor
-                marker.setAnchor(0.5f, 1.0f + 14 * t);
-
-                if (t > .05) {
-                    // Post this event again 15ms from now.
-                    handler.postDelayed(this, 15);
-                } else { // done elapsing, show window
+            public void onAnimationUpdate(ValueAnimator animation) {
+                marker.setAlpha((Float) animation.getAnimatedValue());
+                if (animation.getAnimatedFraction() == 1)
                     showEditPinDialog(marker);
-                }
             }
         });
+        animator.setFloatValues(0f, 1f);
+        animator.setDuration(500);
+        animator.setInterpolator(new AccelerateInterpolator());
+        animator.start();
     }
 
     private void showEditPinDialog(final Marker marker) {
@@ -181,9 +184,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         final RadioGroup iconGroup = ((RadioGroup) dialogBody.findViewById(R.id.iconGroup));
         // Fetch current Marker icon
         Cursor poi = getActivity().getContentResolver().query(PlayaContentProvider.Pois.POIS,
-                new String[] {PlayaItemTable.id, UserPoiTable.drawableResId},
+                new String[]{PlayaItemTable.id, UserPoiTable.drawableResId},
                 PlayaItemTable.id + " = ?",
-                new String[] { String.valueOf(getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId())))}, null);
+                new String[]{String.valueOf(getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId())))}, null);
         if (poi != null && poi.moveToFirst()) {
             int drawableResId = poi.getInt(poi.getColumnIndex(UserPoiTable.drawableResId));
             switch (drawableResId) {
@@ -206,19 +209,35 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         }
         final EditText markerTitle = (EditText) dialogBody.findViewById(R.id.markerTitle);
         markerTitle.setText(marker.getTitle());
+        markerTitle.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+
+            String lastEntry;
+
+            @DebugLog
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    lastEntry = ((EditText) v).getText().toString();
+                    ((EditText) v).setText("");
+                } else if (((EditText) v).getText().length() == 0) {
+                    ((EditText) v).setText(lastEntry);
+                }
+            }
+        });
         new AlertDialog.Builder(getActivity(), R.style.Theme_Iburn_Dialog)
                 .setView(dialogBody)
                 .setPositiveButton("Done", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         // Save the title
-                        marker.setTitle(markerTitle.getText().toString());
+                        if (markerTitle.getText().length() > 0)
+                            marker.setTitle(markerTitle.getText().toString());
                         marker.hideInfoWindow();
 
                         int drawableId = 0;
                         switch (iconGroup.getCheckedRadioButtonId()) {
                             case R.id.btn_star:
-                               drawableId = UserPoiTable.STAR;
+                                drawableId = UserPoiTable.STAR;
                                 marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_star));
                                 break;
                             case R.id.btn_heart:
@@ -243,8 +262,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                         // Delete Pin
                         removeCustomPin(marker);
                     }
-                })
-                .show();
+                }).show();
     }
 
     public static GoogleMapFragment newInstance() {
@@ -277,7 +295,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         ((ViewGroup) parent).addView(addPoiBtn);
         int dpValue = 10; // margin in dips
         float d = getActivity().getResources().getDisplayMetrics().density;
-        int margin = (int)(dpValue * d); // margin in pixels
+        int margin = (int) (dpValue * d); // margin in pixels
         setMargins(addPoiBtn, 0, margin * 6, margin, 0);
         return parent;
     }
@@ -286,7 +304,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
      * Thanks to SO:
      * http://stackoverflow.com/questions/4472429/change-the-right-margin-of-a-view-programmatically
      */
-    public static void setMargins (View v, int l, int t, int r, int b) {
+    public static void setMargins(View v, int l, int t, int r, int b) {
         if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
             p.setMargins(l, t, r, b);
@@ -334,7 +352,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
             @Override
             public void onMarkerDragEnd(Marker marker) {
-                if ( mMappedCustomMarkerIds.containsKey(marker.getId()) ) {
+                if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
                     updateCustomPinWithMarker(marker, 0);
                 }
             }
@@ -467,7 +485,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     }
 
-    /** Add {@link #tileProvider} to the current Map and increment the num of tileProvider holds */
+    /**
+     * Add {@link #tileProvider} to the current Map and increment the num of tileProvider holds
+     */
     private void _addMBTilesOverlay() {
         getMapAsync(new OnMapReadyCallback() {
             @Override
@@ -632,8 +652,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 // Select by event currently ongoing
                 Date now = new Date();
                 selection += String.format("(%1$s < '%2$s' AND %3$s > '%2$s') ",
-                            EventTable.startTime,   PlayaClient.getISOString(now),
-                            EventTable.endTime);
+                        EventTable.startTime, PlayaClient.getISOString(now),
+                        EventTable.endTime);
                 break;
             case POIS:
                 targetUri = PlayaContentProvider.Pois.POIS;
@@ -675,7 +695,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         if (loaderId == POIS) {
             // If we're fetching POIs, add the drawableResourceId column
             projection = PROJECTION.toArray(new String[PROJECTION.size() + 1]);
-            projection[projection.length-1] = UserPoiTable.drawableResId;
+            projection[projection.length - 1] = UserPoiTable.drawableResId;
         } else {
             projection = PROJECTION.toArray(new String[PROJECTION.size()]);
         }
@@ -687,7 +707,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 null);
     }
 
-    /** Keep track of the bounds describing a batch of results across Loaders */
+    /**
+     * Keep track of the bounds describing a batch of results across Loaders
+     */
     private LatLngBounds.Builder mResultBounds = new LatLngBounds.Builder();
 
     @Override
@@ -732,8 +754,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     /**
      * Return a key used internally to keep track of data items currently mapped,
      * helping us avoid mapping duplicate points.
+     *
      * @param loaderId The id of the loader
-     * @param itemId The database id of the item
+     * @param itemId   The database id of the item
      */
     private String generateDataIdForItem(int loaderId, int itemId) {
         return String.format("%d-%d", loaderId, itemId);
@@ -805,7 +828,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     private Marker addNewMarkerForCursorItem(int loaderId, Cursor cursor) {
         LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)),
-                                cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.longitude)));
+                cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.longitude)));
         MarkerOptions markerOptions;
         markerOptions = new MarkerOptions().position(pos)
                 .title(cursor.getString(cursor.getColumnIndex(PlayaItemTable.name)));
@@ -859,7 +882,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         marker.remove();
         if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
             int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
-            int numDeleted = getActivity().getContentResolver().delete(PlayaContentProvider.Pois.POIS, PlayaItemTable.id + " = ?", new String[] { String.valueOf(itemId)});
+            int numDeleted = getActivity().getContentResolver().delete(PlayaContentProvider.Pois.POIS, PlayaItemTable.id + " = ?", new String[]{String.valueOf(itemId)});
             if (numDeleted != 1) Log.w(TAG, "Unable to delete marker " + marker.getTitle());
         } else Log.w(TAG, "Unable to delete marker " + marker.getTitle());
     }
@@ -892,7 +915,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             int newId = Integer.parseInt(getActivity().getContentResolver().insert(PlayaContentProvider.Pois.POIS, poiValues).getLastPathSegment());
             mMappedCustomMarkerIds.put(marker.getId(), generateDataIdForItem(POIS, newId));
         } catch (NumberFormatException e) {
-                Log.w(TAG, "Unable to get id for new custom marker");
+            Log.w(TAG, "Unable to get id for new custom marker");
         }
 
         return marker;
@@ -901,7 +924,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     /**
      * Apply style to a custom MarkerOptions before
      * adding to Map
-     *
+     * <p/>
      * Note: drawableResId is an int constant from {@link com.gaiagps.iburn.database.UserPoiTable}
      */
     private void styleCustomMarkerOption(MarkerOptions markerOption, int drawableResId) {
@@ -926,7 +949,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     /**
      * Update a Custom pin placed by a user with state of a map marker.
-     *
+     * <p/>
      * Note: If drawableResId is 0, it is ignored
      */
     private void updateCustomPinWithMarker(Marker marker, int drawableResId) {
@@ -938,7 +961,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             if (drawableResId != 0)
                 poiValues.put(UserPoiTable.drawableResId, drawableResId);
             int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
-            int numUpdated = getActivity().getContentResolver().update(PlayaContentProvider.Pois.POIS, poiValues, PlayaItemTable.id + " = ?", new String[] { String.valueOf(itemId)});
+            int numUpdated = getActivity().getContentResolver().update(PlayaContentProvider.Pois.POIS, poiValues, PlayaItemTable.id + " = ?", new String[]{String.valueOf(itemId)});
             if (numUpdated != 1) Log.w(TAG, "Failed to update custom pin with marker");
         } else
             Log.w(TAG, "Unable to find custom marker in map for updating");
