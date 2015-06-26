@@ -117,8 +117,6 @@ public class DataProvider {
 
     public Observable<SqlBrite.Query> observeFavorites() {
 
-        // TODO : Use SQLiteQueryBuilder
-
         StringBuilder sql = new StringBuilder();
         int tableIdx = 0;
         for (String table : PlayaDatabase.ALL_TABLES) {
