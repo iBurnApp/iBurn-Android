@@ -13,9 +13,10 @@ import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.adapters.EventCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.view.PlayaListViewHeader;
 import com.squareup.sqlbrite.SqlBrite;
+
+import java.util.ArrayList;
 
 import rx.Subscription;
 import rx.functions.Action1;
@@ -25,11 +26,14 @@ import rx.functions.Action1;
  * <p/>
  * Created by davidbrodsky on 8/3/13.
  */
-public class EventListViewFragment extends PlayaListViewFragment {
+public class EventListViewFragment extends PlayaListViewFragment implements PlayaListViewHeader.PlayaListViewHeaderReceiver {
 
     public static CampListViewFragment newInstance() {
         return new CampListViewFragment();
     }
+
+    private String selectedDay;
+    private ArrayList<String> selectedTypes;
 
     protected CursorRecyclerViewAdapter getAdapter() {
         return new EventCursorAdapter(getActivity(), null, this);
@@ -37,8 +41,9 @@ public class EventListViewFragment extends PlayaListViewFragment {
 
     @Override
     protected Subscription subscribeToData() {
+        // TODO : Filter on selectedDay / selectedTypes
         return DataProvider.getInstance(getActivity())
-                .observeTable(PlayaDatabase.EVENTS)
+                .observeEventsOnDayOfTypes(selectedDay, selectedTypes)
                 .subscribe(new Action1<SqlBrite.Query>() {
                     @Override
                     public void call(SqlBrite.Query query) {
@@ -60,5 +65,12 @@ public class EventListViewFragment extends PlayaListViewFragment {
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         ((PlayaListViewHeader) v.findViewById(R.id.header)).setReceiver(this);
         return v;
+    }
+
+    @Override
+    public void onSelectionChanged(String day, ArrayList<String> types) {
+        selectedDay = day;
+        selectedTypes = types;
+        subscribeToData();
     }
 }

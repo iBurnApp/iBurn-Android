@@ -5,6 +5,7 @@ import com.gaiagps.iburn.PlayaClient;
 import net.simonvt.schematic.annotation.Database;
 import net.simonvt.schematic.annotation.Table;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
@@ -21,5 +22,5 @@ public class PlayaDatabase {
     @Table(EventTable.class)    public static final String  EVENTS  = "events";
     @Table(UserPoiTable.class)  public static final String  POIS    = "pois";
 
-    static HashSet<String> ALL_TABLES = new HashSet<String>() {{ add(ART); add(CAMPS); add(EVENTS); add(POIS); }};
+    static ArrayList<String> ALL_TABLES = new ArrayList<String>() {{ add(CAMPS); add(ART); add(EVENTS); add(POIS); }};
 }

@@ -33,7 +33,7 @@ import timber.log.Timber;
  *
  * Created by davidbrodsky on 8/3/13.
  */
-public abstract class PlayaListViewFragment extends Fragment implements PlayaListViewHeader.PlayaListViewHeaderReceiver, AdapterItemSelectedListener {
+public abstract class PlayaListViewFragment extends Fragment implements AdapterItemSelectedListener {
 
     // Location should be shared between all fragments
     protected static Location mLastLocation;
@@ -279,11 +279,6 @@ public abstract class PlayaListViewFragment extends Fragment implements PlayaLis
             builder.append(" AND ");
         builder.append(selection);
         selectionArgs.add(value);
-    }
-
-    @Override
-    public void onSelectionChanged(String day, ArrayList<String> types) {
-        subscribeToData();
     }
 
     protected void getLastDeviceLocation() {
