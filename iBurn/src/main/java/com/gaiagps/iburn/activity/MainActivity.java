@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (BuildConfig.DEBUG) {
+        if (false) { //BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                     .detectAll()
                     .penaltyLog()
@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
     private void showWelcomeDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_welcome, null);
-        final Dialog dialog = new AlertDialog.Builder(this)
+        final Dialog dialog = new AlertDialog.Builder(this, R.style.Theme_Iburn_Dialog)
                 .setView(dialogView).create();
         dialogView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     }
 
     public void showUnlockDialog(final View v) {
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        AlertDialog.Builder alert = new AlertDialog.Builder(this, R.style.Theme_Iburn_Dialog);
 
         alert.setTitle(getString(R.string.enter_unlock_password));
         // Set an EditText view to get user input
@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                 String pwGuess = input.getText().toString();
                 if (validateUnlockPassword(pwGuess)) {
                     PlayaClient.setEmbargoClear(MainActivity.this, true);
-                    new AlertDialog.Builder(MainActivity.this)
+                    new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
                             .setTitle(getString(R.string.victory))
                             .setMessage(getString(R.string.location_data_unlocked))
                             .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     mUnlockContainer.setVisibility(View.GONE);
                 } else {
                     dialog.cancel();
-                    new AlertDialog.Builder(MainActivity.this)
+                    new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
                             .setTitle(getString(R.string.invalid_password))
                             .setMessage("Bummer.")
                             .show();

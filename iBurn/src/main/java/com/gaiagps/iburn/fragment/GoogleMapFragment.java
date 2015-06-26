@@ -8,17 +8,18 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -139,9 +140,41 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         @Override
         public void onClick(View v) {
             Marker marker = addCustomPin(null, null, UserPoiTable.STAR);
-            showEditPinDialog(marker);
+            dropPinAndShowEditDialog(marker);
         }
     };
+
+    private void dropPinAndShowEditDialog(final Marker marker) {
+        // Handler allows us to repeat a code block after a specified delay
+        final android.os.Handler handler = new android.os.Handler();
+        final long start = SystemClock.uptimeMillis();
+        final long duration = 500;
+
+        // Use the bounce interpolator
+        final android.view.animation.Interpolator interpolator =
+                new DecelerateInterpolator();
+
+        // Animate marker with a bounce updating its position every 15ms
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                // Calculate t for bounce based on elapsed time
+                float t = Math.max(
+                        1 - interpolator.getInterpolation((float) elapsed
+                                / duration), 0);
+                // Set the anchor
+                marker.setAnchor(0.5f, 1.0f + 14 * t);
+
+                if (t > .05) {
+                    // Post this event again 15ms from now.
+                    handler.postDelayed(this, 15);
+                } else { // done elapsing, show window
+                    showEditPinDialog(marker);
+                }
+            }
+        });
+    }
 
     private void showEditPinDialog(final Marker marker) {
         View dialogBody = getActivity().getLayoutInflater().inflate(R.layout.dialog_poi, null);
@@ -169,10 +202,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 default:
                     Log.e(TAG, "Unknown custom marker type");
             }
+            poi.close();
         }
         final EditText markerTitle = (EditText) dialogBody.findViewById(R.id.markerTitle);
         markerTitle.setText(marker.getTitle());
-        new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.Theme_Iburn))
+        new AlertDialog.Builder(getActivity(), R.style.Theme_Iburn_Dialog)
                 .setView(dialogBody)
                 .setPositiveButton("Done", new DialogInterface.OnClickListener() {
                     @Override
@@ -451,7 +485,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     private void navigateHome() {
         if (getMap().getMyLocation() == null) {
-            new AlertDialog.Builder(getActivity())
+            new AlertDialog.Builder(getActivity(), R.style.Theme_Iburn_Dialog)
                     .setTitle("Where are you?")
                     .setMessage("We're still working on your location. Try again in a few seconds!")
                     .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
@@ -467,7 +501,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         LatLng start = new LatLng(getMap().getMyLocation().getLatitude(), getMap().getMyLocation().getLongitude());
         LatLng end = PlayaClient.getHomeLatLng(getActivity());
         if (getDistance(start, end) > 8046) {
-            new AlertDialog.Builder(getActivity())
+            new AlertDialog.Builder(getActivity(), R.style.Theme_Iburn_Dialog)
                     .setTitle(getActivity().getString(R.string.youre_so_far))
                     .setMessage(String.format("It appears you're %d meters from home. Get closer to the burn before navigating home..", (int) getDistance(start, end)))
                     .setPositiveButton(getString(R.string.ok), null)

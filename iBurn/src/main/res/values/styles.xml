@@ -10,6 +10,10 @@
         <item name="colorAccent">@color/iburn_color_accent</item>
     </style>
 
+    <style name="Theme.Iburn.Dialog" parent="Theme.AppCompat.Dialog">
+        <item name="colorAccent">@color/iburn_color_accent</item>
+    </style>
+
     <!-- MainActivity theme -->
     <style name="Theme.Iburn" parent="Theme.Iburn.Base">
     </style>

@@ -2,6 +2,7 @@ package com.gaiagps.iburn.view;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -67,7 +68,7 @@ public class PlayaListViewHeader extends RelativeLayout {
             if (!v.isSelected()) {
                 v.setSelected(true);
                 if (v.getTag().equals("type")) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_Iburn_Dialog);
                     builder.setTitle(getContext().getString(R.string.filter_by_type));
                     builder.setMultiChoiceItems(AdapterUtils.sEventTypeNames.toArray(new CharSequence[AdapterUtils.sEventTypeNames.size()]),
                             mTypeSelectionIndexes, new DialogInterface.OnMultiChoiceClickListener() {
@@ -93,7 +94,7 @@ public class PlayaListViewHeader extends RelativeLayout {
                     builder.setPositiveButton(getContext().getString(R.string.done), null);
                     builder.show();
                 } else if (v.getTag().equals("day")) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_Iburn_Dialog);
                     builder.setTitle(getContext().getString(R.string.filter_by_day));
                     builder.setSingleChoiceItems(AdapterUtils.sDayNames.toArray(new CharSequence[AdapterUtils.sDayNames.size()]),
                             mDaySelectionIndex,
