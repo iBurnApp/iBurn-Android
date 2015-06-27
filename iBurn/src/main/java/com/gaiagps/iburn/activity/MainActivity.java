@@ -305,7 +305,10 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             try {
                 Fragment newFrag = mTabs.get(position).getFragmentClass().newInstance();
                 return newFrag; //.getMethod("newInstance", null).invoke(null, null);
-            } catch (InstantiationException | IllegalAccessException e) {
+            } catch (Exception e) {
+                // Actually (InstantiationException | IllegalAccessException), but we don't have
+                // Java7 multi-catch pre API 19. We don't treat these exceptions separately,
+                // so here we are catching Exception for now
                 e.printStackTrace();
                 throw new IllegalStateException("Unexpected ViewPager item requested: " + position);
             }
