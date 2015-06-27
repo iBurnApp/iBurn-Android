@@ -67,14 +67,11 @@ public class SearchActivity extends AppCompatActivity implements AdapterItemSele
             }
         });
 
-        searchEntry.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(searchEntry.getWindowToken(), 0);
-                return true;
-            }
+        searchEntry.setOnEditorActionListener((view, actionId, event) -> {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(searchEntry.getWindowToken(), 0);
+            return true;
         });
 
     }
@@ -87,11 +84,8 @@ public class SearchActivity extends AppCompatActivity implements AdapterItemSele
             searchSubscription.unsubscribe();
 
         searchSubscription = DataProvider.getInstance(this).observeQuery(query)
-                .subscribe(new Action1<SqlBrite.Query>() {
-                    @Override
-                    public void call(SqlBrite.Query query) {
-                        adapter.changeCursor(query.run());
-                    }
+                .subscribe(query1 -> {
+                    adapter.changeCursor(query1.run());
                 });
 
     }

@@ -27,7 +27,6 @@ import java.util.Date;
  * Created by davidbrodsky on 8/4/14.
  */
 public class AdapterUtils {
-    private static final String TAG = "AdapterUtils";
 
     public static ArrayList<String> sEventTypeAbbreviations = new ArrayList<>();
     public static ArrayList<String> sEventTypeNames = new ArrayList<>();
@@ -161,41 +160,37 @@ public class AdapterUtils {
         }
     }
 
-    public static AdapterView.OnItemLongClickListener mListItemLongClickListener = new AdapterView.OnItemLongClickListener(){
-
-        @Override
-        public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
-            int model_id = (Integer) v.getTag(R.id.list_item_related_model);
-            Constants.PlayaItemType itemType = (Constants.PlayaItemType) v.getTag(R.id.list_item_related_model_type);
-            Uri uri = null;
-            switch (itemType) {
-                case ART:
-                    uri = PlayaContentProvider.Art.ART;
-                    break;
-                case CAMP:
-                    uri = PlayaContentProvider.Camps.CAMPS;
-                    break;
-                case EVENT:
-                    uri = PlayaContentProvider.Events.EVENTS;
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown PLAYA_ITEM");
-            }
-            Cursor result = v.getContext().getContentResolver().query(uri, new String[] { PlayaItemTable.favorite }, PlayaItemTable.id + " = ?", new String[] { String.valueOf(model_id) }, null);
-            if (result != null && result.moveToFirst()) {
-                ContentValues values = new ContentValues();
-                int isFavorite = result.getInt(result.getColumnIndex(PlayaItemTable.favorite));
-                values.put(PlayaItemTable.favorite, (isFavorite == 1 ? 0 : 1));
-
-                if (isFavorite == 1) {
-                    Toast.makeText(v.getContext(), "Removed from Favorites", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(v.getContext(), "Added to Favorites", Toast.LENGTH_SHORT).show();
-                }
-
-                v.getContext().getContentResolver().update(uri, values, PlayaItemTable.id + " = ?", new String[]{String.valueOf(model_id)});
-            }
-            return true;
+    public static AdapterView.OnItemLongClickListener mListItemLongClickListener = (parent, v, position, id) -> {
+        int model_id = (Integer) v.getTag(R.id.list_item_related_model);
+        Constants.PlayaItemType itemType = (Constants.PlayaItemType) v.getTag(R.id.list_item_related_model_type);
+        Uri uri = null;
+        switch (itemType) {
+            case ART:
+                uri = PlayaContentProvider.Art.ART;
+                break;
+            case CAMP:
+                uri = PlayaContentProvider.Camps.CAMPS;
+                break;
+            case EVENT:
+                uri = PlayaContentProvider.Events.EVENTS;
+                break;
+            default:
+                throw new IllegalStateException("Unknown PLAYA_ITEM");
         }
+        Cursor result = v.getContext().getContentResolver().query(uri, new String[] { PlayaItemTable.favorite }, PlayaItemTable.id + " = ?", new String[] { String.valueOf(model_id) }, null);
+        if (result != null && result.moveToFirst()) {
+            ContentValues values = new ContentValues();
+            int isFavorite = result.getInt(result.getColumnIndex(PlayaItemTable.favorite));
+            values.put(PlayaItemTable.favorite, (isFavorite == 1 ? 0 : 1));
+
+            if (isFavorite == 1) {
+                Toast.makeText(v.getContext(), "Removed from Favorites", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(v.getContext(), "Added to Favorites", Toast.LENGTH_SHORT).show();
+            }
+
+            v.getContext().getContentResolver().update(uri, values, PlayaItemTable.id + " = ?", new String[]{String.valueOf(model_id)});
+        }
+        return true;
     };
 }

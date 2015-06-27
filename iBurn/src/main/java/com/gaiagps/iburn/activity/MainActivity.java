@@ -29,6 +29,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
+import com.gaiagps.iburn.api.IBurnService;
 import com.gaiagps.iburn.fragment.ArtListViewFragment;
 import com.gaiagps.iburn.fragment.CampListViewFragment;
 import com.gaiagps.iburn.fragment.EventListViewFragment;
@@ -137,12 +138,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_welcome, null);
         final Dialog dialog = new AlertDialog.Builder(this, R.style.Theme_Iburn_Dialog)
                 .setView(dialogView).create();
-        dialogView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        dialogView.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
 
@@ -154,34 +150,27 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
         alert.setView(input);
-        alert.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                String pwGuess = input.getText().toString();
-                if (validateUnlockPassword(pwGuess)) {
-                    PlayaClient.setEmbargoClear(MainActivity.this, true);
-                    new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
-                            .setTitle(getString(R.string.victory))
-                            .setMessage(getString(R.string.location_data_unlocked))
-                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                }
-                            })
-                            .show();
-                    mUnlockContainer.setVisibility(View.GONE);
-                } else {
-                    dialog.cancel();
-                    new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
-                            .setTitle(getString(R.string.invalid_password))
-                            .setMessage("Bummer.")
-                            .show();
-                }
+        alert.setPositiveButton(getString(R.string.ok), (dialog, whichButton) -> {
+            String pwGuess = input.getText().toString();
+            if (validateUnlockPassword(pwGuess)) {
+                PlayaClient.setEmbargoClear(MainActivity.this, true);
+                new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
+                        .setTitle(getString(R.string.victory))
+                        .setMessage(getString(R.string.location_data_unlocked))
+                        .setPositiveButton(R.string.ok, (dialog1, which) -> {
+                        })
+                        .show();
+                mUnlockContainer.setVisibility(View.GONE);
+            } else {
+                dialog.cancel();
+                new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
+                        .setTitle(getString(R.string.invalid_password))
+                        .setMessage("Bummer.")
+                        .show();
             }
         });
 
-        alert.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-            }
+        alert.setNegativeButton(getString(R.string.cancel), (dialog, whichButton) -> {
         });
 
         alert.show();

@@ -91,12 +91,9 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
                 .inflate(R.layout.quad_listview_item, parent, false);
         ViewHolder vh = new ViewHolder(itemView);
 
-        itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int modelId = (int) v.getTag();
-                listener.onItemSelected(modelId, Constants.PlayaItemType.EVENT);
-            }
+        itemView.setOnClickListener(view -> {
+            int modelId = (int) view.getTag();
+            listener.onItemSelected(modelId, Constants.PlayaItemType.EVENT);
         });
 
         return vh;

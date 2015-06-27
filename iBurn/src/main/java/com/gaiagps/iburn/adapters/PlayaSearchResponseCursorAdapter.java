@@ -63,13 +63,10 @@ public class PlayaSearchResponseCursorAdapter extends CursorRecyclerViewAdapter<
                 .inflate(R.layout.search_result_listview_item, parent, false);
         ViewHolder vh = new ViewHolder(itemView);
 
-        itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int modelId = (int) v.getTag(R.id.list_item_related_model);
-                int modelType = (int) v.getTag(R.id.list_item_related_model_type);
-                listener.onItemSelected(modelId, DataProvider.getTypeValue(modelType));
-            }
+        itemView.setOnClickListener(view -> {
+            int modelId = (int) view.getTag(R.id.list_item_related_model);
+            int modelType = (int) view.getTag(R.id.list_item_related_model_type);
+            listener.onItemSelected(modelId, DataProvider.getTypeValue(modelType));
         });
 
         return vh;

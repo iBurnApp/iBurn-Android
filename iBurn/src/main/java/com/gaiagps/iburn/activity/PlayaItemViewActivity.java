@@ -211,12 +211,9 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
                 showingLocation = PlayaClient.isEmbargoClear(getApplicationContext()) && !c.isNull(c.getColumnIndex(PlayaItemTable.latitude));
                 if (showingLocation) {
-                    favoriteButton.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-                        @Override
-                        public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                            if (favoriteMenuItem != null)
-                                favoriteMenuItem.setVisible(v.getVisibility() == View.GONE);
-                        }
+                    favoriteButton.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                        if (favoriteMenuItem != null)
+                            favoriteMenuItem.setVisible(v.getVisibility() == View.GONE);
                     });
                     latLng = new LatLng(c.getDouble(c.getColumnIndexOrThrow(PlayaItemTable.latitude)), c.getDouble(c.getColumnIndexOrThrow(PlayaItemTable.longitude)));
                     //TextView locationView = ((TextView) findViewById(R.id.location));
@@ -226,12 +223,9 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                     mapFragment.showcaseMarker(new MarkerOptions().position(latLng));
                     mapFragment.getMap().getUiSettings().setMyLocationButtonEnabled(false);
                     mapFragment.getMap().getUiSettings().setZoomControlsEnabled(false);
-                    mapFragment.getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-                        @Override
-                        public void onCameraChange(CameraPosition cameraPosition) {
-                            if (cameraPosition.zoom >= 20) {
-                                mapFragment.getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.99));
-                            }
+                    mapFragment.getMap().setOnCameraChangeListener(cameraPosition -> {
+                        if (cameraPosition.zoom >= 20) {
+                            mapFragment.getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.99));
                         }
                     });
                     //favoriteMenuItem.setVisible(false);
@@ -300,17 +294,12 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         }
     }
 
-    View.OnClickListener favoriteButtonOnClickListener = new View.OnClickListener() {
+    View.OnClickListener favoriteButtonOnClickListener = (View v) -> {
+        int newDrawableResId = isFavorite ? R.drawable.ic_heart : R.drawable.ic_heart_pressed;
+        ((ImageView) v).setImageResource(newDrawableResId);
+        favoriteMenuItem.setIcon(newDrawableResId);
 
-        @Override
-        public void onClick(View v) {
-
-            int newDrawableResId = isFavorite ? R.drawable.ic_heart : R.drawable.ic_heart_pressed;
-            ((ImageView) v).setImageResource(newDrawableResId);
-            favoriteMenuItem.setIcon(newDrawableResId);
-
-            setFavorite(!isFavorite);
-        }
+        setFavorite(!isFavorite);
     };
 
     private void setFavorite(boolean isFavorite) {

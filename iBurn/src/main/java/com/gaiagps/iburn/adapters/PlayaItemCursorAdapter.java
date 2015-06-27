@@ -67,12 +67,9 @@ public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemC
                 .inflate(R.layout.double_listview_item, parent, false);
         ViewHolder vh = new ViewHolder(itemView);
 
-        itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int modelId = (int) v.getTag();
-                listener.onItemSelected(modelId, type);
-            }
+        itemView.setOnClickListener(view -> {
+            int modelId = (int) view.getTag();
+            listener.onItemSelected(modelId, type);
         });
 
         return vh;

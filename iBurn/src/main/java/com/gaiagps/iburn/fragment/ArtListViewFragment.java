@@ -35,12 +35,9 @@ public class ArtListViewFragment extends PlayaListViewFragment {
                 .observeTable(PlayaDatabase.ART)
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<SqlBrite.Query>() {
-                    @Override
-                    public void call(SqlBrite.Query query) {
-                        Timber.d("Got update on thread");
-                        onDataChanged(query.run());
-                    }
+                .subscribe(query -> {
+                    Timber.d("Got update on thread");
+                    onDataChanged(query.run());
                 });
     }
 

@@ -46,11 +46,8 @@ public class EventListViewFragment extends PlayaListViewFragment implements Play
         return DataProvider.getInstance(getActivity())
                 .observeEventsOnDayOfTypes(selectedDay, selectedTypes)
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<SqlBrite.Query>() {
-                    @Override
-                    public void call(SqlBrite.Query query) {
-                        onDataChanged(query.run());
-                    }
+                .subscribe(query -> {
+                    onDataChanged(query.run());
                 });
     }
 

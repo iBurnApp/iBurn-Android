@@ -10,6 +10,7 @@ import com.gaiagps.iburn.database.PlayaDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 /**
@@ -31,11 +32,9 @@ public class CampListViewFragment extends PlayaListViewFragment {
     protected Subscription subscribeToData() {
         return DataProvider.getInstance(getActivity())
                 .observeTable(PlayaDatabase.CAMPS)
-                .subscribe(new Action1<SqlBrite.Query>() {
-                    @Override
-                    public void call(SqlBrite.Query query) {
-                        onDataChanged(query.run());
-                    }
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(query -> {
+                    onDataChanged(query.run());
                 });
     }
 
