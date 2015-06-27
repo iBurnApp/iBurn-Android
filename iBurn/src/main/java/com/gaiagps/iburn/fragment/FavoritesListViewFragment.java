@@ -6,6 +6,7 @@ import com.gaiagps.iburn.database.DataProvider;
 import com.squareup.sqlbrite.SqlBrite;
 
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 /**
@@ -25,6 +26,7 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
     protected Subscription subscribeToData() {
         return DataProvider.getInstance(getActivity())
                 .observeFavorites()
+                .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<SqlBrite.Query>() {
                     @Override
                     public void call(SqlBrite.Query query) {

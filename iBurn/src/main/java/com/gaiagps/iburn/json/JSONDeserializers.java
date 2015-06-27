@@ -17,6 +17,7 @@ import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 public class JSONDeserializers {
 
@@ -65,6 +66,7 @@ public class JSONDeserializers {
 
         private static JsonToContentValuesAdapter mAdapter;
 
+        @Override
         public ContentValues deserialize(JsonElement json, Type type,
                                          JsonDeserializationContext context) throws JsonParseException {
 
@@ -144,11 +146,11 @@ public class JSONDeserializers {
                                                     JsonDeserializationContext context) throws JsonParseException {
 
             // Playa-data date input format
-            SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
             // Date print format E hh:mm
-            SimpleDateFormat datePrinter = new SimpleDateFormat("EE M/d h:mm a");
+            SimpleDateFormat datePrinter = new SimpleDateFormat("EE M/d h:mm a", Locale.US);
             // All day date print format E
-            SimpleDateFormat dayPrinter = new SimpleDateFormat("EE M/d");
+            SimpleDateFormat dayPrinter = new SimpleDateFormat("EE M/d", Locale.US);
             ArrayList<ContentValues> result = new ArrayList<>();
 
             JsonArray array = json.getAsJsonArray();

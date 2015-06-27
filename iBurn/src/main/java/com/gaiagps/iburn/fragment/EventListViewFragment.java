@@ -19,6 +19,7 @@ import com.squareup.sqlbrite.SqlBrite;
 import java.util.ArrayList;
 
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 /**
@@ -44,6 +45,7 @@ public class EventListViewFragment extends PlayaListViewFragment implements Play
         // TODO : Filter on selectedDay / selectedTypes
         return DataProvider.getInstance(getActivity())
                 .observeEventsOnDayOfTypes(selectedDay, selectedTypes)
+                .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<SqlBrite.Query>() {
                     @Override
                     public void call(SqlBrite.Query query) {

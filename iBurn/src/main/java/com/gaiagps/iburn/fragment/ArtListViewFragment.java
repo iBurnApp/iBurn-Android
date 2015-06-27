@@ -10,7 +10,9 @@ import com.gaiagps.iburn.database.PlayaDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import timber.log.Timber;
 
 /**
  * Fragment displaying all Playa Art
@@ -31,9 +33,12 @@ public class ArtListViewFragment extends PlayaListViewFragment {
     protected Subscription subscribeToData() {
         return DataProvider.getInstance(getActivity())
                 .observeTable(PlayaDatabase.ART)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<SqlBrite.Query>() {
                     @Override
                     public void call(SqlBrite.Query query) {
+                        Timber.d("Got update on thread");
                         onDataChanged(query.run());
                     }
                 });
