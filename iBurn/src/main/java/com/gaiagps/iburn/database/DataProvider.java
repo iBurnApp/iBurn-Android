@@ -110,6 +110,11 @@ public class DataProvider {
                     .append(DatabaseUtils.sqlEscapeString(day).replace("\'", ""))
                     .append("%'");
         }
+
+        sql.append(" ORDER BY ");
+        sql.append(EventTable.startTime);
+        sql.append(" ASC");
+
         Timber.d("Event filter query " + sql.toString());
         return db.createQuery(PlayaDatabase.EVENTS, sql.toString());
 
