@@ -26,7 +26,10 @@ import com.google.gson.GsonBuilder;
 import com.squareup.sqlbrite.SqlBrite;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,10 +40,13 @@ import retrofit.converter.GsonConverter;
 import retrofit.http.GET;
 import retrofit.http.Streaming;
 import rx.Observable;
-import rx.functions.Func1;
 import timber.log.Timber;
 
 /**
+ * A monolithic iBurn data updater. Handles fetching IBurn update data and update the database while
+ * preserving user favorites
+ * <p>
+ * TODO : The API data fetching and Database interaction should be pulled out as deps for better testing
  * Created by davidbrodsky on 6/26/15.
  */
 public class IBurnService {
@@ -67,6 +73,100 @@ public class IBurnService {
         @GET("/iburn.mbtiles.jar")
         @Streaming
         Observable<Response> getTiles();
+    }
+
+    /**
+     * A mechanism for migrating internal app data not defined by the iBurn API.
+     */
+    public interface UpgradeLifeboat {
+
+        /**
+         * Save any database data not represented by the iBurn API
+         *
+         * @param database the internal app database
+         */
+        Observable<Boolean> saveData(SqlBrite database);
+
+        /**
+         * @param row the row of refreshsed data from the iBurn API.
+         *            Add any internal data captured in {@link #saveData(SqlBrite)}.
+         *            Be explicit and do not make assumptions about default values, as
+         *            row may be recycled from a previous item.
+         */
+        void restoreData(ContentValues row);
+    }
+
+    /**
+     * Persist user-defined favorites based on {@link PlayaItemTable#playaId}.
+     * This is suitable for {@link PlayaDatabase#ART} and {@link PlayaDatabase#CAMPS} collections.
+     * <p>
+     * It *cannot* be used with {@link PlayaDatabase#EVENTS} because there may be multiple Event entries
+     * sharing the same playaId but having differing start and end times
+     */
+    private class SimpleLifeboat implements UpgradeLifeboat {
+
+        private String tableName;
+        private List<Integer> favoritePlayaIds;
+
+        public SimpleLifeboat(String tableName) {
+            this.tableName = tableName;
+        }
+
+        @Override
+        public Observable<Boolean> saveData(SqlBrite database) {
+            return database.createQuery(tableName, "SELECT " + PlayaItemTable.playaId + " FROM " + tableName + " WHERE " + PlayaItemTable.favorite + " = ?", new String[]{"1"})
+                    .map(SqlBrite.Query::run)
+                    .map(cursor -> {
+                        favoritePlayaIds = new ArrayList<>(cursor.getCount());
+                        Timber.d("Found %d %s favorites", cursor.getCount(), tableName);
+                        while (cursor.moveToNext()) {
+                            favoritePlayaIds.add(cursor.getInt(cursor.getColumnIndex(PlayaItemTable.playaId)));
+                        }
+                        cursor.close();
+                        return true;
+                    })
+                    .first();
+        }
+
+        @Override
+        public void restoreData(ContentValues row) {
+            row.put(PlayaItemTable.favorite, favoritePlayaIds.contains(row.getAsInteger(PlayaItemTable.playaId)));
+        }
+    }
+
+    private class EventLifeboat implements UpgradeLifeboat {
+
+        private final String tableName = PlayaDatabase.EVENTS;
+        private HashMap<Integer, HashSet<String>> favoriteIds;
+
+        @Override
+        public Observable<Boolean> saveData(SqlBrite database) {
+            return database.createQuery(tableName, "SELECT " + PlayaItemTable.playaId + " , " + EventTable.startTime + " FROM " + tableName + " WHERE " + PlayaItemTable.favorite + " = ?", new String[]{"1"})
+                    .map(SqlBrite.Query::run)
+                    .map(cursor -> {
+                        favoriteIds = new HashMap<>(cursor.getCount());
+                        Timber.d("Found %d %s favorites", cursor.getCount(), tableName);
+                        int favoriteId;
+                        while (cursor.moveToNext()) {
+                            favoriteId = cursor.getInt(0);
+                            if (!favoriteIds.containsKey(favoriteId))
+                                favoriteIds.put(favoriteId, new HashSet<>());
+
+                            Timber.d("Added fav event with id %d start time %s", cursor.getInt(0), cursor.getString(1));
+                            favoriteIds.get(favoriteId).add(cursor.getString(1));
+                        }
+                        cursor.close();
+                        return true;
+                    })
+                    .first();
+        }
+
+        @Override
+        public void restoreData(ContentValues row) {
+            int playaId = row.getAsInteger(EventTable.playaId);
+            row.put(EventTable.favorite, favoriteIds.containsKey(playaId) &&
+                    favoriteIds.get(playaId).contains(row.getAsString(EventTable.startTime)));
+        }
     }
 
     Context context;
@@ -125,11 +225,11 @@ public class IBurnService {
         Timber.d("Updating art");
 
         final String tableName = PlayaDatabase.ART;
-        return updateTable(service.getArt(), tableName, (item, values, database) -> {
+        return updateTable(service.getArt(), tableName, new SimpleLifeboat(tableName), (item, values, database) -> {
             Art art = (Art) item;
             values.put(ArtTable.artist, art.artist);
             values.put(ArtTable.artistLoc, art.artistLocation);
-            database.insert(tableName, values);
+            database.insert(values);
         });
     }
 
@@ -137,9 +237,9 @@ public class IBurnService {
         Timber.d("Updating Camps");
 
         final String tableName = PlayaDatabase.CAMPS;
-        return updateTable(service.getCamps(), tableName, (item, values, database) -> {
+        return updateTable(service.getCamps(), tableName, new SimpleLifeboat(tableName), (item, values, database) -> {
             values.put(CampTable.hometown, ((Camp) item).hometown);
-            database.insert(tableName, values);
+            database.insert(values);
         });
     }
 
@@ -154,9 +254,12 @@ public class IBurnService {
         final SimpleDateFormat dayFormatter = new SimpleDateFormat("EE M/d", Locale.US);
 
         final String tableName = PlayaDatabase.EVENTS;
-        return updateTable(service.getEvents(), tableName, (item, values, database) -> {
+        return updateTable(service.getEvents(), tableName, new EventLifeboat(), (item, values, database) -> {
 
             Event event = (Event) item;
+
+            // Event uses title, not name
+            values.put(EventTable.name, event.title);
 
             values.put(EventTable.allDay, event.allDay ? 1 : 0);
             values.put(EventTable.checkLocation, event.checkLocation ? 1 : 0);
@@ -176,28 +279,38 @@ public class IBurnService {
                 values.put(EventTable.endTimePrint, event.allDay ? dayFormatter.format(occurrence.endTime) :
                         timeDayFormatter.format(occurrence.endTime));
 
-                // Event uses title, not name
-                values.put(EventTable.name, event.title);
-
-                database.insert(tableName, values);
+                database.insert(values);
             }
         });
     }
 
     private Observable<Boolean> updateTable(Observable<? extends Iterable<? extends PlayaItem>> items,
                                             String tableName,
+                                            UpgradeLifeboat lifeboat,
                                             BindObjectToContentValues binder) {
 
         final AtomicBoolean initializedInsert = new AtomicBoolean(false);
         final SqlBrite sqlBrite = DataProvider.getSqlBriteInstance(context);
-        final ContentValues values = new ContentValues();
+        final android.content.ContentValues values = new android.content.ContentValues();
+        // Fetch remote JSON and all existing internal records that are favorites, simultaneously
+        return Observable.zip(
+                items.doOnNext(resp -> Timber.d("got items")),
+                lifeboat.saveData(sqlBrite).doOnNext(result -> Timber.d("saved data")), (playaItems, lifeboatSuccess) -> {
+                    if (!lifeboatSuccess)
+                        throw new IllegalStateException("Lifeboat did not complete successfully!");
+                    return playaItems;
+                })
+
                 .flatMap(Observable::from)
+
                 .doOnCompleted(() -> {
                     Timber.d("Finished %s insert", tableName);
                     sqlBrite.setTransactionSuccessful();
                     sqlBrite.endTransaction();
                 })
 
+                .map(item -> {
+                    // Delete all old rows before inserting first new row
                     if (!initializedInsert.getAndSet(true)) {
                         int numDeleted = sqlBrite.delete(tableName, PlayaItemTable.id + " > 0", null);
                         Timber.d("Deleted %d existing rows. Beginning %s inserts", numDeleted, tableName);
@@ -205,13 +318,20 @@ public class IBurnService {
                     }
 
                     values.clear();
-                    bindCommonValues(item, values);
-                    binder.bindAndInsertValues(item, values, sqlBrite);
+                    bindBaseValues(item, values);
+                    binder.bindAndInsertValues(item, values, finalValues -> {
+                        lifeboat.restoreData(finalValues);
+                        sqlBrite.insert(tableName, finalValues);
+                    });
                     return true;
                 })
+
                 .doOnError(throwable -> {
                     Timber.e(throwable, "Error inserting " + tableName);
                     sqlBrite.endTransaction();
+                })
+
+                .reduce((thisSuccess, accumulatedSuccess) -> thisSuccess && accumulatedSuccess);
     }
 
     interface BindObjectToContentValues<T extends PlayaItem> {
@@ -220,12 +340,20 @@ public class IBurnService {
          * @param item     the data source which extends {@link PlayaItem}
          * @param values   the persisted data sink, which already has all common {@link PlayaItem}
          *                 attributes bound
-         * @param database the database on which to perform the insert
+         * @param database the database on which to perform the insert via {@link com.gaiagps.iburn.api.IBurnService.DataBaseSink#insert(ContentValues)}
          */
-        void bindAndInsertValues(T item, ContentValues values, SqlBrite database);
+        void bindAndInsertValues(T item, android.content.ContentValues values, DataBaseSink database);
     }
 
-    private void bindCommonValues(PlayaItem item, ContentValues values) {
+    interface DataBaseSink {
+        void insert(ContentValues values);
+    }
+
+    /**
+     * Bind {@link PlayaItemTable} values described by the iBurn API. This does not include
+     * internal data columns like {@link PlayaItemTable#favorite}
+     */
+    private void bindBaseValues(PlayaItem item, android.content.ContentValues values) {
 
         // Name is a required column
         values.put(PlayaItemTable.name, item.name != null ? item.name : "?");
