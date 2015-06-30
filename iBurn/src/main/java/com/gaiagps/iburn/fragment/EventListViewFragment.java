@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import timber.log.Timber;
 
 /**
  * Fragment displaying all Playa Events
@@ -45,10 +46,12 @@ public class EventListViewFragment extends PlayaListViewFragment implements Play
         // TODO : Filter on selectedDay / selectedTypes
         return DataProvider.getInstance(getActivity())
                 .observeEventsOnDayOfTypes(selectedDay, selectedTypes, getAdapter().getRequiredProjection())
+                .map(SqlBrite.Query::run)
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(query -> {
-                    onDataChanged(query.run());
-                });
+                .subscribe(cursor -> {
+                    Timber.d("Got data update");
+                    onDataChanged(cursor);
+                }, throwable -> Timber.e(throwable, "Data subscription error"));
     }
 
     public void onCreate(Bundle savedInstanceState) {

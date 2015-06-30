@@ -12,6 +12,7 @@ import com.squareup.sqlbrite.SqlBrite;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import timber.log.Timber;
 
 /**
  * Fragment displaying all Playa Camps
@@ -31,11 +32,13 @@ public class CampListViewFragment extends PlayaListViewFragment {
     @Override
     protected Subscription subscribeToData() {
         return DataProvider.getInstance(getActivity())
-                .observeTable(PlayaDatabase.CAMPS)
+                .observeTable(PlayaDatabase.CAMPS, getAdapter().getRequiredProjection())
+                .map(SqlBrite.Query::run)
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(query -> {
-                    onDataChanged(query.run());
-                });
+                .subscribe(cursor -> {
+                    Timber.d("Got data update");
+                    onDataChanged(cursor);
+                }, throwable -> Timber.e(throwable, "Data subscription error"));
     }
 
     public void onCreate(Bundle savedInstanceState) {

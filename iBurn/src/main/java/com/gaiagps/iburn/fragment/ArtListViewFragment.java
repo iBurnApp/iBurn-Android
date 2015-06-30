@@ -33,12 +33,13 @@ public class ArtListViewFragment extends PlayaListViewFragment {
     protected Subscription subscribeToData() {
         return DataProvider.getInstance(getActivity())
                 .observeTable(PlayaDatabase.ART, getAdapter().getRequiredProjection())
+                .map(SqlBrite.Query::run)
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(query -> {
-                    Timber.d("Got update on thread");
-                    onDataChanged(query.run());
-                });
+                .subscribe(cursor -> {
+                    Timber.d("Got data update");
+                    onDataChanged(cursor);
+                }, throwable -> Timber.e(throwable, "Data subscription error"));
     }
 
     public void onCreate(Bundle savedInstanceState) {
