@@ -32,3 +32,4 @@ local.properties
 libraries/google-play-services_lib/build/*
 iBurn/src/main/gen/
 libraries/google-play-services_lib/gen/
+captures
