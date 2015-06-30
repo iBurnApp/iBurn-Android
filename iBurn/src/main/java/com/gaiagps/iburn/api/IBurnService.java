@@ -212,16 +212,13 @@ public class IBurnService {
                     //Timber.d("Should update " + resourceManifest.file);
                     return updateResource(resourceManifest, dataManifest);
                 })
-                .reduce((aBoolean, aBoolean2) -> {
-                    //Timber.d("Success %b %b", aBoolean, aBoolean2);
-                    return aBoolean && aBoolean2;
-                })
-                .subscribe(aBoolean -> {
-                    Timber.d("Updated All data successfully " + aBoolean);
+                .reduce((numJustUpdated, totalUpdated) -> totalUpdated + numJustUpdated)
+                .subscribe(totalUpdated -> {
+                    Timber.d("Updated %d new items ", totalUpdated);
                 });
     }
 
-    private Observable<Boolean> updateArt() {
+    private Observable<Integer> updateArt() {
         Timber.d("Updating art");
 
         final String tableName = PlayaDatabase.ART;
@@ -233,7 +230,7 @@ public class IBurnService {
         });
     }
 
-    private Observable<Boolean> updateCamps() {
+    private Observable<Integer> updateCamps() {
         Timber.d("Updating Camps");
 
         final String tableName = PlayaDatabase.CAMPS;
@@ -243,7 +240,7 @@ public class IBurnService {
         });
     }
 
-    private Observable<Boolean> updateEvents() {
+    private Observable<Integer> updateEvents() {
         Timber.d("Updating Events");
 
         // Date format for machine-readable
@@ -284,7 +281,7 @@ public class IBurnService {
         });
     }
 
-    private Observable<Boolean> updateTable(Observable<? extends Iterable<? extends PlayaItem>> items,
+    private Observable<Integer> updateTable(Observable<? extends Iterable<? extends PlayaItem>> items,
                                             String tableName,
                                             UpgradeLifeboat lifeboat,
                                             BindObjectToContentValues binder) {
@@ -294,20 +291,15 @@ public class IBurnService {
         final android.content.ContentValues values = new android.content.ContentValues();
         // Fetch remote JSON and all existing internal records that are favorites, simultaneously
         return Observable.zip(
-                items.doOnNext(resp -> Timber.d("got items")),
-                lifeboat.saveData(sqlBrite).doOnNext(result -> Timber.d("saved data")), (playaItems, lifeboatSuccess) -> {
+                items.doOnNext(resp -> Timber.d("Got %s API Response", tableName)),
+                lifeboat.saveData(sqlBrite).doOnNext(result -> Timber.d("Backed up %s data", tableName)),
+                (playaItems, lifeboatSuccess) -> {
                     if (!lifeboatSuccess)
                         throw new IllegalStateException("Lifeboat did not complete successfully!");
                     return playaItems;
                 })
 
                 .flatMap(Observable::from)
-
-                .doOnCompleted(() -> {
-                    Timber.d("Finished %s insert", tableName);
-                    sqlBrite.setTransactionSuccessful();
-                    sqlBrite.endTransaction();
-                })
 
                 .map(item -> {
                     // Delete all old rows before inserting first new row
@@ -326,12 +318,20 @@ public class IBurnService {
                     return true;
                 })
 
-                .doOnError(throwable -> {
-                    Timber.e(throwable, "Error inserting " + tableName);
+                .doOnCompleted(() -> {
+                    Timber.d("Successfully closing %s transaction", tableName);
+                    sqlBrite.setTransactionSuccessful();
                     sqlBrite.endTransaction();
                 })
 
-                .reduce((thisSuccess, accumulatedSuccess) -> thisSuccess && accumulatedSuccess);
+                .count()
+
+                .doOnNext(count -> Timber.d("Inserted %d %s", count, tableName))
+
+                .doOnError(throwable -> {
+                    Timber.e(throwable, "Error. Rolling back %s transacton ", tableName);
+                    sqlBrite.endTransaction();
+                });
     }
 
     interface BindObjectToContentValues<T extends PlayaItem> {
@@ -367,24 +367,26 @@ public class IBurnService {
         values.put(PlayaItemTable.url, item.url);
     }
 
-    private Observable<Boolean> updateResource(ResourceManifest resourceManifest, DataManifest dataManifest) {
+    private Observable<Integer> updateResource(ResourceManifest resourceManifest, DataManifest dataManifest) {
         String resourceName = resourceManifest.file;
 
         if (resourceName.equals(dataManifest.art.file))
+//            return Observable.just(0);
             return updateArt();
 
         else if (resourceName.equals(dataManifest.camps.file))
             return updateCamps();
 
         else if (resourceName.equals(dataManifest.events.file))
+//            return Observable.just(0);
             return updateEvents();
 
         else if (resourceName.equals(dataManifest.tiles.file))
-            return Observable.just(true);
+            return Observable.just(0);
 //            updateTiles();
 
         // Unknown or Unimplemented situation
-        return Observable.just(false);
+        return Observable.just(0);
 
     }
 

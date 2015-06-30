@@ -33,12 +33,15 @@ public class CampListViewFragment extends PlayaListViewFragment {
     protected Subscription subscribeToData() {
         return DataProvider.getInstance(getActivity())
                 .observeTable(PlayaDatabase.CAMPS, getAdapter().getRequiredProjection())
+                .doOnNext(query -> Timber.d("Got query"))
                 .map(SqlBrite.Query::run)
-                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(cursor -> {
-                    Timber.d("Got data update");
-                    onDataChanged(cursor);
-                }, throwable -> Timber.e(throwable, "Data subscription error"));
+                            Timber.d("Data onNext");
+                            onDataChanged(cursor);
+                        },
+                        throwable -> Timber.e(throwable, "Data onError"),
+                        () -> Timber.d("Data onComplete"));
     }
 
     public void onCreate(Bundle savedInstanceState) {

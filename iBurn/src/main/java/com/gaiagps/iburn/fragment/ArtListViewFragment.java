@@ -11,6 +11,7 @@ import com.squareup.sqlbrite.SqlBrite;
 
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import timber.log.Timber;
 
@@ -34,12 +35,13 @@ public class ArtListViewFragment extends PlayaListViewFragment {
         return DataProvider.getInstance(getActivity())
                 .observeTable(PlayaDatabase.ART, getAdapter().getRequiredProjection())
                 .map(SqlBrite.Query::run)
-                .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(cursor -> {
-                    Timber.d("Got data update");
+                    Timber.d("Data onNext");
                     onDataChanged(cursor);
-                }, throwable -> Timber.e(throwable, "Data subscription error"));
+                },
+                throwable -> Timber.e(throwable, "Data onError"),
+                () -> Timber.d("Data onComplete"));
     }
 
     public void onCreate(Bundle savedInstanceState) {

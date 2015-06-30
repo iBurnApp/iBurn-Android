@@ -91,4 +91,9 @@ public class PlayaSearchResponseCursorAdapter extends CursorRecyclerViewAdapter<
         viewHolder.container.setTag(R.id.list_item_related_model, cursor.getInt(idCol));
         viewHolder.container.setTag(R.id.list_item_related_model_type, cursor.getInt(typeCol));
     }
+
+    @Override
+    public String[] getRequiredProjection() {
+        return PlayaItemCursorAdapter.Projection;
+    }
 }

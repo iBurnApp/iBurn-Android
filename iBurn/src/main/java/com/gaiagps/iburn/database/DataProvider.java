@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import rx.Observable;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
@@ -71,7 +72,8 @@ public class DataProvider {
     public Observable<SqlBrite.Query> observeTable(@NonNull String table,
                                                    @Nullable String[] projection) {
         return db.createQuery(table,
-                "SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table);
+                "SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table)
+                .subscribeOn(Schedulers.io());
     }
 
     public Observable<SqlBrite.Query> observeEventsOnDayOfTypes(@Nullable String day,
@@ -82,7 +84,7 @@ public class DataProvider {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ");
         sql.append(projection == null ? "*" : makeProjectionString(projection));
-        sql.append("FROM ");
+        sql.append(" FROM ");
         sql.append(PlayaDatabase.EVENTS);
 
         if (day != null || (types != null && types.size() > 0))
@@ -91,8 +93,8 @@ public class DataProvider {
         if (types != null) {
             for (int x = 0; x < types.size(); x++) {
                 sql.append('(')
-                   .append(EventTable.eventType)
-                   .append("= ?)");
+                        .append(EventTable.eventType)
+                        .append("= ?)");
 
                 args.add(types.get(x));
 
@@ -104,8 +106,8 @@ public class DataProvider {
             if (types != null && types.size() > 0) sql.append(" AND ");
 
             sql.append(EventTable.startTimePrint)
-               .append(" LIKE ")
-               .append("'%?%'");
+                    .append(" LIKE ")
+                    .append("'%?%'");
             args.add(day);
         }
 
@@ -114,7 +116,8 @@ public class DataProvider {
         sql.append(" ASC");
 
         Timber.d("Event filter query " + sql.toString());
-        return db.createQuery(PlayaDatabase.EVENTS, sql.toString(), args.toArray(new String[args.size()]));
+        return db.createQuery(PlayaDatabase.EVENTS, sql.toString(), args.toArray(new String[args.size()]))
+                .subscribeOn(Schedulers.io());
     }
 
     public Observable<SqlBrite.Query> observeFavorites(@Nullable String[] projection) {
@@ -125,22 +128,23 @@ public class DataProvider {
             tableIdx++;
 
             sql.append("SELECT ")
-               .append(projection == null ? "*" : makeProjectionString(projection))
-               .append(", ")
-               .append(tableIdx)
-               .append(" as ")
-               .append(VirtualType)
-               .append(" FROM ")
-               .append(table)
-               .append(" WHERE ")
-               .append(PlayaItemTable.favorite)
-               .append(" = 1 ");
+                    .append(projection == null ? "*" : makeProjectionString(projection))
+                    .append(", ")
+                    .append(tableIdx)
+                    .append(" as ")
+                    .append(VirtualType)
+                    .append(" FROM ")
+                    .append(table)
+                    .append(" WHERE ")
+                    .append(PlayaItemTable.favorite)
+                    .append(" = 1 ");
 
             if (tableIdx < PlayaDatabase.ALL_TABLES.size())
                 sql.append(" UNION ");
         }
 
-        return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString());
+        return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString())
+                .subscribeOn(Schedulers.io());
     }
 
     public Observable<SqlBrite.Query> observeQuery(@NonNull String query,
@@ -154,22 +158,23 @@ public class DataProvider {
             tableIdx++;
 
             sql.append("SELECT ")
-               .append(projection == null ? "*" : makeProjectionString(projection))
-               .append(", ")
-               .append(tableIdx)
-               .append(" as ")
-               .append(VirtualType)
-               .append(" FROM ")
-               .append(table)
-               .append(" WHERE ")
-               .append(PlayaItemTable.name)
-               .append(" LIKE '%?%'");
+                    .append(projection == null ? "*" : makeProjectionString(projection))
+                    .append(", ")
+                    .append(tableIdx)
+                    .append(" as ")
+                    .append(VirtualType)
+                    .append(" FROM ")
+                    .append(table)
+                    .append(" WHERE ")
+                    .append(PlayaItemTable.name)
+                    .append(" LIKE '%?%'");
 
             if (tableIdx < PlayaDatabase.ALL_TABLES.size())
                 sql.append(" UNION ");
         }
 
-        return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), query);
+        return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), query)
+                .subscribeOn(Schedulers.io());
     }
 
     public void updateFavorite(@NonNull String table, int id, boolean isFavorite) {

@@ -154,12 +154,13 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterI
      * and we should update UI
      */
     protected void onDataChanged(Cursor newData) {
-        Timber.d("%s, onDataChanged with %d items", getClass().getSimpleName(), newData.getCount());
-        adapter.changeCursor(newData);
         if (newData == null) {
             Timber.w("Got null data onDataChanged");
             return;
         }
+
+        Timber.d("%s, onDataChanged with %d items", getClass().getSimpleName(), newData.getCount());
+        adapter.changeCursor(newData);
     }
 
     /**

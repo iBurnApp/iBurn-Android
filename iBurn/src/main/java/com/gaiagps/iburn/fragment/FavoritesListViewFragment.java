@@ -25,8 +25,8 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
     @Override
     protected Subscription subscribeToData() {
         return DataProvider.getInstance(getActivity())
-                .observeFavorites()
-                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeFavorites(getAdapter().getRequiredProjection())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(query -> {
                     onDataChanged(query.run());
                 });

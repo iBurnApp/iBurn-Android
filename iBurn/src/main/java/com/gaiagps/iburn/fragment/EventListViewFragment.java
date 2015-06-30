@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.fragment;
 
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -17,7 +18,9 @@ import com.gaiagps.iburn.view.PlayaListViewHeader;
 import com.squareup.sqlbrite.SqlBrite;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
+import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -47,11 +50,13 @@ public class EventListViewFragment extends PlayaListViewFragment implements Play
         return DataProvider.getInstance(getActivity())
                 .observeEventsOnDayOfTypes(selectedDay, selectedTypes, getAdapter().getRequiredProjection())
                 .map(SqlBrite.Query::run)
-                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(cursor -> {
-                    Timber.d("Got data update");
-                    onDataChanged(cursor);
-                }, throwable -> Timber.e(throwable, "Data subscription error"));
+                            Timber.d("Data onNext %d items", cursor.getCount());
+                            onDataChanged(cursor);
+                        },
+                        throwable -> Timber.e(throwable, "Data onError"),
+                        () -> Timber.d("Data onComplete"));
     }
 
     public void onCreate(Bundle savedInstanceState) {
