@@ -74,6 +74,8 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
 
     public abstract void onBindViewHolder(VH viewHolder, Cursor cursor);
 
+    public abstract String[] getRequiredProjection();
+
     @Override
     public void onBindViewHolder(VH viewHolder, int position) {
         if (!mDataValid) {

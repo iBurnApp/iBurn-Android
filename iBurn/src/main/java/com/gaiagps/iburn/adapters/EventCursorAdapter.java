@@ -29,6 +29,20 @@ import timber.log.Timber;
  */
 public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAdapter.ViewHolder> {
 
+    static final String[] Projection = new String[] {
+            EventTable.id,
+            EventTable.name,
+            EventTable.startTime,
+            EventTable.startTimePrint,
+            EventTable.endTime,
+            EventTable.endTimePrint,
+            EventTable.allDay,
+            EventTable.favorite,
+            EventTable.latitude,
+            EventTable.longitude,
+            EventTable.eventType
+    };
+
     private Context context;
     private AdapterItemSelectedListener listener;
 
@@ -147,5 +161,10 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
 
         viewHolder.modelId = cursor.getInt(idCol);
         viewHolder.container.setTag(viewHolder.modelId);
+    }
+
+    @Override
+    public String[] getRequiredProjection() {
+        return Projection;
     }
 }

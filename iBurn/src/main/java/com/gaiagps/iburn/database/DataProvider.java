@@ -3,7 +3,6 @@ package com.gaiagps.iburn.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -11,6 +10,7 @@ import com.gaiagps.iburn.Constants;
 import com.squareup.sqlbrite.SqlBrite;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import rx.Observable;
 import timber.log.Timber;
@@ -20,7 +20,7 @@ import timber.log.Timber;
  * This is intended as an experiment to replace our use of {@link android.content.ContentProvider}
  * as it does not meet all of our needs (e.g: Complex UNION queries not possible with Schematic's
  * generated version, and I believe manually writing a ContentProvider is too burdensome and error-prone)
- * <p/>
+ * <p>
  * Created by davidbrodsky on 6/22/15.
  */
 public class DataProvider {
@@ -30,23 +30,14 @@ public class DataProvider {
      */
     public static String VirtualType = "type";
 
-    static final String[] Projection = new String[]{
-            PlayaItemTable.id,
-            PlayaItemTable.name,
-            PlayaItemTable.latitude,
-            PlayaItemTable.longitude
-    };
-
-    static String generatedProjectionString;
-
-    static {
+    private static String makeProjectionString(String[] projection) {
         StringBuilder builder = new StringBuilder();
-        for (String column : Projection) {
+        for (String column : projection) {
             builder.append(column);
             builder.append(',');
         }
         // Remove the last comma
-        generatedProjectionString = builder.substring(0, builder.length() - 1);
+        return builder.substring(0, builder.length() - 1);
     }
 
     private static DataProvider provider;
@@ -56,6 +47,9 @@ public class DataProvider {
     public static DataProvider getInstance(@NonNull Context context) {
         if (provider == null) {
             com.gaiagps.iburn.database.generated.PlayaDatabase db = com.gaiagps.iburn.database.generated.PlayaDatabase.getInstance(context);
+            SqlBrite sqlBrite = SqlBrite.create(db);
+            sqlBrite.setLoggingEnabled(true);
+            sqlBrite.setLogger(message -> Timber.d(message));
             provider = new DataProvider(SqlBrite.create(db));
         }
 
@@ -74,15 +68,21 @@ public class DataProvider {
         return db;
     }
 
-    public Observable<SqlBrite.Query> observeTable(@NonNull String table) {
-        return db.createQuery(table, "SELECT * FROM " + table);
+    public Observable<SqlBrite.Query> observeTable(@NonNull String table,
+                                                   @Nullable String[] projection) {
+        return db.createQuery(table,
+                "SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table);
     }
 
     public Observable<SqlBrite.Query> observeEventsOnDayOfTypes(@Nullable String day,
-                                                                @Nullable ArrayList<String> types) {
+                                                                @Nullable ArrayList<String> types,
+                                                                @Nullable String[] projection) {
 
+        List<String> args = new ArrayList<>((types == null ? 0 : types.size()) + (day == null ? 0 : 1));
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT * FROM ");
+        sql.append("SELECT ");
+        sql.append(projection == null ? "*" : makeProjectionString(projection));
+        sql.append("FROM ");
         sql.append(PlayaDatabase.EVENTS);
 
         if (day != null || (types != null && types.size() > 0))
@@ -91,24 +91,22 @@ public class DataProvider {
         if (types != null) {
             for (int x = 0; x < types.size(); x++) {
                 sql.append('(')
-                        .append(EventTable.eventType)
-                        .append('=')
-                        .append(DatabaseUtils.sqlEscapeString(types.get(x)))
-                        .append(')');
+                   .append(EventTable.eventType)
+                   .append("= ?)");
+
+                args.add(types.get(x));
 
                 if (x < types.size() - 1) sql.append(" OR ");
             }
-
         }
 
         if (day != null) {
             if (types != null && types.size() > 0) sql.append(" AND ");
 
             sql.append(EventTable.startTimePrint)
-                    .append(" LIKE ")
-                    .append("'%")
-                    .append(DatabaseUtils.sqlEscapeString(day).replace("\'", ""))
-                    .append("%'");
+               .append(" LIKE ")
+               .append("'%?%'");
+            args.add(day);
         }
 
         sql.append(" ORDER BY ");
@@ -116,11 +114,10 @@ public class DataProvider {
         sql.append(" ASC");
 
         Timber.d("Event filter query " + sql.toString());
-        return db.createQuery(PlayaDatabase.EVENTS, sql.toString());
-
+        return db.createQuery(PlayaDatabase.EVENTS, sql.toString(), args.toArray(new String[args.size()]));
     }
 
-    public Observable<SqlBrite.Query> observeFavorites() {
+    public Observable<SqlBrite.Query> observeFavorites(@Nullable String[] projection) {
 
         StringBuilder sql = new StringBuilder();
         int tableIdx = 0;
@@ -128,25 +125,26 @@ public class DataProvider {
             tableIdx++;
 
             sql.append("SELECT ")
-                    .append(generatedProjectionString)
-                    .append(", ")
-                    .append(tableIdx)
-                    .append(" as ")
-                    .append(VirtualType)
-                    .append(" FROM ")
-                    .append(table)
-                    .append(" WHERE ")
-                    .append(PlayaItemTable.favorite)
-                    .append(" = 1 ");
+               .append(projection == null ? "*" : makeProjectionString(projection))
+               .append(", ")
+               .append(tableIdx)
+               .append(" as ")
+               .append(VirtualType)
+               .append(" FROM ")
+               .append(table)
+               .append(" WHERE ")
+               .append(PlayaItemTable.favorite)
+               .append(" = 1 ");
 
             if (tableIdx < PlayaDatabase.ALL_TABLES.size())
                 sql.append(" UNION ");
         }
 
-        return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), null);
+        return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString());
     }
 
-    public Observable<SqlBrite.Query> observeQuery(String query) {
+    public Observable<SqlBrite.Query> observeQuery(@NonNull String query,
+                                                   @Nullable String[] projection) {
 
         query = DatabaseUtils.sqlEscapeString(query);
 
@@ -156,27 +154,25 @@ public class DataProvider {
             tableIdx++;
 
             sql.append("SELECT ")
-                    .append(generatedProjectionString)
-                    .append(", ")
-                    .append(tableIdx)
-                    .append(" as ")
-                    .append(VirtualType)
-                    .append(" FROM ")
-                    .append(table)
-                    .append(" WHERE ")
-                    .append(PlayaItemTable.name)
-                    .append(" LIKE '%")
-                    .append(query)
-                    .append("%' ");
+               .append(projection == null ? "*" : makeProjectionString(projection))
+               .append(", ")
+               .append(tableIdx)
+               .append(" as ")
+               .append(VirtualType)
+               .append(" FROM ")
+               .append(table)
+               .append(" WHERE ")
+               .append(PlayaItemTable.name)
+               .append(" LIKE '%?%'");
 
             if (tableIdx < PlayaDatabase.ALL_TABLES.size())
                 sql.append(" UNION ");
         }
 
-        return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), null);
+        return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), query);
     }
 
-    public void updateFavorite(String table, int id, boolean isFavorite) {
+    public void updateFavorite(@NonNull String table, int id, boolean isFavorite) {
         ContentValues values = new ContentValues(1);
         values.put(PlayaItemTable.favorite, isFavorite ? 1 : 0);
         db.update(table, values, PlayaItemTable.id + "=?", String.valueOf(id));

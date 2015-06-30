@@ -32,7 +32,7 @@ public class ArtListViewFragment extends PlayaListViewFragment {
     @Override
     protected Subscription subscribeToData() {
         return DataProvider.getInstance(getActivity())
-                .observeTable(PlayaDatabase.ART)
+                .observeTable(PlayaDatabase.ART, getAdapter().getRequiredProjection())
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(query -> {

@@ -44,7 +44,7 @@ public class EventListViewFragment extends PlayaListViewFragment implements Play
     protected Subscription subscribeToData() {
         // TODO : Filter on selectedDay / selectedTypes
         return DataProvider.getInstance(getActivity())
-                .observeEventsOnDayOfTypes(selectedDay, selectedTypes)
+                .observeEventsOnDayOfTypes(selectedDay, selectedTypes, getAdapter().getRequiredProjection())
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(query -> {
                     onDataChanged(query.run());

@@ -24,6 +24,13 @@ import timber.log.Timber;
  */
 public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemCursorAdapter.ViewHolder> {
 
+    static final String[] Projection = new String[]{
+            PlayaItemTable.id,
+            PlayaItemTable.name,
+            PlayaItemTable.latitude,
+            PlayaItemTable.longitude
+    };
+
     private Constants.PlayaItemType type;
     private Location deviceLocation;
     private AdapterItemSelectedListener listener;
@@ -92,5 +99,10 @@ public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemC
 
         viewHolder.modelId = cursor.getInt(idCol);
         viewHolder.container.setTag(viewHolder.modelId);
+    }
+
+    @Override
+    public String[] getRequiredProjection() {
+        return Projection;
     }
 }
