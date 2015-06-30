@@ -191,16 +191,13 @@ public class IBurnService {
         final AtomicBoolean initializedInsert = new AtomicBoolean(false);
         final SqlBrite sqlBrite = DataProvider.getSqlBriteInstance(context);
         final ContentValues values = new ContentValues();
-        return items
                 .flatMap(Observable::from)
                 .doOnCompleted(() -> {
                     Timber.d("Finished %s insert", tableName);
                     sqlBrite.setTransactionSuccessful();
                     sqlBrite.endTransaction();
                 })
-                .map(item -> {
 
-                    // Drop previous camp table before inserting new data
                     if (!initializedInsert.getAndSet(true)) {
                         int numDeleted = sqlBrite.delete(tableName, PlayaItemTable.id + " > 0", null);
                         Timber.d("Deleted %d existing rows. Beginning %s inserts", numDeleted, tableName);
@@ -215,7 +212,6 @@ public class IBurnService {
                 .doOnError(throwable -> {
                     Timber.e(throwable, "Error inserting " + tableName);
                     sqlBrite.endTransaction();
-                }).reduce((aBoolean, aBoolean2) -> aBoolean && aBoolean2);
     }
 
     interface BindObjectToContentValues<T extends PlayaItem> {
