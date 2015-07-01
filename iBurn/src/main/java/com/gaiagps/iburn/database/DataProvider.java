@@ -9,8 +9,13 @@ import android.support.annotation.Nullable;
 import com.gaiagps.iburn.Constants;
 import com.squareup.sqlbrite.SqlBrite;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import rx.Observable;
 import rx.schedulers.Schedulers;
@@ -44,6 +49,7 @@ public class DataProvider {
     private static DataProvider provider;
 
     private SqlBrite db;
+    private final AtomicBoolean upgradeLock = new AtomicBoolean(false);
 
     public static DataProvider getInstance(@NonNull Context context) {
         if (provider == null) {
@@ -69,11 +75,29 @@ public class DataProvider {
         return db;
     }
 
+    public void beginUpgrade() {
+        upgradeLock.set(true);
+    }
+
+    public void endUpgrade() {
+        upgradeLock.set(false);
+
+        // Trigger all SqlBrite observers via reflection (uses private method)
+        try {
+            Method method = db.getClass().getDeclaredMethod("sendTableTrigger", Set.class);
+            method.setAccessible(true);
+            method.invoke(db, new HashSet<>(PlayaDatabase.ALL_TABLES));
+        } catch (SecurityException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            Timber.w(e, "Failed to notify observers on endUpgrade");
+        }
+    }
+
     public Observable<SqlBrite.Query> observeTable(@NonNull String table,
                                                    @Nullable String[] projection) {
         return db.createQuery(table,
                 "SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table)
-                .subscribeOn(Schedulers.io());
+                .subscribeOn(Schedulers.io())
+                .skipWhile(query -> upgradeLock.get());
     }
 
     public Observable<SqlBrite.Query> observeEventsOnDayOfTypes(@Nullable String day,
@@ -117,7 +141,8 @@ public class DataProvider {
 
         Timber.d("Event filter query " + sql.toString());
         return db.createQuery(PlayaDatabase.EVENTS, sql.toString(), args.toArray(new String[args.size()]))
-                .subscribeOn(Schedulers.io());
+                .subscribeOn(Schedulers.io())
+                .skipWhile(query -> upgradeLock.get());
     }
 
     public Observable<SqlBrite.Query> observeFavorites(@Nullable String[] projection) {
@@ -144,7 +169,8 @@ public class DataProvider {
         }
 
         return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString())
-                .subscribeOn(Schedulers.io());
+                .subscribeOn(Schedulers.io())
+                .skipWhile(query -> upgradeLock.get());
     }
 
     public Observable<SqlBrite.Query> observeQuery(@NonNull String query,
@@ -174,7 +200,8 @@ public class DataProvider {
         }
 
         return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), query)
-                .subscribeOn(Schedulers.io());
+                .subscribeOn(Schedulers.io())
+                .skipWhile(queryResp -> upgradeLock.get());
     }
 
     public void updateFavorite(@NonNull String table, int id, boolean isFavorite) {
