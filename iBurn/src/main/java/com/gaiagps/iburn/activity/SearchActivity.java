@@ -8,24 +8,20 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterItemSelectedListener;
 import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.squareup.sqlbrite.SqlBrite;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import rx.Subscription;
-import rx.functions.Action1;
 
 public class SearchActivity extends AppCompatActivity implements AdapterItemSelectedListener {
 

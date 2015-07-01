@@ -6,7 +6,6 @@ import net.simonvt.schematic.annotation.Database;
 import net.simonvt.schematic.annotation.Table;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 /**
  * SQL Database definition.

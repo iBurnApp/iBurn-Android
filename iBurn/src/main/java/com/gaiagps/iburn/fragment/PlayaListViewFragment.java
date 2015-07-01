@@ -21,7 +21,6 @@ import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.DeviceLocation;
-import com.gaiagps.iburn.view.PlayaListViewHeader;
 
 import java.util.ArrayList;
 

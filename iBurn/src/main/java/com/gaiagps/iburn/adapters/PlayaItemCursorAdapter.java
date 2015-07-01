@@ -14,8 +14,6 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.DeviceLocation;
 
-import timber.log.Timber;
-
 /**
  * Bind a playa item (camp, art, event) database row to a view with a simple name & distance display,
  * using the device's location and date when the adapter was constructed.

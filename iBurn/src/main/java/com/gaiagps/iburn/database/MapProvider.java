@@ -3,8 +3,8 @@ package com.gaiagps.iburn.database;
 import android.content.Context;
 import android.os.Environment;
 
-import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.Bytestreams;
+import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 
 import java.io.File;
