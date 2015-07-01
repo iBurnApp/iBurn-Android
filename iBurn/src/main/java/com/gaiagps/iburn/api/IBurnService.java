@@ -18,6 +18,7 @@ import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.EventTable;
+import com.gaiagps.iburn.database.MapProvider;
 import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.google.gson.FieldNamingPolicy;
@@ -25,6 +26,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.squareup.sqlbrite.SqlBrite;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -208,13 +210,30 @@ public class IBurnService {
                     return Observable.from(resources);
                 })
                 .filter(resourceManifest -> shouldUpdateResource(storage, resourceManifest))
+                .doOnNext(resource -> DataProvider.getInstance(context).beginUpgrade()) // We really should only do this the first time
                 .flatMap(resourceManifest -> {
                     //Timber.d("Should update " + resourceManifest.file);
                     return updateResource(resourceManifest, dataManifest);
                 })
                 .reduce((numJustUpdated, totalUpdated) -> totalUpdated + numJustUpdated)
+                .doOnNext(totalUpdated -> DataProvider.getInstance(context).endUpgrade())
                 .subscribe(totalUpdated -> {
                     Timber.d("Updated %d new items ", totalUpdated);
+                });
+    }
+
+    private Observable<Integer> updateTiles(ResourceManifest resourceManifest) {
+        return service.getTiles()
+                .map(response -> {
+                    try {
+                        MapProvider.getInstance(context)
+                                .offerMapUpgrade(response.getBody().in(), resourceManifest.updated.getTime());
+                        return 1;
+                        //return success ? 1 : 0;
+                    } catch (IOException e) {
+                        Timber.e(e, "Error copying mbtiles!");
+                        return 0;
+                    }
                 });
     }
 
@@ -371,23 +390,20 @@ public class IBurnService {
         String resourceName = resourceManifest.file;
 
         if (resourceName.equals(dataManifest.art.file))
-//            return Observable.just(0);
             return updateArt();
 
         else if (resourceName.equals(dataManifest.camps.file))
             return updateCamps();
 
         else if (resourceName.equals(dataManifest.events.file))
-//            return Observable.just(0);
             return updateEvents();
 
         else if (resourceName.equals(dataManifest.tiles.file))
-            return Observable.just(0);
-//            updateTiles();
+            return updateTiles(resourceManifest);
 
         // Unknown or Unimplemented situation
+        Timber.w("Unknown resource name %s. Cannot perform update", resourceName);
         return Observable.just(0);
-
     }
 
     private boolean shouldUpdateResource(SharedPreferences storage, ResourceManifest resource) {

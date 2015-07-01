@@ -2,29 +2,20 @@ package com.gaiagps.iburn.fragment;
 
 import android.animation.ValueAnimator;
 import android.content.ContentValues;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.SystemClock;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -34,19 +25,18 @@ import android.widget.Toast;
 
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
 import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.FileUtils;
 import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.EventTable;
+import com.gaiagps.iburn.database.MapProvider;
 import com.gaiagps.iburn.database.PlayaContentProvider;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.database.UserPoiTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -59,7 +49,6 @@ import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
 
-import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -68,13 +57,13 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import hugo.weaving.DebugLog;
+import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 /**
  * Created by davidbrodsky on 8/3/13.
  */
 public class GoogleMapFragment extends SupportMapFragment implements LoaderManager.LoaderCallbacks<Cursor>, Searchable {
-    private static final String TAG = "GoogleMapFragment";
 
     @Override
     public void onSearchQueryRequested(String query) {
@@ -130,7 +119,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
      * When restartLoaders is called, how many loaders were simultaneously started.
      * We use this number to collect a batch of loader results into a single collection
      * to center the camera on.
-     * <p/>
+     * <p>
      * Set on each call to {@link #restartLoaders(boolean)}, Read on each call to
      * {@link #onLoadFinished(android.support.v4.content.Loader, android.database.Cursor)}
      */
@@ -146,7 +135,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     private static final int MAX_POIS = 200;
     ArrayDeque<Marker> mMappedMarkers = new ArrayDeque<>(MAX_POIS);
     HashMap<String, String> markerIdToMeta = new HashMap<>();
-    private static MapBoxOfflineTileProvider tileProvider; // Re-use tileProvider
+    public static MapBoxOfflineTileProvider tileProvider; // Re-use tileProvider
     private static AtomicInteger tileProviderHolds = new AtomicInteger();
     TileOverlay overlay;
     LatLng latLngToCenterOn;
@@ -165,13 +154,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     private void dropPinAndShowEditDialog(final Marker marker) {
         ValueAnimator animator = new ValueAnimator();
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                marker.setAlpha((Float) animation.getAnimatedValue());
-                if (animation.getAnimatedFraction() == 1)
-                    showEditPinDialog(marker);
-            }
+        animator.addUpdateListener(animation -> {
+            marker.setAlpha((Float) animation.getAnimatedValue());
+            if (animation.getAnimatedFraction() == 1)
+                showEditPinDialog(marker);
         });
         animator.setFloatValues(0f, 1f);
         animator.setDuration(500);
@@ -203,7 +189,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                     ((RadioButton) iconGroup.findViewById(R.id.btn_bike)).setChecked(true);
                     break;
                 default:
-                    Log.e(TAG, "Unknown custom marker type");
+                    Timber.e("Unknown custom marker type");
             }
             poi.close();
         }
@@ -226,42 +212,36 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         });
         new AlertDialog.Builder(getActivity(), R.style.Theme_Iburn_Dialog)
                 .setView(dialogBody)
-                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Save the title
-                        if (markerTitle.getText().length() > 0)
-                            marker.setTitle(markerTitle.getText().toString());
-                        marker.hideInfoWindow();
+                .setPositiveButton("Done", (dialog, which) -> {
+                    // Save the title
+                    if (markerTitle.getText().length() > 0)
+                        marker.setTitle(markerTitle.getText().toString());
+                    marker.hideInfoWindow();
 
-                        int drawableId = 0;
-                        switch (iconGroup.getCheckedRadioButtonId()) {
-                            case R.id.btn_star:
-                                drawableId = UserPoiTable.STAR;
-                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_star));
-                                break;
-                            case R.id.btn_heart:
-                                drawableId = UserPoiTable.HEART;
-                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_heart));
-                                break;
-                            case R.id.btn_home:
-                                drawableId = UserPoiTable.HOME;
-                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_home));
-                                break;
-                            case R.id.btn_bike:
-                                drawableId = UserPoiTable.BIKE;
-                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_bicycle));
-                                break;
-                        }
-                        updateCustomPinWithMarker(marker, drawableId);
+                    int drawableId = 0;
+                    switch (iconGroup.getCheckedRadioButtonId()) {
+                        case R.id.btn_star:
+                            drawableId = UserPoiTable.STAR;
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_star));
+                            break;
+                        case R.id.btn_heart:
+                            drawableId = UserPoiTable.HEART;
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_heart));
+                            break;
+                        case R.id.btn_home:
+                            drawableId = UserPoiTable.HOME;
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_home));
+                            break;
+                        case R.id.btn_bike:
+                            drawableId = UserPoiTable.BIKE;
+                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_bicycle));
+                            break;
                     }
+                    updateCustomPinWithMarker(marker, drawableId);
                 })
-                .setNegativeButton("Delete", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Delete Pin
-                        removeCustomPin(marker);
-                    }
+                .setNegativeButton("Delete", (dialog, which) -> {
+                    // Delete Pin
+                    removeCustomPin(marker);
                 }).show();
     }
 
@@ -361,7 +341,19 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     private void initMap() {
 
-        addMBTileOverlay(R.raw.iburn);
+        MapProvider.getInstance(getActivity())
+                .getMapDatabase()
+                .doOnNext(databaseFile -> {
+                    Timber.d("Got database file %s", databaseFile.getAbsolutePath());
+                    if (tileProvider == null)
+                        tileProvider = new MapBoxOfflineTileProvider(databaseFile);
+                    else
+                        tileProvider.swapDatabase(databaseFile);
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(databaseFile -> _addMBTilesOverlay());
+
+//        addMBTileOverlay(R.raw.iburn);
         UiSettings settings = getMap().getUiSettings();
         settings.setZoomControlsEnabled(false);
         settings.setMapToolbarEnabled(false);
@@ -418,88 +410,45 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             }
         });
 
-        getMap().setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-            @Override
-            public void onInfoWindowClick(Marker marker) {
-                if (markerIdToMeta.containsKey(marker.getId())) {
-                    String markerMeta = markerIdToMeta.get(marker.getId());
-                    int model_id = Integer.parseInt(markerMeta.split("-")[1]);
-                    int model_type = Integer.parseInt(markerMeta.split("-")[0]);
-                    Constants.PlayaItemType modelType = null;
-                    switch (model_type) {
-                        case ART:
-                            modelType = Constants.PlayaItemType.ART;
-                            break;
-                        case EVENTS:
-                            modelType = Constants.PlayaItemType.EVENT;
-                            break;
-                        case CAMPS:
-                            modelType = Constants.PlayaItemType.CAMP;
-                            break;
-                    }
-                    Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
-                    i.putExtra("model_id", model_id);
-                    i.putExtra("model_type", modelType);
-                    getActivity().startActivity(i);
-                } else if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
-                    showEditPinDialog(marker);
+        getMap().setOnInfoWindowClickListener(marker -> {
+            if (markerIdToMeta.containsKey(marker.getId())) {
+                String markerMeta = markerIdToMeta.get(marker.getId());
+                int model_id = Integer.parseInt(markerMeta.split("-")[1]);
+                int model_type = Integer.parseInt(markerMeta.split("-")[0]);
+                Constants.PlayaItemType modelType = null;
+                switch (model_type) {
+                    case ART:
+                        modelType = Constants.PlayaItemType.ART;
+                        break;
+                    case EVENTS:
+                        modelType = Constants.PlayaItemType.EVENT;
+                        break;
+                    case CAMPS:
+                        modelType = Constants.PlayaItemType.CAMP;
+                        break;
                 }
+                Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
+                i.putExtra("model_id", model_id);
+                i.putExtra("model_type", modelType);
+                getActivity().startActivity(i);
+            } else if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
+                showEditPinDialog(marker);
             }
         });
     }
 
-    private void addMBTileOverlay(int MBTileAssetId) {
-        if (tileProvider != null) {
-            Log.d("GoogleMapFragment", "Reusing tileProvider");
-            _addMBTilesOverlay();
-            return;
-        }
-
-        new AsyncTask<Integer, Void, Void>() {
-
-            @Override
-            protected Void doInBackground(Integer... params) {
-                int MBTileAssetId = params[0];
-                if (getActivity() != null) {
-                    FileUtils.copyMBTilesToSD(getActivity().getApplicationContext(), MBTileAssetId, Constants.MBTILE_DESTINATION);
-                } else {
-                    Log.e(TAG, "getActivity() null on addMBTileOverlay");
-                    this.cancel(true);
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void result) {
-                if (getActivity() == null)
-                    return;
-                String tilesPath = String.format("%s/%s/%s/%s", Environment.getExternalStorageDirectory().getAbsolutePath(),
-                        Constants.IBURN_ROOT, Constants.TILES_DIR, Constants.MBTILE_DESTINATION);
-
-                File MBTFile = new File(tilesPath);
-                tileProvider = new MapBoxOfflineTileProvider(MBTFile);
-
-                _addMBTilesOverlay();
-            }
-        }.execute(MBTileAssetId);
-
-    }
-
     /**
      * Add {@link #tileProvider} to the current Map and increment the num of tileProvider holds
+     * Must be called from Main thread
      */
     private void _addMBTilesOverlay() {
-        getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(GoogleMap map) {
-                tileProviderHolds.incrementAndGet();
-                map.setMapType(GoogleMap.MAP_TYPE_NONE);
-                map.setMyLocationEnabled(true);
-                TileOverlayOptions opts = new TileOverlayOptions();
-
-                opts.tileProvider(tileProvider);
-                overlay = map.addTileOverlay(opts);
-            }
+        getMapAsync(map -> {
+            tileProviderHolds.incrementAndGet();
+            map.setMapType(GoogleMap.MAP_TYPE_NONE);
+            map.setMyLocationEnabled(true);
+            TileOverlayOptions opts = new TileOverlayOptions();
+            opts.tileProvider(tileProvider);
+            overlay = map.addTileOverlay(opts);
         });
     }
 
@@ -508,12 +457,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             new AlertDialog.Builder(getActivity(), R.style.Theme_Iburn_Dialog)
                     .setTitle("Where are you?")
                     .setMessage("We're still working on your location. Try again in a few seconds!")
-                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-
-                        }
-                    })
+                    .setPositiveButton(getString(R.string.ok), null)
                     .show();
             getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(Constants.MAN_LAT, Constants.MAN_LON)).zoom(15).build()));
             return;
@@ -603,12 +547,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     public void mapAndCenterOnMarker(final MarkerOptions marker) {
         latLngToCenterOn = marker.getPosition();
-        getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(GoogleMap googleMap) {
-                googleMap.addMarker(marker);
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLngToCenterOn, 14));
-            }
+        getMapAsync(googleMap -> {
+            googleMap.addMarker(marker);
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLngToCenterOn, 14));
         });
     }
 
@@ -666,7 +607,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         }
 
         if (!TextUtils.isEmpty(mCurFilter)) {
-            Log.i(TAG, "filtering map by " + mCurFilter);
+            Timber.d("filtering map by " + mCurFilter);
             // Add to selection, selectionArgs for name filter
             if (selection.length() > 0) selection += " AND ";
             selection += PlayaItemTable.name + " LIKE ?";
@@ -702,7 +643,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
-        Log.i(TAG, "Creating loader with uri: " + targetUri.toString());
+        Timber.d("Creating loader with uri: " + targetUri.toString());
         return new CursorLoader(getActivity(), targetUri, projection, selection, selectionArgs.toArray(new String[selectionArgs.size()]),
                 null);
     }
@@ -717,7 +658,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         if (mState == STATE.SEARCH)
             mLoaderResponsesExpected--;
         int id = cursorLoader.getId();
-        Log.i(TAG, "Loader finished for id " + id + " with items " + cursor.getCount());
+        Timber.d("Loader finished for id " + id + " with items " + cursor.getCount());
         GoogleMap map = getMap();
         if (map == null) return;
         String markerMapId;
@@ -736,12 +677,12 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             }
         }
         if (mState == STATE.SEARCH)
-            Log.i(TAG, "Loader responses expected " + mLoaderResponsesExpected);
+            Timber.d("Loader responses expected " + mLoaderResponsesExpected);
         if (areBoundsValid[0] && mState == STATE.SEARCH && mLoaderResponsesExpected == 0) {
             map.animateCamera(CameraUpdateFactory.newLatLngBounds(mResultBounds.build(), 80));
         } else if (!areBoundsValid[0] && mState == STATE.SEARCH && mLoaderResponsesExpected == 0) {
             // No results
-            Log.i(TAG, "Resetting map view");
+            Timber.d("Resetting map view");
             resetMapView();
         }
         if (mLoaderResponsesExpected == 0) {
@@ -883,8 +824,8 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
             int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
             int numDeleted = getActivity().getContentResolver().delete(PlayaContentProvider.Pois.POIS, PlayaItemTable.id + " = ?", new String[]{String.valueOf(itemId)});
-            if (numDeleted != 1) Log.w(TAG, "Unable to delete marker " + marker.getTitle());
-        } else Log.w(TAG, "Unable to delete marker " + marker.getTitle());
+            if (numDeleted != 1) Timber.w("Unable to delete marker " + marker.getTitle());
+        } else Timber.w("Unable to delete marker " + marker.getTitle());
     }
 
     /**
@@ -915,7 +856,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             int newId = Integer.parseInt(getActivity().getContentResolver().insert(PlayaContentProvider.Pois.POIS, poiValues).getLastPathSegment());
             mMappedCustomMarkerIds.put(marker.getId(), generateDataIdForItem(POIS, newId));
         } catch (NumberFormatException e) {
-            Log.w(TAG, "Unable to get id for new custom marker");
+            Timber.w("Unable to get id for new custom marker");
         }
 
         return marker;
@@ -924,7 +865,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     /**
      * Apply style to a custom MarkerOptions before
      * adding to Map
-     * <p/>
+     * <p>
      * Note: drawableResId is an int constant from {@link com.gaiagps.iburn.database.UserPoiTable}
      */
     private void styleCustomMarkerOption(MarkerOptions markerOption, int drawableResId) {
@@ -949,7 +890,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
 
     /**
      * Update a Custom pin placed by a user with state of a map marker.
-     * <p/>
+     * <p>
      * Note: If drawableResId is 0, it is ignored
      */
     private void updateCustomPinWithMarker(Marker marker, int drawableResId) {
@@ -962,9 +903,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 poiValues.put(UserPoiTable.drawableResId, drawableResId);
             int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
             int numUpdated = getActivity().getContentResolver().update(PlayaContentProvider.Pois.POIS, poiValues, PlayaItemTable.id + " = ?", new String[]{String.valueOf(itemId)});
-            if (numUpdated != 1) Log.w(TAG, "Failed to update custom pin with marker");
+            if (numUpdated != 1) Timber.w("Failed to update custom pin with marker");
         } else
-            Log.w(TAG, "Unable to find custom marker in map for updating");
+            Timber.w("Unable to find custom marker in map for updating");
     }
 
     private void restartLoaders(boolean clearMap) {

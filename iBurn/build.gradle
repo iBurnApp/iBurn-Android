@@ -81,7 +81,8 @@ dependencies {
     apt 'net.simonvt.schematic:schematic-compiler:0.6.1'
     compile 'net.simonvt.schematic:schematic:0.6.1'
 
-    compile project(':libraries:android-gmaps-addons')
+    releaseCompile project(path: ':libraries:android-gmaps-addons', configuration: 'release')
+    debugCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
 
     compile 'com.android.support:design:22.2.0'
     compile 'com.android.support:support-v4:22.2.0'

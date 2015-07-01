@@ -29,7 +29,7 @@ public final class PlayaDateTypeAdapter extends TypeAdapter<Date> {
         }
     };
 
-    private final DateFormat iso8601Format = buildIso8601Format();
+    public static final DateFormat iso8601Format = buildIso8601Format();
 
     private static DateFormat buildIso8601Format() {
         DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
