@@ -66,6 +66,7 @@ public class DataProvider {
                 .subscribeOn(Schedulers.io())
                 .doOnNext(database -> prefs.setDatabaseVersion(BUNDLED_DATABASE_VERSION))
                 .map(SqlBrite::create)
+                .doOnNext(sqlBrite1 -> sqlBrite1.setLoggingEnabled(true))
                 .map(sqlBrite -> new DataProvider(sqlBrite, new Embargo(prefs)))
                 .doOnNext(dataProvider -> provider = dataProvider);
     }
@@ -222,13 +223,13 @@ public class DataProvider {
     public Observable<SqlBrite.Query> observeNameQuery(@NonNull String query,
                                                        @Nullable String[] projection) {
 
-        query = DatabaseUtils.sqlEscapeString(query);
-
+        query = '%' + query + '%';
         StringBuilder sql = new StringBuilder();
         int tableIdx = 0;
+        String[] params = new String[PlayaDatabase.ALL_TABLES.size()];
         for (String table : PlayaDatabase.ALL_TABLES) {
+            params[tableIdx] = query;
             tableIdx++;
-
             sql.append("SELECT ")
                     .append(projection == null ? "*" : makeProjectionString(projection))
                     .append(", ")
@@ -239,13 +240,15 @@ public class DataProvider {
                     .append(table)
                     .append(" WHERE ")
                     .append(PlayaItemTable.name)
-                    .append(" LIKE '%?%'");
+                    .append(" LIKE ?")
+                    .append(" GROUP BY ")
+                    .append(PlayaItemTable.name);
 
             if (tableIdx < PlayaDatabase.ALL_TABLES.size())
                 sql.append(" UNION ");
         }
 
-        return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()), query)
+        return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()), params)
                 .subscribeOn(Schedulers.io())
                 .skipWhile(queryResp -> upgradeLock.get());
     }
