@@ -36,6 +36,7 @@ import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.database.UserPoiTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -341,17 +342,17 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 .subscribe(databaseFile -> _addMBTilesOverlay());
 
         // TODO : Do full query. Don't run separate POIS, results queries
-        Observable.combineLatest(cameraUpdate.debounce(250, TimeUnit.MILLISECONDS),
+        Observable.combineLatest(cameraUpdate.debounce(250, TimeUnit.MILLISECONDS).startWith(new VisibleRegion(null, null, null, null, null)),
                 DataProvider.getInstance(getActivity()), (newVisibleRegion, dataProvider) -> {
-                        GoogleMapFragment.this.visibleRegion = newVisibleRegion;
-                        return dataProvider;
+                    GoogleMapFragment.this.visibleRegion = newVisibleRegion;
+                    return dataProvider;
                 })
                 // Don't bother running query during embargo because ours has no meaning without location data
                 .skipWhile(dataProvider -> Embargo.isEmbargoActive(prefs))
                 .flatMap(this::performQuery)
                 .map(SqlBrite.Query::run)
                         // Can we do this on bg thread? prolly not
-//                .observeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::processMapItemResult, throwable -> Timber.e(throwable, "Error querying"));
 
         UiSettings settings = getMap().getUiSettings();
@@ -507,7 +508,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     static final String PROJECTION_STRING = DataProvider.makeProjectionString(PROJECTION);
 
-    static String geoWhereClause = String.format(" WHERE (%s < ? AND %s > ?) AND (%s < ? AND %s > ?)",
+    static String geoWhereClause = String.format("(%s < ? AND %s > ?) AND (%s < ? AND %s > ?)",
             PlayaItemTable.latitude, PlayaItemTable.latitude,
             PlayaItemTable.longitude, PlayaItemTable.longitude);
 
@@ -518,29 +519,36 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     public Observable<SqlBrite.Query> performQuery(DataProvider provider) {
 
+        boolean queryAll = visibleRegion.farLeft != null;
+
         StringBuilder sql = new StringBuilder();
 
-        sql.append("SELECT ").append(PROJECTION_STRING).append(" FROM ").append(PlayaDatabase.POIS)
-                .append(" UNION ")
-                .append("SELECT ").append(PROJECTION_STRING).append(" FROM ").append(PlayaDatabase.EVENTS)
-                .append(ongoingWhereClause)
-                .append(" AND ")
-                .append(geoWhereClause)
-                .append(" UNION ")
-                .append("SELECT ").append(PROJECTION_STRING).append(" FROM ").append(PlayaDatabase.ART)
-                .append(geoWhereClause)
-                .append(" UNION ")
-                .append("SELECT ").append(PROJECTION_STRING).append(" FROM ").append(PlayaDatabase.CAMPS)
-                .append(geoWhereClause);
+        sql.append("SELECT ").append(PROJECTION_STRING.replace(PlayaItemTable.favorite, UserPoiTable.drawableResId + " AS " + PlayaItemTable.favorite)).append(", ").append(4).append(" AS ").append(DataProvider.VirtualType).append(" FROM ").append(PlayaDatabase.POIS);
 
-        sqlParemeters[0] = sqlParemeters[1] = PlayaDateTypeAdapter.iso8601Format.format(new Date());
+        if (queryAll) {
+            sql.append(" UNION ")
+                    .append("SELECT ").append(PROJECTION_STRING).append(", ").append(3).append(" AS ").append(DataProvider.VirtualType).append(" FROM ").append(PlayaDatabase.EVENTS)
+                    .append(" WHERE ")
+                    .append(ongoingWhereClause)
+                    .append(" AND ")
+                    .append(geoWhereClause)
+                    .append(" UNION ")
+                    .append("SELECT ").append(PROJECTION_STRING).append(", ").append(2).append(" AS ").append(DataProvider.VirtualType).append(" FROM ").append(PlayaDatabase.ART)
+                    .append(" WHERE ")
+                    .append(geoWhereClause)
+                    .append(" UNION ")
+                    .append("SELECT ").append(PROJECTION_STRING).append(", ").append(1).append(" AS ").append(DataProvider.VirtualType).append(" FROM ").append(PlayaDatabase.CAMPS)
+                    .append(" WHERE ")
+                    .append(geoWhereClause);
 
-        sqlParemeters[2] = sqlParemeters[6] = sqlParemeters[10] = String.valueOf(visibleRegion.farLeft.latitude);
-        sqlParemeters[3] = sqlParemeters[7] = sqlParemeters[11] = String.valueOf(visibleRegion.nearRight.latitude);
-        sqlParemeters[4] = sqlParemeters[8] = sqlParemeters[12] = String.valueOf(visibleRegion.nearRight.longitude);
-        sqlParemeters[5] = sqlParemeters[9] = sqlParemeters[13] = String.valueOf(visibleRegion.farLeft.longitude);
+            sqlParemeters[0] = sqlParemeters[1] = PlayaDateTypeAdapter.iso8601Format.format(new Date());
 
-        return provider.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), sqlParemeters);
+            sqlParemeters[2] = sqlParemeters[6] = sqlParemeters[10] = String.valueOf(visibleRegion.farLeft.latitude);
+            sqlParemeters[3] = sqlParemeters[7] = sqlParemeters[11] = String.valueOf(visibleRegion.nearRight.latitude);
+            sqlParemeters[4] = sqlParemeters[8] = sqlParemeters[12] = String.valueOf(visibleRegion.nearRight.longitude);
+            sqlParemeters[5] = sqlParemeters[9] = sqlParemeters[13] = String.valueOf(visibleRegion.farLeft.longitude);
+        }
+        return provider.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), queryAll ? sqlParemeters : null);
     }
 
     /**
@@ -671,7 +679,8 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
         switch (loaderId) {
             case POIS:
-                styleCustomMarkerOption(markerOptions, cursor.getInt(cursor.getColumnIndex(UserPoiTable.drawableResId)));
+                // A hack to make the union query work
+                styleCustomMarkerOption(markerOptions, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)));
 //                Log.i(TAG, "Loading POI pin with drawable: " + cursor.getInt(cursor.getColumnIndex(UserPoiTable.drawableResId)));
                 break;
             case ALL:
