@@ -178,8 +178,8 @@ public class DataProvider {
 
             sql.append(EventTable.startTimePrint)
                     .append(" LIKE ")
-                    .append("'%?%'");
-            args.add(day);
+                    .append("?");
+            args.add('%' + day + '%');
         }
 
         sql.append(" ORDER BY ");
