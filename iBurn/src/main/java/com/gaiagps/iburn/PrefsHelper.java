@@ -11,6 +11,7 @@ public class PrefsHelper {
     private static final String SHOWED_WELCOME = "welcomed";                // boolean
     private static final String POPULATED_DB_VERSION = "db_populated_ver";  // long
     private static final String VALID_UNLOCK_CODE = "unlocked_2015";        // boolean
+    private static final String SCHEDULED_UPDATE = "sched_update";          // boolean
 
     private static final String SHARED_PREFS_NAME = PrefsHelper.class.getSimpleName();
 
@@ -48,5 +49,16 @@ public class PrefsHelper {
 
     public long getDatabaseVersion() {
         return sharedPrefs.getLong(POPULATED_DB_VERSION, 0);
+    }
+
+    /**
+     * @return whether the application successfully registered a {@link com.gaiagps.iburn.service.DataUpdateService} task
+     */
+    public boolean didScheduleUpdate() {
+        return sharedPrefs.getBoolean(SCHEDULED_UPDATE, false);
+    }
+
+    public void setDidScheduleUpdate(boolean didScheduleUpdate) {
+        editor.putBoolean(SCHEDULED_UPDATE, didScheduleUpdate).apply();
     }
 }

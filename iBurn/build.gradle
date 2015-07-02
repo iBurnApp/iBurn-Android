@@ -78,19 +78,17 @@ if (project.hasProperty('keyPassword')) {
 
 dependencies {
 
-    apt 'net.simonvt.schematic:schematic-compiler:0.6.1'
-    compile 'net.simonvt.schematic:schematic:0.6.1'
-
-    releaseCompile project(path: ':libraries:android-gmaps-addons', configuration: 'release')
-    debugCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
-
+    // Android Support libraries
     compile 'com.android.support:design:22.2.0'
     compile 'com.android.support:support-v4:22.2.0'
     compile 'com.android.support:appcompat-v7:22.2.0'
     compile 'com.android.support:recyclerview-v7:22.2.0'
 
+    // Google Play Services
+    compile 'com.google.android.gms:play-services-gcm:7.5.0'
     compile 'com.google.android.gms:play-services-maps:7.5.0'
 
+    // 3rd Party libraries
     compile 'com.google.code.gson:gson:2.3.1'
     compile 'net.hockeyapp.android:HockeySDK:3.5.0'
     compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
@@ -101,5 +99,12 @@ dependencies {
     compile 'com.squareup.retrofit:retrofit:1.9.0'
     compile 'com.squareup.okhttp:okhttp:2.0.0'
 
-    compile 'com.facebook.stetho:stetho:1.1.1'
+    apt 'net.simonvt.schematic:schematic-compiler:0.6.1'
+    compile 'net.simonvt.schematic:schematic:0.6.1'
+
+    releaseCompile project(path: ':libraries:android-gmaps-addons', configuration: 'release')
+    debugCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
+
+    // Debugging libraries
+    debugCompile 'com.facebook.stetho:stetho:1.1.1'
 }

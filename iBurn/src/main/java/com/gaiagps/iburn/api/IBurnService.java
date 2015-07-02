@@ -172,7 +172,9 @@ public class IBurnService {
         }
     }
 
-    /** Class to represent state needed to update an iBurn collection */
+    /**
+     * Class to represent state needed to update an iBurn collection
+     */
     private class UpdateDataDependencies {
 
         DataProvider dataProvider;
@@ -208,17 +210,16 @@ public class IBurnService {
         service = restAdapter.create(IBurnAPIService.class);
     }
 
-    public void updateData() {
+    public Observable<Boolean> updateData() {
         // Check local update dates for each endpoint, update those that are stale
         final SharedPreferences storage = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        Observable.zip(DataProvider.getInstance(context),
+        return Observable.zip(DataProvider.getInstance(context),
                 Observable.just(MapProvider.getInstance(context)),
                 (dataProvider, mapProvider) -> new Pair<>(dataProvider, mapProvider))
                 .flatMap(providerPair -> service.getDataManifest().map(dataManifest -> new Pair<>(providerPair, dataManifest)))
                 .flatMap(depBundle -> {
 
-                    // TODO : Replace with custom data structure or 3-Tuple
                     Pair providerPair = depBundle.first;
                     DataManifest dataManifest = depBundle.second;
 
@@ -236,7 +237,8 @@ public class IBurnService {
                 .flatMap(dependencies -> updateResource(dependencies).map(itemsUpdated -> dependencies))
                 .reduce((dependencies1, dependencies2) -> dependencies1)
                 .doOnNext(dependencies -> dependencies.dataProvider.endUpgrade())
-                .subscribe(totalUpdated -> Timber.d("Update complete"), throwable -> Timber.e(throwable, "Update error"));
+                .map(dependencies ->  true); // TODO : More granular success / failure?
+//                .subscribe(totalUpdated -> Timber.d("Update complete"), throwable -> Timber.e(throwable, "Update error"));
     }
 
     private Observable<Integer> updateTiles(ResourceManifest resourceManifest, MapProvider provider) {

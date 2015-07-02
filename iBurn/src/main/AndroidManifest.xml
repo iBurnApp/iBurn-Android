@@ -3,6 +3,7 @@
     package="com.gaiagps.iburn" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -51,6 +52,16 @@
             android:name=".activity.SearchActivity"
             android:label="@string/title_activity_search">
         </activity>
+
+        <!-- GCM Network Manager -->
+        <service android:name=".service.DataUpdateService"
+            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE"
+            android:exported="true">
+        <intent-filter>
+            <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY"/>
+        </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

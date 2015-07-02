@@ -32,8 +32,10 @@ import com.gaiagps.iburn.fragment.CampListViewFragment;
 import com.gaiagps.iburn.fragment.EventListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
+import com.gaiagps.iburn.service.DataUpdateService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -118,6 +120,11 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         if (!prefs.didShowWelcome()) {
             showWelcomeDialog();
+        }
+
+        if (!prefs.didScheduleUpdate()) {
+            DataUpdateService.scheduleAutoUpdate(this);
+            prefs.setDidScheduleUpdate(true);
         }
 
         if (Embargo.isEmbargoActive(prefs)) {
