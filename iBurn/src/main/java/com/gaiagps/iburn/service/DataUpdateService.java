@@ -31,6 +31,7 @@ public class DataUpdateService extends GcmTaskService {
                 .setPersisted(true)
                 .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
                 .setRequiresCharging(false)
+                .setUpdateCurrent(true)
                 .build();
 
         GcmNetworkManager.getInstance(context).schedule(dailyUpdate);
