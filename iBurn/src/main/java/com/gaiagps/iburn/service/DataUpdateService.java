@@ -29,7 +29,7 @@ public class DataUpdateService extends GcmTaskService {
                 .setPeriod(periodSecs)
                 .setTag(AUTO_UPDATE_TASK_NAME)
                 .setPersisted(true)
-                .setRequiredNetwork(Task.NETWORK_STATE_ANY)
+                .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
                 .setRequiresCharging(false)
                 .build();
 
