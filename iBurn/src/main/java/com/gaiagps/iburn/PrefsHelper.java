@@ -30,7 +30,7 @@ public class PrefsHelper {
     }
 
     public void setEnteredValidUnlockCode(boolean didEnter) {
-        editor.putBoolean(VALID_UNLOCK_CODE, didEnter);
+        editor.putBoolean(VALID_UNLOCK_CODE, didEnter).apply();
     }
 
     public boolean didShowWelcome() {
