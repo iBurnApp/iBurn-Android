@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 
+import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.api.response.Art;
 import com.gaiagps.iburn.api.response.Camp;
@@ -53,8 +54,6 @@ import timber.log.Timber;
  * Created by davidbrodsky on 6/26/15.
  */
 public class IBurnService {
-
-    public static final String PREFS_NAME = "api";
 
     /**
      * API Definition
@@ -204,7 +203,6 @@ public class IBurnService {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(SECRETS.IBURN_API_URL)
                 .setConverter(new GsonConverter(gson))
-//                .setLogLevel(RestAdapter.LogLevel.HEADERS_AND_ARGS)
                 .build();
 
         service = restAdapter.create(IBurnAPIService.class);
@@ -212,7 +210,7 @@ public class IBurnService {
 
     public Observable<Boolean> updateData() {
         // Check local update dates for each endpoint, update those that are stale
-        final SharedPreferences storage = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        final PrefsHelper storage = new PrefsHelper(context);
 
         return Observable.zip(DataProvider.getInstance(context),
                 Observable.just(MapProvider.getInstance(context)),
@@ -234,10 +232,16 @@ public class IBurnService {
                 })
                 .filter(dependencies -> shouldUpdateResource(storage, dependencies.resourceManifest))
                 .doOnNext(dependencies -> dependencies.dataProvider.beginUpgrade()) // We really should only do this the first time
-                .flatMap(dependencies -> updateResource(dependencies).map(itemsUpdated -> dependencies))
+                .flatMap(dependencies ->
+                        updateResource(dependencies)
+                                .map(itemsUpdated -> {
+                                    if (itemsUpdated > 0)
+                                        storage.setResourceVersion(dependencies.resourceManifest.file, dependencies.resourceManifest.updated.getTime());
+                                    return dependencies;
+                                }))
                 .reduce((dependencies1, dependencies2) -> dependencies1)
                 .doOnNext(dependencies -> dependencies.dataProvider.endUpgrade())
-                .map(dependencies ->  true); // TODO : More granular success / failure?
+                .map(dependencies -> true); // TODO : More granular success / failure?
 //                .subscribe(totalUpdated -> Timber.d("Update complete"), throwable -> Timber.e(throwable, "Update error"));
     }
 
@@ -424,7 +428,7 @@ public class IBurnService {
         return Observable.just(0);
     }
 
-    private boolean shouldUpdateResource(SharedPreferences storage, ResourceManifest resource) {
-        return storage.getLong(resource.file, 0) < resource.updated.getTime();
+    private boolean shouldUpdateResource(PrefsHelper storage, ResourceManifest resource) {
+        return storage.getResourceVersion(resource.file) < resource.updated.getTime();
     }
 }

@@ -13,6 +13,8 @@ public class PrefsHelper {
     private static final String VALID_UNLOCK_CODE = "unlocked_2015";        // boolean
     private static final String SCHEDULED_UPDATE = "sched_update";          // boolean
 
+    private static final String RESOURCE_VERSION_PREFIX = "res-";           // long
+
     private static final String SHARED_PREFS_NAME = PrefsHelper.class.getSimpleName();
 
     private SharedPreferences sharedPrefs;
@@ -60,5 +62,13 @@ public class PrefsHelper {
 
     public void setDidScheduleUpdate(boolean didScheduleUpdate) {
         editor.putBoolean(SCHEDULED_UPDATE, didScheduleUpdate).apply();
+    }
+
+    public long getResourceVersion(String resourceName) {
+        return sharedPrefs.getLong(RESOURCE_VERSION_PREFIX + resourceName, 0);
+    }
+
+    public void setResourceVersion(String resourceName, long resourceVersion) {
+        editor.putLong(RESOURCE_VERSION_PREFIX + resourceName, resourceVersion);
     }
 }
