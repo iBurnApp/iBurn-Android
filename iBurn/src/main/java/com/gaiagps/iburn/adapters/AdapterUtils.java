@@ -1,9 +1,6 @@
 package com.gaiagps.iburn.adapters;
 
-import android.content.ContentValues;
-import android.database.Cursor;
 import android.location.Location;
-import android.net.Uri;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.TextAppearanceSpan;
@@ -13,11 +10,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.GeoUtils;
-import com.gaiagps.iburn.PlayaClient;
+import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.database.PlayaContentProvider;
+import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
+import com.gaiagps.iburn.database.DataProvider;
+import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.database.PlayaItemTable;
+import com.squareup.sqlbrite.SqlBrite;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -99,15 +98,16 @@ public class AdapterUtils {
      */
     public static double setDistanceText(Location deviceLocation, Date nowDate, String startDateStr, String endDateStr, TextView textView, double lat, double lon) {
         if (deviceLocation != null && lat != 0) {
-            double milesToTarget = (GeoUtils.getDistance(lat, lon, deviceLocation)) * 0.000621371; // meters to miles
-            double minutesToTarget = PlayaClient.getWalkingEstimateMinutes(milesToTarget);
+            double metersToTarget = Geo.getDistance(lat, lon, deviceLocation);
+            double milesToTarget = metersToTarget * 0.000621371; // meters to miles
+            double minutesToTarget = Geo.getWalkingEstimateMinutes(metersToTarget);
             String distanceText;
 
             try {
                 Spannable spanRange;
 
-                if (milesToTarget < 0.01) {
-                    distanceText = "<1 m";
+                if (milesToTarget < 0.1) {
+                    distanceText = "<.1 m";
                     spanRange = new SpannableString(distanceText);
                 } else {
                     distanceText = String.format("%.0f min %.2f miles", minutesToTarget, milesToTarget);
@@ -119,8 +119,8 @@ public class AdapterUtils {
 
                 if (nowDate != null && startDateStr != null && endDateStr != null) {
                     // If a date is given, attempt to do coloring of the time estimate (e.g: green if arrival estimate before start date)
-                    Date startDate = PlayaClient.parseISODate(startDateStr);
-                    Date endDate = PlayaClient.parseISODate(endDateStr);
+                    Date startDate = PlayaDateTypeAdapter.iso8601Format.parse(startDateStr);
+                    Date endDate = PlayaDateTypeAdapter.iso8601Format.parse(endDateStr);
                     long duration = endDate.getTime() - startDate.getTime() / 1000 / 60; //minutes
 
                     if (startDate.before(nowDate) && endDate.after(nowDate)) {
@@ -163,34 +163,30 @@ public class AdapterUtils {
     public static AdapterView.OnItemLongClickListener mListItemLongClickListener = (parent, v, position, id) -> {
         int model_id = (Integer) v.getTag(R.id.list_item_related_model);
         Constants.PlayaItemType itemType = (Constants.PlayaItemType) v.getTag(R.id.list_item_related_model_type);
-        Uri uri = null;
+        String tableName;
         switch (itemType) {
             case ART:
-                uri = PlayaContentProvider.Art.ART;
+                tableName = PlayaDatabase.ART;
                 break;
             case CAMP:
-                uri = PlayaContentProvider.Camps.CAMPS;
+                tableName = PlayaDatabase.CAMPS;
                 break;
             case EVENT:
-                uri = PlayaContentProvider.Events.EVENTS;
+                tableName = PlayaDatabase.EVENTS;
                 break;
             default:
                 throw new IllegalStateException("Unknown PLAYA_ITEM");
         }
-        Cursor result = v.getContext().getContentResolver().query(uri, new String[] { PlayaItemTable.favorite }, PlayaItemTable.id + " = ?", new String[] { String.valueOf(model_id) }, null);
-        if (result != null && result.moveToFirst()) {
-            ContentValues values = new ContentValues();
-            int isFavorite = result.getInt(result.getColumnIndex(PlayaItemTable.favorite));
-            values.put(PlayaItemTable.favorite, (isFavorite == 1 ? 0 : 1));
-
-            if (isFavorite == 1) {
-                Toast.makeText(v.getContext(), "Removed from Favorites", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(v.getContext(), "Added to Favorites", Toast.LENGTH_SHORT).show();
-            }
-
-            v.getContext().getContentResolver().update(uri, values, PlayaItemTable.id + " = ?", new String[]{String.valueOf(model_id)});
-        }
+        final DataProvider[] storedProvider = new DataProvider[1];
+        DataProvider.getInstance(v.getContext())
+                .doOnNext(provider -> storedProvider[0] = provider)
+                .flatMap(dataProvider -> dataProvider.createQuery(tableName, "SELECT " + PlayaItemTable.favorite + " FROM " + tableName + " WHERE " + PlayaItemTable.id + " = ?", String.valueOf(model_id)))
+                .map(SqlBrite.Query::run)
+                .subscribe(cursor -> {
+                    boolean isFavorite = cursor.getInt(0) == 1;
+                    storedProvider[0].updateFavorite(PlayaItemTable.favorite, model_id, !isFavorite);
+                    Toast.makeText(v.getContext(), String.format("%s Favorites", isFavorite ? "Removed from" : "Added to"), Toast.LENGTH_SHORT).show();
+                });
         return true;
     };
 }

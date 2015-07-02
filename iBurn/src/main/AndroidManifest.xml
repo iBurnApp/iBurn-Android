@@ -24,12 +24,6 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <provider
-            android:name=".database.generated.PlayaContentProvider"
-            android:authorities="com.gaiagps.iburn.playacontentprovider"
-            android:exported="false" >
-        </provider>
-
         <!-- HockeyApp -->
         <activity android:name="net.hockeyapp.android.UpdateActivity" />
         <activity

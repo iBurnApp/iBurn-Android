@@ -24,7 +24,7 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
     protected Subscription subscribeToData() {
 
         return DataProvider.getInstance(getActivity())
-                .observeFavorites(getAdapter().getRequiredProjection())
+                .flatMap(dataProvider -> dataProvider.observeFavorites(getAdapter().getRequiredProjection()))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(query -> {
                     onDataChanged(query.run());

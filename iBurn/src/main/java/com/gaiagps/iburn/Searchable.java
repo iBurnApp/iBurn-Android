@@ -10,5 +10,5 @@ public interface Searchable {
      * The object should adjust itself based on the given query. If query is of 0 length
      * or null, the implementor should treat the query as having been cancelled.
      */
-    public void onSearchQueryRequested(String query);
+    void onSearchQueryRequested(String query);
 }

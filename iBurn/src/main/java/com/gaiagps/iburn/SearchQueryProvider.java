@@ -7,5 +7,5 @@ package com.gaiagps.iburn;
  */
 public interface SearchQueryProvider {
 
-    public String getCurrentQuery();
+    String getCurrentQuery();
 }

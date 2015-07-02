@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.PlayaUtils;
+import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaItemTable;
@@ -135,7 +135,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
 
             } else {
                 viewHolder.allDay = false;
-                viewHolder.timeLabel = PlayaUtils.getDateString(context, nowDate.getTime(), nowPlusOneHrDate.getTime(),
+                viewHolder.timeLabel = DateUtil.getDateString(context, nowDate.getTime(), nowPlusOneHrDate.getTime(),
                         cursor.getString(startTimeCol),
                         cursor.getString(startTimePrettyCol),
                         cursor.getString(endTimeCol),

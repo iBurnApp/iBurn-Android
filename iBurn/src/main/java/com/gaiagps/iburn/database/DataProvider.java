@@ -3,10 +3,14 @@ package com.gaiagps.iburn.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.DatabaseUtils;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.PrefsHelper;
+import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 import com.squareup.sqlbrite.SqlBrite;
 
 import java.lang.reflect.InvocationTargetException;
@@ -31,12 +35,42 @@ import timber.log.Timber;
  */
 public class DataProvider {
 
+    public interface QueryInterceptor {
+        String onQueryIntercepted(String query);
+    }
+
     /**
      * Computed column indicating type for queries that union results across tables
      */
     public static String VirtualType = "type";
 
-    private static String makeProjectionString(String[] projection) {
+    public static final long BUNDLED_DATABASE_VERSION = 1435792996306L; // Unix time of creation
+
+    private static final boolean USE_BUNDLED_DB = false;
+
+    private static DataProvider provider;
+
+    private SqlBrite db;
+    private QueryInterceptor interceptor;
+    private final AtomicBoolean upgradeLock = new AtomicBoolean(false);
+
+    public static Observable<DataProvider> getInstance(@NonNull Context context) {
+
+        if (provider != null) return Observable.just(provider);
+
+        final PrefsHelper prefs = new PrefsHelper(context);
+
+        SQLiteOpenHelper openHelper = USE_BUNDLED_DB ? new DBWrapper(context) : com.gaiagps.iburn.database.generated.PlayaDatabase.getInstance(context);
+
+        return Observable.just(openHelper)
+                .subscribeOn(Schedulers.io())
+                .doOnNext(database -> prefs.setDatabaseVersion(BUNDLED_DATABASE_VERSION))
+                .map(SqlBrite::create)
+                .map(sqlBrite -> new DataProvider(sqlBrite, new Embargo(prefs)))
+                .doOnNext(dataProvider -> provider = dataProvider);
+    }
+
+    public static String makeProjectionString(String[] projection) {
         StringBuilder builder = new StringBuilder();
         for (String column : projection) {
             builder.append(column);
@@ -46,29 +80,9 @@ public class DataProvider {
         return builder.substring(0, builder.length() - 1);
     }
 
-    private static DataProvider provider;
-
-    private SqlBrite db;
-    private final AtomicBoolean upgradeLock = new AtomicBoolean(false);
-
-    public static DataProvider getInstance(@NonNull Context context) {
-        if (provider == null) {
-            com.gaiagps.iburn.database.generated.PlayaDatabase db = com.gaiagps.iburn.database.generated.PlayaDatabase.getInstance(context);
-            SqlBrite sqlBrite = SqlBrite.create(db);
-            sqlBrite.setLoggingEnabled(true);
-            sqlBrite.setLogger(message -> Timber.d(message));
-            provider = new DataProvider(SqlBrite.create(db));
-        }
-
-        return provider;
-    }
-
-    public static SqlBrite getSqlBriteInstance(@NonNull Context context) {
-        return getInstance(context).getDb();
-    }
-
-    private DataProvider(SqlBrite db) {
+    private DataProvider(SqlBrite db, @Nullable QueryInterceptor interceptor) {
         this.db = db;
+        this.interceptor = interceptor;
     }
 
     public SqlBrite getDb() {
@@ -92,10 +106,42 @@ public class DataProvider {
         }
     }
 
+    public Observable<SqlBrite.Query> createQuery(@NonNull final String table, @NonNull String sql, @NonNull String... args) {
+        return db.createQuery(table, interceptQuery(sql), args);
+    }
+
+    public Observable<SqlBrite.Query> createQuery(@NonNull final Iterable<String> tables, @NonNull String sql, @NonNull String... args) {
+        return db.createQuery(tables, interceptQuery(sql), args);
+    }
+
+        public int delete(@NonNull String table, @Nullable String whereClause, @Nullable String... whereArgs) {
+        return db.delete(table, whereClause, whereArgs);
+    }
+
+    public int update(@NonNull String table, @NonNull ContentValues values, @Nullable String whereClause, @Nullable String... whereArgs) {
+        return db.update(table, values, whereClause, whereArgs);
+    }
+
+    public void beginTransaction() {
+        db.beginTransaction();
+    }
+
+    public void setTransactionSuccessful() {
+        db.setTransactionSuccessful();
+    }
+
+    public void endTransaction() {
+        db.endTransaction();
+    }
+
+    public long insert(@NonNull String table, @NonNull ContentValues values) {
+        return db.insert(table, values);
+    }
+
     public Observable<SqlBrite.Query> observeTable(@NonNull String table,
                                                    @Nullable String[] projection) {
         return db.createQuery(table,
-                "SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table)
+                interceptQuery("SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table))
                 .subscribeOn(Schedulers.io())
                 .skipWhile(query -> upgradeLock.get());
     }
@@ -140,7 +186,7 @@ public class DataProvider {
         sql.append(" ASC");
 
         Timber.d("Event filter query " + sql.toString());
-        return db.createQuery(PlayaDatabase.EVENTS, sql.toString(), args.toArray(new String[args.size()]))
+        return db.createQuery(PlayaDatabase.EVENTS, interceptQuery(sql.toString()), args.toArray(new String[args.size()]))
                 .subscribeOn(Schedulers.io())
                 .skipWhile(query -> upgradeLock.get());
     }
@@ -168,13 +214,13 @@ public class DataProvider {
                 sql.append(" UNION ");
         }
 
-        return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString())
+        return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()))
                 .subscribeOn(Schedulers.io())
                 .skipWhile(query -> upgradeLock.get());
     }
 
-    public Observable<SqlBrite.Query> observeQuery(@NonNull String query,
-                                                   @Nullable String[] projection) {
+    public Observable<SqlBrite.Query> observeNameQuery(@NonNull String query,
+                                                       @Nullable String[] projection) {
 
         query = DatabaseUtils.sqlEscapeString(query);
 
@@ -199,7 +245,37 @@ public class DataProvider {
                 sql.append(" UNION ");
         }
 
-        return db.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), query)
+        return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()), query)
+                .subscribeOn(Schedulers.io())
+                .skipWhile(queryResp -> upgradeLock.get());
+    }
+
+    public Observable<SqlBrite.Query> observeAllTables(@NonNull String whereClause,
+                                                       @Nullable String[] projection) {
+
+        whereClause = DatabaseUtils.sqlEscapeString(whereClause);
+
+        StringBuilder sql = new StringBuilder();
+        int tableIdx = 0;
+        for (String table : PlayaDatabase.ALL_TABLES) {
+            tableIdx++;
+
+            sql.append("SELECT ")
+                    .append(projection == null ? "*" : makeProjectionString(projection))
+                    .append(", ")
+                    .append(tableIdx)
+                    .append(" as ")
+                    .append(VirtualType)
+                    .append(" FROM ")
+                    .append(table)
+                    .append(" WHERE ")
+                    .append(whereClause);
+
+            if (tableIdx < PlayaDatabase.ALL_TABLES.size())
+                sql.append(" UNION ");
+        }
+
+        return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()))
                 .subscribeOn(Schedulers.io())
                 .skipWhile(queryResp -> upgradeLock.get());
     }
@@ -240,5 +316,10 @@ public class DataProvider {
                 return Constants.PlayaItemType.POI;
         }
         throw new IllegalArgumentException("Invalid type value");
+    }
+
+    private String interceptQuery(String query) {
+        if (interceptor == null) return query;
+        return interceptor.onQueryIntercepted(query);
     }
 }

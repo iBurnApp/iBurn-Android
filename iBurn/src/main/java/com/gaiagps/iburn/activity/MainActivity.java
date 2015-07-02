@@ -3,10 +3,10 @@ package com.gaiagps.iburn.activity;
 import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -21,15 +21,12 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.gaiagps.iburn.BuildConfig;
-import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.DataUtils;
-import com.gaiagps.iburn.PlayaClient;
+import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
-import com.gaiagps.iburn.api.IBurnService;
+import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.ArtListViewFragment;
 import com.gaiagps.iburn.fragment.CampListViewFragment;
 import com.gaiagps.iburn.fragment.EventListViewFragment;
@@ -43,26 +40,38 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-
-import static com.gaiagps.iburn.PlayaClient.isFirstLaunch;
-import static com.gaiagps.iburn.PlayaClient.validateUnlockPassword;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements SearchQueryProvider {
-    public static final String TAG = "MainActivity";
+
+    public enum TabType { MAP, CAMPS, ART, EVENTS};
 
     private static final String HOCKEY_ID = SECRETS.HOCKEY_ID;
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private boolean googlePlayServicesMissing = false;
 
-    @InjectView(R.id.pager)            ViewPager mViewPager;
-    @InjectView(R.id.unlock_container) View mUnlockContainer;
-    @InjectView(R.id.tabs)             TabLayout mTabs;
+    @InjectView(R.id.parent)
+    ViewGroup mParent;
 
+    @InjectView(R.id.pager)
+    ViewPager mViewPager;
+
+    @InjectView(R.id.tabs)
+    TabLayout mTabs;
+
+    private PrefsHelper prefs;
     private IBurnPagerAdapter mPagerAdapter;
     private String mCurFilter;
 
@@ -84,36 +93,56 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         if (false) { //BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                    .detectAll()
+                    .detectCustomSlowCalls()
                     .penaltyLog()
                     .build());
 
-            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-                    .detectAll()
-                    .penaltyLog()
-                    .build());
+//            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+//                    .detect
+//                    .penaltyLog()
+//                    .build());
         }
-
-        DataUtils.checkAndSetupDB(getApplicationContext());
 
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
 
         //mTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
 
-//        setSupportActionBar(mToolbar);
-
-//        setupSearchButton();
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();
         } else {
             googlePlayServicesMissing = true;
         }
-        if (isFirstLaunch(this)) {
+
+        prefs = new PrefsHelper(this);
+
+        if (!prefs.didShowWelcome()) {
             showWelcomeDialog();
         }
-        if (PlayaClient.isEmbargoClear(this)) {
-            mUnlockContainer.setVisibility(View.GONE);
+
+        if (Embargo.isEmbargoActive(prefs)) {
+            final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE M/d", Locale.US);
+            final Snackbar snackbar = Snackbar.make(mParent, getString(R.string.embargo_snackbar_msg, dayFormatter.format(Embargo.EMBARGO_DATE)), Snackbar.LENGTH_LONG)
+                    .setAction(R.string.enter_unlock_code, view -> showUnlockDialog());
+
+            Observable.timer(1, 10, TimeUnit.SECONDS)
+                    .take(2)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(counter -> {
+                        try {
+                            if (counter == 0) {
+                                Method showView = snackbar.getClass().getDeclaredMethod("showView");
+                                showView.setAccessible(true);
+                                showView.invoke(snackbar);
+                            } else {
+                                Method hideView = snackbar.getClass().getDeclaredMethod("hideView");
+                                hideView.setAccessible(true);
+                                hideView.invoke(snackbar);
+                            }
+                        } catch (SecurityException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                            Timber.w(e, "Failed to notify observers on endUpgrade");
+                        }
+                    }, throwable -> Timber.e(throwable, "Timer error"));
         }
         handleIntent(getIntent());
         checkForUpdates();
@@ -138,11 +167,13 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_welcome, null);
         final Dialog dialog = new AlertDialog.Builder(this, R.style.Theme_Iburn_Dialog)
                 .setView(dialogView).create();
-        dialogView.setOnClickListener(v -> dialog.dismiss());
+        dialogView.setOnClickListener(v -> {
+            prefs.setDidShowWelcome(true);
+        });
         dialog.show();
     }
 
-    public void showUnlockDialog(final View v) {
+    public void showUnlockDialog() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this, R.style.Theme_Iburn_Dialog);
 
         alert.setTitle(getString(R.string.enter_unlock_password));
@@ -152,15 +183,14 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         alert.setView(input);
         alert.setPositiveButton(getString(R.string.ok), (dialog, whichButton) -> {
             String pwGuess = input.getText().toString();
-            if (validateUnlockPassword(pwGuess)) {
-                PlayaClient.setEmbargoClear(MainActivity.this, true);
+            if (pwGuess.equals(SECRETS.UNLOCK_CODE)) {
+                prefs.setEnteredValidUnlockCode(true);
                 new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
                         .setTitle(getString(R.string.victory))
                         .setMessage(getString(R.string.location_data_unlocked))
                         .setPositiveButton(R.string.ok, (dialog1, which) -> {
                         })
                         .show();
-                mUnlockContainer.setVisibility(View.GONE);
             } else {
                 dialog.cancel();
                 new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
@@ -191,12 +221,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             if (mPagerAdapter.getCurrentFragment() instanceof Searchable) {
                 dispatchSearchQuery(query);
             } else
-                Log.i(TAG, "Current fragment does not implement Searchable");
+                Timber.d("Current fragment does not implement Searchable");
         }
 
         // TODO: Unused.. Consider removing
         if (intent.hasExtra("tab")) {
-            Constants.TabType tab = (Constants.TabType) intent.getSerializableExtra("tab");
+            TabType tab = (TabType) intent.getSerializableExtra("tab");
             switch (tab) {
                 case MAP:
                     mViewPager.setCurrentItem(0, true);
@@ -216,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private void dispatchSearchQuery(String query) {
         mCurFilter = query;
         if (mPagerAdapter.getCurrentFragment() instanceof Searchable) {
-            Log.i(TAG, "dispatch query " + query);
+            Timber.d("dispatch query " + query);
             ((Searchable) mPagerAdapter.getCurrentFragment()).onSearchQueryRequested(query);
         }
     }
@@ -242,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     /**
      * Adapter that takes a List of Pairs representing a Fragment and Title
      * for pairing with a tabbed ViewPager. Remove the IconTabProvider implementation
-     * <p/>
+     * <p>
      * Each Fragment must have a no-arg newInstance() method.
      */
     public static class IBurnPagerAdapter extends FragmentPagerAdapter {
@@ -254,10 +284,10 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         private int mLastPosition = -1;
 
         public static enum IBurnTab {
-            MAP      (R.string.map_tab,    R.drawable.ic_brc,      GoogleMapFragment.class),
-            ART      (R.string.art_tab,    R.drawable.ic_monument, ArtListViewFragment.class),
-            CAMPS    (R.string.camps_tab,   R.drawable.ic_camp,     CampListViewFragment.class),
-            EVENTS   (R.string.events_tab,  R.drawable.ic_calendar, EventListViewFragment.class),
+            MAP(R.string.map_tab, R.drawable.ic_brc, GoogleMapFragment.class),
+            ART(R.string.art_tab, R.drawable.ic_monument, ArtListViewFragment.class),
+            CAMPS(R.string.camps_tab, R.drawable.ic_camp, CampListViewFragment.class),
+            EVENTS(R.string.events_tab, R.drawable.ic_calendar, EventListViewFragment.class),
             FAVORITES(R.string.fav_tab, R.drawable.heart, FavoritesListViewFragment.class);
 
             private final Class<? extends Fragment> mFragClass;
@@ -321,12 +351,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             if (mLastPosition != position) {
 
                 //if (mCurrentPrimaryItem instanceof Searchable && mSearchQueryProvider != null) {
-                    // Remove for now -- With a dedicated search screen we'll focus the list fragments
-                    // on browsing, not showing search results. If we decide to re-enable this
-                    // we should not deliver an unchanged search query for performance
+                // Remove for now -- With a dedicated search screen we'll focus the list fragments
+                // on browsing, not showing search results. If we decide to re-enable this
+                // we should not deliver an unchanged search query for performance
 
-                    // Update the fragment with the current query
-                    //((Searchable) mCurrentPrimaryItem).onSearchQueryRequested(mSearchQueryProvider.getCurrentQuery());
+                // Update the fragment with the current query
+                //((Searchable) mCurrentPrimaryItem).onSearchQueryRequested(mSearchQueryProvider.getCurrentQuery());
                 //}
 
                 //String title = mContext.getString(sTabs.get(position).getTitleResId());

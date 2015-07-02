@@ -19,9 +19,15 @@ import rx.subjects.PublishSubject;
 import timber.log.Timber;
 
 /**
+ * Manages the MBTiles database, allowing clients to subscribe to a stream of events representing
+ * changes to the database. This allows us to seamlessly update the underlying database while clients are
+ * connected.
+ * <p>
  * Created by davidbrodsky on 7/1/15.
  */
 public class MapProvider {
+
+    public static final String MBTILE_DESTINATION = "iburn2015.mbtiles";
 
     private static MapProvider provider;
 
@@ -69,11 +75,11 @@ public class MapProvider {
     }
 
     /**
-     * @return the expected location of the MBTiles database. The file may not exist on disk
+     * @return the expected location of the MBTiles database. The file may not yet exist
      */
     private static File getMBTilesFile(long version) {
-        return new File(String.format("%s/%s/%s/%s.%d", Environment.getExternalStorageDirectory().getAbsolutePath(),
-                Constants.IBURN_ROOT, Constants.TILES_DIR, Constants.MBTILE_DESTINATION, version));
+        return new File(String.format("%s/iburn/tiles/%s.%d", Environment.getExternalStorageDirectory().getAbsolutePath(),
+                MBTILE_DESTINATION, version));
     }
 
     private static boolean copyResourceToFile(Context c, int resourceId, File destination) {

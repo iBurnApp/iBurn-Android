@@ -79,9 +79,10 @@ public class SearchActivity extends AppCompatActivity implements AdapterItemSele
         if (searchSubscription != null && !searchSubscription.isUnsubscribed())
             searchSubscription.unsubscribe();
 
-        searchSubscription = DataProvider.getInstance(this).observeQuery(query, adapter.getRequiredProjection())
-                .subscribe(query1 -> {
-                    adapter.changeCursor(query1.run());
+        searchSubscription = DataProvider.getInstance(this)
+                .flatMap(dataProvider -> dataProvider.observeNameQuery(query, adapter.getRequiredProjection()))
+                .subscribe(queryResp -> {
+                    adapter.changeCursor(queryResp.run());
                 });
 
     }

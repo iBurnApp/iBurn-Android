@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.support.v4.util.Pair;
 
 import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.api.response.Art;
@@ -87,11 +88,11 @@ public class IBurnService {
          *
          * @param database the internal app database
          */
-        Observable<Boolean> saveData(SqlBrite database);
+        Observable<Boolean> saveData(DataProvider database);
 
         /**
          * @param row the row of refreshsed data from the iBurn API.
-         *            Add any internal data captured in {@link #saveData(SqlBrite)}.
+         *            Add any internal data captured in {@link #saveData(DataProvider)}.
          *            Be explicit and do not make assumptions about default values, as
          *            row may be recycled from a previous item.
          */
@@ -115,8 +116,8 @@ public class IBurnService {
         }
 
         @Override
-        public Observable<Boolean> saveData(SqlBrite database) {
-            return database.createQuery(tableName, "SELECT " + PlayaItemTable.playaId + " FROM " + tableName + " WHERE " + PlayaItemTable.favorite + " = ?", new String[]{"1"})
+        public Observable<Boolean> saveData(DataProvider provider) {
+            return provider.createQuery(tableName, "SELECT " + PlayaItemTable.playaId + " FROM " + tableName + " WHERE " + PlayaItemTable.favorite + " = ?", new String[]{"1"})
                     .map(SqlBrite.Query::run)
                     .map(cursor -> {
                         favoritePlayaIds = new ArrayList<>(cursor.getCount());
@@ -142,8 +143,8 @@ public class IBurnService {
         private HashMap<Integer, HashSet<String>> favoriteIds;
 
         @Override
-        public Observable<Boolean> saveData(SqlBrite database) {
-            return database.createQuery(tableName, "SELECT " + PlayaItemTable.playaId + " , " + EventTable.startTime + " FROM " + tableName + " WHERE " + PlayaItemTable.favorite + " = ?", new String[]{"1"})
+        public Observable<Boolean> saveData(DataProvider provider) {
+            return provider.createQuery(tableName, "SELECT " + PlayaItemTable.playaId + " , " + EventTable.startTime + " FROM " + tableName + " WHERE " + PlayaItemTable.favorite + " = ?", new String[]{"1"})
                     .map(SqlBrite.Query::run)
                     .map(cursor -> {
                         favoriteIds = new HashMap<>(cursor.getCount());
@@ -171,10 +172,24 @@ public class IBurnService {
         }
     }
 
+    /** Class to represent state needed to update an iBurn collection */
+    private class UpdateDataDependencies {
+
+        DataProvider dataProvider;
+        MapProvider mapProvider;
+        DataManifest dataManifest;
+        ResourceManifest resourceManifest;
+
+        public UpdateDataDependencies(DataProvider dataProvider, MapProvider mapProvider, DataManifest dataManifest, ResourceManifest resourceManifest) {
+            this.dataProvider = dataProvider;
+            this.mapProvider = mapProvider;
+            this.resourceManifest = resourceManifest;
+            this.dataManifest = dataManifest;
+        }
+    }
+
     Context context;
     IBurnAPIService service;
-
-    DataManifest dataManifest;
 
     public IBurnService(@NonNull Context context) {
         this.context = context;
@@ -197,37 +212,38 @@ public class IBurnService {
         // Check local update dates for each endpoint, update those that are stale
         final SharedPreferences storage = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        service.getDataManifest()
-                .flatMap(dataManifest1 -> {
+        Observable.zip(DataProvider.getInstance(context),
+                Observable.just(MapProvider.getInstance(context)),
+                (dataProvider, mapProvider) -> new Pair<>(dataProvider, mapProvider))
+                .flatMap(providerPair -> service.getDataManifest().map(dataManifest -> new Pair<>(providerPair, dataManifest)))
+                .flatMap(depBundle -> {
 
-                    IBurnService.this.dataManifest = dataManifest1;
+                    // TODO : Replace with custom data structure or 3-Tuple
+                    Pair providerPair = depBundle.first;
+                    DataManifest dataManifest = depBundle.second;
+
                     Timber.d("Got Data Manifest. art : %s, camps : %s, events : %s",
-                            dataManifest1.art.updated, dataManifest1.camps.updated, dataManifest1.events.updated);
+                            dataManifest.art.updated, dataManifest.camps.updated, dataManifest.events.updated);
 
                     ResourceManifest[] resources = new ResourceManifest[]
-                            {dataManifest1.art, dataManifest1.camps, dataManifest1.events, dataManifest1.tiles};
+                            {dataManifest.art, dataManifest.camps, dataManifest.events, dataManifest.tiles};
 
-                    return Observable.from(resources);
+                    return Observable.from(resources).map(resource ->
+                            new UpdateDataDependencies((DataProvider) providerPair.first, (MapProvider) providerPair.second, dataManifest, resource));
                 })
-                .filter(resourceManifest -> shouldUpdateResource(storage, resourceManifest))
-                .doOnNext(resource -> DataProvider.getInstance(context).beginUpgrade()) // We really should only do this the first time
-                .flatMap(resourceManifest -> {
-                    //Timber.d("Should update " + resourceManifest.file);
-                    return updateResource(resourceManifest, dataManifest);
-                })
-                .reduce((numJustUpdated, totalUpdated) -> totalUpdated + numJustUpdated)
-                .doOnNext(totalUpdated -> DataProvider.getInstance(context).endUpgrade())
-                .subscribe(totalUpdated -> {
-                    Timber.d("Updated %d new items ", totalUpdated);
-                });
+                .filter(dependencies -> shouldUpdateResource(storage, dependencies.resourceManifest))
+                .doOnNext(dependencies -> dependencies.dataProvider.beginUpgrade()) // We really should only do this the first time
+                .flatMap(dependencies -> updateResource(dependencies).map(itemsUpdated -> dependencies))
+                .reduce((dependencies1, dependencies2) -> dependencies1)
+                .doOnNext(dependencies -> dependencies.dataProvider.endUpgrade())
+                .subscribe(totalUpdated -> Timber.d("Update complete"), throwable -> Timber.e(throwable, "Update error"));
     }
 
-    private Observable<Integer> updateTiles(ResourceManifest resourceManifest) {
+    private Observable<Integer> updateTiles(ResourceManifest resourceManifest, MapProvider provider) {
         return service.getTiles()
                 .map(response -> {
                     try {
-                        MapProvider.getInstance(context)
-                                .offerMapUpgrade(response.getBody().in(), resourceManifest.updated.getTime());
+                        provider.offerMapUpgrade(response.getBody().in(), resourceManifest.updated.getTime());
                         return 1;
                         //return success ? 1 : 0;
                     } catch (IOException e) {
@@ -237,11 +253,11 @@ public class IBurnService {
                 });
     }
 
-    private Observable<Integer> updateArt() {
+    private Observable<Integer> updateArt(DataProvider provider) {
         Timber.d("Updating art");
 
         final String tableName = PlayaDatabase.ART;
-        return updateTable(service.getArt(), tableName, new SimpleLifeboat(tableName), (item, values, database) -> {
+        return updateTable(provider, service.getArt(), tableName, new SimpleLifeboat(tableName), (item, values, database) -> {
             Art art = (Art) item;
             values.put(ArtTable.artist, art.artist);
             values.put(ArtTable.artistLoc, art.artistLocation);
@@ -249,17 +265,17 @@ public class IBurnService {
         });
     }
 
-    private Observable<Integer> updateCamps() {
+    private Observable<Integer> updateCamps(DataProvider provider) {
         Timber.d("Updating Camps");
 
         final String tableName = PlayaDatabase.CAMPS;
-        return updateTable(service.getCamps(), tableName, new SimpleLifeboat(tableName), (item, values, database) -> {
+        return updateTable(provider, service.getCamps(), tableName, new SimpleLifeboat(tableName), (item, values, database) -> {
             values.put(CampTable.hometown, ((Camp) item).hometown);
             database.insert(values);
         });
     }
 
-    private Observable<Integer> updateEvents() {
+    private Observable<Integer> updateEvents(DataProvider provider) {
         Timber.d("Updating Events");
 
         // Date format for machine-readable
@@ -270,7 +286,7 @@ public class IBurnService {
         final SimpleDateFormat dayFormatter = new SimpleDateFormat("EE M/d", Locale.US);
 
         final String tableName = PlayaDatabase.EVENTS;
-        return updateTable(service.getEvents(), tableName, new EventLifeboat(), (item, values, database) -> {
+        return updateTable(provider, service.getEvents(), tableName, new EventLifeboat(), (item, values, database) -> {
 
             Event event = (Event) item;
 
@@ -300,18 +316,18 @@ public class IBurnService {
         });
     }
 
-    private Observable<Integer> updateTable(Observable<? extends Iterable<? extends PlayaItem>> items,
+    private Observable<Integer> updateTable(DataProvider provider,
+                                            Observable<? extends Iterable<? extends PlayaItem>> items,
                                             String tableName,
                                             UpgradeLifeboat lifeboat,
                                             BindObjectToContentValues binder) {
 
         final AtomicBoolean initializedInsert = new AtomicBoolean(false);
-        final SqlBrite sqlBrite = DataProvider.getSqlBriteInstance(context);
         final android.content.ContentValues values = new android.content.ContentValues();
         // Fetch remote JSON and all existing internal records that are favorites, simultaneously
         return Observable.zip(
                 items.doOnNext(resp -> Timber.d("Got %s API Response", tableName)),
-                lifeboat.saveData(sqlBrite).doOnNext(result -> Timber.d("Backed up %s data", tableName)),
+                lifeboat.saveData(provider).doOnNext(result -> Timber.d("Backed up %s data", tableName)),
                 (playaItems, lifeboatSuccess) -> {
                     if (!lifeboatSuccess)
                         throw new IllegalStateException("Lifeboat did not complete successfully!");
@@ -323,24 +339,24 @@ public class IBurnService {
                 .map(item -> {
                     // Delete all old rows before inserting first new row
                     if (!initializedInsert.getAndSet(true)) {
-                        int numDeleted = sqlBrite.delete(tableName, PlayaItemTable.id + " > 0", null);
+                        int numDeleted = provider.delete(tableName, PlayaItemTable.id + " > 0", null);
                         Timber.d("Deleted %d existing rows. Beginning %s inserts", numDeleted, tableName);
-                        sqlBrite.beginTransaction();
+                        provider.beginTransaction();
                     }
 
                     values.clear();
                     bindBaseValues(item, values);
                     binder.bindAndInsertValues(item, values, finalValues -> {
                         lifeboat.restoreData(finalValues);
-                        sqlBrite.insert(tableName, finalValues);
+                        provider.insert(tableName, finalValues);
                     });
                     return true;
                 })
 
                 .doOnCompleted(() -> {
                     Timber.d("Successfully closing %s transaction", tableName);
-                    sqlBrite.setTransactionSuccessful();
-                    sqlBrite.endTransaction();
+                    provider.setTransactionSuccessful();
+                    provider.endTransaction();
                 })
 
                 .count()
@@ -349,7 +365,7 @@ public class IBurnService {
 
                 .doOnError(throwable -> {
                     Timber.e(throwable, "Error. Rolling back %s transacton ", tableName);
-                    sqlBrite.endTransaction();
+                    provider.endTransaction();
                 });
     }
 
@@ -386,20 +402,20 @@ public class IBurnService {
         values.put(PlayaItemTable.url, item.url);
     }
 
-    private Observable<Integer> updateResource(ResourceManifest resourceManifest, DataManifest dataManifest) {
-        String resourceName = resourceManifest.file;
+    private Observable<Integer> updateResource(UpdateDataDependencies dependencies) {
+        String resourceName = dependencies.resourceManifest.file;
 
-        if (resourceName.equals(dataManifest.art.file))
-            return updateArt();
+        if (resourceName.equals(dependencies.dataManifest.art.file))
+            return updateArt(dependencies.dataProvider);
 
-        else if (resourceName.equals(dataManifest.camps.file))
-            return updateCamps();
+        else if (resourceName.equals(dependencies.dataManifest.camps.file))
+            return updateCamps(dependencies.dataProvider);
 
-        else if (resourceName.equals(dataManifest.events.file))
-            return updateEvents();
+        else if (resourceName.equals(dependencies.dataManifest.events.file))
+            return updateEvents(dependencies.dataProvider);
 
-        else if (resourceName.equals(dataManifest.tiles.file))
-            return updateTiles(resourceManifest);
+        else if (resourceName.equals(dependencies.dataManifest.tiles.file))
+            return updateTiles(dependencies.resourceManifest, dependencies.mapProvider);
 
         // Unknown or Unimplemented situation
         Timber.w("Unknown resource name %s. Cannot perform update", resourceName);
@@ -407,7 +423,6 @@ public class IBurnService {
     }
 
     private boolean shouldUpdateResource(SharedPreferences storage, ResourceManifest resource) {
-        //Timber.d("%s ver local : %d remote: %d", resource.file, storage.getLong(resource.file, 0), resource.updated.getTime());
         return storage.getLong(resource.file, 0) < resource.updated.getTime();
     }
 }

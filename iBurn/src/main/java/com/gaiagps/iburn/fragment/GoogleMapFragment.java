@@ -4,11 +4,7 @@ import android.animation.ValueAnimator;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -21,18 +17,21 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Toast;
 
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
 import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.PlayaClient;
+import com.gaiagps.iburn.Geo;
+import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
+import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.ArtTable;
+import com.gaiagps.iburn.database.DataProvider;
+import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.MapProvider;
-import com.gaiagps.iburn.database.PlayaContentProvider;
+import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.database.UserPoiTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -48,37 +47,59 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
+import com.squareup.sqlbrite.SqlBrite;
 
-import java.text.DecimalFormat;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import hugo.weaving.DebugLog;
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.subjects.PublishSubject;
 import timber.log.Timber;
 
 /**
  * Created by davidbrodsky on 8/3/13.
+ * <p>
+ * TODO : Instead of clearing, we could set alpha0, never have to re-create markers?
  */
-public class GoogleMapFragment extends SupportMapFragment implements LoaderManager.LoaderCallbacks<Cursor>, Searchable {
+public class GoogleMapFragment extends SupportMapFragment implements Searchable {
+
+    /**
+     * Geographic Bounds of Black Rock City
+     * Used to determining whether a location lies
+     * within the general vicinity
+     */
+    public static final double MAX_LAT = 40.812161;
+    public static final double MAX_LON = -119.170061;
+    public static final double MIN_LAT = 40.764702;
+    public static final double MIN_LON = -119.247798;
+
+    public static LatLngBounds BRC_BOUNDS = LatLngBounds.builder()
+            .include(new LatLng(MAX_LAT, MIN_LON))
+            .include(new LatLng(MIN_LAT, MAX_LON))
+            .build();
 
     @Override
     public void onSearchQueryRequested(String query) {
+        // Think the new way to do this is simply provide a cursor to
         mCurFilter = query;
         if (TextUtils.isEmpty(query)) {
             if (areMarkersVisible()) clearMap();
             mState = STATE.EXPLORE;
-            if (lastZoomLevel > POI_ZOOM_LEVEL) restartLoaders(true);
+            //if (lastZoomLevel > POI_ZOOM_LEVEL) restartLoaders(true);
 
         } else {
             mState = STATE.SEARCH;
-            // TODO: Better way of counting all loaders in a query
-            // Camps, Art, Events. Manually counting on restartLoader etc. causes mismatches
-            mLoaderResponsesExpected = 3;
-            restartLoaders(true);
+            // TODO : Do we monitor query or just take first result?
+            // TODO : Do we want to merge search queries into the cameraUpdate subscription in initMap?
+            DataProvider.getInstance(getActivity())
+                    .flatMap(dataProvider -> dataProvider.observeNameQuery(query, PROJECTION))
+                    .map(SqlBrite.Query::run)
+                    .subscribe(this::processMapItemResult);
         }
     }
 
@@ -106,24 +127,10 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     final int POIS = 4;
     final int ALL = 5;
 
-    // Limit mapped pois
-    boolean mapCamps = true;
-    boolean mapArt = true;
-    boolean mapEvents = true;
-    boolean mapUserPois = true;
-
     private final int POI_ZOOM_LEVEL = 18;
     float lastZoomLevel = 0;
-    int mLoaderType = 0;
-    /**
-     * When restartLoaders is called, how many loaders were simultaneously started.
-     * We use this number to collect a batch of loader results into a single collection
-     * to center the camera on.
-     * <p>
-     * Set on each call to {@link #restartLoaders(boolean)}, Read on each call to
-     * {@link #onLoadFinished(android.support.v4.content.Loader, android.database.Cursor)}
-     */
-    private int mLoaderResponsesExpected;
+
+    private final PublishSubject<VisibleRegion> cameraUpdate = PublishSubject.create();
 
     /**
      * Map of user added pins. Google Marker Id -> Database Id
@@ -143,13 +150,11 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
     VisibleRegion visibleRegion;
     String mCurFilter;                      // Search string to filter by
     boolean limitListToFavorites = false;   // Limit display to favorites?
+    PrefsHelper prefs;
 
-    private View.OnClickListener mOnAddPinBtnListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            Marker marker = addCustomPin(null, null, UserPoiTable.STAR);
-            dropPinAndShowEditDialog(marker);
-        }
+    private View.OnClickListener mOnAddPinBtnListener = v -> {
+        Marker marker = addCustomPin(null, null, UserPoiTable.STAR);
+        dropPinAndShowEditDialog(marker);
     };
 
     private void dropPinAndShowEditDialog(final Marker marker) {
@@ -169,80 +174,82 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         View dialogBody = getActivity().getLayoutInflater().inflate(R.layout.dialog_poi, null);
         final RadioGroup iconGroup = ((RadioGroup) dialogBody.findViewById(R.id.iconGroup));
         // Fetch current Marker icon
-        Cursor poi = getActivity().getContentResolver().query(PlayaContentProvider.Pois.POIS,
-                new String[]{PlayaItemTable.id, UserPoiTable.drawableResId},
-                PlayaItemTable.id + " = ?",
-                new String[]{String.valueOf(getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId())))}, null);
-        if (poi != null && poi.moveToFirst()) {
-            int drawableResId = poi.getInt(poi.getColumnIndex(UserPoiTable.drawableResId));
-            switch (drawableResId) {
-                case UserPoiTable.STAR:
-                    ((RadioButton) iconGroup.findViewById(R.id.btn_star)).setChecked(true);
-                    break;
-                case UserPoiTable.HEART:
-                    ((RadioButton) iconGroup.findViewById(R.id.btn_heart)).setChecked(true);
-                    break;
-                case UserPoiTable.HOME:
-                    ((RadioButton) iconGroup.findViewById(R.id.btn_home)).setChecked(true);
-                    break;
-                case UserPoiTable.BIKE:
-                    ((RadioButton) iconGroup.findViewById(R.id.btn_bike)).setChecked(true);
-                    break;
-                default:
-                    Timber.e("Unknown custom marker type");
-            }
-            poi.close();
-        }
-        final EditText markerTitle = (EditText) dialogBody.findViewById(R.id.markerTitle);
-        markerTitle.setText(marker.getTitle());
-        markerTitle.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-
-            String lastEntry;
-
-            @DebugLog
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    lastEntry = ((EditText) v).getText().toString();
-                    ((EditText) v).setText("");
-                } else if (((EditText) v).getText().length() == 0) {
-                    ((EditText) v).setText(lastEntry);
-                }
-            }
-        });
-        new AlertDialog.Builder(getActivity(), R.style.Theme_Iburn_Dialog)
-                .setView(dialogBody)
-                .setPositiveButton("Done", (dialog, which) -> {
-                    // Save the title
-                    if (markerTitle.getText().length() > 0)
-                        marker.setTitle(markerTitle.getText().toString());
-                    marker.hideInfoWindow();
-
-                    int drawableId = 0;
-                    switch (iconGroup.getCheckedRadioButtonId()) {
-                        case R.id.btn_star:
-                            drawableId = UserPoiTable.STAR;
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_star));
-                            break;
-                        case R.id.btn_heart:
-                            drawableId = UserPoiTable.HEART;
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_heart));
-                            break;
-                        case R.id.btn_home:
-                            drawableId = UserPoiTable.HOME;
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_home));
-                            break;
-                        case R.id.btn_bike:
-                            drawableId = UserPoiTable.BIKE;
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_bicycle));
-                            break;
+        DataProvider.getInstance(getActivity())
+                .flatMap(dataProvider ->
+                        dataProvider.observeAllTables(PlayaItemTable.id + " = " + String.valueOf(getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()))), new String[]{PlayaItemTable.id, UserPoiTable.drawableResId}))
+                .map(SqlBrite.Query::run)
+                .subscribe(poi -> {
+                    if (poi != null && poi.moveToFirst()) {
+                        int drawableResId = poi.getInt(poi.getColumnIndex(UserPoiTable.drawableResId));
+                        switch (drawableResId) {
+                            case UserPoiTable.STAR:
+                                ((RadioButton) iconGroup.findViewById(R.id.btn_star)).setChecked(true);
+                                break;
+                            case UserPoiTable.HEART:
+                                ((RadioButton) iconGroup.findViewById(R.id.btn_heart)).setChecked(true);
+                                break;
+                            case UserPoiTable.HOME:
+                                ((RadioButton) iconGroup.findViewById(R.id.btn_home)).setChecked(true);
+                                break;
+                            case UserPoiTable.BIKE:
+                                ((RadioButton) iconGroup.findViewById(R.id.btn_bike)).setChecked(true);
+                                break;
+                            default:
+                                Timber.e("Unknown custom marker type");
+                        }
+                        poi.close();
                     }
-                    updateCustomPinWithMarker(marker, drawableId);
-                })
-                .setNegativeButton("Delete", (dialog, which) -> {
-                    // Delete Pin
-                    removeCustomPin(marker);
-                }).show();
+                    final EditText markerTitle = (EditText) dialogBody.findViewById(R.id.markerTitle);
+                    markerTitle.setText(marker.getTitle());
+                    markerTitle.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+
+                        String lastEntry;
+
+                        @DebugLog
+                        @Override
+                        public void onFocusChange(View v, boolean hasFocus) {
+                            if (hasFocus) {
+                                lastEntry = ((EditText) v).getText().toString();
+                                ((EditText) v).setText("");
+                            } else if (((EditText) v).getText().length() == 0) {
+                                ((EditText) v).setText(lastEntry);
+                            }
+                        }
+                    });
+                    new AlertDialog.Builder(getActivity(), R.style.Theme_Iburn_Dialog)
+                            .setView(dialogBody)
+                            .setPositiveButton("Done", (dialog, which) -> {
+                                // Save the title
+                                if (markerTitle.getText().length() > 0)
+                                    marker.setTitle(markerTitle.getText().toString());
+                                marker.hideInfoWindow();
+
+                                int drawableId = 0;
+                                switch (iconGroup.getCheckedRadioButtonId()) {
+                                    case R.id.btn_star:
+                                        drawableId = UserPoiTable.STAR;
+                                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_star));
+                                        break;
+                                    case R.id.btn_heart:
+                                        drawableId = UserPoiTable.HEART;
+                                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_heart));
+                                        break;
+                                    case R.id.btn_home:
+                                        drawableId = UserPoiTable.HOME;
+                                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_home));
+                                        break;
+                                    case R.id.btn_bike:
+                                        drawableId = UserPoiTable.BIKE;
+                                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.puck_bicycle));
+                                        break;
+                                }
+                                updateCustomPinWithMarker(marker, drawableId);
+                            })
+                            .setNegativeButton("Delete", (dialog, which) -> {
+                                // Delete Pin
+                                removeCustomPin(marker);
+                            }).show();
+                });
     }
 
     public static GoogleMapFragment newInstance() {
@@ -313,33 +320,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         latLngToCenterOn = null;
     }
 
-    /**
-     * Load all user placeable POIs and attach
-     * a {@link com.google.android.gms.maps.GoogleMap.OnMarkerDragListener}
-     * on pins of that type
-     */
-    private void loadCustomPins() {
-        restartLoader(POIS);
-        getMap().setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
-            @Override
-            public void onMarkerDragStart(Marker marker) {
-            }
-
-            @Override
-            public void onMarkerDrag(Marker marker) {
-
-            }
-
-            @Override
-            public void onMarkerDragEnd(Marker marker) {
-                if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
-                    updateCustomPinWithMarker(marker, 0);
-                }
-            }
-        });
-    }
-
     private void initMap() {
+
+        prefs = new PrefsHelper(getActivity());
 
         MapProvider.getInstance(getActivity())
                 .getMapDatabase()
@@ -353,87 +336,111 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(databaseFile -> _addMBTilesOverlay());
 
-//        addMBTileOverlay(R.raw.iburn);
+        // TODO : Do full query. Don't run separate POIS, results queries
+        Observable.combineLatest(cameraUpdate.debounce(250, TimeUnit.MILLISECONDS),
+                DataProvider.getInstance(getActivity()), (newVisibleRegion, dataProvider) -> {
+                        GoogleMapFragment.this.visibleRegion = newVisibleRegion;
+                        return dataProvider;
+                })
+                // Don't bother running query during embargo because ours has no meaning without location data
+                .skipWhile(dataProvider -> Embargo.isEmbargoActive(prefs))
+                .flatMap(this::performQuery)
+                .map(SqlBrite.Query::run)
+                        // Can we do this on bg thread? prolly not
+//                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::processMapItemResult, throwable -> Timber.e(throwable, "Error querying"));
+
         UiSettings settings = getMap().getUiSettings();
         settings.setZoomControlsEnabled(false);
         settings.setMapToolbarEnabled(false);
         settings.setScrollGesturesEnabled(mState != STATE.SHOWCASE);
-        loadCustomPins();
-        //addCustomPin(PlayaClient.getHomeLatLng(getActivity()));
-        // TODO: If user location present, start there
-        LatLng mStartLocation = new LatLng(Constants.MAN_LAT, Constants.MAN_LON);
-        visibleRegion = getMap().getProjection().getVisibleRegion();
-        getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(mStartLocation, 14));
 
-        getMap().setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-            /** Lat, Lon tolerance used to determine if location within BRC boundaries */
-            private final double BUFFER = .00005;
+        getMapAsync(googleMap -> {
+            // TODO: If user location present, start there
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 14));
+            googleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+                @Override
+                public void onMarkerDragStart(Marker marker) {
+                    // do nothing
+                }
 
-            /** Map zoom limits */
-            private final double MAX_ZOOM = 19.5;
-            private final double MIN_ZOOM = 12;
+                @Override
+                public void onMarkerDrag(Marker marker) {
+                    // do nothing
+                }
 
-            /** POI Search throttling */
-            private final int CAMERA_MOVE_REACT_THRESHOLD_MS = 500;
-            private long lastCallMs = Long.MIN_VALUE;
+                @Override
+                public void onMarkerDragEnd(Marker marker) {
+                    if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
+                        updateCustomPinWithMarker(marker, 0);
+                    }
+                }
+            });
 
-            @Override
-            public void onCameraChange(CameraPosition cameraPosition) {
-                final long snap = System.currentTimeMillis();
-                if (!PlayaClient.BRC_BOUNDS.contains(cameraPosition.target) ||
-                        cameraPosition.zoom > MAX_ZOOM || cameraPosition.zoom < MIN_ZOOM) {
-                    getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(
-                                    Math.min(PlayaClient.MAX_LAT - BUFFER, Math.max(cameraPosition.target.latitude, PlayaClient.MIN_LAT + BUFFER)),
-                                    Math.min(PlayaClient.MAX_LON - BUFFER, Math.max(cameraPosition.target.longitude, PlayaClient.MIN_LON + BUFFER))),
-                            (float) Math.min(Math.max(cameraPosition.zoom, MIN_ZOOM), MAX_ZOOM)));
-                } else {
-                    // Map view bounds valid. Load POIs if necessary
-                    if (cameraPosition.zoom > POI_ZOOM_LEVEL && PlayaClient.isEmbargoClear(getActivity())) {
-                        visibleRegion = getMap().getProjection().getVisibleRegion();
-                        if (mState == STATE.EXPLORE) {
-                            // Don't bother restartingLoader more than THRESHOLD_MS
-                            if (lastCallMs + CAMERA_MOVE_REACT_THRESHOLD_MS > snap) {
-                                lastCallMs = snap;
-                                return;
+            googleMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+                /** Lat, Lon tolerance used to determine if location within BRC boundaries */
+                private final double BUFFER = .00005;
+
+                /** Map zoom limits */
+                private final double MAX_ZOOM = 19.5;
+                private final double MIN_ZOOM = 12;
+
+                /** POI Search throttling */
+                private final int CAMERA_MOVE_REACT_THRESHOLD_MS = 500;
+                private long lastCallMs = Long.MIN_VALUE;
+
+                @Override
+                public void onCameraChange(CameraPosition cameraPosition) {
+                    if (!BRC_BOUNDS.contains(cameraPosition.target) ||
+                            cameraPosition.zoom > MAX_ZOOM || cameraPosition.zoom < MIN_ZOOM) {
+                        getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                new LatLng(
+                                        Math.min(MAX_LAT - BUFFER, Math.max(cameraPosition.target.latitude, MIN_LAT + BUFFER)),
+                                        Math.min(MAX_LON - BUFFER, Math.max(cameraPosition.target.longitude, MIN_LON + BUFFER))),
+                                (float) Math.min(Math.max(cameraPosition.zoom, MIN_ZOOM), MAX_ZOOM)));
+                    } else {
+                        // Map view bounds valid. Load POIs if necessary
+                        if (cameraPosition.zoom > POI_ZOOM_LEVEL) {
+                            if (mState == STATE.EXPLORE) {
+                                visibleRegion = getMap().getProjection().getVisibleRegion();
+                                // Don't bother restartingLoader more than THRESHOLD_MS
+                                cameraUpdate.onNext(visibleRegion);
                             }
-                            restartLoaders(false);
-                        }
-                    } else if (cameraPosition.zoom < POI_ZOOM_LEVEL && areMarkersVisible()) {
-                        if (mState == STATE.EXPLORE) {
-                            markerIdToMeta = new HashMap<>();
-                            clearMap();
+                        } else if (cameraPosition.zoom < POI_ZOOM_LEVEL && areMarkersVisible()) {
+                            if (mState == STATE.EXPLORE) {
+                                markerIdToMeta = new HashMap<>();
+                                clearMap();
+                            }
                         }
                     }
                 }
-                lastCallMs = snap;
-            }
-        });
+            });
 
-        getMap().setOnInfoWindowClickListener(marker -> {
-            if (markerIdToMeta.containsKey(marker.getId())) {
-                String markerMeta = markerIdToMeta.get(marker.getId());
-                int model_id = Integer.parseInt(markerMeta.split("-")[1]);
-                int model_type = Integer.parseInt(markerMeta.split("-")[0]);
-                Constants.PlayaItemType modelType = null;
-                switch (model_type) {
-                    case ART:
-                        modelType = Constants.PlayaItemType.ART;
-                        break;
-                    case EVENTS:
-                        modelType = Constants.PlayaItemType.EVENT;
-                        break;
-                    case CAMPS:
-                        modelType = Constants.PlayaItemType.CAMP;
-                        break;
+            googleMap.setOnInfoWindowClickListener(marker -> {
+                if (markerIdToMeta.containsKey(marker.getId())) {
+                    String markerMeta = markerIdToMeta.get(marker.getId());
+                    int model_id = Integer.parseInt(markerMeta.split("-")[1]);
+                    int model_type = Integer.parseInt(markerMeta.split("-")[0]);
+                    Constants.PlayaItemType modelType = null;
+                    switch (model_type) {
+                        case ART:
+                            modelType = Constants.PlayaItemType.ART;
+                            break;
+                        case EVENTS:
+                            modelType = Constants.PlayaItemType.EVENT;
+                            break;
+                        case CAMPS:
+                            modelType = Constants.PlayaItemType.CAMP;
+                            break;
+                    }
+                    Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
+                    i.putExtra("model_id", model_id);
+                    i.putExtra("model_type", modelType);
+                    getActivity().startActivity(i);
+                } else if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
+                    showEditPinDialog(marker);
                 }
-                Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
-                i.putExtra("model_id", model_id);
-                i.putExtra("model_type", modelType);
-                getActivity().startActivity(i);
-            } else if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
-                showEditPinDialog(marker);
-            }
+            });
         });
     }
 
@@ -452,86 +459,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         });
     }
 
-    private void navigateHome() {
-        if (getMap().getMyLocation() == null) {
-            new AlertDialog.Builder(getActivity(), R.style.Theme_Iburn_Dialog)
-                    .setTitle("Where are you?")
-                    .setMessage("We're still working on your location. Try again in a few seconds!")
-                    .setPositiveButton(getString(R.string.ok), null)
-                    .show();
-            getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(Constants.MAN_LAT, Constants.MAN_LON)).zoom(15).build()));
-            return;
-        }
-        LatLng start = new LatLng(getMap().getMyLocation().getLatitude(), getMap().getMyLocation().getLongitude());
-        LatLng end = PlayaClient.getHomeLatLng(getActivity());
-        if (getDistance(start, end) > 8046) {
-            new AlertDialog.Builder(getActivity(), R.style.Theme_Iburn_Dialog)
-                    .setTitle(getActivity().getString(R.string.youre_so_far))
-                    .setMessage(String.format("It appears you're %d meters from home. Get closer to the burn before navigating home..", (int) getDistance(start, end)))
-                    .setPositiveButton(getString(R.string.ok), null)
-                    .show();
-
-//            getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(Constants.MAN_LAT, Constants.MAN_LON)).zoom(15).build()));
-            return;
-        }
-
-        getMap().addMarker(new MarkerOptions()
-                .position(start)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                .title("Current Location"));
-        getMap().addMarker(new MarkerOptions()
-                .position(end)
-                .title("Home"));
-
-        getMap().animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().bearing(getBearing(start, end)).target(getMidPoint(start, end)).tilt(45).zoom(15).build()));
-
-        DecimalFormat twoDForm = new DecimalFormat("#");
-        Toast.makeText(getActivity(), String.format("%s meters from home", twoDForm.format(getDistance(start, end))), Toast.LENGTH_LONG).show();
-
-    }
-
-    private float getBearing(LatLng start, LatLng end) {
-        double longitude1 = start.longitude;
-        double longitude2 = end.longitude;
-        double latitude1 = Math.toRadians(start.latitude);
-        double latitude2 = Math.toRadians(end.latitude);
-        double longDiff = Math.toRadians(longitude2 - longitude1);
-        double y = Math.sin(longDiff) * Math.cos(latitude2);
-        double x = Math.cos(latitude1) * Math.sin(latitude2) - Math.sin(latitude1) * Math.cos(latitude2) * Math.cos(longDiff);
-
-        return (float) (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
-    }
-
-    private LatLng getMidPoint(LatLng start, LatLng end) {
-
-        double dLon = Math.toRadians(end.longitude - start.longitude);
-        double lat1;
-        double lat2;
-        double lon1;
-        //convert to radians
-        lat1 = Math.toRadians(start.latitude);
-        lat2 = Math.toRadians(end.latitude);
-        lon1 = Math.toRadians(start.longitude);
-
-        double Bx = Math.cos(lat2) * Math.cos(dLon);
-        double By = Math.cos(lat2) * Math.sin(dLon);
-        double lat3 = Math.atan2(Math.sin(lat1) + Math.sin(lat2), Math.sqrt((Math.cos(lat1) + Bx) * (Math.cos(lat1) + Bx) + By * By));
-        double lon3 = lon1 + Math.atan2(By, Math.cos(lat1) + Bx);
-
-        //print out in degrees
-        return new LatLng(Math.toDegrees(lat3), Math.toDegrees(lon3));
-    }
-
-    private double getDistance(LatLng start, LatLng end) {
-        double theta = start.longitude - end.longitude;
-        double dist = Math.sin(Math.toRadians(start.latitude)) * Math.sin(Math.toRadians(end.latitude)) + Math.cos(Math.toRadians(start.latitude)) * Math.cos(Math.toRadians(end.latitude)) * Math.cos(Math.toRadians(theta));
-        dist = Math.acos(dist);
-        dist = Math.toDegrees(dist);
-        dist = dist * 60 * 1.1515;
-        dist = dist * 1609.344; // to km
-        return dist;
-    }
-
     public boolean areMarkersVisible() {
         return mMappedMarkers.size() > 0;
     }
@@ -542,7 +469,6 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         }
         mMappedMarkers.clear();
         markerIdToMeta.clear();
-        mLoaderType = 0;
     }
 
     public void mapAndCenterOnMarker(final MarkerOptions marker) {
@@ -567,98 +493,62 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         mState = STATE.EXPLORE;
     }
 
-    static final ArrayList<String> PROJECTION = new ArrayList<String>() {{
-        add(PlayaItemTable.name);
-        add(PlayaItemTable.id);
-        add(PlayaItemTable.latitude);
-        add(PlayaItemTable.longitude);
-        add(PlayaItemTable.favorite);
-    }};
+    static final String[] PROJECTION = new String[]{
+            PlayaItemTable.name,
+            PlayaItemTable.id,
+            PlayaItemTable.latitude,
+            PlayaItemTable.longitude,
+            PlayaItemTable.favorite
+    };
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int loaderId, Bundle bundle) {
-        Uri targetUri = null;
-        String selection = "";
-        ArrayList<String> selectionArgs = new ArrayList<>();
+    static final String PROJECTION_STRING = DataProvider.makeProjectionString(PROJECTION);
 
-        switch (loaderId) {
-            case ART:
-                targetUri = PlayaContentProvider.Art.ART;
-                break;
-            case CAMPS:
-                targetUri = PlayaContentProvider.Camps.CAMPS;
-                break;
-            case EVENTS:
-                targetUri = PlayaContentProvider.Events.EVENTS;
-                // Select by event currently ongoing
-                Date now = new Date();
-                selection += String.format("(%1$s < '%2$s' AND %3$s > '%2$s') ",
-                        EventTable.startTime, PlayaClient.getISOString(now),
-                        EventTable.endTime);
-                break;
-            case POIS:
-                targetUri = PlayaContentProvider.Pois.POIS;
-                break;
-            case ALL:
-            default:
-                //targetUri = PlayaContentProvider.Camps.ALL;
-                //throw new IllegalArgumentException("ALL endpoint not yet supported");
-                return null;
-        }
+    static String geoWhereClause = String.format(" WHERE (%s < ? AND %s > ?) AND (%s < ? AND %s > ?)",
+            PlayaItemTable.latitude, PlayaItemTable.latitude,
+            PlayaItemTable.longitude, PlayaItemTable.longitude);
 
-        if (!TextUtils.isEmpty(mCurFilter)) {
-            Timber.d("filtering map by " + mCurFilter);
-            // Add to selection, selectionArgs for name filter
-            if (selection.length() > 0) selection += " AND ";
-            selection += PlayaItemTable.name + " LIKE ?";
-            selectionArgs.add("%" + mCurFilter + "%");
-        }
+    static String ongoingWhereClause = String.format("(%s < ? AND %s > ?) ",
+            EventTable.startTime, EventTable.endTime);
 
-        // Select by latitude and longitude within screen-visible region
-        if (mState == STATE.EXPLORE && visibleRegion != null) {
-            if (selection.length() > 0) selection += " AND ";
-            selection += String.format("(%s < ? AND %s > ?) AND (%s < ? AND %s > ?)",
-                    PlayaItemTable.latitude, PlayaItemTable.latitude,
-                    PlayaItemTable.longitude, PlayaItemTable.longitude);
+    static String[] sqlParemeters = new String[14];
 
-            selectionArgs.add(String.valueOf(visibleRegion.farLeft.latitude));
-            selectionArgs.add(String.valueOf(visibleRegion.nearRight.latitude));
-            selectionArgs.add(String.valueOf(visibleRegion.nearRight.longitude));
-            selectionArgs.add(String.valueOf(visibleRegion.farLeft.longitude));
-        }
+    public Observable<SqlBrite.Query> performQuery(DataProvider provider) {
 
-        if (limitListToFavorites) {
-            selection += " AND " + ArtTable.favorite + " =?";
-            selectionArgs.add("1");
-        }
+        StringBuilder sql = new StringBuilder();
 
-        String[] projection = null;
-        if (loaderId == POIS) {
-            // If we're fetching POIs, add the drawableResourceId column
-            projection = PROJECTION.toArray(new String[PROJECTION.size() + 1]);
-            projection[projection.length - 1] = UserPoiTable.drawableResId;
-        } else {
-            projection = PROJECTION.toArray(new String[PROJECTION.size()]);
-        }
+        sql.append("SELECT ").append(PROJECTION_STRING).append(" FROM ").append(PlayaDatabase.POIS)
+                .append(" UNION ")
+                .append("SELECT ").append(PROJECTION_STRING).append(" FROM ").append(PlayaDatabase.EVENTS)
+                .append(ongoingWhereClause)
+                .append(" AND ")
+                .append(geoWhereClause)
+                .append(" UNION ")
+                .append("SELECT ").append(PROJECTION_STRING).append(" FROM ").append(PlayaDatabase.ART)
+                .append(geoWhereClause)
+                .append(" UNION ")
+                .append("SELECT ").append(PROJECTION_STRING).append(" FROM ").append(PlayaDatabase.CAMPS)
+                .append(geoWhereClause);
 
-        // Now create and return a CursorLoader that will take care of
-        // creating a Cursor for the data being displayed.
-        Timber.d("Creating loader with uri: " + targetUri.toString());
-        return new CursorLoader(getActivity(), targetUri, projection, selection, selectionArgs.toArray(new String[selectionArgs.size()]),
-                null);
+        sqlParemeters[0] = sqlParemeters[1] = PlayaDateTypeAdapter.iso8601Format.format(new Date());
+
+        sqlParemeters[2] = sqlParemeters[6] = sqlParemeters[10] = String.valueOf(visibleRegion.farLeft.latitude);
+        sqlParemeters[3] = sqlParemeters[7] = sqlParemeters[11] = String.valueOf(visibleRegion.nearRight.latitude);
+        sqlParemeters[4] = sqlParemeters[8] = sqlParemeters[12] = String.valueOf(visibleRegion.nearRight.longitude);
+        sqlParemeters[5] = sqlParemeters[9] = sqlParemeters[13] = String.valueOf(visibleRegion.farLeft.longitude);
+
+        return provider.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), sqlParemeters);
     }
 
     /**
      * Keep track of the bounds describing a batch of results across Loaders
      */
-    private LatLngBounds.Builder mResultBounds = new LatLngBounds.Builder();
+    private LatLngBounds.Builder mResultBounds;
 
-    @Override
-    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        if (mState == STATE.SEARCH)
-            mLoaderResponsesExpected--;
-        int id = cursorLoader.getId();
-        Timber.d("Loader finished for id " + id + " with items " + cursor.getCount());
+    private void processMapItemResult(Cursor cursor) {
+
+        mResultBounds = new LatLngBounds.Builder();
+
+        Timber.d("Loader finished for id with items " + cursor.getCount());
         GoogleMap map = getMap();
         if (map == null) return;
         String markerMapId;
@@ -666,30 +556,31 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         // of when calling .build() will throw IllegalStateException due to including no points
         boolean[] areBoundsValid = new boolean[1];
         while (cursor.moveToNext()) {
-            markerMapId = generateDataIdForItem(id, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id)));
-            if (id == POIS) {
-                if (!mMappedCustomMarkerIds.containsValue(markerMapId)) {
-                    Marker marker = addNewMarkerForCursorItem(id, cursor);
-                    mMappedCustomMarkerIds.put(marker.getId(), markerMapId);
-                }
-            } else {
-                mapRecyclableMarker(id, markerMapId, cursor, mResultBounds, areBoundsValid);
+            int typeInt = cursor.getInt(cursor.getColumnIndex(DataProvider.VirtualType));
+            Constants.PlayaItemType type = DataProvider.getTypeValue(typeInt);
+
+            markerMapId = generateDataIdForItem(typeInt, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id)));
+
+            switch (type) {
+                case POI:
+                    if (!mMappedCustomMarkerIds.containsValue(markerMapId)) {
+                        Marker marker = addNewMarkerForCursorItem(typeInt, cursor);
+                        mMappedCustomMarkerIds.put(marker.getId(), markerMapId);
+                    }
+                    break;
+
+                default:
+                    mapRecyclableMarker(typeInt, markerMapId, cursor, mResultBounds, areBoundsValid);
+                    break;
             }
         }
-        if (mState == STATE.SEARCH)
-            Timber.d("Loader responses expected " + mLoaderResponsesExpected);
-        if (areBoundsValid[0] && mState == STATE.SEARCH && mLoaderResponsesExpected == 0) {
+        if (areBoundsValid[0] && mState == STATE.SEARCH) {
             map.animateCamera(CameraUpdateFactory.newLatLngBounds(mResultBounds.build(), 80));
-        } else if (!areBoundsValid[0] && mState == STATE.SEARCH && mLoaderResponsesExpected == 0) {
+        } else if (!areBoundsValid[0] && mState == STATE.SEARCH) {
             // No results
             Timber.d("Resetting map view");
             resetMapView();
         }
-        if (mLoaderResponsesExpected == 0) {
-            // Reset query bounds
-            mResultBounds = new LatLngBounds.Builder();
-        }
-
     }
 
     /**
@@ -699,13 +590,13 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
      * @param loaderId The id of the loader
      * @param itemId   The database id of the item
      */
-    private String generateDataIdForItem(int loaderId, int itemId) {
+    private String generateDataIdForItem(int loaderId, long itemId) {
         return String.format("%d-%d", loaderId, itemId);
     }
 
     /**
      * Return the internal database id for an item given the string id
-     * generated by {@link #generateDataIdForItem(int, int)}
+     * generated by {@link #generateDataIdForItem(int, long)}
      */
     private int getDatabaseIdFromGeneratedDataId(String dataId) {
         return Integer.parseInt(dataId.split("-")[1]);
@@ -723,7 +614,7 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             // This POI is not yet mapped
             LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.latitude)), cursor.getDouble(cursor.getColumnIndex(ArtTable.longitude)));
             if (loaderId != POIS && boundsBuilder != null && mState == STATE.SEARCH) {
-                if (PlayaClient.BRC_BOUNDS.contains(pos)) {
+                if (BRC_BOUNDS.contains(pos)) {
                     boundsBuilder.include(pos);
                     areBoundsValid[0] = true;
                 }
@@ -804,27 +695,13 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         return marker;
     }
 
-    @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader) {
-
-    }
-
-    private void restartLoader(int type) {
-        mLoaderType = type;
-        getLoaderManager().restartLoader(type, null, this);
-
-    }
-
-    public void initLoader() {
-        getLoaderManager().initLoader(0, null, this);
-    }
-
     private void removeCustomPin(Marker marker) {
         marker.remove();
         if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
             int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
-            int numDeleted = getActivity().getContentResolver().delete(PlayaContentProvider.Pois.POIS, PlayaItemTable.id + " = ?", new String[]{String.valueOf(itemId)});
-            if (numDeleted != 1) Timber.w("Unable to delete marker " + marker.getTitle());
+            DataProvider.getInstance(getActivity())
+                    .map(provider -> provider.delete(PlayaDatabase.POIS, PlayaItemTable.id + " = ?", String.valueOf(itemId)))
+                    .subscribe(result -> Timber.d("Deleted marker with result " + result));
         } else Timber.w("Unable to delete marker " + marker.getTitle());
     }
 
@@ -853,8 +730,9 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
         poiValues.put(UserPoiTable.longitude, latLng.longitude);
         poiValues.put(UserPoiTable.drawableResId, drawableResId);
         try {
-            int newId = Integer.parseInt(getActivity().getContentResolver().insert(PlayaContentProvider.Pois.POIS, poiValues).getLastPathSegment());
-            mMappedCustomMarkerIds.put(marker.getId(), generateDataIdForItem(POIS, newId));
+            DataProvider.getInstance(getActivity())
+                    .map(dataProvider -> dataProvider.insert(PlayaDatabase.POIS, poiValues))
+                    .subscribe(newId -> mMappedCustomMarkerIds.put(marker.getId(), generateDataIdForItem(POIS, newId)));
         } catch (NumberFormatException e) {
             Timber.w("Unable to get id for new custom marker");
         }
@@ -902,26 +780,14 @@ public class GoogleMapFragment extends SupportMapFragment implements LoaderManag
             if (drawableResId != 0)
                 poiValues.put(UserPoiTable.drawableResId, drawableResId);
             int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
-            int numUpdated = getActivity().getContentResolver().update(PlayaContentProvider.Pois.POIS, poiValues, PlayaItemTable.id + " = ?", new String[]{String.valueOf(itemId)});
-            if (numUpdated != 1) Timber.w("Failed to update custom pin with marker");
+            DataProvider.getInstance(getActivity())
+                    .map(dataProvider -> dataProvider.update(PlayaDatabase.POIS, poiValues, PlayaItemTable.id + " = ?", String.valueOf(itemId)))
+                    .subscribe(numUpdated -> Timber.d("Updated marker with status " + numUpdated));
         } else
             Timber.w("Unable to find custom marker in map for updating");
     }
 
-    private void restartLoaders(boolean clearMap) {
-        if (clearMap)
-            clearMap();
-        if (mapCamps && PlayaClient.isEmbargoClear(getActivity()))
-            restartLoader(CAMPS);
-        if (mapArt)
-            restartLoader(ART);
-        if (mapEvents && PlayaClient.isEmbargoClear(getActivity()))
-            restartLoader(EVENTS);
-        // User POIs are never cleared
-        // and so shouldn't need to be reset
-    }
-
     private void resetMapView() {
-        getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Constants.MAN_LAT, Constants.MAN_LON), 14));
+        getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 14));
     }
 }

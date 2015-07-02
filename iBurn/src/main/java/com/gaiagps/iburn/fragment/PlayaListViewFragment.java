@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.PlayaClient;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
 import com.gaiagps.iburn.adapters.AdapterItemSelectedListener;
@@ -80,12 +79,10 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterI
         super.onActivityCreated(savedInstanceState);
         adapter = getAdapter();
         mRecyclerView.setAdapter(adapter);
-        if (PlayaClient.isDbPopulated(getActivity())) {
-            subscription = subscribeToData();
+        subscription = subscribeToData();
 //            mCurFilter = ((SearchQueryProvider) getActivity()).getCurrentQuery();
 //            initLoader();
 //            if (mLastLocation == null) getLastDeviceLocation();
-        }
     }
 
     @Override

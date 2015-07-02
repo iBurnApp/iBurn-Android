@@ -2,7 +2,6 @@ package com.gaiagps.iburn.database;
 
 import android.content.Context;
 
-import com.gaiagps.iburn.PlayaClient;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
 /**
@@ -15,13 +14,13 @@ import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
  *
  * @author davidbrodsky
  * @description SQLiteWrapper is written to be application agnostic.
- * requires Strings: DATABASE_NAME, DATABASE_VERSION,
+ * requires Strings: DATABASE_NAME, BUNDLED_DATABASE_VERSION,
  * CREATE_TABLE_STATEMENT, TABLE_NAME
  */
 public class DBWrapper extends SQLiteAssetHelper {
 
     private static final String DATABASE_NAME = "playaDatabase.db";
-    private static final int DATABASE_VERSION = PlayaClient.DATABASE_VERSION;
+    private static final int DATABASE_VERSION = 3;
 
     static Context c;
 

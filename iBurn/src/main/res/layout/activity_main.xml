@@ -4,7 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:id="@+id/parent">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -37,34 +38,5 @@
         app:pressedTranslationZ="12dp"
         android:src="@drawable/ic_search"
         android:onClick="onSearchClick"/>
-
-    <RelativeLayout
-        android:id="@+id/unlock_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@color/off_blk"
-        android:orientation="horizontal"
-        android:padding="8dp">
-
-        <Button
-            android:id="@+id/unlock_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:onClick="showUnlockDialog"
-            android:text="@string/enter_unlock_code" />
-
-        <TextView
-            android:id="@+id/unlock_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_toLeftOf="@id/unlock_button"
-            android:layout_toStartOf="@id/unlock_button"
-            android:text="@string/unlock_description" />
-
-    </RelativeLayout>
 
 </android.support.design.widget.CoordinatorLayout>

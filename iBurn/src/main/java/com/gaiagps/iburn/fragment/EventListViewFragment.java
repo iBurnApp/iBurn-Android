@@ -43,7 +43,7 @@ public class EventListViewFragment extends PlayaListViewFragment implements Play
     @Override
     protected Subscription subscribeToData() {
         return DataProvider.getInstance(getActivity())
-                .observeEventsOnDayOfTypes(selectedDay, selectedTypes, getAdapter().getRequiredProjection())
+                .flatMap(dataProvider -> dataProvider.observeEventsOnDayOfTypes(selectedDay, selectedTypes, getAdapter().getRequiredProjection()))
                 .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(cursor -> {

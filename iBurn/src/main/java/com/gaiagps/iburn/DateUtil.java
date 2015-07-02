@@ -3,13 +3,15 @@ package com.gaiagps.iburn;
 import android.content.Context;
 import android.text.format.DateUtils;
 
+import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
+
 import java.text.ParseException;
 import java.util.Date;
 
 /**
  * Created by davidbrodsky on 8/6/14.
  */
-public class PlayaUtils {
+public class DateUtil {
 
     /**
      * Get a human description of an event's state
@@ -25,7 +27,7 @@ public class PlayaUtils {
      */
     public static String getDateString(Context context, Date nowDate, Date relativeTimeCutoff, String startDateStr, String prettyStartDateStr, String endDateStr, String prettyEndDateStr) {
         try {
-            Date startDate = PlayaClient.parseISODate(startDateStr);
+            Date startDate = PlayaDateTypeAdapter.iso8601Format.parse(startDateStr);
             if (nowDate.before(startDate)) {
                 // Has not yet started
                 if (relativeTimeCutoff.after(startDate)) {
@@ -34,7 +36,7 @@ public class PlayaUtils {
                 return context.getString(R.string.starts) + " " + prettyStartDateStr;
             } else {
                 // Already started
-                Date endDate = PlayaClient.parseISODate(endDateStr);
+                Date endDate = PlayaDateTypeAdapter.iso8601Format.parse(endDateStr);
                 if (endDate.before(nowDate)) {
                     if (relativeTimeCutoff.after(endDate)) {
                         return context.getString(R.string.ended) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
