@@ -173,10 +173,14 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     private void showEditPinDialog(final Marker marker) {
         View dialogBody = getActivity().getLayoutInflater().inflate(R.layout.dialog_poi, null);
         final RadioGroup iconGroup = ((RadioGroup) dialogBody.findViewById(R.id.iconGroup));
+
         // Fetch current Marker icon
         DataProvider.getInstance(getActivity())
                 .flatMap(dataProvider ->
-                        dataProvider.observeAllTables(PlayaItemTable.id + " = " + String.valueOf(getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()))), new String[]{PlayaItemTable.id, UserPoiTable.drawableResId}))
+                        dataProvider.createQuery(PlayaDatabase.POIS,
+                                "SELECT " + PlayaItemTable.id + ", " + UserPoiTable.drawableResId + " FROM " + PlayaDatabase.POIS + " WHERE " + PlayaItemTable.id + " = ?",
+                                String.valueOf(getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId())))))
+                .first()
                 .map(SqlBrite.Query::run)
                 .subscribe(poi -> {
                     if (poi != null && poi.moveToFirst()) {
