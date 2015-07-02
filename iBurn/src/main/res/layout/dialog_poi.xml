@@ -36,6 +36,7 @@
         android:hint="Home, Bike, etc."
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
+        android:singleLine="true"
         android:textSize="18sp" />
 
     <TextView
