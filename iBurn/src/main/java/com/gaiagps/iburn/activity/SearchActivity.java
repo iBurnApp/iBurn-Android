@@ -18,10 +18,12 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterItemSelectedListener;
 import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
+import com.squareup.sqlbrite.SqlBrite;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 
 public class SearchActivity extends AppCompatActivity implements AdapterItemSelectedListener {
 
@@ -81,9 +83,9 @@ public class SearchActivity extends AppCompatActivity implements AdapterItemSele
 
         searchSubscription = DataProvider.getInstance(this)
                 .flatMap(dataProvider -> dataProvider.observeNameQuery(query, adapter.getRequiredProjection()))
-                .subscribe(queryResp -> {
-                    adapter.changeCursor(queryResp.run());
-                });
+                .map(SqlBrite.Query::run)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(adapter::changeCursor);
 
     }
 
