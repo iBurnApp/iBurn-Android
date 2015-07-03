@@ -36,7 +36,6 @@ import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.database.UserPoiTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -54,6 +53,7 @@ import java.util.ArrayDeque;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import hugo.weaving.DebugLog;
@@ -145,6 +145,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     HashMap<String, String> markerIdToMeta = new HashMap<>();
     public static MapBoxOfflineTileProvider tileProvider; // Re-use tileProvider
     private static AtomicInteger tileProviderHolds = new AtomicInteger();
+    private AtomicBoolean addedTileOverlay = new AtomicBoolean(false);
     TileOverlay overlay;
     LatLng latLngToCenterOn;
 
@@ -338,6 +339,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                     else
                         tileProvider.swapDatabase(databaseFile);
                 })
+                .filter(file -> !addedTileOverlay.get())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(databaseFile -> _addMBTilesOverlay());
 
@@ -461,6 +463,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             TileOverlayOptions opts = new TileOverlayOptions();
             opts.tileProvider(tileProvider);
             overlay = map.addTileOverlay(opts);
+            addedTileOverlay.set(true);
         });
     }
 
