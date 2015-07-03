@@ -44,6 +44,7 @@ import retrofit.converter.GsonConverter;
 import retrofit.http.GET;
 import retrofit.http.Streaming;
 import rx.Observable;
+import rx.functions.Action0;
 import timber.log.Timber;
 
 /**
@@ -235,12 +236,18 @@ public class IBurnService {
                 .flatMap(dependencies ->
                         updateResource(dependencies)
                                 .map(itemsUpdated -> {
+                                    Timber.d("item %s updated %d items", dependencies.resourceManifest.file, itemsUpdated);
                                     if (itemsUpdated > 0)
                                         storage.setResourceVersion(dependencies.resourceManifest.file, dependencies.resourceManifest.updated.getTime());
                                     return dependencies;
                                 }))
-                .reduce((dependencies1, dependencies2) -> dependencies1)
-                .doOnNext(dependencies -> dependencies.dataProvider.endUpgrade())
+                .toList()
+                .doOnNext(updateDataDependencies -> {
+                    if (updateDataDependencies.size() > 0)
+                        updateDataDependencies.get(0).dataProvider.endUpgrade();
+                })
+                .doOnError(throwable -> Timber.e(throwable, "updateData error"))
+                .doOnCompleted(() -> Timber.d("updateData Complete"))
                 .map(dependencies -> true); // TODO : More granular success / failure?
 //                .subscribe(totalUpdated -> Timber.d("Update complete"), throwable -> Timber.e(throwable, "Update error"));
     }
@@ -251,7 +258,6 @@ public class IBurnService {
                     try {
                         provider.offerMapUpgrade(response.getBody().in(), resourceManifest.updated.getTime());
                         return 1;
-                        //return success ? 1 : 0;
                     } catch (IOException e) {
                         Timber.e(e, "Error copying mbtiles!");
                         return 0;
@@ -429,6 +435,8 @@ public class IBurnService {
     }
 
     private boolean shouldUpdateResource(PrefsHelper storage, ResourceManifest resource) {
+        boolean shouldUpdate = storage.getResourceVersion(resource.file) < resource.updated.getTime();
+        Timber.d("%s version local:%d remote:%d. Will update: %b", resource.file, storage.getResourceVersion(resource.file), resource.updated.getTime(), shouldUpdate);
         return storage.getResourceVersion(resource.file) < resource.updated.getTime();
     }
 }

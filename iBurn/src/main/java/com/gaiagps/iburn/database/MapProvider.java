@@ -8,6 +8,7 @@ import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,15 +64,16 @@ public class MapProvider {
         return databaseSubject;
     }
 
-    public void offerMapUpgrade(InputStream newMap, long version) {
-        try {
-            File dest = getMBTilesFile(version);
-            Bytestreams.copy(newMap, new FileOutputStream(dest));
-            // Notify observers
-            databaseSubject.onNext(dest);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void offerMapUpgrade(InputStream newMap, long version) throws IOException {
+        File dest = getMBTilesFile(version);
+        FileOutputStream fos = new FileOutputStream(dest);
+        Bytestreams.copy(newMap, fos);
+        newMap.close();
+        fos.close();
+
+        // Notify observers
+        Timber.d("Notifying observers");
+        databaseSubject.onNext(dest);
     }
 
     /**

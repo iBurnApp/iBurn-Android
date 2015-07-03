@@ -69,6 +69,6 @@ public class PrefsHelper {
     }
 
     public void setResourceVersion(String resourceName, long resourceVersion) {
-        editor.putLong(RESOURCE_VERSION_PREFIX + resourceName, resourceVersion);
+        editor.putLong(RESOURCE_VERSION_PREFIX + resourceName, resourceVersion).apply();
     }
 }

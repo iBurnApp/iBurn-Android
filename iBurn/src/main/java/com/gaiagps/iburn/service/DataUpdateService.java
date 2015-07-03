@@ -51,7 +51,8 @@ public class DataUpdateService extends GcmTaskService {
         if (taskParams.getTag().equals(AUTO_UPDATE_TASK_NAME)) {
             Timber.d("GCM invoked update task");
             IBurnService service = new IBurnService(getApplicationContext());
-            boolean success = service.updateData().toBlocking().single();
+            boolean success = service.updateData().singleOrDefault(true).toBlocking().single();
+            Timber.d("GCM invoked task finished with success %b", success);
             return success ? GcmNetworkManager.RESULT_SUCCESS : GcmNetworkManager.RESULT_RESCHEDULE;
         }
 

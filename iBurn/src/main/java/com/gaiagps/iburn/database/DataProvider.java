@@ -66,7 +66,7 @@ public class DataProvider {
                 .subscribeOn(Schedulers.io())
                 .doOnNext(database -> prefs.setDatabaseVersion(BUNDLED_DATABASE_VERSION))
                 .map(SqlBrite::create)
-                .doOnNext(sqlBrite1 -> sqlBrite1.setLoggingEnabled(true))
+//                .doOnNext(sqlBrite1 -> sqlBrite1.setLoggingEnabled(true))
                 .map(sqlBrite -> new DataProvider(sqlBrite, new Embargo(prefs)))
                 .doOnNext(dataProvider -> provider = dataProvider);
     }
