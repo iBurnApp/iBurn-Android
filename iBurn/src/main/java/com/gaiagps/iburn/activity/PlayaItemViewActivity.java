@@ -17,13 +17,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.DateUtil;
+import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.CampTable;
@@ -33,6 +34,7 @@ import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.squareup.sqlbrite.SqlBrite;
@@ -82,6 +84,9 @@ public class PlayaItemViewActivity extends AppCompatActivity {
     @InjectView(R.id.subitem_3)
     TextView subItem3TextView;
 
+    @InjectView(R.id.collapsing_toolbar)
+    CollapsingToolbarLayout collapsingToolbarLayout;
+
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playa_item_view);
@@ -93,6 +98,14 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
         populateViews(getIntent());
         setTextContainerMinHeight();
+
+        AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
+        fadeAnimation.setDuration(1000);
+        fadeAnimation.setStartOffset(250);
+        fadeAnimation.setFillAfter(true);
+        fadeAnimation.setFillEnabled(true);
+//        mapContainer.setAlpha(0);
+        mapContainer.startAnimation(fadeAnimation);
     }
 
     /**
@@ -193,23 +206,28 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                 });
                                 latLng = new LatLng(c.getDouble(c.getColumnIndexOrThrow(PlayaItemTable.latitude)), c.getDouble(c.getColumnIndexOrThrow(PlayaItemTable.longitude)));
                                 //TextView locationView = ((TextView) findViewById(R.id.location));
-                                final GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
                                 LatLng start = new LatLng(Geo.MAN_LAT, Geo.MAN_LON);
                                 Log.i("GoogleMapFragment", "adding / centering marker");
+                                GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
                                 mapFragment.showcaseMarker(new MarkerOptions().position(latLng));
-                                mapFragment.getMap().getUiSettings().setMyLocationButtonEnabled(false);
-                                mapFragment.getMap().getUiSettings().setZoomControlsEnabled(false);
-                                mapFragment.getMap().setOnCameraChangeListener(cameraPosition -> {
-                                    if (cameraPosition.zoom >= 20) {
-                                        mapFragment.getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.99));
-                                    }
+                                mapFragment.getMapAsync(googleMap -> {
+                                    UiSettings settings = googleMap.getUiSettings();
+                                    settings.setMyLocationButtonEnabled(false);
+                                    settings.setZoomControlsEnabled(false);
+                                    googleMap.setOnCameraChangeListener(cameraPosition -> {
+                                        if (cameraPosition.zoom >= 20) {
+                                            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.99));
+                                        }
+                                    });
                                 });
                                 //favoriteMenuItem.setVisible(false);
                                 //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
                             } else {
                                 // Adjust the margin / padding show the heart icon doesn't
                                 // overlap title + descrition
-                                findViewById(R.id.map).setVisibility(View.GONE);
+//                                findViewById(R.id.map_container).setVisibility(View.GONE);
+                                //getSupportFragmentManager().beginTransaction().remove(mapFragment).commit();
+                                collapsingToolbarLayout.setBackgroundResource(android.R.color.transparent);
                                 CollapsingToolbarLayout.LayoutParams parms = new CollapsingToolbarLayout.LayoutParams(CollapsingToolbarLayout.LayoutParams.MATCH_PARENT, 24);
                                 mapContainer.setLayoutParams(parms);
                                 favoriteButton.setVisibility(View.GONE);

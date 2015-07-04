@@ -154,6 +154,8 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     boolean limitListToFavorites = false;   // Limit display to favorites?
     PrefsHelper prefs;
 
+    MarkerOptions showcaseMarker;
+
     private View.OnClickListener mOnAddPinBtnListener = v -> {
         Marker marker = addCustomPin(null, null, UserPoiTable.STAR);
         dropPinAndShowEditDialog(marker);
@@ -312,6 +314,10 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        if (mState == STATE.SHOWCASE && showcaseMarker != null) {
+            _showcaseMarker();
+        }
         initMap();
     }
 
@@ -357,12 +363,13 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::processMapItemResult, throwable -> Timber.e(throwable, "Error querying"));
 
-        UiSettings settings = getMap().getUiSettings();
-        settings.setZoomControlsEnabled(false);
-        settings.setMapToolbarEnabled(false);
-        settings.setScrollGesturesEnabled(mState != STATE.SHOWCASE);
-
         getMapAsync(googleMap -> {
+
+            UiSettings settings = googleMap.getUiSettings();
+            settings.setZoomControlsEnabled(false);
+            settings.setMapToolbarEnabled(false);
+            settings.setScrollGesturesEnabled(mState != STATE.SHOWCASE);
+
             // TODO: If user location present, start there
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 14));
             googleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
@@ -489,12 +496,19 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     public void showcaseMarker(MarkerOptions marker) {
         mState = STATE.SHOWCASE;
-        mapAndCenterOnMarker(marker);
+        showcaseMarker = marker;
+        if (getActivity() != null) {
+            _showcaseMarker();
+        }
+    }
+
+    private void _showcaseMarker() {
+        mapAndCenterOnMarker(showcaseMarker);
         ImageButton poiBtn = (ImageButton) getActivity().findViewById(R.id.mapPoiBtn);
         if (poiBtn != null) {
             poiBtn.setVisibility(View.GONE);
         }
-
+        showcaseMarker = null;
     }
 
     public void enableExploreState() {
