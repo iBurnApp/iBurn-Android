@@ -87,6 +87,7 @@ dependencies {
     // Google Play Services
     compile 'com.google.android.gms:play-services-gcm:7.5.0'
     compile 'com.google.android.gms:play-services-maps:7.5.0'
+    compile 'com.google.android.gms:play-services-location:7.5.0'
 
     // 3rd Party libraries
     compile 'com.google.code.gson:gson:2.3.1'
@@ -98,6 +99,7 @@ dependencies {
     compile 'com.squareup.sqlbrite:sqlbrite:0.1.0'
     compile 'com.squareup.retrofit:retrofit:1.9.0'
     compile 'com.squareup.okhttp:okhttp:2.0.0'
+    compile 'pl.charmas.android:android-reactive-location:0.6@aar'
 
     apt 'net.simonvt.schematic:schematic-compiler:0.6.1'
     compile 'net.simonvt.schematic:schematic:0.6.1'

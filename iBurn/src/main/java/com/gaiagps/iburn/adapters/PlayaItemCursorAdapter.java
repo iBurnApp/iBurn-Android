@@ -12,7 +12,8 @@ import android.widget.TextView;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.PlayaItemTable;
-import com.gaiagps.iburn.location.DeviceLocation;
+
+import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 
 /**
  * Bind a playa item (camp, art, event) database row to a view with a simple name & distance display,
@@ -43,12 +44,11 @@ public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemC
         this.type = type;
         this.listener = listener;
 
-        DeviceLocation.getLastKnownLocation(context, false, new DeviceLocation.LocationResult() {
-            @Override
-            public void gotLocation(Location location) {
-                deviceLocation = location;
-            }
-        });
+        ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(context);
+        locationProvider.getLastKnownLocation()
+                .subscribe(location -> {
+                    deviceLocation = location;
+                });
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

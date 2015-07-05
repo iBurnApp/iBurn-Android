@@ -19,7 +19,6 @@ import com.gaiagps.iburn.adapters.AdapterItemSelectedListener;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.database.PlayaItemTable;
-import com.gaiagps.iburn.location.DeviceLocation;
 
 import java.util.ArrayList;
 
@@ -278,14 +277,4 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterI
         selectionArgs.add(value);
     }
 
-    protected void getLastDeviceLocation() {
-        Timber.d("Getting device location");
-        DeviceLocation.getLastKnownLocation(getActivity(), false, new DeviceLocation.LocationResult() {
-            @Override
-            public void gotLocation(Location location) {
-                Timber.d("got device location!");
-                mLastLocation = location;
-            }
-        });
-    }
 }
