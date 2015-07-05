@@ -11,21 +11,24 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.ContextThemeWrapper;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.adapters.EventCursorAdapter;
+import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.DataProvider;
@@ -39,17 +42,25 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.squareup.sqlbrite.SqlBrite;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+import timber.log.Timber;
 
 /**
  * Show the detail view for a Camp, Art installation, or Event
  * Created by davidbrodsky on 8/11/13.
  */
 public class PlayaItemViewActivity extends AppCompatActivity {
+
+    DataProvider provider;
 
     String modelTable;
     int modelId;
@@ -66,8 +77,11 @@ public class PlayaItemViewActivity extends AppCompatActivity {
     @InjectView(R.id.map_container)
     FrameLayout mapContainer;
 
+    @InjectView(R.id.overflow_container)
+    LinearLayout overflowContainer;
+
     @InjectView(R.id.text_container)
-    ViewGroup textContainer;
+    LinearLayout textContainer;
 
     @InjectView(R.id.title)
     TextView titleTextView;
@@ -106,6 +120,8 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         fadeAnimation.setFillEnabled(true);
 //        mapContainer.setAlpha(0);
         mapContainer.startAnimation(fadeAnimation);
+
+        getWindow().setBackgroundDrawableResource(android.R.color.transparent);
     }
 
     /**
@@ -176,14 +192,18 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         }
 
         DataProvider.getInstance(this)
+                .subscribeOn(Schedulers.io())
+                .doOnNext(dataProvider -> this.provider = dataProvider)
                 .flatMap(dataProvider -> dataProvider.createQuery(modelTable, "SELECT * FROM " + modelTable + " WHERE _id = ?", String.valueOf(modelId)))
+                //.first()    // Do we want to receive updates?
                 .map(SqlBrite.Query::run)
-                .subscribe(c -> {
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(itemCursor -> {
                     try {
-                        if (c != null && c.moveToFirst()) {
-                            final String title = c.getString(c.getColumnIndexOrThrow(PlayaItemTable.name));
+                        if (itemCursor != null && itemCursor.moveToFirst()) {
+                            final String title = itemCursor.getString(itemCursor.getColumnIndexOrThrow(PlayaItemTable.name));
                             titleTextView.setText(title);
-                            isFavorite = c.getInt(c.getColumnIndex(PlayaItemTable.favorite)) == 1;
+                            isFavorite = itemCursor.getInt(itemCursor.getColumnIndex(PlayaItemTable.favorite)) == 1;
                             if (isFavorite)
                                 favoriteButton.setImageResource(R.drawable.ic_heart_pressed);
                             else
@@ -193,18 +213,18 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                             favoriteButton.setTag(R.id.list_item_related_model_type, model_type);
                             favoriteButton.setOnClickListener(favoriteButtonOnClickListener);
 
-                            if (!c.isNull(c.getColumnIndex(PlayaItemTable.description))) {
-                                ((TextView) findViewById(R.id.body)).setText(c.getString(c.getColumnIndexOrThrow(PlayaItemTable.description)));
+                            if (!itemCursor.isNull(itemCursor.getColumnIndex(PlayaItemTable.description))) {
+                                ((TextView) findViewById(R.id.body)).setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(PlayaItemTable.description)));
                             } else
                                 findViewById(R.id.body).setVisibility(View.GONE);
 
-                            showingLocation = !c.isNull(c.getColumnIndex(PlayaItemTable.latitude));
+                            showingLocation = !itemCursor.isNull(itemCursor.getColumnIndex(PlayaItemTable.latitude));
                             if (showingLocation) {
                                 favoriteButton.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
                                     if (favoriteMenuItem != null)
                                         favoriteMenuItem.setVisible(v.getVisibility() == View.GONE);
                                 });
-                                latLng = new LatLng(c.getDouble(c.getColumnIndexOrThrow(PlayaItemTable.latitude)), c.getDouble(c.getColumnIndexOrThrow(PlayaItemTable.longitude)));
+                                latLng = new LatLng(itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.latitude)), itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.longitude)));
                                 //TextView locationView = ((TextView) findViewById(R.id.location));
                                 LatLng start = new LatLng(Geo.MAN_LAT, Geo.MAN_LON);
                                 Log.i("GoogleMapFragment", "adding / centering marker");
@@ -236,36 +256,36 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
                             switch (model_type) {
                                 case ART:
-                                    if (!c.isNull(c.getColumnIndex(ArtTable.playaAddress))) {
-                                        subItem1TextView.setText(c.getString(c.getColumnIndexOrThrow(ArtTable.playaAddress)));
+                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.playaAddress))) {
+                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.playaAddress)));
                                     } else
                                         subItem1TextView.setVisibility(View.GONE);
 
-                                    if (!c.isNull(c.getColumnIndex(ArtTable.artist))) {
-                                        subItem2TextView.setText(c.getString(c.getColumnIndexOrThrow(ArtTable.artist)));
+                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.artist))) {
+                                        subItem2TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.artist)));
                                     } else
                                         subItem2TextView.setVisibility(View.GONE);
 
-                                    if (!c.isNull(c.getColumnIndex(ArtTable.artistLoc))) {
-                                        subItem3TextView.setText(c.getString(c.getColumnIndexOrThrow(ArtTable.artistLoc)));
+                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.artistLoc))) {
+                                        subItem3TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.artistLoc)));
                                     } else
                                         subItem3TextView.setVisibility(View.GONE);
                                     break;
                                 case CAMP:
-                                    if (!c.isNull(c.getColumnIndex(CampTable.playaAddress))) {
-                                        subItem1TextView.setText(c.getString(c.getColumnIndexOrThrow(CampTable.playaAddress)));
+                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(CampTable.playaAddress))) {
+                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(CampTable.playaAddress)));
                                     } else
                                         subItem1TextView.setVisibility(View.GONE);
 
-                                    if (!c.isNull(c.getColumnIndex(CampTable.hometown))) {
-                                        subItem2TextView.setText(c.getString(c.getColumnIndexOrThrow(CampTable.hometown)));
+                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(CampTable.hometown))) {
+                                        subItem2TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(CampTable.hometown)));
                                     } else
                                         subItem2TextView.setVisibility(View.GONE);
                                     subItem3TextView.setVisibility(View.GONE);
                                     break;
                                 case EVENT:
-                                    if (!c.isNull(c.getColumnIndex(EventTable.playaAddress))) {
-                                        subItem1TextView.setText(c.getString(c.getColumnIndexOrThrow(EventTable.playaAddress)));
+                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(EventTable.playaAddress))) {
+                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.playaAddress)));
                                     } else
                                         subItem1TextView.setVisibility(View.GONE);
 
@@ -275,18 +295,133 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                     nowPlusOneHrDate.add(Calendar.HOUR, 1);
 
                                     subItem2TextView.setText(DateUtil.getDateString(this, nowDate, nowPlusOneHrDate.getTime(),
-                                            c.getString(c.getColumnIndexOrThrow(EventTable.startTime)),
-                                            c.getString(c.getColumnIndexOrThrow(EventTable.startTimePrint)),
-                                            c.getString(c.getColumnIndexOrThrow(EventTable.endTime)),
-                                            c.getString(c.getColumnIndexOrThrow(EventTable.endTimePrint))));
+                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.startTime)),
+                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.startTimePrint)),
+                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.endTime)),
+                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.endTimePrint))));
                                     subItem3TextView.setVisibility(View.GONE);
                                     break;
                             }
+
+                            // Look up hosted events or other occurrences
+                            int playaId = itemCursor.getInt(itemCursor.getColumnIndex(PlayaItemTable.playaId));
+
+                            if (modelTable.equals(PlayaDatabase.CAMPS)) {
+                                // Lookup hosted events
+
+                                EventCursorAdapter adapter = new EventCursorAdapter(this, null, true, (relatedEventId, type) -> {
+                                    Intent intent = new Intent(this, PlayaItemViewActivity.class);
+                                    intent.putExtra("model_id", relatedEventId);
+                                    intent.putExtra("model_type", type);
+                                    startActivity(intent);
+                                });
+
+                                provider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.campPlayaId + " = ? GROUP BY " + PlayaItemTable.name, String.valueOf(playaId))
+                                        .first()
+                                        .map(SqlBrite.Query::run)
+                                        .subscribe(eventsCursor -> {
+
+                                            if (eventsCursor == null) return;
+
+                                            Timber.d("Got %d hosted events", eventsCursor.getCount());
+
+                                            if (eventsCursor.getCount() == 0) {
+                                                eventsCursor.close();
+                                                return;
+                                            }
+
+                                            int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+
+                                            ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
+
+                                            TextView hostedEventsTitle = new TextView(wrapper);
+                                            hostedEventsTitle.setText(R.string.hosted_events);
+                                            hostedEventsTitle.setTextSize(32);
+                                            hostedEventsTitle.setPadding(pad, pad, pad, pad);
+
+                                            overflowContainer.addView(hostedEventsTitle);
+
+                                            adapter.swapCursor(eventsCursor);
+
+                                            for (int idx = 0; idx < eventsCursor.getCount(); idx++) {
+                                                EventCursorAdapter.ViewHolder holder = adapter.createViewHolder(overflowContainer, 0);
+                                                adapter.bindViewHolder(holder, idx);
+                                                overflowContainer.addView(holder.itemView);
+                                            }
+                                            eventsCursor.close();
+                                        }, throwable -> Timber.e(throwable, "Failed to bind hosted events"));
+
+                            } else if (modelTable.equals(PlayaDatabase.EVENTS)) {
+                                // Lookup other event occurrences
+                                provider.createQuery(PlayaDatabase.EVENTS, "SELECT * FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.playaId + " = ? AND " + EventTable.startTime + " != ?", String.valueOf(playaId), itemCursor.getString(itemCursor.getColumnIndex(EventTable.startTime)))
+                                        .first()
+                                        .map(SqlBrite.Query::run)
+                                        .subscribe(eventsCursor -> {
+                                            if (eventsCursor == null) return;
+
+                                            Timber.d("Got %d other occurrences", eventsCursor.getCount());
+
+                                            if (eventsCursor.getCount() == 0) {
+                                                eventsCursor.close();
+                                                return;
+                                            }
+
+                                            int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+                                            ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
+
+                                            TextView occurrencesTitle = new TextView(wrapper);
+                                            occurrencesTitle.setText(R.string.also_at);
+                                            occurrencesTitle.setTextSize(32);
+                                            occurrencesTitle.setPadding(pad,pad,pad,pad);
+                                            overflowContainer.addView(occurrencesTitle);
+
+                                            final SimpleDateFormat timeDayFormatter = new SimpleDateFormat("EEEE, M/d 'at' h:mm a", Locale.US);
+
+                                            while (eventsCursor.moveToNext()) {
+                                                TextView event = new TextView(wrapper);
+                                                event.setTextSize(20);
+                                                event.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                                                try {
+                                                    event.setText(timeDayFormatter.format(PlayaDateTypeAdapter.iso8601Format.parse(eventsCursor.getString(eventsCursor.getColumnIndex(EventTable.startTime)))));
+                                                } catch (ParseException e) {
+                                                    Timber.w(e, "Unable to parse date, using pre-computed");
+                                                    event.setText(eventsCursor.getString(eventsCursor.getColumnIndex(EventTable.startTimePrint)).toUpperCase());
+                                                }
+                                                event.setOnClickListener(new RelatedItemOnClickListener(eventsCursor.getInt(eventsCursor.getColumnIndex(PlayaItemTable.id)), Constants.PlayaItemType.EVENT));
+                                                event.setPadding(pad,pad,pad,pad);
+
+                                                TypedValue outValue = new TypedValue();
+                                                getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+                                                event.setBackgroundResource(outValue.resourceId);
+                                                overflowContainer.addView(event);
+                                            }
+                                            eventsCursor.close();
+                                        }, throwable -> Timber.e(throwable, "Failed to bind event occurrences"));
+                            }
                         }
                     } finally {
-                        if (c != null) c.close();
+                        if (itemCursor != null) itemCursor.close();
                     }
-                });
+                }, throwable -> Timber.e(throwable, "Failed to populate views from item"));
+    }
+
+    class RelatedItemOnClickListener implements View.OnClickListener {
+
+        int modelId;
+        Constants.PlayaItemType modeltype;
+
+        public RelatedItemOnClickListener(int modelId, Constants.PlayaItemType modeltype) {
+            this.modelId = modelId;
+            this.modeltype = modeltype;
+        }
+
+        @Override
+        public void onClick(View v) {
+            Intent i = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
+            i.putExtra("model_id", modelId);
+            i.putExtra("model_type", modeltype);
+            startActivity(i);
+        }
     }
 
     View.OnClickListener favoriteButtonOnClickListener = (View v) -> {

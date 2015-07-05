@@ -12,24 +12,28 @@ import android.widget.TextView;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.DeviceLocation;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import timber.log.Timber;
 
 /**
  * Bind an event database row to a view with name, distance, and delta time display,
  * using the device's location and current time when the adapter was constructed.
- * <p/>
+ * <p>
  * TODO: Update device location and delta time periodically
  */
 public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAdapter.ViewHolder> {
 
-    static final String[] Projection = new String[] {
+    static final String[] Projection = new String[]{
             EventTable.id,
             EventTable.name,
             EventTable.startTime,
@@ -43,18 +47,41 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
             EventTable.eventType
     };
 
+    /** Projection when Events are grouped by name */
+    static final String[] GroupedProjection = new String[]{
+            EventTable.id,
+            EventTable.name,
+            EventTable.startTime,
+            EventTable.startTimePrint,
+            EventTable.endTime,
+            EventTable.endTimePrint,
+            EventTable.allDay,
+            EventTable.favorite,
+            EventTable.latitude,
+            EventTable.longitude,
+            EventTable.eventType,
+            "count(" + EventTable.name + ")",
+            "min(" + EventTable.startTime + ")",
+            "max(" + EventTable.startTime + ")"
+
+    };
+
     private Context context;
     private AdapterItemSelectedListener listener;
+    private boolean areItemsGrouped;
+    private SimpleDateFormat dayFormatter;
+    private SimpleDateFormat timeFormatter;
 
-    private static int titleCol;
-    private static int eventTypeCol;
-    private static int startTimeCol;
-    private static int startTimePrettyCol;
-    private static int endTimeCol;
-    private static int endTimePrettyCol;
-    private static int idCol;
-    private static int latCol;
-    private static int lonCol;
+
+    private int titleCol;
+    private int eventTypeCol;
+    private int startTimeCol;
+    private int startTimePrettyCol;
+    private int endTimeCol;
+    private int endTimePrettyCol;
+    private int idCol;
+    private int latCol;
+    private int lonCol;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView titleView;
@@ -64,7 +91,6 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
         View container;
 
         int modelId;
-        boolean allDay;
         String timeLabel;
 
         public ViewHolder(View view) {
@@ -82,10 +108,11 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
     Calendar nowPlusOneHrDate = Calendar.getInstance();
     Calendar nowDate = Calendar.getInstance();
 
-    public EventCursorAdapter(Context context, Cursor c, AdapterItemSelectedListener listener) {
+    public EventCursorAdapter(Context context, Cursor c, boolean isGrouped, AdapterItemSelectedListener listener) {
         super(context, c);
         this.context = context;
         this.listener = listener;
+        this.areItemsGrouped = isGrouped;
         Date now = new Date();
         nowDate.setTime(now);
         nowPlusOneHrDate.setTime(now);
@@ -97,6 +124,11 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
                 mDeviceLocation = location;
             }
         });
+
+        if (isGrouped) {
+            dayFormatter = new SimpleDateFormat("EE M/d", Locale.US);
+            timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
+        }
     }
 
     @Override
@@ -129,32 +161,48 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
         }
 
         try {
-            if (cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1) {
-                viewHolder.allDay = true;
-                viewHolder.timeLabel = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
+            if (areItemsGrouped) {
 
+                int numEvents = cursor.getInt(11);
+                String minDate = cursor.getString(12);
+                String maxDate = cursor.getString(13);
+
+                Date firstStartDate = PlayaDateTypeAdapter.iso8601Format.parse(minDate);
+                Date lastStartDate = PlayaDateTypeAdapter.iso8601Format.parse(maxDate);
+
+                if (numEvents > 1)
+                    viewHolder.timeLabel = /*String.valueOf(numEvents) + " times " + */ dayFormatter.format(firstStartDate) + " - " + dayFormatter.format(lastStartDate) + " at " + timeFormatter.format(lastStartDate);
+                else
+                    viewHolder.timeLabel = cursor.getString(startTimePrettyCol);
             } else {
-                viewHolder.allDay = false;
-                viewHolder.timeLabel = DateUtil.getDateString(context, nowDate.getTime(), nowPlusOneHrDate.getTime(),
-                        cursor.getString(startTimeCol),
-                        cursor.getString(startTimePrettyCol),
-                        cursor.getString(endTimeCol),
-                        cursor.getString(endTimePrettyCol));
-            }
+                if (cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1) {
+                    viewHolder.timeLabel = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
 
-        } catch (IllegalArgumentException e) {
-            Timber.d("ok");
+                } else {
+                    viewHolder.timeLabel = DateUtil.getDateString(context, nowDate.getTime(), nowPlusOneHrDate.getTime(),
+                            cursor.getString(startTimeCol),
+                            cursor.getString(startTimePrettyCol),
+                            cursor.getString(endTimeCol),
+                            cursor.getString(endTimePrettyCol));
+                }
+            }
+        } catch (IllegalArgumentException | ParseException e) {
+            Timber.e(e, "Failed to bind event");
         }
         viewHolder.typeView.setText(
                 AdapterUtils.getStringForEventType(cursor.getString(eventTypeCol)));
 
-        AdapterUtils.setDistanceText(mDeviceLocation,
-                nowDate.getTime(),
-                cursor.getString(startTimeCol),
-                cursor.getString(endTimeCol),
-                viewHolder.distanceView,
-                cursor.getDouble(latCol),
-                cursor.getDouble(lonCol));
+        if (!areItemsGrouped) {
+            AdapterUtils.setDistanceText(mDeviceLocation,
+                    nowDate.getTime(),
+                    cursor.getString(startTimeCol),
+                    cursor.getString(endTimeCol),
+                    viewHolder.distanceView,
+                    cursor.getDouble(latCol),
+                    cursor.getDouble(lonCol));
+        } else {
+            viewHolder.distanceView.setVisibility(View.GONE);
+        }
 
         viewHolder.titleView.setText(cursor.getString(titleCol));
         viewHolder.timeView.setText(viewHolder.timeLabel);
@@ -165,6 +213,6 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
 
     @Override
     public String[] getRequiredProjection() {
-        return Projection;
+        return areItemsGrouped ? GroupedProjection : Projection;
     }
 }

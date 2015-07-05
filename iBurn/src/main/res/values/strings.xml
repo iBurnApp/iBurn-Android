@@ -55,5 +55,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="embargo_snackbar_msg">Art, Camp, and Event Location Data is embargoed until %s</string>
+    <string name="also_at">Also At</string>
+    <string name="hosted_events">Hosted Events</string>
 
 </resources>

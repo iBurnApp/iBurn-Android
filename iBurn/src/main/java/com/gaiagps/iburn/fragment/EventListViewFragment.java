@@ -37,7 +37,7 @@ public class EventListViewFragment extends PlayaListViewFragment implements Play
     private ArrayList<String> selectedTypes;
 
     protected CursorRecyclerViewAdapter getAdapter() {
-        return new EventCursorAdapter(getActivity(), null, this);
+        return new EventCursorAdapter(getActivity(), null, false, this);
     }
 
     @Override
