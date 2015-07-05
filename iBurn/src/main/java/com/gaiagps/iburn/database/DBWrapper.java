@@ -22,10 +22,7 @@ public class DBWrapper extends SQLiteAssetHelper {
     private static final String DATABASE_NAME = "playaDatabase.db";
     private static final int DATABASE_VERSION = 3;
 
-    static Context c;
-
     public DBWrapper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        c = context;
     }
 }
