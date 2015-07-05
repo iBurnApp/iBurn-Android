@@ -153,7 +153,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         inflater.inflate(R.menu.activity_playa_item, menu);
 
         favoriteMenuItem = menu.findItem(R.id.favorite_menu);
-        if (isFavorite) favoriteMenuItem.setIcon(R.drawable.ic_heart_pressed);
+        if (isFavorite) favoriteMenuItem.setIcon(R.drawable.ic_heart_full);
         if (showingLocation) favoriteMenuItem.setVisible(false);
         return super.onCreateOptionsMenu(menu);
     }
@@ -166,9 +166,6 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                 onBackPressed();
                 return true;
             case R.id.favorite_menu:
-                int newDrawableResId = isFavorite ? R.drawable.ic_heart : R.drawable.ic_heart_pressed;
-                favoriteMenuItem.setIcon(newDrawableResId);
-                favoriteButton.setImageResource(newDrawableResId);
                 setFavorite(!isFavorite);
                 return true;
 
@@ -195,7 +192,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                 .subscribeOn(Schedulers.io())
                 .doOnNext(dataProvider -> this.provider = dataProvider)
                 .flatMap(dataProvider -> dataProvider.createQuery(modelTable, "SELECT * FROM " + modelTable + " WHERE _id = ?", String.valueOf(modelId)))
-                //.first()    // Do we want to receive updates?
+                .first()    // Do we want to receive updates?
                 .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(itemCursor -> {
@@ -425,14 +422,15 @@ public class PlayaItemViewActivity extends AppCompatActivity {
     }
 
     View.OnClickListener favoriteButtonOnClickListener = (View v) -> {
-        int newDrawableResId = isFavorite ? R.drawable.ic_heart : R.drawable.ic_heart_pressed;
-        ((ImageView) v).setImageResource(newDrawableResId);
-        favoriteMenuItem.setIcon(newDrawableResId);
-
         setFavorite(!isFavorite);
     };
 
     private void setFavorite(boolean isFavorite) {
+        int newFabDrawableResId = isFavorite ? R.drawable.ic_heart_pressed : R.drawable.ic_heart;
+        int newMenuDrawableResId = isFavorite ? R.drawable.ic_heart_full : R.drawable.ic_heart_empty;
+        favoriteButton.setImageResource(newFabDrawableResId);
+        favoriteMenuItem.setIcon(newMenuDrawableResId);
+
         DataProvider.getInstance(PlayaItemViewActivity.this)
                 .subscribe(dataProvider -> dataProvider.updateFavorite(modelTable, modelId, isFavorite));
         this.isFavorite = isFavorite;
