@@ -26,6 +26,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
+import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.ArtListViewFragment;
 import com.gaiagps.iburn.fragment.CampListViewFragment;
@@ -192,6 +193,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             String pwGuess = input.getText().toString();
             if (pwGuess.equals(SECRETS.UNLOCK_CODE)) {
                 prefs.setEnteredValidUnlockCode(true);
+                // Notify all observers that embargo is clear
+                DataProvider.getInstance(this).subscribe(DataProvider::endUpgrade);
                 new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
                         .setTitle(getString(R.string.victory))
                         .setMessage(getString(R.string.location_data_unlocked))
