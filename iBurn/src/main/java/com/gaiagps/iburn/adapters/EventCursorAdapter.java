@@ -15,6 +15,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaItemTable;
+import com.gaiagps.iburn.location.LocationProvider;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -22,7 +23,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 import timber.log.Timber;
 
 /**
@@ -118,11 +118,8 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
         nowPlusOneHrDate.setTime(now);
         nowPlusOneHrDate.add(Calendar.HOUR, 1);
 
-        ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(context);
-        locationProvider.getLastKnownLocation()
-                .subscribe(location -> {
-                    mDeviceLocation = location;
-                });
+        LocationProvider.getLastLocation(context).
+                subscribe(lastLocation -> mDeviceLocation = lastLocation);
 
         if (isGrouped) {
             dayFormatter = new SimpleDateFormat("EE M/d", Locale.US);

@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaItemTable;
+import com.gaiagps.iburn.location.LocationProvider;
 
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 
@@ -36,11 +37,8 @@ public class PlayaSearchResponseCursorAdapter extends CursorRecyclerViewAdapter<
         super(context, cursor);
         this.listener = listener;
 
-        ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(context);
-        locationProvider.getLastKnownLocation()
-                .subscribe(location -> {
-                    deviceLocation = location;
-                });
+        LocationProvider.getLastLocation(context).
+                subscribe(lastLocation -> deviceLocation = lastLocation);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
