@@ -19,5 +19,5 @@ public class PlayaDatabase {
     @Table(EventTable.class)    public static final String  EVENTS  = "events";
     @Table(UserPoiTable.class)  public static final String  POIS    = "pois";
 
-    public static ArrayList<String> ALL_TABLES = new ArrayList<String>() {{ add(CAMPS); add(ART); add(EVENTS); add(POIS); }};
+    public static final ArrayList<String> ALL_TABLES = new ArrayList<String>() {{ add(CAMPS); add(ART); add(EVENTS); add(POIS); }};
 }

@@ -42,7 +42,7 @@ public class DataProvider {
     /**
      * Computed column indicating type for queries that union results across tables
      */
-    public static String VirtualType = "type";
+    public static final String VirtualType = "type";
 
     public static final long BUNDLED_DATABASE_VERSION = 1435792996306L; // Unix time of creation
 

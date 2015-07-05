@@ -79,7 +79,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     public static final double MIN_LAT = 40.764702;
     public static final double MIN_LON = -119.247798;
 
-    public static LatLngBounds BRC_BOUNDS = LatLngBounds.builder()
+    public static final LatLngBounds BRC_BOUNDS = LatLngBounds.builder()
             .include(new LatLng(MAX_LAT, MIN_LON))
             .include(new LatLng(MIN_LAT, MAX_LON))
             .build();

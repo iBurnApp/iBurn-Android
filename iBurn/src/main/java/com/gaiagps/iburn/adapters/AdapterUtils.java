@@ -27,11 +27,11 @@ import java.util.Date;
  */
 public class AdapterUtils {
 
-    public static ArrayList<String> sEventTypeAbbreviations = new ArrayList<>();
-    public static ArrayList<String> sEventTypeNames = new ArrayList<>();
+    public static final ArrayList<String> sEventTypeAbbreviations = new ArrayList<>();
+    public static final ArrayList<String> sEventTypeNames = new ArrayList<>();
 
-    public static ArrayList<String> sDayAbbreviations = new ArrayList<>();
-    public static ArrayList<String> sDayNames = new ArrayList<>();
+    public static final ArrayList<String> sDayAbbreviations = new ArrayList<>();
+    public static final ArrayList<String> sDayNames = new ArrayList<>();
 
     static {
         sDayNames.add("All Days");
