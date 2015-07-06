@@ -29,7 +29,7 @@ public class ArtListViewFragment extends PlayaListViewFragment {
     }
 
     @Override
-    protected Subscription subscribeToData() {
+    protected Subscription _subscribeToData() {
         return DataProvider.getInstance(getActivity())
                 .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.ART, getAdapter().getRequiredProjection()))
                 .map(SqlBrite.Query::run)

@@ -78,7 +78,7 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterI
         super.onActivityCreated(savedInstanceState);
         adapter = getAdapter();
         mRecyclerView.setAdapter(adapter);
-        subscription = subscribeToData();
+//        subscription = _subscribeToData();
 //            mCurFilter = ((SearchQueryProvider) getActivity()).getCurrentQuery();
 //            initLoader();
 //            if (mLastLocation == null) getLastDeviceLocation();
@@ -168,7 +168,12 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterI
     /**
      * Create a subscription to the query describing this fragment's data view.
      */
-    protected abstract Subscription subscribeToData();
+    protected abstract Subscription _subscribeToData();
+
+    public void subscribeToData() {
+        if (subscription == null || subscription.isUnsubscribed())
+            subscription = _subscribeToData();
+    }
 
     /**
      * Unsubscribe from the query describing this fragment's data view

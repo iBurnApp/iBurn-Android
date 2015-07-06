@@ -29,11 +29,11 @@ import timber.log.Timber;
  */
 public class EventListViewFragment extends PlayaListViewFragment implements PlayaListViewHeader.PlayaListViewHeaderReceiver {
 
-    public static CampListViewFragment newInstance() {
-        return new CampListViewFragment();
+    public static EventListViewFragment newInstance() {
+        return new EventListViewFragment();
     }
 
-    private String selectedDay;
+    private String selectedDay = "8/25";
     private ArrayList<String> selectedTypes;
 
     protected CursorRecyclerViewAdapter getAdapter() {
@@ -41,7 +41,7 @@ public class EventListViewFragment extends PlayaListViewFragment implements Play
     }
 
     @Override
-    protected Subscription subscribeToData() {
+    protected Subscription _subscribeToData() {
         return DataProvider.getInstance(getActivity())
                 .flatMap(dataProvider -> dataProvider.observeEventsOnDayOfTypes(selectedDay, selectedTypes, getAdapter().getRequiredProjection()))
                 .map(SqlBrite.Query::run)
@@ -73,6 +73,7 @@ public class EventListViewFragment extends PlayaListViewFragment implements Play
     public void onSelectionChanged(String day, ArrayList<String> types) {
         selectedDay = day;
         selectedTypes = types;
-        subscribeToData();
+        unsubscribeFromData();
+        _subscribeToData();
     }
 }

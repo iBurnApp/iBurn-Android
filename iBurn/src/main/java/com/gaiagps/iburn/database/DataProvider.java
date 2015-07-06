@@ -46,7 +46,7 @@ public class DataProvider {
 
     public static final long BUNDLED_DATABASE_VERSION = 1435792996306L; // Unix time of creation
 
-    private static final boolean USE_BUNDLED_DB = false;
+    private static final boolean USE_BUNDLED_DB = true;
 
     private static DataProvider provider;
 
@@ -143,7 +143,7 @@ public class DataProvider {
                                                    @Nullable String[] projection) {
         return db.createQuery(table,
                 interceptQuery("SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table))
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.computation())
                 .skipWhile(query -> upgradeLock.get());
     }
 
@@ -188,7 +188,7 @@ public class DataProvider {
 
         Timber.d("Event filter query " + sql.toString());
         return db.createQuery(PlayaDatabase.EVENTS, interceptQuery(sql.toString()), args.toArray(new String[args.size()]))
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.computation())
                 .skipWhile(query -> upgradeLock.get());
     }
 
@@ -216,7 +216,7 @@ public class DataProvider {
         }
 
         return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()))
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.computation())
                 .skipWhile(query -> upgradeLock.get());
     }
 
@@ -249,7 +249,7 @@ public class DataProvider {
         }
 
         return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()), params)
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.computation())
                 .skipWhile(queryResp -> upgradeLock.get());
     }
 
@@ -279,7 +279,7 @@ public class DataProvider {
         }
 
         return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()))
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.computation())
                 .skipWhile(queryResp -> upgradeLock.get());
     }
 

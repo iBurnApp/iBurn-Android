@@ -3,6 +3,7 @@ package com.gaiagps.iburn.fragment;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
+import com.squareup.sqlbrite.SqlBrite;
 
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -21,14 +22,12 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
     }
 
     @Override
-    protected Subscription subscribeToData() {
+    protected Subscription _subscribeToData() {
 
         return DataProvider.getInstance(getActivity())
                 .flatMap(dataProvider -> dataProvider.observeFavorites(getAdapter().getRequiredProjection()))
+                .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(query -> {
-                    onDataChanged(query.run());
-                });
+                .subscribe(this::onDataChanged);
     }
-
 }

@@ -189,7 +189,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         }
 
         DataProvider.getInstance(this)
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.computation())
                 .doOnNext(dataProvider -> this.provider = dataProvider)
                 .flatMap(dataProvider -> dataProvider.createQuery(modelTable, "SELECT * FROM " + modelTable + " WHERE _id = ?", String.valueOf(modelId)))
                 .first()    // Do we want to receive updates?

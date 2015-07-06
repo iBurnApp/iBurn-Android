@@ -15,7 +15,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -33,12 +32,10 @@ import com.gaiagps.iburn.fragment.CampListViewFragment;
 import com.gaiagps.iburn.fragment.EventListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
+import com.gaiagps.iburn.fragment.PlayaListViewFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.gcm.GcmNetworkManager;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
@@ -233,21 +230,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             } else
                 Timber.d("Current fragment does not implement Searchable");
         }
-
-        // TODO: Unused.. Consider removing
-        if (intent.hasExtra("tab")) {
-            TabType tab = (TabType) intent.getSerializableExtra("tab");
-            switch (tab) {
-                case MAP:
-                    mViewPager.setCurrentItem(0, true);
-                    LatLng marker = new LatLng(intent.getFloatExtra("lat", 0), intent.getFloatExtra("lon", 0));
-
-                    ((GoogleMapFragment) mPagerAdapter.getItem(0)).mapAndCenterOnMarker(new MarkerOptions().position(marker).title(intent.getStringExtra("title")));
-                    Log.i("GoogleMapFragment", "queue marker");
-                    break;
-
-            }
-        }
     }
 
     /**
@@ -359,6 +341,10 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             super.setPrimaryItem(container, position, object);
             mCurrentPrimaryItem = (Fragment) object;
             if (mLastPosition != position) {
+
+                if (mCurrentPrimaryItem instanceof PlayaListViewFragment) {
+                    ((PlayaListViewFragment) mCurrentPrimaryItem).subscribeToData();
+                }
 
                 //if (mCurrentPrimaryItem instanceof Searchable && mSearchQueryProvider != null) {
                 // Remove for now -- With a dedicated search screen we'll focus the list fragments

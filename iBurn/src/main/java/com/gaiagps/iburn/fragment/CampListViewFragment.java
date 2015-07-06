@@ -29,7 +29,7 @@ public class CampListViewFragment extends PlayaListViewFragment {
     }
 
     @Override
-    protected Subscription subscribeToData() {
+    protected Subscription _subscribeToData() {
         return DataProvider.getInstance(getActivity())
                 .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.CAMPS, getAdapter().getRequiredProjection()))
                 .doOnNext(query -> Timber.d("Got query"))
