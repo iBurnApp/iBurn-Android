@@ -28,6 +28,9 @@ android {
         targetSdkVersion 22
         versionCode 5
         versionName "2015.0.1"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
     }
 
     signingConfigs {
@@ -60,6 +63,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
 }
 
 // Read Signing key from gradle.properties located in project root
@@ -100,6 +104,7 @@ dependencies {
     compile 'com.squareup.retrofit:retrofit:1.9.0'
     compile 'com.squareup.okhttp:okhttp:2.0.0'
     compile 'pl.charmas.android:android-reactive-location:0.6@aar'
+    compile 'com.tonicartos:superslim:0.4.13'
 
     apt 'net.simonvt.schematic:schematic-compiler:0.6.1'
     compile 'net.simonvt.schematic:schematic:0.6.1'
@@ -109,4 +114,10 @@ dependencies {
 
     // Debugging libraries
     debugCompile 'com.facebook.stetho:stetho:1.1.1'
+
+    // Test dependencies
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+    androidTestCompile 'com.android.support.test:runner:0.3'
+    androidTestCompile 'com.android.support.test:rules:0.3'
 }

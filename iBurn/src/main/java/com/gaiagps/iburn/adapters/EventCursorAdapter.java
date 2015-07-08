@@ -109,7 +109,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
     Calendar nowDate = Calendar.getInstance();
 
     public EventCursorAdapter(Context context, Cursor c, boolean isGrouped, AdapterItemSelectedListener listener) {
-        super(context, c);
+        super(c);
         this.context = context;
         this.listener = listener;
         this.areItemsGrouped = isGrouped;

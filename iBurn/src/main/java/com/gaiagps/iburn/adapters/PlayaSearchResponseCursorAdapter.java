@@ -34,7 +34,7 @@ public class PlayaSearchResponseCursorAdapter extends CursorRecyclerViewAdapter<
     private static int typeCol;
 
     public PlayaSearchResponseCursorAdapter(Context context, Cursor cursor, AdapterItemSelectedListener listener) {
-        super(context, cursor);
+        super(cursor);
         this.listener = listener;
 
         LocationProvider.getLastLocation(context).

@@ -39,7 +39,7 @@ public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemC
     private int idCol;
 
     public PlayaItemCursorAdapter(Context context, Cursor cursor, Constants.PlayaItemType type, AdapterItemSelectedListener listener) {
-        super(context, cursor);
+        super(cursor);
         this.type = type;
         this.listener = listener;
 

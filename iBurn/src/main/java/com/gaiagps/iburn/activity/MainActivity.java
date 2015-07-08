@@ -27,10 +27,9 @@ import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
-import com.gaiagps.iburn.fragment.ArtListViewFragment;
 import com.gaiagps.iburn.fragment.CampListViewFragment;
 import com.gaiagps.iburn.fragment.EventListViewFragment;
-import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
+import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.gaiagps.iburn.fragment.PlayaListViewFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
@@ -56,8 +55,6 @@ import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements SearchQueryProvider {
 
-    public enum TabType { MAP, CAMPS, ART, EVENTS};
-
     private static final String HOCKEY_ID = SECRETS.HOCKEY_ID;
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private boolean googlePlayServicesMissing = false;
@@ -81,10 +78,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private static List<IBurnPagerAdapter.IBurnTab> sTabs
             = new ArrayList<IBurnPagerAdapter.IBurnTab>() {{
         add(IBurnPagerAdapter.IBurnTab.MAP);
-        add(IBurnPagerAdapter.IBurnTab.ART);
-        add(IBurnPagerAdapter.IBurnTab.CAMPS);
-        add(IBurnPagerAdapter.IBurnTab.EVENTS);
-        add(IBurnPagerAdapter.IBurnTab.FAVORITES);
+        add(IBurnPagerAdapter.IBurnTab.EXPLORE);
+        add(IBurnPagerAdapter.IBurnTab.BROWSE);
     }};
 
     @Override
@@ -106,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
 
-        //mTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
+        mTabs.setTabGravity(TabLayout.GRAVITY_FILL);
 
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();
@@ -275,12 +270,10 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         private SearchQueryProvider mSearchQueryProvider;
         private int mLastPosition = -1;
 
-        public static enum IBurnTab {
+        public enum IBurnTab {
             MAP(R.string.map_tab, R.drawable.ic_brc, GoogleMapFragment.class),
-            ART(R.string.art_tab, R.drawable.ic_monument, ArtListViewFragment.class),
-            CAMPS(R.string.camps_tab, R.drawable.ic_camp, CampListViewFragment.class),
-            EVENTS(R.string.events_tab, R.drawable.ic_calendar, EventListViewFragment.class),
-            FAVORITES(R.string.fav_tab, R.drawable.heart, FavoritesListViewFragment.class);
+            EXPLORE(R.string.explore_tab, R.drawable.ic_calendar, ExploreListViewFragment.class),
+            BROWSE(R.string.browse_tab, R.drawable.ic_camp, CampListViewFragment.class);
 
             private final Class<? extends Fragment> mFragClass;
             private final Integer mTitleResId;

@@ -15,7 +15,6 @@ package com.gaiagps.iburn.adapters;/*
  *
  */
 
-import android.content.Context;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 
@@ -25,16 +24,13 @@ import android.support.v7.widget.RecyclerView;
 
 public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
 
-    protected Context mContext;
+    protected Cursor mCursor;
 
-    private Cursor mCursor;
-
-    private boolean mDataValid;
+    protected boolean mDataValid;
 
     private int mRowIdColumn;
 
-    public CursorRecyclerViewAdapter(Context context, Cursor cursor) {
-        mContext = context;
+    public CursorRecyclerViewAdapter(Cursor cursor) {
         mCursor = cursor;
         mDataValid = cursor != null;
         mRowIdColumn = mDataValid ? mCursor.getColumnIndex("_id") : -1;
