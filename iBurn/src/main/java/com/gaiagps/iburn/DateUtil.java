@@ -17,13 +17,13 @@ public class DateUtil {
      * Get a human description of an event's state
      * (e.g: Starts in XX, Ends in XX)
      *
-     * @param context The application {@link android.content.Context}
-     * @param nowDate The date to treat as 'now'
+     * @param context            The application {@link android.content.Context}
+     * @param nowDate            The date to treat as 'now'
      * @param relativeTimeCutoff The date before which to use relative date descriptors. e.g: (in 2 minutes)
-     * @param startDateStr An ISO start date string
+     * @param startDateStr       An ISO start date string
      * @param prettyStartDateStr A 'prettified' start date string
-     * @param endDateStr An ISO end date string
-     * @param prettyEndDateStr A 'prettified' end date string
+     * @param endDateStr         An ISO end date string
+     * @param prettyEndDateStr   A 'prettified' end date string
      */
     public static String getDateString(Context context, Date nowDate, Date relativeTimeCutoff, String startDateStr, String prettyStartDateStr, String endDateStr, String prettyEndDateStr) {
         try {
@@ -54,5 +54,20 @@ public class DateUtil {
             e.printStackTrace();
         }
         return prettyStartDateStr;
+    }
+
+    public static String getStartDateString(Date startDate, Date nowDate) {
+
+        if (Math.abs(startDate.getTime() - nowDate.getTime()) < DateUtils.MINUTE_IN_MILLIS) {
+            return "Starting now";
+
+        } else {
+
+            String relativeSpan = DateUtils.getRelativeTimeSpanString(
+                    startDate.getTime(),
+                    nowDate.getTime(),
+                    DateUtils.MINUTE_IN_MILLIS).toString();
+            return (startDate.before(nowDate) ? "Started " : "Starts ") + relativeSpan;
+        }
     }
 }

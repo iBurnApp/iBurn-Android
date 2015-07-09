@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.database;
 
+import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.PrefsHelper;
 
 import java.util.Calendar;
@@ -15,7 +16,7 @@ import java.util.GregorianCalendar;
 public class Embargo implements DataProvider.QueryInterceptor {
 
     // August 25, 2015
-    public  static final Date   EMBARGO_DATE   = new GregorianCalendar(2015, Calendar.AUGUST, 25, 12, 0).getTime();
+    public  static final Date   EMBARGO_DATE   = new GregorianCalendar(2015, Calendar.AUGUST, 25, 0, 0).getTime();
 
     private static final String NULL_LATITUDE  = "NULL AS " + PlayaItemTable.latitude;
     private static final String NULL_LONGITUDE = "NULL AS " + PlayaItemTable.longitude;
@@ -36,6 +37,6 @@ public class Embargo implements DataProvider.QueryInterceptor {
     }
 
     public static boolean isEmbargoActive(PrefsHelper prefs) {
-        return new Date().before(EMBARGO_DATE) && !prefs.enteredValidUnlockCode();
+        return CurrentDateProvider.getCurrentDate().before(EMBARGO_DATE) && !prefs.enteredValidUnlockCode();
     }
 }

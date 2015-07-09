@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
@@ -113,7 +114,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
         this.context = context;
         this.listener = listener;
         this.areItemsGrouped = isGrouped;
-        Date now = new Date();
+        Date now = CurrentDateProvider.getCurrentDate();
         nowDate.setTime(now);
         nowPlusOneHrDate.setTime(now);
         nowPlusOneHrDate.add(Calendar.HOUR, 1);

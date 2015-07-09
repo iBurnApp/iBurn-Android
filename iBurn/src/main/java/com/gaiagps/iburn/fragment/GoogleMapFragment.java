@@ -20,6 +20,7 @@ import android.widget.RadioGroup;
 
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
@@ -558,7 +559,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                     .append(" WHERE ")
                     .append(geoWhereClause);
 
-            sqlParemeters[0] = sqlParemeters[1] = PlayaDateTypeAdapter.iso8601Format.format(new Date());
+            sqlParemeters[0] = sqlParemeters[1] = PlayaDateTypeAdapter.iso8601Format.format(CurrentDateProvider.getCurrentDate());
 
             sqlParemeters[2] = sqlParemeters[6] = sqlParemeters[10] = String.valueOf(visibleRegion.farLeft.latitude);
             sqlParemeters[3] = sqlParemeters[7] = sqlParemeters[11] = String.valueOf(visibleRegion.nearRight.latitude);

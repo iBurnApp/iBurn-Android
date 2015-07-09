@@ -3,6 +3,9 @@ package com.gaiagps.iburn.location;
 import android.content.Context;
 import android.location.Location;
 
+import com.gaiagps.iburn.BuildConfig;
+import com.gaiagps.iburn.Geo;
+
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -17,6 +20,13 @@ public class LocationProvider {
     private static ReactiveLocationProvider locationProvider;
 
     public static Observable<Location> getLastLocation(Context context) {
+        if (BuildConfig.DEBUG) {
+            Location targetLocation = new Location("");
+            targetLocation.setLatitude(Geo.MAN_LAT);
+            targetLocation.setLongitude(Geo.MAN_LON);
+            return Observable.just(targetLocation);
+        }
+
         if (locationProvider == null) {
             locationObservable = locationSubject.cache(1);
             locationProvider = new ReactiveLocationProvider(context);

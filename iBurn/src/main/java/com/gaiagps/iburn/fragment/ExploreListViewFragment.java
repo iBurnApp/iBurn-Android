@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.BuildConfig;
+import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
@@ -54,18 +56,17 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
     protected Subscription _subscribeToData() {
 
         // TODO : Get debug date dynamically
-        Date now = BuildConfig.DEBUG ? new GregorianCalendar(2014, 8, 28, 12, 0).getTime() : new Date();
         Calendar modifiedDate = Calendar.getInstance();
-        modifiedDate.setTime(now);
-        modifiedDate.add(Calendar.HOUR, -1);
-        String nowMinusOneHrStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
+        modifiedDate.setTime(CurrentDateProvider.getCurrentDate());
+//        modifiedDate.add(Calendar.HOUR, -1);
+        String lowerBoundDateStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
         modifiedDate.add(Calendar.HOUR, 7);
-        String nowPlusSixHrStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
+        String upperBoundDateStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
 
 
         // Get Events that started from within the last hour to in the next 6 hours
         return DataProvider.getInstance(getActivity())
-                .flatMap(dataProvider -> dataProvider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.startTime + " > '" + nowMinusOneHrStr + "' AND " + EventTable.startTime + " < '" + nowPlusSixHrStr + "\' ORDER BY " + EventTable.startTime + " ASC LIMIT 20"))
+                .flatMap(dataProvider -> dataProvider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.startTime + " > '" + lowerBoundDateStr + "' AND " + EventTable.startTime + " < '" + upperBoundDateStr + "\' ORDER BY " + EventTable.startTime + " ASC LIMIT 100"))
                 .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(cursor -> {

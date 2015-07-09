@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
@@ -286,7 +287,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                     } else
                                         subItem1TextView.setVisibility(View.GONE);
 
-                                    Date nowDate = new Date();
+                                    Date nowDate = CurrentDateProvider.getCurrentDate();
                                     Calendar nowPlusOneHrDate = Calendar.getInstance();
                                     nowPlusOneHrDate.setTime(nowDate);
                                     nowPlusOneHrDate.add(Calendar.HOUR, 1);

@@ -7,17 +7,16 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.LocationProvider;
-import com.tonicartos.superslim.GridSLM;
 import com.tonicartos.superslim.LayoutManager;
 import com.tonicartos.superslim.LinearSLM;
 
@@ -29,7 +28,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import hugo.weaving.DebugLog;
 import timber.log.Timber;
 
 /**
@@ -106,7 +104,7 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
         this.context = context;
         this.listener = listener;
         this.areItemsGrouped = isGrouped;
-        Date now = new Date();
+        Date now = CurrentDateProvider.getCurrentDate();
         nowDate.setTime(now);
         nowPlusOneHrDate.setTime(now);
         nowPlusOneHrDate.add(Calendar.HOUR, 1);
@@ -119,8 +117,7 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
             timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
         }
 
-        if (c != null)
-            calculateHeadersForCursor(c);
+        initializeWithNewCursor(c);
     }
 
     @Override
@@ -165,32 +162,25 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
         final LayoutManager.LayoutParams params = (LayoutManager.LayoutParams) holder.itemView.getLayoutParams();
 
         params.setSlm(LinearSLM.ID);
-//        params.headerDisplay = LayoutManager.LayoutParams.HEADER_STICKY | LayoutManager.LayoutParams.HEADER_ALIGN_START | LayoutManager.LayoutParams.HEADER_INLINE;
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
         int headerPos = getHeaderPositionForPosition(position);
-        Timber.d("Header Position %d header %d", position, headerPos);
+        //Timber.d("Header Position %d header %d", position, headerPos);
 
         params.setFirstPosition(headerPos);
 
         holder.itemView.setLayoutParams(params);
 
-        if (startTimePrettyCol == 0) startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
-        ((TextView) holder.itemView).setText("Starts " + cursor.getString(startTimePrettyCol));
+        try {
+            ((TextView) holder.itemView).setText(DateUtil.getStartDateString(
+                    PlayaDateTypeAdapter.iso8601Format.parse(cursor.getString(startTimeCol)),
+                    CurrentDateProvider.getCurrentDate()));
+        } catch (ParseException e) {
+            ((TextView) holder.itemView).setText("Starts " + cursor.getString(startTimePrettyCol));
+            Timber.e(e, "Failed to parse event start date");
+        }
     }
 
     public void onBindViewHolder(ViewHolder viewHolder, Cursor cursor, int position) {
-
-        if (titleCol == 0) {
-            titleCol = cursor.getColumnIndexOrThrow(EventTable.name);
-            eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
-            startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
-            startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
-            endTimeCol = cursor.getColumnIndexOrThrow(EventTable.endTime);
-            endTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.endTimePrint);
-            latCol = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
-            lonCol = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
-            idCol = cursor.getColumnIndexOrThrow(EventTable.id);
-        }
 
         try {
             if (areItemsGrouped) {
@@ -253,7 +243,7 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
         // first item in a section.
         params.setSlm(LinearSLM.ID);
         int headerPos = getHeaderPositionForPosition(position);
-        Timber.d("Position %d header %d", position, headerPos);
+        //Timber.d("Position %d header %d", position, headerPos);
         params.setFirstPosition(headerPos);
         viewHolder.itemView.setLayoutParams(params);
     }
@@ -292,12 +282,15 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
     }
 
     public void changeCursor(Cursor cursor) {
-        calculateHeadersForCursor(cursor);
+        initializeWithNewCursor(cursor);
+
+
         super.changeCursor(cursor);
     }
 
     public Cursor swapCursor(Cursor newCursor) {
-        calculateHeadersForCursor(newCursor);
+        initializeWithNewCursor(newCursor);
+
         return super.swapCursor(newCursor);
     }
 
@@ -310,9 +303,14 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
         return Long.MAX_VALUE - headerPositions.indexOf(position);
     }
 
-    private void calculateHeadersForCursor(Cursor cursor) {
-        if (startTimeCol == 0) startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
+    private void initializeWithNewCursor(Cursor newCursor) {
+        if (newCursor != null && newCursor.getCount() > 0) {
+            setColumnsFromCursor(newCursor);
+            calculateHeadersForCursor(newCursor);
+        }
+    }
 
+    private void calculateHeadersForCursor(Cursor cursor) {
         headerPositions = new ArrayList<>();
         cursor.moveToFirst();
         headerPositions.add(0);
@@ -327,6 +325,18 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
             lastDate = thisDate;
         }
         cursor.moveToFirst();
+    }
+
+    private void setColumnsFromCursor(Cursor cursor) {
+        titleCol = cursor.getColumnIndexOrThrow(EventTable.name);
+        eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
+        startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
+        startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
+        endTimeCol = cursor.getColumnIndexOrThrow(EventTable.endTime);
+        endTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.endTimePrint);
+        latCol = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
+        lonCol = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
+        idCol = cursor.getColumnIndexOrThrow(EventTable.id);
     }
 
     /**
