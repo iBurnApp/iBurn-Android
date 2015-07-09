@@ -99,22 +99,21 @@ public class AdapterUtils {
     public static double setDistanceText(Location deviceLocation, Date nowDate, String startDateStr, String endDateStr, TextView textView, double lat, double lon) {
         if (deviceLocation != null && lat != 0) {
             double metersToTarget = Geo.getDistance(lat, lon, deviceLocation);
-            double milesToTarget = metersToTarget * 0.000621371; // meters to miles
             double minutesToTarget = Geo.getWalkingEstimateMinutes(metersToTarget);
             String distanceText;
 
             try {
                 Spannable spanRange;
 
-                if (milesToTarget < 0.1) {
-                    distanceText = "<.1 m";
+                if (minutesToTarget < 1) {
+                    distanceText = "<1 m";
                     spanRange = new SpannableString(distanceText);
                 } else {
-                    distanceText = String.format("%.0f min %.2f miles", minutesToTarget, milesToTarget);
-                    int endSpan = distanceText.length();
+                    distanceText = String.format("%.0f min", minutesToTarget);
+//                    int endSpan = distanceText.length();
                     spanRange = new SpannableString(distanceText);
-                    TextAppearanceSpan tas = new TextAppearanceSpan(textView.getContext(), R.style.Subdued);
-                    spanRange.setSpan(tas, distanceText.indexOf("min") + 3, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+//                    TextAppearanceSpan tas = new TextAppearanceSpan(textView.getContext(), R.style.Subdued);
+//                    spanRange.setSpan(tas, distanceText.indexOf("min") + 3, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
 
                 if (nowDate != null && startDateStr != null && endDateStr != null) {
