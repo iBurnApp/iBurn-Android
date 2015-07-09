@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
@@ -25,6 +26,7 @@ import com.tonicartos.superslim.LinearSLM;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -51,7 +53,8 @@ public class ExploreListViewFragment extends PlayaListViewFragment implements Pl
     @Override
     protected Subscription _subscribeToData() {
 
-        Date now = new Date();
+        // TODO : Get debug date dynamically
+        Date now = BuildConfig.DEBUG ? new GregorianCalendar(2014, 8, 28, 12, 0).getTime() : new Date();
         Calendar modifiedDate = Calendar.getInstance();
         modifiedDate.setTime(now);
         modifiedDate.add(Calendar.HOUR, -1);
