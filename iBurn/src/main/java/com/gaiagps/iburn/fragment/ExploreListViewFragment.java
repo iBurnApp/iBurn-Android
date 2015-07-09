@@ -37,7 +37,7 @@ import timber.log.Timber;
  * <p/>
  * Created by davidbrodsky on 8/3/13.
  */
-public class ExploreListViewFragment extends PlayaListViewFragment implements PlayaListViewHeader.PlayaListViewHeaderReceiver {
+public class ExploreListViewFragment extends PlayaListViewFragment {
 
     public static ExploreListViewFragment newInstance() {
         return new ExploreListViewFragment();
@@ -83,23 +83,11 @@ public class ExploreListViewFragment extends PlayaListViewFragment implements Pl
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_event_list_view, container, false);
+        View v = inflater.inflate(R.layout.fragment_explore_list_view, container, false);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
-
-//        LayoutManager manager = new LayoutManager(getActivity());
-//        manager.addSlm("first", new LinearSLM(manager));
         mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
-        ((PlayaListViewHeader) v.findViewById(R.id.header)).setReceiver(this);
         return v;
-    }
-
-    @Override
-    public void onSelectionChanged(String day, ArrayList<String> types) {
-        selectedDay = day;
-        selectedTypes = types;
-        unsubscribeFromData();
-        _subscribeToData();
     }
 }
