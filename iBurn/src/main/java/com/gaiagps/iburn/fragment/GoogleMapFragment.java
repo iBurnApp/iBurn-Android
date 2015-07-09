@@ -51,7 +51,6 @@ import com.google.android.gms.maps.model.VisibleRegion;
 import com.squareup.sqlbrite.SqlBrite;
 
 import java.util.ArrayDeque;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -487,11 +486,11 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         markerIdToMeta.clear();
     }
 
-    public void mapAndCenterOnMarker(final MarkerOptions marker) {
+    public void mapMarkerAndFitEntireCity(final MarkerOptions marker) {
         latLngToCenterOn = marker.getPosition();
         getMapAsync(googleMap -> {
             googleMap.addMarker(marker);
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLngToCenterOn, 14));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 13));
         });
     }
 
@@ -504,7 +503,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     }
 
     private void _showcaseMarker() {
-        mapAndCenterOnMarker(showcaseMarker);
+        mapMarkerAndFitEntireCity(showcaseMarker);
         ImageButton poiBtn = (ImageButton) getActivity().findViewById(R.id.mapPoiBtn);
         if (poiBtn != null) {
             poiBtn.setVisibility(View.GONE);
