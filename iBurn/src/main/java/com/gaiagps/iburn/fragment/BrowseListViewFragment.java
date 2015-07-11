@@ -133,6 +133,7 @@ public final class BrowseListViewFragment extends Fragment implements EventListH
         eventListHeader = (ViewGroup) v.findViewById(R.id.eventHeader);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
+        unsubscribeFromData();
         subscribeToData();
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));

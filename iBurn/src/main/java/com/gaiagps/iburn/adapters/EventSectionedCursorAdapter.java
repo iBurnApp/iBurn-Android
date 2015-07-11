@@ -80,7 +80,6 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView titleView;
         TextView typeView;
-        TextView timeView;
         TextView distanceView;
         View container;
 
@@ -92,7 +91,6 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
 
             container = view;
             titleView = (TextView) view.findViewById(R.id.list_item_title);
-            timeView = (TextView) view.findViewById(R.id.list_item_sub_right);
             distanceView = (TextView) view.findViewById(R.id.list_item_sub_left);
             typeView = (TextView) view.findViewById(R.id.list_item_subtitle);
         }
@@ -132,7 +130,7 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
                     .inflate(R.layout.listview_header_item, parent, false);
         } else {
             itemView = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.quad_listview_item, parent, false);
+                    .inflate(R.layout.event_list_view_item, parent, false);
         }
 
         ViewHolder vh = new ViewHolder(itemView);
@@ -228,7 +226,6 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
         }
 
         viewHolder.titleView.setText(cursor.getString(titleCol));
-        viewHolder.timeView.setText(viewHolder.timeLabel);
 
         viewHolder.modelId = cursor.getInt(idCol);
         viewHolder.container.setTag(viewHolder.modelId);

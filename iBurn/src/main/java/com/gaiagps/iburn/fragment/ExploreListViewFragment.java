@@ -24,6 +24,7 @@ import java.util.Calendar;
 
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
@@ -55,6 +56,7 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
 
         // Get Events that started from within the last hour to in the next 6 hours
         return DataProvider.getInstance(getActivity())
+                .subscribeOn(Schedulers.computation())
                 .flatMap(dataProvider -> dataProvider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.startTime + " > '" + lowerBoundDateStr + "' AND " + EventTable.startTime + " < '" + upperBoundDateStr + "\' ORDER BY " + EventTable.startTime + " ASC LIMIT 100"))
                 .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
