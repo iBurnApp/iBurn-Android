@@ -28,6 +28,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
@@ -135,8 +138,10 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
         ViewHolder vh = new ViewHolder(itemView);
 
         itemView.setOnClickListener(view -> {
-            int modelId = (int) view.getTag();
-            listener.onItemSelected(modelId, Constants.PlayaItemType.EVENT);
+            if (view.getTag() != null) {
+                int modelId = (int) view.getTag();
+                listener.onItemSelected(modelId, Constants.PlayaItemType.EVENT);
+            }
         });
 
         return vh;
@@ -173,9 +178,9 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
         try {
             ((TextView) holder.itemView).setText(DateUtil.getStartDateString(
                     PlayaDateTypeAdapter.iso8601Format.parse(cursor.getString(startTimeCol)),
-                    CurrentDateProvider.getCurrentDate()));
+                    CurrentDateProvider.getCurrentDate()).toUpperCase());
         } catch (ParseException e) {
-            ((TextView) holder.itemView).setText("Starts " + cursor.getString(startTimePrettyCol));
+            ((TextView) holder.itemView).setText("STARTS " + cursor.getString(startTimePrettyCol).toUpperCase());
             Timber.e(e, "Failed to parse event start date");
         }
     }
@@ -197,16 +202,12 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
                 else
                     viewHolder.timeLabel = cursor.getString(startTimePrettyCol);
             } else {
-                if (cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1) {
-                    viewHolder.timeLabel = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
-
-                } else {
-                    viewHolder.timeLabel = DateUtil.getDateString(context, nowDate.getTime(), nowPlusOneHrDate.getTime(),
-                            cursor.getString(startTimeCol),
-                            cursor.getString(startTimePrettyCol),
-                            cursor.getString(endTimeCol),
-                            cursor.getString(endTimePrettyCol));
-                }
+//                if (cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1) {
+//                    viewHolder.timeLabel = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
+//
+//                } else {
+//                    viewHolder.timeLabel = DateUtil.getEndDateString(PlayaDateTypeAdapter.iso8601Format.parse(cursor.getString(endTimeCol)), CurrentDateProvider.getCurrentDate());
+//                }
             }
         } catch (IllegalArgumentException | ParseException e) {
             Timber.e(e, "Failed to bind event");
@@ -282,10 +283,13 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
     }
 
     public void changeCursor(Cursor cursor) {
-        initializeWithNewCursor(cursor);
-
-
-        super.changeCursor(cursor);
+        Observable.just(cursor)
+                .subscribeOn(Schedulers.computation())
+                .map(this::initializeWithNewCursor)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(success -> {
+                    super.changeCursor(cursor);
+                });
     }
 
     public Cursor swapCursor(Cursor newCursor) {
@@ -303,11 +307,12 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
         return Long.MAX_VALUE - headerPositions.indexOf(position);
     }
 
-    private void initializeWithNewCursor(Cursor newCursor) {
+    private boolean initializeWithNewCursor(Cursor newCursor) {
         if (newCursor != null && newCursor.getCount() > 0) {
             setColumnsFromCursor(newCursor);
             calculateHeadersForCursor(newCursor);
         }
+        return true;
     }
 
     private void calculateHeadersForCursor(Cursor cursor) {

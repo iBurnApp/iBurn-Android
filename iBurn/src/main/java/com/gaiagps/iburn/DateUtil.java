@@ -31,7 +31,7 @@ public class DateUtil {
             if (nowDate.before(startDate)) {
                 // Has not yet started
                 if (relativeTimeCutoff.after(startDate)) {
-                    return context.getString(R.string.starts) + " " + DateUtils.getRelativeTimeSpanString(startDate.getTime()).toString();
+                    return context.getString(R.string.starts) + " " + DateUtils.getRelativeTimeSpanString(startDate.getTime(), nowDate.getTime(), DateUtils.MINUTE_IN_MILLIS).toString();
                 }
                 return context.getString(R.string.starts) + " " + prettyStartDateStr;
             } else {
@@ -39,12 +39,12 @@ public class DateUtil {
                 Date endDate = PlayaDateTypeAdapter.iso8601Format.parse(endDateStr);
                 if (endDate.before(nowDate)) {
                     if (relativeTimeCutoff.after(endDate)) {
-                        return context.getString(R.string.ended) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
+                        return context.getString(R.string.ended) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime(), nowDate.getTime(), DateUtils.MINUTE_IN_MILLIS).toString();
                     }
                     return context.getString(R.string.ended) + " " + prettyEndDateStr;
                 } else {
                     if (relativeTimeCutoff.after(endDate)) {
-                        return context.getString(R.string.ends) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime()).toString();
+                        return context.getString(R.string.ends) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime(), nowDate.getTime(), DateUtils.MINUTE_IN_MILLIS).toString();
                     }
                     return context.getString(R.string.ends) + " " + prettyEndDateStr;
                 }
@@ -68,6 +68,21 @@ public class DateUtil {
                     nowDate.getTime(),
                     DateUtils.MINUTE_IN_MILLIS).toString();
             return (startDate.before(nowDate) ? "Started " : "Starts ") + relativeSpan;
+        }
+    }
+
+    public static String getEndDateString(Date endDate, Date nowDate) {
+
+        if (Math.abs(endDate.getTime() - nowDate.getTime()) < DateUtils.MINUTE_IN_MILLIS) {
+            return "Ending now";
+
+        } else {
+
+            String relativeSpan = DateUtils.getRelativeTimeSpanString(
+                    endDate.getTime(),
+                    nowDate.getTime(),
+                    DateUtils.MINUTE_IN_MILLIS).toString();
+            return (endDate.before(nowDate) ? "Ended " : "Ends ") + relativeSpan;
         }
     }
 }

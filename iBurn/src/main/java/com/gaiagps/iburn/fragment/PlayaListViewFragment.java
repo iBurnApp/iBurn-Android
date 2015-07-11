@@ -155,6 +155,7 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterI
         }
 
         Timber.d("%s, onDataChanged with %d items", getClass().getSimpleName(), newData.getCount());
+        // Important to use changeCursor bc, unlike swapCursor, it can be executed asynchronously
         adapter.changeCursor(newData);
     }
 

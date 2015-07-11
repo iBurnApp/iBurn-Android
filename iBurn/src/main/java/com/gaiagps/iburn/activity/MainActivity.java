@@ -27,6 +27,7 @@ import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
+import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.CampListViewFragment;
 import com.gaiagps.iburn.fragment.EventListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
@@ -273,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         public enum IBurnTab {
             MAP(R.string.map_tab, R.drawable.ic_brc, GoogleMapFragment.class),
             EXPLORE(R.string.explore_tab, R.drawable.ic_calendar, ExploreListViewFragment.class),
-            BROWSE(R.string.browse_tab, R.drawable.ic_camp, CampListViewFragment.class);
+            BROWSE(R.string.browse_tab, R.drawable.ic_camp, BrowseListViewFragment.class);
 
             private final Class<? extends Fragment> mFragClass;
             private final Integer mTitleResId;

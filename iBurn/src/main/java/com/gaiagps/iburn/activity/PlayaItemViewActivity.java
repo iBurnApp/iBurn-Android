@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -119,7 +120,6 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         fadeAnimation.setStartOffset(250);
         fadeAnimation.setFillAfter(true);
         fadeAnimation.setFillEnabled(true);
-//        mapContainer.setAlpha(0);
         mapContainer.startAnimation(fadeAnimation);
 
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
@@ -366,17 +366,20 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
                                             int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
                                             ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
+                                            Typeface condensed = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
 
                                             TextView occurrencesTitle = new TextView(wrapper);
                                             occurrencesTitle.setText(R.string.also_at);
+                                            occurrencesTitle.setTypeface(condensed);
                                             occurrencesTitle.setTextSize(32);
-                                            occurrencesTitle.setPadding(pad,pad,pad,pad);
+                                            occurrencesTitle.setPadding(pad,pad,pad,0);
                                             overflowContainer.addView(occurrencesTitle);
 
                                             final SimpleDateFormat timeDayFormatter = new SimpleDateFormat("EEEE, M/d 'at' h:mm a", Locale.US);
 
                                             while (eventsCursor.moveToNext()) {
                                                 TextView event = new TextView(wrapper);
+                                                event.setTypeface(condensed);
                                                 event.setTextSize(20);
                                                 event.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                                                 try {

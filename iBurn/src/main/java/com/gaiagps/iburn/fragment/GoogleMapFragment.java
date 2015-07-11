@@ -273,6 +273,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         super.onDestroy();
         if (tileProvider != null && tileProviderHolds.decrementAndGet() == 0) {
             tileProvider.close();
+            tileProvider = null;
         }
     }
 

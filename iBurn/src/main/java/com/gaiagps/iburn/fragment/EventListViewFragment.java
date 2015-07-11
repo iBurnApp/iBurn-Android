@@ -13,7 +13,7 @@ import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.adapters.EventCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.view.PlayaListViewHeader;
+import com.gaiagps.iburn.view.EventListHeader;
 import com.squareup.sqlbrite.SqlBrite;
 
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import timber.log.Timber;
  * <p/>
  * Created by davidbrodsky on 8/3/13.
  */
-public class EventListViewFragment extends PlayaListViewFragment implements PlayaListViewHeader.PlayaListViewHeaderReceiver {
+public class EventListViewFragment extends PlayaListViewFragment implements EventListHeader.PlayaListViewHeaderReceiver {
 
     public static EventListViewFragment newInstance() {
         return new EventListViewFragment();
@@ -65,7 +65,7 @@ public class EventListViewFragment extends PlayaListViewFragment implements Play
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
-        ((PlayaListViewHeader) v.findViewById(R.id.header)).setReceiver(this);
+        ((EventListHeader) v.findViewById(R.id.header)).setReceiver(this);
         return v;
     }
 

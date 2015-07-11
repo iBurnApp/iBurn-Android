@@ -37,6 +37,16 @@
         <item name="android:background">@drawable/sub_pager_tab_bg</item>
     </style>
 
+    <style name="PlayaListViewSubHeaderItem">
+        <item name="android:textColor">@color/sub_tab_text</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:gravity">center</item>
+        <item name="android:clickable">true</item>
+        <item name="android:background">@drawable/sub_header_bg</item>
+    </style>
+
     <style name="Subdued">
         <item name="android:textColor">@color/sub_sub_text</item>
         <item name="android:textStyle">normal</item>

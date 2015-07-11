@@ -18,12 +18,11 @@ import java.util.ArrayList;
  * A ListView header presenting filter options for day and type
  * <p/>
  * Clients register for feedback with
- * {@link #setReceiver(com.gaiagps.iburn.view.PlayaListViewHeader.PlayaListViewHeaderReceiver)}
+ * {@link #setReceiver(com.gaiagps.iburn.view.EventListHeader.PlayaListViewHeaderReceiver)}
  * <p/>
  * Created by davidbrodsky on 8/2/14.
  */
-public class PlayaListViewHeader extends RelativeLayout {
-    public static final String TAG = "PlayaListViewHeader";
+public class EventListHeader extends RelativeLayout {
 
     protected TextView mTypeFilter;
     protected TextView mDayFilter;
@@ -34,19 +33,19 @@ public class PlayaListViewHeader extends RelativeLayout {
     protected boolean[] mTypeSelectionIndexes = new boolean[100];
 
 
-    private PlayaListViewHeaderReceiver mReceiver;
+    protected PlayaListViewHeaderReceiver mReceiver;
 
-    public PlayaListViewHeader(Context context) {
+    public EventListHeader(Context context) {
         super(context);
         init(context);
     }
 
-    public PlayaListViewHeader(Context context, AttributeSet attrs) {
+    public EventListHeader(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }
 
-    public PlayaListViewHeader(Context context, AttributeSet attrs, int defStyle) {
+    public EventListHeader(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context);
     }
@@ -120,7 +119,7 @@ public class PlayaListViewHeader extends RelativeLayout {
 
     protected void init(Context context) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View v = inflater.inflate(R.layout.list_view_header_three, this, false);
+        View v = inflater.inflate(R.layout.list_view_header_two, this, false);
         mTypeFilter = (TextView) v.findViewById(R.id.typeFilter);
         mDayFilter = (TextView) v.findViewById(R.id.dateFilter);
         setupTouchListeners();

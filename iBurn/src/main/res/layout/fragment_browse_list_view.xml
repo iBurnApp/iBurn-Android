@@ -43,11 +43,17 @@ android:layout_height="match_parent"
 android:clipToPadding="false"
 android:orientation="vertical">
 
-<com.gaiagps.iburn.view.EventListHeader
+<com.gaiagps.iburn.view.BrowseListHeader
     android:id="@+id/header"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/top_margin" />
+
+<com.gaiagps.iburn.view.EventListHeader
+    android:id="@+id/eventHeader"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:visibility="gone" />
 
 <TextView
     android:id="@android:id/empty"

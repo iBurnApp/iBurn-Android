@@ -16,7 +16,7 @@ import java.util.GregorianCalendar;
 public class Embargo implements DataProvider.QueryInterceptor {
 
     // August 25, 2015
-    public  static final Date   EMBARGO_DATE   = new GregorianCalendar(2015, Calendar.AUGUST, 25, 0, 0).getTime();
+    public  static final Date   EMBARGO_DATE   = new GregorianCalendar(2014, Calendar.AUGUST, 25, 0, 0).getTime();
 
     private static final String NULL_LATITUDE  = "NULL AS " + PlayaItemTable.latitude;
     private static final String NULL_LONGITUDE = "NULL AS " + PlayaItemTable.longitude;

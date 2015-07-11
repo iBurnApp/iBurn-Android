@@ -7,23 +7,33 @@
     android:weightSum="1.0">
 
     <TextView
-        android:id="@+id/typeFilter"
+        android:id="@+id/artSelection"
         style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight=".5"
+        android:layout_weight=".3333"
         android:ellipsize="marquee"
         android:gravity="center"
-        android:text="@string/any_type" />
+        android:text="@string/art_tab" />
 
     <TextView
-        android:id="@+id/dateFilter"
+        android:id="@+id/campSelection"
         style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight=".5"
+        android:layout_weight=".3333"
         android:ellipsize="marquee"
         android:gravity="center"
-        android:text="@string/any_day" />
+        android:text="@string/camps_tab" />
+
+    <TextView
+        android:id="@+id/eventSelection"
+        style="@style/PlayaListViewHeaderItem"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight=".3333"
+        android:ellipsize="marquee"
+        android:gravity="center"
+        android:text="@string/events_tab" />
 
 </LinearLayout>
