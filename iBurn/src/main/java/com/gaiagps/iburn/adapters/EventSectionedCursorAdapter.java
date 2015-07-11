@@ -17,8 +17,6 @@ import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.LocationProvider;
-import com.tonicartos.superslim.LayoutManager;
-import com.tonicartos.superslim.LinearSLM;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -28,9 +26,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
@@ -39,11 +34,7 @@ import timber.log.Timber;
  * <p>
  * TODO: Update device location and delta time periodically
  */
-public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<EventSectionedCursorAdapter.ViewHolder> {
-
-    private static final int VIEW_TYPE_HEADER = 0x01;
-
-    private static final int VIEW_TYPE_CONTENT = 0x00;
+public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSectionedCursorAdapter.ViewHolder> {
 
     static final String[] Projection = new String[]{
             EventTable.id,
@@ -117,8 +108,6 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
             dayFormatter = new SimpleDateFormat("EE M/d", Locale.US);
             timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
         }
-
-        initializeWithNewCursor(c);
     }
 
     @Override
@@ -145,33 +134,9 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
         return vh;
     }
 
-    @Override
-    public void onBindViewHolder(EventSectionedCursorAdapter.ViewHolder viewHolder, int position) {
-        if (!mDataValid) {
-            throw new IllegalStateException("this should only be called when the cursor is valid");
-        }
-        if (isHeaderPosition(position)) {
-            mCursor.moveToPosition(getCursorPositionForPosition(position+1)); // the next element informed this header
-            onBindViewHolderHeader(viewHolder, mCursor, position);
-            return;
-        }
-        else if (!mCursor.moveToPosition(getCursorPositionForPosition(position))) {
-            throw new IllegalStateException("couldn't move cursor to position " + position);
-        }
-        onBindViewHolder(viewHolder, mCursor, position);
-    }
-
     public void onBindViewHolderHeader(ViewHolder holder, Cursor cursor, int position) {
-        final LayoutManager.LayoutParams params = (LayoutManager.LayoutParams) holder.itemView.getLayoutParams();
 
-        params.setSlm(LinearSLM.ID);
-        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        int headerPos = getHeaderPositionForPosition(position);
-        //Timber.d("Header Position %d header %d", position, headerPos);
-
-        params.setFirstPosition(headerPos);
-
-        holder.itemView.setLayoutParams(params);
+        setLinearSlmParameters(holder, position);
 
         try {
             ((TextView) holder.itemView).setText(DateUtil.getStartDateString(
@@ -230,20 +195,7 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
         viewHolder.modelId = cursor.getInt(idCol);
         viewHolder.container.setTag(viewHolder.modelId);
 
-        /** Embed SuperSLIM section configuration. **/
-
-        final LayoutManager.LayoutParams params = (LayoutManager.LayoutParams) viewHolder.itemView.getLayoutParams();
-
-        //params.setSlm(LinearSLM.ID);
-
-        // Position of the first item in the section. This doesn't have to
-        // be a header. However, if an item is a header, it must then be the
-        // first item in a section.
-        params.setSlm(LinearSLM.ID);
-        int headerPos = getHeaderPositionForPosition(position);
-        //Timber.d("Position %d header %d", position, headerPos);
-        params.setFirstPosition(headerPos);
-        viewHolder.itemView.setLayoutParams(params);
+        setLinearSlmParameters(viewHolder, position);
     }
 
     @Override
@@ -252,69 +204,9 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
     }
 
     @Override
-    public int getItemViewType(int position) {
-        // TODO : Get header positions from query. count(s_date < +30m), count(s_date < +2hr)
-        return isHeaderPosition(position) ? VIEW_TYPE_HEADER : VIEW_TYPE_CONTENT;
-    }
-
-    @Override
-    public int getItemCount() {
-        int superCount = super.getItemCount();
-        if (superCount != 0)
-            return superCount + (headerPositions == null ? 0 : headerPositions.size());
-        return superCount;
-    }
-
-    @Override
-    public long getItemId(int position) {
-        if (isHeaderPosition(position)) {
-            return getHeaderId(position);
-        }
-        return super.getItemId(getCursorPositionForPosition(position));
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder viewHolder, Cursor cursor) {
-        //unused
-        Timber.w("Unused method called");
-    }
-
-    public void changeCursor(Cursor cursor) {
-        Observable.just(cursor)
-                .subscribeOn(Schedulers.computation())
-                .map(this::initializeWithNewCursor)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(success -> {
-                    super.changeCursor(cursor);
-                });
-    }
-
-    public Cursor swapCursor(Cursor newCursor) {
-        initializeWithNewCursor(newCursor);
-
-        return super.swapCursor(newCursor);
-    }
-
-    boolean isHeaderPosition(int position) {
-        return headerPositions != null && headerPositions.contains(position);
-    }
-
-    private long getHeaderId(int position) {
-        // return something unlikely to conflict with database ids
-        return Long.MAX_VALUE - headerPositions.indexOf(position);
-    }
-
-    private boolean initializeWithNewCursor(Cursor newCursor) {
-        if (newCursor != null && newCursor.getCount() > 0) {
-            setColumnsFromCursor(newCursor);
-            calculateHeadersForCursor(newCursor);
-        }
-        return true;
-    }
-
-    private void calculateHeadersForCursor(Cursor cursor) {
-        headerPositions = new ArrayList<>();
-        cursor.moveToFirst();
+    protected List<Integer> createHeadersForCursor(Cursor cursor) {
+        cacheColumns(cursor);
+        List<Integer> headerPositions = new ArrayList<>();
         headerPositions.add(0);
         String lastDate = cursor.getString(startTimeCol);
         // We begin at position 2. 0 is first header, 1 is first item
@@ -323,13 +215,13 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
             if (!lastDate.equals(thisDate)) {
                 headerPositions.add(position);
                 position++; // We must account for the position occupied by the header
+                lastDate = thisDate;
             }
-            lastDate = thisDate;
         }
-        cursor.moveToFirst();
+        return headerPositions;
     }
 
-    private void setColumnsFromCursor(Cursor cursor) {
+    private void cacheColumns(Cursor cursor) {
         titleCol = cursor.getColumnIndexOrThrow(EventTable.name);
         eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
         startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
@@ -339,35 +231,5 @@ public class EventSectionedCursorAdapter extends CursorRecyclerViewAdapter<Event
         latCol = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
         lonCol = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
         idCol = cursor.getColumnIndexOrThrow(EventTable.id);
-    }
-
-    /**
-     * @return the position of the header for the corresponding item position.
-     * The value will be less than or equal to position.
-     */
-    int getHeaderPositionForPosition(int position) {
-        // TODO : Do a binary search? IF -1 return last header index?
-        int headerIdx = getHeaderIndexForPosition(position);
-        return headerIdx == -1 ? position : headerPositions.get(headerIdx);
-    }
-
-    /**
-     * @return the index of the header for the current position, or -1 if none found
-     */
-    int getHeaderIndexForPosition(int position) {
-        // TODO : Do a binary search?
-        for (int idx = headerPositions.size() - 1; idx >= 0; idx--) {
-            if (headerPositions.get(idx) <= position)
-                return idx;
-        }
-        return -1;
-    }
-
-    /**
-     * @return the cursor position for the corresponding item position. Compensate for the presence of headers
-     * e.g: Position 1 is cursor position 0, because position 0 is always the first header
-     */
-    int getCursorPositionForPosition(int position) {
-        return position - (getHeaderIndexForPosition(position) + 1);
     }
 }

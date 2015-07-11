@@ -248,6 +248,9 @@ public class DataProvider {
                 sql.append(" UNION ");
         }
 
+        sql.append(" ORDER BY ")
+                .append(VirtualType);
+
         return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()), params)
                 .subscribeOn(Schedulers.computation())
                 .skipWhile(queryResp -> upgradeLock.get());

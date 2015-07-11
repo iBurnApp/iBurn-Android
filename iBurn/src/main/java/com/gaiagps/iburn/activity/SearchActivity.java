@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,6 +18,7 @@ import com.gaiagps.iburn.adapters.AdapterItemSelectedListener;
 import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
 import com.squareup.sqlbrite.SqlBrite;
+import com.tonicartos.superslim.LayoutManager;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -44,7 +44,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterItemSele
 
         adapter = new PlayaSearchResponseCursorAdapter(this, null, this);
 
-        resultList.setLayoutManager(new LinearLayoutManager(this));
+        resultList.setLayoutManager(new LayoutManager(this));
         resultList.setAdapter(adapter);
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
