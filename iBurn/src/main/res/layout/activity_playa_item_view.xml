@@ -31,7 +31,8 @@
                     android:id="@+id/map"
                     class="com.gaiagps.iburn.fragment.GoogleMapFragment"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent"
+                    app:initial_state="showcase"/>
             </FrameLayout>
 
             <android.support.v7.widget.Toolbar

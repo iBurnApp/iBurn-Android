@@ -1,12 +1,15 @@
 package com.gaiagps.iburn.fragment;
 
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -121,13 +124,6 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     private STATE mState = STATE.EXPLORE;
 
-    // Loader ids
-    final int ART = 1;
-    final int CAMPS = 2;
-    final int EVENTS = 3;
-    final int POIS = 4;
-    final int ALL = 5;
-
     private final int POI_ZOOM_LEVEL = 18;
     float lastZoomLevel = 0;
 
@@ -141,7 +137,9 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
      * Map of pins shown in response to explore or search
      */
     private static final int MAX_POIS = 200;
-    ArrayDeque<Marker> mMappedMarkers = new ArrayDeque<>(MAX_POIS);
+
+    // Markers that should be cleared on camera events
+    ArrayDeque<Marker> mMappedTransientMarkers = new ArrayDeque<>(MAX_POIS);
     HashMap<String, String> markerIdToMeta = new HashMap<>();
     public static MapBoxOfflineTileProvider tileProvider; // Re-use tileProvider
     private static AtomicInteger tileProviderHolds = new AtomicInteger();
@@ -275,6 +273,17 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             tileProvider.close();
             tileProvider = null;
         }
+    }
+
+    @Override
+    public void onInflate(Activity activity, AttributeSet attrs, Bundle savedInstanceState) {
+        super.onInflate(activity, attrs, savedInstanceState);
+
+        TypedArray a = activity.obtainStyledAttributes(attrs, R.styleable.GoogleMapFragment);
+
+        CharSequence initialState = a.getText(R.styleable.GoogleMapFragment_initial_state);
+        if(initialState.equals("showcase")) mState = STATE.SHOWCASE;
+        a.recycle();
     }
 
     @Override
@@ -434,18 +443,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                     String markerMeta = markerIdToMeta.get(marker.getId());
                     int model_id = Integer.parseInt(markerMeta.split("-")[1]);
                     int model_type = Integer.parseInt(markerMeta.split("-")[0]);
-                    Constants.PlayaItemType modelType = null;
-                    switch (model_type) {
-                        case ART:
-                            modelType = Constants.PlayaItemType.ART;
-                            break;
-                        case EVENTS:
-                            modelType = Constants.PlayaItemType.EVENT;
-                            break;
-                        case CAMPS:
-                            modelType = Constants.PlayaItemType.CAMP;
-                            break;
-                    }
+                    Constants.PlayaItemType modelType = DataProvider.getTypeValue(model_type);
                     Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
                     i.putExtra("model_id", model_id);
                     i.putExtra("model_type", modelType);
@@ -474,15 +472,15 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     }
 
     public boolean areMarkersVisible() {
-        return mMappedMarkers.size() > 0;
+        return mMappedTransientMarkers.size() > 0;
     }
 
     public void clearMap() {
-        for (Marker marker : mMappedMarkers) {
+        for (Marker marker : mMappedTransientMarkers) {
             marker.remove();
+            markerIdToMeta.remove(marker.getId());
         }
-        mMappedMarkers.clear();
-        markerIdToMeta.clear();
+        mMappedTransientMarkers.clear();
     }
 
     public void mapMarkerAndFitEntireCity(final MarkerOptions marker) {
@@ -531,42 +529,72 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     static String ongoingWhereClause = String.format("(%s < ? AND %s > ?) ",
             EventTable.startTime, EventTable.endTime);
 
+    static String isFavoriteWhereClause = PlayaItemTable.favorite + " = 1";
+
     static String[] sqlParemeters = new String[14];
 
     public Observable<SqlBrite.Query> performQuery(DataProvider provider) {
 
         // Query all items, not just POIs, if we have a visibleRegion and Embargo is inactive
         // POI table is not affected by Embargo
-        boolean queryAll = visibleRegion.farLeft != null && !Embargo.isEmbargoActive(prefs);
+        boolean queryVisibleRegion = visibleRegion.farLeft != null && !Embargo.isEmbargoActive(prefs);
+
+        // Don't show non-POI items if we're showcasing a marker to keep the map clear
+        boolean queryNonUserItems = mState != STATE.SHOWCASE;
 
         StringBuilder sql = new StringBuilder();
 
+        // Select User POIs
         sql.append("SELECT ").append(PROJECTION_STRING.replace(PlayaItemTable.favorite, UserPoiTable.drawableResId + " AS " + PlayaItemTable.favorite)).append(", ").append(4).append(" AS ").append(DataProvider.VirtualType).append(" FROM ").append(PlayaDatabase.POIS);
 
-        if (queryAll) {
+        if (queryNonUserItems) {
+            // Select Events
             sql.append(" UNION ")
                     .append("SELECT ").append(PROJECTION_STRING).append(", ").append(3).append(" AS ").append(DataProvider.VirtualType).append(" FROM ").append(PlayaDatabase.EVENTS)
                     .append(" WHERE ")
-                    .append(ongoingWhereClause)
-                    .append(" AND ")
-                    .append(geoWhereClause)
-                    .append(" UNION ")
+                    .append(isFavoriteWhereClause);
+
+            if (queryVisibleRegion) {
+                sql.append(" OR (")
+                        .append(ongoingWhereClause)
+                        .append(" AND ")
+                        .append(geoWhereClause)
+                        .append(')');
+            }
+
+            // Select Art
+            sql.append(" UNION ")
                     .append("SELECT ").append(PROJECTION_STRING).append(", ").append(2).append(" AS ").append(DataProvider.VirtualType).append(" FROM ").append(PlayaDatabase.ART)
                     .append(" WHERE ")
-                    .append(geoWhereClause)
-                    .append(" UNION ")
+                    .append(isFavoriteWhereClause);
+
+            if (queryVisibleRegion) {
+                sql.append(" OR ")
+                        .append(geoWhereClause);
+            }
+
+            // Select Camps
+            sql.append(" UNION ")
                     .append("SELECT ").append(PROJECTION_STRING).append(", ").append(1).append(" AS ").append(DataProvider.VirtualType).append(" FROM ").append(PlayaDatabase.CAMPS)
                     .append(" WHERE ")
-                    .append(geoWhereClause);
+                    .append(isFavoriteWhereClause);
 
-            sqlParemeters[0] = sqlParemeters[1] = PlayaDateTypeAdapter.iso8601Format.format(CurrentDateProvider.getCurrentDate());
+            if (queryVisibleRegion) {
+                sql.append(" OR ")
+                        .append(geoWhereClause);
+            }
 
-            sqlParemeters[2] = sqlParemeters[6] = sqlParemeters[10] = String.valueOf(visibleRegion.farLeft.latitude);
-            sqlParemeters[3] = sqlParemeters[7] = sqlParemeters[11] = String.valueOf(visibleRegion.nearRight.latitude);
-            sqlParemeters[4] = sqlParemeters[8] = sqlParemeters[12] = String.valueOf(visibleRegion.nearRight.longitude);
-            sqlParemeters[5] = sqlParemeters[9] = sqlParemeters[13] = String.valueOf(visibleRegion.farLeft.longitude);
+            // Set visible region query parameters
+            if (queryVisibleRegion) {
+                sqlParemeters[0] = sqlParemeters[1] = PlayaDateTypeAdapter.iso8601Format.format(CurrentDateProvider.getCurrentDate());
+
+                sqlParemeters[2] = sqlParemeters[6] = sqlParemeters[10] = String.valueOf(visibleRegion.farLeft.latitude);
+                sqlParemeters[3] = sqlParemeters[7] = sqlParemeters[11] = String.valueOf(visibleRegion.nearRight.latitude);
+                sqlParemeters[4] = sqlParemeters[8] = sqlParemeters[12] = String.valueOf(visibleRegion.nearRight.longitude);
+                sqlParemeters[5] = sqlParemeters[9] = sqlParemeters[13] = String.valueOf(visibleRegion.farLeft.longitude);
+            }
         }
-        return provider.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), queryAll ? sqlParemeters : null);
+        return provider.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), queryVisibleRegion ? sqlParemeters : null);
     }
 
     /**
@@ -578,55 +606,56 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
         mResultBounds = new LatLngBounds.Builder();
 
-        Timber.d("Loader finished for id with items " + cursor.getCount());
-        GoogleMap map = getMap();
-        if (map == null) return;
-        String markerMapId;
-        // Sorry, but Java has no immutable primitives and LatLngBounds has no indicator
-        // of when calling .build() will throw IllegalStateException due to including no points
-        boolean[] areBoundsValid = new boolean[1];
-        while (cursor.moveToNext()) {
-            int typeInt = cursor.getInt(cursor.getColumnIndex(DataProvider.VirtualType));
-            Constants.PlayaItemType type = DataProvider.getTypeValue(typeInt);
+        Timber.d("Got cursor result with %d items", cursor.getCount());
+        getMapAsync(googleMap -> {
+            String markerMapId;
+            // Sorry, but Java has no immutable primitives and LatLngBounds has no indicator
+            // of when calling .build() will throw IllegalStateException due to including no points
+            boolean[] areBoundsValid = new boolean[1];
+            boolean isPermanentMarker;
+            while (cursor.moveToNext()) {
+                if (cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)) == 0) continue;
 
-            markerMapId = generateDataIdForItem(typeInt, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id)));
+                int typeInt = cursor.getInt(cursor.getColumnIndex(DataProvider.VirtualType));
+                Constants.PlayaItemType type = DataProvider.getTypeValue(typeInt);
 
-            switch (type) {
-                case POI:
+                markerMapId = generateDataIdForItem(type, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id)));
+
+                if (type == Constants.PlayaItemType.POI || cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)) == 1) {
+                    // POIs and favorites are permanent markers, and not cleared on camera events
                     if (!mMappedCustomMarkerIds.containsValue(markerMapId)) {
                         Marker marker = addNewMarkerForCursorItem(typeInt, cursor);
                         mMappedCustomMarkerIds.put(marker.getId(), markerMapId);
                     }
-                    break;
-
-                default:
+                } else {
+                    // Other markers are recyclable, and may be cleared on camera events
                     mapRecyclableMarker(typeInt, markerMapId, cursor, mResultBounds, areBoundsValid);
-                    break;
+                }
             }
-        }
-        if (areBoundsValid[0] && mState == STATE.SEARCH) {
-            map.animateCamera(CameraUpdateFactory.newLatLngBounds(mResultBounds.build(), 80));
-        } else if (!areBoundsValid[0] && mState == STATE.SEARCH) {
-            // No results
-            Timber.d("Resetting map view");
-            resetMapView();
-        }
+            if (areBoundsValid[0] && mState == STATE.SEARCH) {
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mResultBounds.build(), 80));
+            } else if (!areBoundsValid[0] && mState == STATE.SEARCH) {
+                // No results
+                Timber.d("Resetting map view");
+                resetMapView();
+            }
+        });
     }
 
     /**
      * Return a key used internally to keep track of data items currently mapped,
      * helping us avoid mapping duplicate points.
      *
-     * @param loaderId The id of the loader
+     * @param itemType The type of the item
      * @param itemId   The database id of the item
      */
-    private String generateDataIdForItem(int loaderId, long itemId) {
-        return String.format("%d-%d", loaderId, itemId);
+    private String generateDataIdForItem(Constants.PlayaItemType itemType, long itemId) {
+        return String.format("%d-%d", DataProvider.getTypeValue(itemType), itemId);
     }
 
     /**
      * Return the internal database id for an item given the string id
-     * generated by {@link #generateDataIdForItem(int, long)}
+     * generated by {@link #generateDataIdForItem(Constants.PlayaItemType, long)}
      */
     private int getDatabaseIdFromGeneratedDataId(String dataId) {
         return Integer.parseInt(dataId.split("-")[1]);
@@ -639,84 +668,67 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
      * @param areBoundsValid a hack one-dimensional boolean array used to report whether boundsBuilder
      *                       includes at least one point and will not throw an exception on its build()
      */
-    private void mapRecyclableMarker(int loaderId, String markerMapId, Cursor cursor, LatLngBounds.Builder boundsBuilder, boolean[] areBoundsValid) {
+    private void mapRecyclableMarker(int itemType, String markerMapId, Cursor cursor, LatLngBounds.Builder boundsBuilder, boolean[] areBoundsValid) {
         if (!markerIdToMeta.containsValue(markerMapId)) {
             // This POI is not yet mapped
-            LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(ArtTable.latitude)), cursor.getDouble(cursor.getColumnIndex(ArtTable.longitude)));
-            if (loaderId != POIS && boundsBuilder != null && mState == STATE.SEARCH) {
+            LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)), cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.longitude)));
+            if (itemType != DataProvider.getTypeValue(Constants.PlayaItemType.POI) && boundsBuilder != null && mState == STATE.SEARCH) {
                 if (BRC_BOUNDS.contains(pos)) {
                     boundsBuilder.include(pos);
                     areBoundsValid[0] = true;
                 }
             }
-            if (mMappedMarkers.size() == MAX_POIS) {
+            if (mMappedTransientMarkers.size() == MAX_POIS) {
                 // We should re-use the eldest Marker
-                Marker marker = mMappedMarkers.remove();
+                Marker marker = mMappedTransientMarkers.remove();
                 marker.setPosition(pos);
                 marker.setTitle(cursor.getString(cursor.getColumnIndex(ArtTable.name)));
 
-                switch (loaderId) {
-                    case ALL:
-                        if (cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0) {
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
-                        } else if (cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0) {
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
-                        } else {
-                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
-                        }
-                        break;
+                Constants.PlayaItemType modelType = DataProvider.getTypeValue(itemType);
+                switch (modelType) {
                     case ART:
-                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
+                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.art_pin));
                         break;
-                    case CAMPS:
-                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
+                    case CAMP:
+                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.camp_pin));
                         break;
-                    case EVENTS:
-                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.pin));
+                    case EVENT:
+                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.event_pin));
                         break;
                 }
 
                 marker.setAnchor(0.5f, 0.5f);
-                mMappedMarkers.add(marker);
-                markerIdToMeta.put(marker.getId(), String.format("%d-%d", loaderId, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id))));
+                mMappedTransientMarkers.add(marker);
+                markerIdToMeta.put(marker.getId(), String.format("%d-%d", itemType, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id))));
             } else {
                 // We shall create a new Marker
-                Marker marker = addNewMarkerForCursorItem(loaderId, cursor);
-                markerIdToMeta.put(marker.getId(), String.format("%d-%d", loaderId, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id))));
-                mMappedMarkers.add(marker);
+                Marker marker = addNewMarkerForCursorItem(itemType, cursor);
+                markerIdToMeta.put(marker.getId(), String.format("%d-%d", itemType, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id))));
+                mMappedTransientMarkers.add(marker);
             }
         }
     }
 
-    private Marker addNewMarkerForCursorItem(int loaderId, Cursor cursor) {
+    private Marker addNewMarkerForCursorItem(int itemType, Cursor cursor) {
         LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)),
                 cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.longitude)));
         MarkerOptions markerOptions;
         markerOptions = new MarkerOptions().position(pos)
                 .title(cursor.getString(cursor.getColumnIndex(PlayaItemTable.name)));
 
-        switch (loaderId) {
-            case POIS:
-                // A hack to make the union query work
+        Constants.PlayaItemType modelType = DataProvider.getTypeValue(itemType);
+        switch (modelType) {
+            case POI:
+                // Favorite column is mapped to user poi icon type: A hack to make the union query work
                 styleCustomMarkerOption(markerOptions, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)));
-//                Log.i(TAG, "Loading POI pin with drawable: " + cursor.getInt(cursor.getColumnIndex(UserPoiTable.drawableResId)));
-                break;
-            case ALL:
-                if (cursor.getFloat(cursor.getColumnIndex("art.latitude")) != 0) {
-                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_pin));
-                } else if (cursor.getFloat(cursor.getColumnIndex("camps.latitude")) != 0) {
-                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_pin));
-                } else {
-                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_pin));
-                }
                 break;
             case ART:
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_pin));
                 break;
-            case CAMPS:
+            case CAMP:
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_pin));
                 break;
-            case EVENTS:
+            case EVENT:
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_pin));
                 break;
         }
@@ -763,7 +775,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         try {
             DataProvider.getInstance(getActivity())
                     .map(dataProvider -> dataProvider.insert(PlayaDatabase.POIS, poiValues))
-                    .subscribe(newId -> mMappedCustomMarkerIds.put(marker.getId(), generateDataIdForItem(POIS, newId)));
+                    .subscribe(newId -> mMappedCustomMarkerIds.put(marker.getId(), generateDataIdForItem(Constants.PlayaItemType.POI, newId)));
         } catch (NumberFormatException e) {
             Timber.w("Unable to get id for new custom marker");
         }

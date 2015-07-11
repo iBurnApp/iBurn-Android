@@ -40,6 +40,7 @@ import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.squareup.sqlbrite.SqlBrite;
@@ -227,7 +228,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                 LatLng start = new LatLng(Geo.MAN_LAT, Geo.MAN_LON);
                                 Log.i("GoogleMapFragment", "adding / centering marker");
                                 GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                                mapFragment.showcaseMarker(new MarkerOptions().position(latLng));
+                                mapFragment.showcaseMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)).anchor(.5f, .5f));
                                 mapFragment.getMapAsync(googleMap -> {
                                     UiSettings settings = googleMap.getUiSettings();
                                     settings.setMyLocationButtonEnabled(false);
