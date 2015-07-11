@@ -124,7 +124,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     private STATE mState = STATE.EXPLORE;
 
-    private final int POI_ZOOM_LEVEL = 18;
+    private final int POI_ZOOM_LEVEL = 16;
     float lastZoomLevel = 0;
 
     private final PublishSubject<VisibleRegion> cameraUpdate = PublishSubject.create();
@@ -136,7 +136,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     /**
      * Map of pins shown in response to explore or search
      */
-    private static final int MAX_POIS = 200;
+    private static final int MAX_POIS = 100;
 
     // Markers that should be cleared on camera events
     ArrayDeque<Marker> mMappedTransientMarkers = new ArrayDeque<>(MAX_POIS);
@@ -531,7 +531,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     static String isFavoriteWhereClause = PlayaItemTable.favorite + " = 1";
 
-    static String[] sqlParemeters = new String[14];
+    static String[] sqlParemeters = new String[10/*14*/];
 
     public Observable<SqlBrite.Query> performQuery(DataProvider provider) {
 
@@ -574,6 +574,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             }
 
             // Select Camps
+            /*
             sql.append(" UNION ")
                     .append("SELECT ").append(PROJECTION_STRING).append(", ").append(1).append(" AS ").append(DataProvider.VirtualType).append(" FROM ").append(PlayaDatabase.CAMPS)
                     .append(" WHERE ")
@@ -583,15 +584,18 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 sql.append(" OR ")
                         .append(geoWhereClause);
             }
+            */
 
             // Set visible region query parameters
             if (queryVisibleRegion) {
+                // Event time
                 sqlParemeters[0] = sqlParemeters[1] = PlayaDateTypeAdapter.iso8601Format.format(CurrentDateProvider.getCurrentDate());
 
-                sqlParemeters[2] = sqlParemeters[6] = sqlParemeters[10] = String.valueOf(visibleRegion.farLeft.latitude);
-                sqlParemeters[3] = sqlParemeters[7] = sqlParemeters[11] = String.valueOf(visibleRegion.nearRight.latitude);
-                sqlParemeters[4] = sqlParemeters[8] = sqlParemeters[12] = String.valueOf(visibleRegion.nearRight.longitude);
-                sqlParemeters[5] = sqlParemeters[9] = sqlParemeters[13] = String.valueOf(visibleRegion.farLeft.longitude);
+                // Event, Art, Camp Geo
+                sqlParemeters[2] = sqlParemeters[6] /*= sqlParemeters[10]*/ = String.valueOf(visibleRegion.farLeft.latitude);
+                sqlParemeters[3] = sqlParemeters[7] /*= sqlParemeters[11]*/ = String.valueOf(visibleRegion.nearRight.latitude);
+                sqlParemeters[4] = sqlParemeters[8] /*= sqlParemeters[12]*/ = String.valueOf(visibleRegion.nearRight.longitude);
+                sqlParemeters[5] = sqlParemeters[9] /*= sqlParemeters[13]*/ = String.valueOf(visibleRegion.farLeft.longitude);
             }
         }
         return provider.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), queryVisibleRegion ? sqlParemeters : null);
