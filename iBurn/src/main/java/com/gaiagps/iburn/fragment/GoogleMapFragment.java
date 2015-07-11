@@ -356,8 +356,6 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                     GoogleMapFragment.this.visibleRegion = newVisibleRegion;
                     return dataProvider;
                 })
-                // Don't bother running query during embargo because ours has no meaning without location data
-                .skipWhile(dataProvider -> Embargo.isEmbargoActive(prefs))
                 .flatMap(this::performQuery)
                 .map(SqlBrite.Query::run)
                         // Can we do this on bg thread? prolly not
@@ -537,7 +535,9 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     public Observable<SqlBrite.Query> performQuery(DataProvider provider) {
 
-        boolean queryAll = visibleRegion.farLeft != null;
+        // Query all items, not just POIs, if we have a visibleRegion and Embargo is inactive
+        // POI table is not affected by Embargo
+        boolean queryAll = visibleRegion.farLeft != null && !Embargo.isEmbargoActive(prefs);
 
         StringBuilder sql = new StringBuilder();
 

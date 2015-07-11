@@ -36,7 +36,7 @@ import timber.log.Timber;
 public class DataProvider {
 
     public interface QueryInterceptor {
-        String onQueryIntercepted(String query);
+        String onQueryIntercepted(String query, String... tables);
     }
 
     /**
@@ -115,7 +115,7 @@ public class DataProvider {
         return db.createQuery(tables, interceptQuery(sql), args);
     }
 
-        public int delete(@NonNull String table, @Nullable String whereClause, @Nullable String... whereArgs) {
+    public int delete(@NonNull String table, @Nullable String whereClause, @Nullable String... whereArgs) {
         return db.delete(table, whereClause, whereArgs);
     }
 
@@ -324,8 +324,8 @@ public class DataProvider {
         throw new IllegalArgumentException("Invalid type value");
     }
 
-    private String interceptQuery(String query) {
+    private String interceptQuery(String query, String... tables) {
         if (interceptor == null) return query;
-        return interceptor.onQueryIntercepted(query);
+        return interceptor.onQueryIntercepted(query, tables);
     }
 }

@@ -28,12 +28,17 @@ public class Embargo implements DataProvider.QueryInterceptor {
     }
 
     @Override
-    public String onQueryIntercepted(String query) {
-        if (isEmbargoActive(prefs)) {
+    public String onQueryIntercepted(String query, String... tables) {
+        // If Embargo is active and this query does not select from POIS
+        if (isEmbargoActive(prefs) && !isPoiTableQuery(tables)) {
             return query.replace(PlayaItemTable.latitude, NULL_LATITUDE)
                     .replace(PlayaItemTable.longitude, NULL_LONGITUDE);
         }
         return query;
+    }
+
+    private boolean isPoiTableQuery(String... tables) {
+        return tables.length == 1 && tables[0].equals(PlayaDatabase.POIS);
     }
 
     public static boolean isEmbargoActive(PrefsHelper prefs) {
