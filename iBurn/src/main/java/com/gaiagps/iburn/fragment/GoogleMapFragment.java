@@ -125,7 +125,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     private STATE mState = STATE.EXPLORE;
 
     private final int POI_ZOOM_LEVEL = 16;
-    float lastZoomLevel = 0;
+    float currentZoom = 0;
 
     private final PublishSubject<VisibleRegion> cameraUpdate = PublishSubject.create();
 
@@ -421,14 +421,15 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                                         Math.min(MAX_LON - BUFFER, Math.max(cameraPosition.target.longitude, MIN_LON + BUFFER))),
                                 (float) Math.min(Math.max(cameraPosition.zoom, MIN_ZOOM), MAX_ZOOM)));
                     } else {
+                        currentZoom = cameraPosition.zoom;
                         // Map view bounds valid. Load POIs if necessary
-                        if (cameraPosition.zoom > POI_ZOOM_LEVEL) {
+                        if (currentZoom > POI_ZOOM_LEVEL) {
                             if (mState == STATE.EXPLORE) {
                                 visibleRegion = getMap().getProjection().getVisibleRegion();
                                 // Don't bother restartingLoader more than THRESHOLD_MS
                                 cameraUpdate.onNext(visibleRegion);
                             }
-                        } else if (cameraPosition.zoom < POI_ZOOM_LEVEL && areMarkersVisible()) {
+                        } else if (currentZoom < POI_ZOOM_LEVEL && areMarkersVisible()) {
                             if (mState == STATE.EXPLORE) {
                                 markerIdToMeta = new HashMap<>();
                                 clearMap();
@@ -616,7 +617,6 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             // Sorry, but Java has no immutable primitives and LatLngBounds has no indicator
             // of when calling .build() will throw IllegalStateException due to including no points
             boolean[] areBoundsValid = new boolean[1];
-            boolean isPermanentMarker;
             while (cursor.moveToNext()) {
                 if (cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)) == 0) continue;
 
@@ -631,7 +631,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                         Marker marker = addNewMarkerForCursorItem(typeInt, cursor);
                         mMappedCustomMarkerIds.put(marker.getId(), markerMapId);
                     }
-                } else {
+                } else if (currentZoom > POI_ZOOM_LEVEL){
                     // Other markers are recyclable, and may be cleared on camera events
                     mapRecyclableMarker(typeInt, markerMapId, cursor, mResultBounds, areBoundsValid);
                 }
@@ -711,6 +711,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 mMappedTransientMarkers.add(marker);
             }
         }
+        cursor.close();
     }
 
     private Marker addNewMarkerForCursorItem(int itemType, Cursor cursor) {
