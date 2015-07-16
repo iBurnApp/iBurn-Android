@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.service;
 
 import android.content.Context;
+import android.transition.Explode;
 
 import com.gaiagps.iburn.api.IBurnService;
 import com.google.android.gms.gcm.GcmNetworkManager;
@@ -8,6 +9,8 @@ import com.google.android.gms.gcm.GcmTaskService;
 import com.google.android.gms.gcm.PeriodicTask;
 import com.google.android.gms.gcm.Task;
 import com.google.android.gms.gcm.TaskParams;
+
+import net.hockeyapp.android.ExceptionHandler;
 
 import timber.log.Timber;
 
@@ -48,15 +51,20 @@ public class DataUpdateService extends GcmTaskService {
 
     @Override
     public int onRunTask(TaskParams taskParams) {
-        if (taskParams.getTag().equals(AUTO_UPDATE_TASK_NAME)) {
-            Timber.d("GCM invoked update task");
-            IBurnService service = new IBurnService(getApplicationContext());
-            boolean success = service.updateData().singleOrDefault(true).toBlocking().single();
-            Timber.d("GCM invoked task finished with success %b", success);
-            return success ? GcmNetworkManager.RESULT_SUCCESS : GcmNetworkManager.RESULT_RESCHEDULE;
+        try {
+            if (taskParams.getTag().equals(AUTO_UPDATE_TASK_NAME)) {
+                Timber.d("GCM invoked update task");
+                IBurnService service = new IBurnService(getApplicationContext());
+                boolean success = service.updateData().singleOrDefault(true).toBlocking().single();
+                Timber.d("GCM invoked task finished with success %b", success);
+                return success ? GcmNetworkManager.RESULT_SUCCESS : GcmNetworkManager.RESULT_RESCHEDULE;
+            }
+            Timber.w("Unknown task (%s) invoked", taskParams.getTag());
+            return GcmNetworkManager.RESULT_FAILURE;
+        } catch (Exception e) {
+            ExceptionHandler.saveException(e, null);
+            Timber.e(e, "GCM task failed: %s", e.getClass().getSimpleName());
+            return GcmNetworkManager.RESULT_RESCHEDULE;
         }
-
-        Timber.w("Unknown task (%s) invoked", taskParams.getTag());
-        return GcmNetworkManager.RESULT_FAILURE;
     }
 }
