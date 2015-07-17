@@ -24,6 +24,7 @@ For users of iOS devices, we also developed a completely re-written version of [
 
         public static final String HOCKEY_ID = "YOUR_HOCKEYAPP_ID";
         public static final String UNLOCK_CODE = "WHATEVER";
+        public static final String IBURN_API_URL = "SOME_URL";
 
     }
     ```
