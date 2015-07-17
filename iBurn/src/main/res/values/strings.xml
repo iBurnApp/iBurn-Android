@@ -55,7 +55,7 @@
     <string name="title_activity_search">SearchActivity</string>
 
     <string name="action_settings">Settings</string>
-    <string name="embargo_snackbar_msg">Art, Camp, and Event Location Data is embargoed until %s</string>
+    <string name="embargo_snackbar_msg">Art, Camp, and Event Location Data is embargoed until %s. Swipe to dismiss.</string>
     <string name="also_at">Other Occurrences</string>
     <string name="hosted_events">Hosted Events</string>
 

@@ -122,28 +122,14 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
 
         if (Embargo.isEmbargoActive(prefs)) {
-            final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE M/d", Locale.US);
-            final Snackbar snackbar = Snackbar.make(mParent, getString(R.string.embargo_snackbar_msg, dayFormatter.format(Embargo.EMBARGO_DATE)), Snackbar.LENGTH_LONG)
-                    .setAction(R.string.enter_unlock_code, view -> showUnlockDialog());
-
-            Observable.timer(1, 10, TimeUnit.SECONDS)
-                    .take(2)
-                    .observeOn(AndroidSchedulers.mainThread())
+            Observable.timer(1, 1, TimeUnit.SECONDS)
+                    .first()
+                    .subscribeOn(AndroidSchedulers.mainThread())
                     .subscribe(counter -> {
-                        try {
-                            if (counter == 0) {
-                                Method showView = snackbar.getClass().getDeclaredMethod("showView");
-                                showView.setAccessible(true);
-                                showView.invoke(snackbar);
-                            } else {
-                                Method hideView = snackbar.getClass().getDeclaredMethod("hideView");
-                                hideView.setAccessible(true);
-                                hideView.invoke(snackbar);
-                            }
-                        } catch (SecurityException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                            Timber.w(e, "Failed to notify observers on endUpgrade");
-                        }
-                    }, throwable -> Timber.e(throwable, "Timer error"));
+                        final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE M/d", Locale.US);
+                        Snackbar.make(mParent, getString(R.string.embargo_snackbar_msg, dayFormatter.format(Embargo.EMBARGO_DATE)), Snackbar.LENGTH_INDEFINITE)
+                                .setAction(R.string.enter_unlock_code, view -> showUnlockDialog()).show();
+                    });
         }
         handleIntent(getIntent());
         checkForUpdates();
