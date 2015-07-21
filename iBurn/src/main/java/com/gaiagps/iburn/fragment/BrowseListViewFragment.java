@@ -1,9 +1,7 @@
 package com.gaiagps.iburn.fragment;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,7 +12,7 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.activity.PlayaItemViewActivity;
+import com.gaiagps.iburn.Subscriber;
 import com.gaiagps.iburn.adapters.AdapterItemSelectedListener;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
@@ -37,40 +35,21 @@ import timber.log.Timber;
  * <p/>
  * Created by davidbrodsky on 8/3/13.
  */
-public final class BrowseListViewFragment extends Fragment implements EventListHeader.PlayaListViewHeaderReceiver, BrowseListHeader.BrowseSelectionListener, AdapterItemSelectedListener {
+public final class BrowseListViewFragment extends PlayaListViewFragment implements EventListHeader.PlayaListViewHeaderReceiver, BrowseListHeader.BrowseSelectionListener, AdapterItemSelectedListener, Subscriber {
 
     public static BrowseListViewFragment newInstance() {
         return new BrowseListViewFragment();
     }
 
-    private CursorRecyclerViewAdapter adapter;
     private ViewGroup eventListHeader;
     private BrowseListHeader.BrowseSelection categorySelection = BrowseListHeader.BrowseSelection.CAMPS;
-
-    private RecyclerView mRecyclerView;
-    private TextView mEmptyText;
-
-    private Subscription subscription;
 
     // Event filtering
     private String selectedDay = "8/25";
     private ArrayList<String> selectedTypes;
 
-    public void subscribeToData() {
-        if (subscription == null || subscription.isUnsubscribed())
-            subscription = _subscribeToData();
-    }
-
-    /**
-     * Unsubscribe from the query describing this fragment's data view
-     */
-    public void unsubscribeFromData() {
-        if (subscription != null && !subscription.isUnsubscribed())
-            subscription.unsubscribe();
-    }
-
-    private Subscription _subscribeToData() {
-
+    @Override
+    protected Subscription createSubscription() {
         switch (categorySelection) {
 
             case CAMPS:
@@ -133,8 +112,6 @@ public final class BrowseListViewFragment extends Fragment implements EventListH
         eventListHeader = (ViewGroup) v.findViewById(R.id.eventHeader);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
-        unsubscribeFromData();
-        subscribeToData();
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         ((BrowseListHeader) v.findViewById(R.id.header)).setBrowseSelectionListener(this);
@@ -177,27 +154,20 @@ public final class BrowseListViewFragment extends Fragment implements EventListH
         }
     }
 
-    @Override
-    public void onItemSelected(int modelId, Constants.PlayaItemType type) {
-        Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
-        i.putExtra("model_id", modelId);
-        i.putExtra("model_type", type);
-        getActivity().startActivity(i);
-    }
-
     public void onDataChanged(Cursor newData) {
-        if (newData == null) {
-            Timber.w("Got null data onDataChanged");
-            return;
-        }
+        super.onDataChanged(newData);
 
-        Timber.d("%s, onDataChanged with %d items", getClass().getSimpleName(), newData.getCount());
-        adapter.changeCursor(newData);
         AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
         fadeAnimation.setDuration(250);
         fadeAnimation.setStartOffset(100);
         fadeAnimation.setFillAfter(true);
         fadeAnimation.setFillEnabled(true);
         mRecyclerView.startAnimation(fadeAnimation);
+    }
+
+    @Override
+    protected CursorRecyclerViewAdapter getAdapter() {
+        // We begin with no adapter, but one is added during createSubscription
+        return null;
     }
 }

@@ -29,17 +29,17 @@ public class ArtListViewFragment extends PlayaListViewFragment {
     }
 
     @Override
-    protected Subscription _subscribeToData() {
+    public Subscription createSubscription() {
         return DataProvider.getInstance(getActivity())
                 .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.ART, getAdapter().getRequiredProjection()))
                 .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(cursor -> {
-                    Timber.d("Data onNext");
-                    onDataChanged(cursor);
-                },
-                throwable -> Timber.e(throwable, "Data onError"),
-                () -> Timber.d("Data onComplete"));
+                            Timber.d("Data onNext");
+                            onDataChanged(cursor);
+                        },
+                        throwable -> Timber.e(throwable, "Data onError"),
+                        () -> Timber.d("Data onComplete"));
     }
 
     public void onCreate(Bundle savedInstanceState) {

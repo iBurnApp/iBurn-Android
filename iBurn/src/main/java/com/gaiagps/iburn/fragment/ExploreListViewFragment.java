@@ -19,7 +19,6 @@ import com.gaiagps.iburn.database.PlayaDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.tonicartos.superslim.LayoutManager;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 
 import rx.Subscription;
@@ -43,18 +42,15 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
     }
 
     @Override
-    protected Subscription _subscribeToData() {
-
-        // TODO : Get debug date dynamically
+    public Subscription createSubscription() {
         Calendar modifiedDate = Calendar.getInstance();
         modifiedDate.setTime(CurrentDateProvider.getCurrentDate());
-//        modifiedDate.add(Calendar.HOUR, -1);
         String lowerBoundDateStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
         modifiedDate.add(Calendar.HOUR, 7);
         String upperBoundDateStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
 
 
-        // Get Events that started from within the last hour to in the next 6 hours
+        // Get Events that start now to the next several hours
         return DataProvider.getInstance(getActivity())
                 .subscribeOn(Schedulers.computation())
                 .flatMap(dataProvider -> dataProvider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.startTime + " > '" + lowerBoundDateStr + "' AND " + EventTable.startTime + " < '" + upperBoundDateStr + "\' ORDER BY " + EventTable.startTime + " ASC LIMIT 100"))
@@ -67,11 +63,6 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
                         throwable -> Timber.e(throwable, "Data onError"),
                         () -> Timber.d("Data onComplete"));
     }
-
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

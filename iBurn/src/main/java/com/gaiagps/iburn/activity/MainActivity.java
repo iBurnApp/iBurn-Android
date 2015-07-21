@@ -25,6 +25,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
+import com.gaiagps.iburn.Subscriber;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
@@ -322,8 +323,9 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             mCurrentPrimaryItem = (Fragment) object;
             if (mLastPosition != position) {
 
-                if (mCurrentPrimaryItem instanceof PlayaListViewFragment) {
-                    ((PlayaListViewFragment) mCurrentPrimaryItem).subscribeToData();
+                if (mCurrentPrimaryItem instanceof Subscriber) {
+                    Timber.d("Subscribing %d to data", position);
+                    ((Subscriber) mCurrentPrimaryItem).subscribeToData();
                 }
 
                 //if (mCurrentPrimaryItem instanceof Searchable && mSearchQueryProvider != null) {

@@ -22,7 +22,7 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
     }
 
     @Override
-    protected Subscription _subscribeToData() {
+    protected Subscription createSubscription() {
 
         return DataProvider.getInstance(getActivity())
                 .flatMap(dataProvider -> dataProvider.observeFavorites(getAdapter().getRequiredProjection()))
