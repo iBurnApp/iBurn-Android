@@ -1,9 +1,7 @@
 package com.gaiagps.iburn.view;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,10 +9,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.adapters.AdapterUtils;
-import com.gaiagps.iburn.api.response.Event;
-
-import java.util.ArrayList;
 
 /**
  * A ListView header presenting filter options for day and type
@@ -83,9 +77,9 @@ public class BrowseListHeader extends RelativeLayout {
         @Override
         public void onClick(@NonNull final View v) {
             boolean wasSelected = v.isSelected();
-            art.setSelected(false);
-            camp.setSelected(false);
-            events.setSelected(false);
+            if (!v.equals(art)) art.setSelected(false);
+            if (!v.equals(camp)) camp.setSelected(false);
+            if (!v.equals(events)) events.setSelected(false);
 
             if (!wasSelected) {
                 v.setSelected(true);
