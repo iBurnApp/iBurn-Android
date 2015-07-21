@@ -167,7 +167,6 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
 
     @Override
     protected CursorRecyclerViewAdapter getAdapter() {
-        // We begin with no adapter, but one is added during createSubscription
-        return null;
+        return new PlayaItemCursorAdapter(getActivity(), null, Constants.PlayaItemType.CAMP, this);
     }
 }
