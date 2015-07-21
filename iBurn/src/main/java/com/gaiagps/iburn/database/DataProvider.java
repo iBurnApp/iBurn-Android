@@ -16,6 +16,7 @@ import com.squareup.sqlbrite.SqlBrite;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +37,7 @@ import timber.log.Timber;
 public class DataProvider {
 
     public interface QueryInterceptor {
-        String onQueryIntercepted(String query, String... tables);
+        String onQueryIntercepted(@NonNull String query, @NonNull Iterable<String> tables);
     }
 
     /**
@@ -108,11 +109,11 @@ public class DataProvider {
     }
 
     public Observable<SqlBrite.Query> createQuery(@NonNull final String table, @NonNull String sql, @NonNull String... args) {
-        return db.createQuery(table, interceptQuery(sql), args);
+        return db.createQuery(table, interceptQuery(sql, table), args);
     }
 
     public Observable<SqlBrite.Query> createQuery(@NonNull final Iterable<String> tables, @NonNull String sql, @NonNull String... args) {
-        return db.createQuery(tables, interceptQuery(sql), args);
+        return db.createQuery(tables, interceptQuery(sql, tables), args);
     }
 
     public int delete(@NonNull String table, @Nullable String whereClause, @Nullable String... whereArgs) {
@@ -142,7 +143,7 @@ public class DataProvider {
     public Observable<SqlBrite.Query> observeTable(@NonNull String table,
                                                    @Nullable String[] projection) {
         return db.createQuery(table,
-                interceptQuery("SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table))
+                interceptQuery("SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table, table))
                 .subscribeOn(Schedulers.computation())
                 .skipWhile(query -> upgradeLock.get());
     }
@@ -187,7 +188,7 @@ public class DataProvider {
         sql.append(" ASC");
 
         Timber.d("Event filter query " + sql.toString());
-        return db.createQuery(PlayaDatabase.EVENTS, interceptQuery(sql.toString()), args.toArray(new String[args.size()]))
+        return db.createQuery(PlayaDatabase.EVENTS, interceptQuery(sql.toString(), PlayaDatabase.EVENTS), args.toArray(new String[args.size()]))
                 .subscribeOn(Schedulers.computation())
                 .skipWhile(query -> upgradeLock.get());
     }
@@ -215,7 +216,7 @@ public class DataProvider {
                 sql.append(" UNION ");
         }
 
-        return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()))
+        return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString(), PlayaDatabase.ALL_TABLES))
                 .subscribeOn(Schedulers.computation())
                 .skipWhile(query -> upgradeLock.get());
     }
@@ -251,7 +252,7 @@ public class DataProvider {
         sql.append(" ORDER BY ")
                 .append(VirtualType);
 
-        return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()), params)
+        return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString(), PlayaDatabase.ALL_TABLES), params)
                 .subscribeOn(Schedulers.computation())
                 .skipWhile(queryResp -> upgradeLock.get());
     }
@@ -281,7 +282,7 @@ public class DataProvider {
                 sql.append(" UNION ");
         }
 
-        return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString()))
+        return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString(), PlayaDatabase.ALL_TABLES))
                 .subscribeOn(Schedulers.computation())
                 .skipWhile(queryResp -> upgradeLock.get());
     }
@@ -324,7 +325,11 @@ public class DataProvider {
         throw new IllegalArgumentException("Invalid type value");
     }
 
-    private String interceptQuery(String query, String... tables) {
+    private String interceptQuery(String query, String table) {
+        return interceptQuery(query, Collections.singleton(table));
+    }
+
+    private String interceptQuery(String query, Iterable<String> tables) {
         if (interceptor == null) return query;
         return interceptor.onQueryIntercepted(query, tables);
     }
