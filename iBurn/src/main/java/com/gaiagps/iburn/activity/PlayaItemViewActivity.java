@@ -5,6 +5,8 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.Typeface;
+import android.graphics.drawable.Animatable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -168,7 +170,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                 onBackPressed();
                 return true;
             case R.id.favorite_menu:
-                setFavorite(!isFavorite);
+                setFavorite(!isFavorite, true);
                 return true;
 
         }
@@ -203,10 +205,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                             final String title = itemCursor.getString(itemCursor.getColumnIndexOrThrow(PlayaItemTable.name));
                             titleTextView.setText(title);
                             isFavorite = itemCursor.getInt(itemCursor.getColumnIndex(PlayaItemTable.favorite)) == 1;
-                            if (isFavorite)
-                                favoriteButton.setImageResource(R.drawable.ic_heart_pressed);
-                            else
-                                favoriteButton.setImageResource(R.drawable.ic_heart);
+                            setFavorite(isFavorite, false);
 
                             favoriteButton.setTag(R.id.list_item_related_model, modelId);
                             favoriteButton.setTag(R.id.list_item_related_model_type, model_type);
@@ -427,17 +426,24 @@ public class PlayaItemViewActivity extends AppCompatActivity {
     }
 
     View.OnClickListener favoriteButtonOnClickListener = (View v) -> {
-        setFavorite(!isFavorite);
+        setFavorite(!isFavorite, true);
     };
 
-    private void setFavorite(boolean isFavorite) {
+    private void setFavorite(boolean isFavorite, boolean save) {
         int newFabDrawableResId = isFavorite ? R.drawable.ic_heart_pressed : R.drawable.ic_heart;
         int newMenuDrawableResId = isFavorite ? R.drawable.ic_heart_full : R.drawable.ic_heart_empty;
         favoriteButton.setImageResource(newFabDrawableResId);
-        favoriteMenuItem.setIcon(newMenuDrawableResId);
+        if (favoriteMenuItem != null) favoriteMenuItem.setIcon(newMenuDrawableResId);
 
-        DataProvider.getInstance(PlayaItemViewActivity.this)
-                .subscribe(dataProvider -> dataProvider.updateFavorite(modelTable, modelId, isFavorite));
-        this.isFavorite = isFavorite;
+        Drawable drawable = favoriteButton.getDrawable();
+        if (drawable instanceof Animatable) {
+            ((Animatable) drawable).start();
+        }
+
+        if (save) {
+            DataProvider.getInstance(PlayaItemViewActivity.this)
+                    .subscribe(dataProvider -> dataProvider.updateFavorite(modelTable, modelId, isFavorite));
+            this.isFavorite = isFavorite;
+        }
     }
 }

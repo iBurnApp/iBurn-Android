@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="30dp"
+    android:height="30dp"
+    android:viewportHeight="800"
+    android:viewportWidth="800">
+
+    <group
+        android:name="rays"
+        android:pivotX="400"
+        android:pivotY="400">
+        <path
+            android:name="ray1"
+            android:pathData="M0,1.8162728548049927 L385.912506104,392.5227355957031"
+            android:strokeColor="#ff649c"
+            android:strokeWidth="70"
+            android:trimPathEnd="1"
+            android:trimPathStart=".6" />
+        <path
+            android:name="ray2"
+            android:pathData="M-2.39697217941,797.6110229492188 L383.515533447,406.9045715332031"
+            android:strokeColor="#ff649c"
+            android:strokeWidth="70"
+            android:trimPathEnd="1"
+            android:trimPathStart=".8" />
+        <path
+            android:name="ray3"
+            android:pathData="M802.985656738,797.6110229492188 L417.073150635,406.9045715332031"
+            android:strokeColor="#ff649c"
+            android:strokeWidth="70"
+            android:trimPathEnd="1"
+            android:trimPathStart=".8" />
+        <path
+            android:name="ray4"
+            android:pathData="M800.61895752,0.6253519058227539 L414.706451416,391.3318176269531"
+            android:strokeColor="#ff649c"
+            android:strokeWidth="70"
+            android:trimPathEnd="1"
+            android:trimPathStart=".6" />
+        <path
+            android:name="ray5"
+            android:pathData="M-1.69491529465,366.109680176 L401.694915771,366.109680176"
+            android:strokeColor="#ff649c"
+            android:strokeWidth="70"
+            android:trimPathEnd="1"
+            android:trimPathStart=".6" />
+        <path
+            android:name="ray6"
+            android:pathData="M800,367.804595947 L416.949157715,369.499511718"
+            android:strokeColor="#ff649c"
+            android:strokeWidth="70"
+            android:trimPathEnd="1"
+            android:trimPathStart=".6" />
+        <path
+            android:name="ray7"
+            android:pathData="M403.389831543,791.533447265625 L400,408.4825744628906"
+            android:strokeColor="#ff649c"
+            android:strokeWidth="70"
+            android:trimPathEnd="1"
+            android:trimPathStart=".6" />
+        <path
+            android:name="ray8"
+            android:pathData="M393.220336914,0.0079951798543334 L396.610168457,428.8215637207031"
+            android:strokeColor="#ff649c"
+            android:strokeWidth="70"
+            android:trimPathEnd="1"
+            android:trimPathStart=".6" />
+    </group>
+    <group
+        android:name="heart"
+        android:pivotX="400"
+        android:pivotY="400">
+        <path
+            android:name="heartPath"
+            android:fillColor="#9c9c9c"
+            android:pathData="M374.816345215,606.8544921875
+C367.894836426,598.95916748,335.726226807,570.751281738,303.330535889,544.1702880859375
+C226.319046021,480.981445313,193.596755981,446.000823975,175.815887451,407.85516357421875
+C140.936569214,333.027832031,169.330093384,249.927642822,239.633956909,221.0768585205078
+C283.388763428,203.121063232,345.289611816,215.995635986,383.267913818,250.9508514404297
+L398.69442749,265.1493835449219 L414.120941162,250.9508514404297
+C452.099212647,215.995635986,514.00012207,203.121063232,557.754882812,221.076858521
+C628.058776855,249.927642823,656.452270507,333.027832032,621.572937011,407.855163575
+C603.792053223,446.000823975,571.069824219,480.981445313,494.058288574,544.1702880859375
+C461.662628174,570.751281738,429.494018555,598.95916748,422.572509766,606.8544921875
+C415.650970459,614.749755859,404.905822754,621.209533691,398.69442749,621.2095336914062
+C392.483032227,621.209533691,381.737884521,614.749755859,374.816345215,606.8544921875
+Z" />
+    </group>
+</vector>

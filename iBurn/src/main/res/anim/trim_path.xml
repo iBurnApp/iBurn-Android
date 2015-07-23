@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This animation adjusts the trim offset of a path, while fading in and out -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:interpolator/accelerate_decelerate"
+    android:ordering="together">
+    <objectAnimator
+        android:duration="250"
+        android:propertyName="trimPathOffset"
+        android:valueFrom="1"
+        android:valueTo="0"
+        android:valueType="floatType" />
+
+    <objectAnimator
+        android:duration="125"
+        android:propertyName="strokeAlpha"
+        android:repeatCount="1"
+        android:repeatMode="reverse"
+        android:valueFrom="0"
+        android:valueTo="1"
+        android:valueType="floatType" />
+</set>
