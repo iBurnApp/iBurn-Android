@@ -431,7 +431,6 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                             }
                         } else if (currentZoom < POI_ZOOM_LEVEL && areMarkersVisible()) {
                             if (mState == STATE.EXPLORE) {
-                                markerIdToMeta = new HashMap<>();
                                 clearMap();
                             }
                         }
@@ -625,17 +624,24 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
                 markerMapId = generateDataIdForItem(type, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id)));
 
-                if (type == Constants.PlayaItemType.POI || cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)) == 1) {
-                    // POIs and favorites are permanent markers, and not cleared on camera events
+                if (type == Constants.PlayaItemType.POI) {
+                    // POIs are permanent markers that are editable when their info window is clicked
                     if (!mMappedCustomMarkerIds.containsValue(markerMapId)) {
                         Marker marker = addNewMarkerForCursorItem(typeInt, cursor);
                         mMappedCustomMarkerIds.put(marker.getId(), markerMapId);
+                    }
+                } else if (cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)) == 1) {
+                    // Favorites are permanent markers, but are not editable
+                    if (!markerIdToMeta.containsValue(markerMapId)) {
+                        Marker marker = addNewMarkerForCursorItem(typeInt, cursor);
+                        markerIdToMeta.put(marker.getId(), markerMapId);
                     }
                 } else if (currentZoom > POI_ZOOM_LEVEL){
                     // Other markers are recyclable, and may be cleared on camera events
                     mapRecyclableMarker(typeInt, markerMapId, cursor, mResultBounds, areBoundsValid);
                 }
             }
+            cursor.close();
             if (areBoundsValid[0] && mState == STATE.SEARCH) {
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mResultBounds.build(), 80));
             } else if (!areBoundsValid[0] && mState == STATE.SEARCH) {
@@ -703,15 +709,14 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
                 marker.setAnchor(0.5f, 0.5f);
                 mMappedTransientMarkers.add(marker);
-                markerIdToMeta.put(marker.getId(), String.format("%d-%d", itemType, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id))));
+                markerIdToMeta.put(marker.getId(), markerMapId);
             } else {
                 // We shall create a new Marker
                 Marker marker = addNewMarkerForCursorItem(itemType, cursor);
-                markerIdToMeta.put(marker.getId(), String.format("%d-%d", itemType, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id))));
+                markerIdToMeta.put(marker.getId(), markerMapId);
                 mMappedTransientMarkers.add(marker);
             }
         }
-        cursor.close();
     }
 
     private Marker addNewMarkerForCursorItem(int itemType, Cursor cursor) {
