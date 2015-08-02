@@ -6,12 +6,16 @@ import android.text.format.DateUtils;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by davidbrodsky on 8/6/14.
  */
 public class DateUtil {
+
+    private static SimpleDateFormat timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
 
     /**
      * Get a human description of an event's state
@@ -62,11 +66,16 @@ public class DateUtil {
             return "Starting now";
 
         } else {
+            long deltaTime = startDate.getTime() - nowDate.getTime();
+            int hours = (int) (deltaTime / DateUtils.HOUR_IN_MILLIS);
+            int minutes = (int) ((deltaTime - (hours * DateUtils.HOUR_IN_MILLIS)) / DateUtils.MINUTE_IN_MILLIS);
 
-            String relativeSpan = DateUtils.getRelativeTimeSpanString(
-                    startDate.getTime(),
-                    nowDate.getTime(),
-                    DateUtils.MINUTE_IN_MILLIS).toString();
+            String relativeSpan = null;
+            if (hours > 0)
+                relativeSpan = "at " + timeFormatter.format(startDate);
+            else
+                relativeSpan = String.format("in %d minute%s", minutes, minutes > 1 ? 's' : "");
+
             return (startDate.before(nowDate) ? "Started " : "Starts ") + relativeSpan;
         }
     }
