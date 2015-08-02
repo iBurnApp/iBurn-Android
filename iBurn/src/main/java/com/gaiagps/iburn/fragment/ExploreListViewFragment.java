@@ -1,10 +1,12 @@
 package com.gaiagps.iburn.fragment;
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.CurrentDateProvider;
@@ -72,5 +74,17 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
         mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         return v;
+    }
+
+    @Override
+    public void onDataChanged(Cursor newData) {
+        super.onDataChanged(newData);
+
+        AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
+        fadeAnimation.setDuration(250);
+        fadeAnimation.setStartOffset(100);
+        fadeAnimation.setFillAfter(true);
+        fadeAnimation.setFillEnabled(true);
+        mRecyclerView.startAnimation(fadeAnimation);
     }
 }

@@ -26,6 +26,8 @@ import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.Subscriber;
+import com.gaiagps.iburn.api.IBurnService;
+import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
@@ -53,6 +55,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements SearchQueryProvider {
@@ -121,6 +124,10 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             DataUpdateService.scheduleAutoUpdate(this);
             prefs.setDidScheduleUpdate(true);
         }
+
+//        Mock update (Comment out DataService.scheduleAutoUpdate above)
+//        IBurnService service = new IBurnService(this, new MockIBurnApi(this));
+//        service.updateData().subscribe();
 
         if (Embargo.isEmbargoActive(prefs)) {
             Observable.timer(1, 1, TimeUnit.SECONDS)
@@ -325,7 +332,13 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
                 if (mCurrentPrimaryItem instanceof Subscriber) {
                     Timber.d("Subscribing %d to data", position);
-                    ((Subscriber) mCurrentPrimaryItem).subscribeToData();
+                    // We delay data subscription for a few milliseconds to allow
+                    // the tab-switch transition to complete before layout occurs
+                    Observable.timer(250, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
+                            .subscribe(time -> {
+                                if (time == 0)
+                                    ((Subscriber) mCurrentPrimaryItem).subscribeToData();
+                            });
                 }
 
                 //if (mCurrentPrimaryItem instanceof Searchable && mSearchQueryProvider != null) {
