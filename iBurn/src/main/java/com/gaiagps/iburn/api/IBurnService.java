@@ -57,28 +57,6 @@ import timber.log.Timber;
 public class IBurnService {
 
     /**
-     * API Definition
-     */
-    public interface IBurnAPIService {
-
-        @GET("/update.json.js")
-        Observable<DataManifest> getDataManifest();
-
-        @GET("/camps.json.js")
-        Observable<List<Camp>> getCamps();
-
-        @GET("/art.json.js")
-        Observable<List<Art>> getArt();
-
-        @GET("/events.json.js")
-        Observable<List<Event>> getEvents();
-
-        @GET("/iburn.mbtiles.jar")
-        @Streaming
-        Observable<Response> getTiles();
-    }
-
-    /**
      * A mechanism for migrating internal app data not defined by the iBurn API.
      */
     public interface UpgradeLifeboat {
@@ -191,11 +169,9 @@ public class IBurnService {
     }
 
     Context context;
-    IBurnAPIService service;
+    IBurnApi service;
 
     public IBurnService(@NonNull Context context) {
-        this.context = context;
-
         Gson gson = new GsonBuilder()
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .registerTypeAdapter(Date.class, new PlayaDateTypeAdapter())
@@ -206,7 +182,12 @@ public class IBurnService {
                 .setConverter(new GsonConverter(gson))
                 .build();
 
-        service = restAdapter.create(IBurnAPIService.class);
+        this.service = restAdapter.create(IBurnApi.class);
+    }
+
+    public IBurnService(@NonNull Context context, IBurnApi service) {
+        this.context = context;
+        this.service = service;
     }
 
     public Observable<Boolean> updateData() {
@@ -218,7 +199,7 @@ public class IBurnService {
                 (dataProvider, mapProvider) -> new Pair<>(dataProvider, mapProvider))
                 .flatMap(providerPair -> service.getDataManifest().map(dataManifest -> new Pair<>(providerPair, dataManifest)))
                 .flatMap(depBundle -> {
-
+                    Timber.d("Got depBundle");
                     Pair providerPair = depBundle.first;
                     DataManifest dataManifest = depBundle.second;
 

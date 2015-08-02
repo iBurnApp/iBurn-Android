@@ -9,4 +9,9 @@ public class ResourceManifest {
 
     public String file;
     public Date updated;
+
+    public ResourceManifest(String file, Date updated) {
+        this.file = file;
+        this.updated = updated;
+    }
 }
