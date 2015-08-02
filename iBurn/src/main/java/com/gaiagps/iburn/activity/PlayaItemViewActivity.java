@@ -216,7 +216,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                             } else
                                 findViewById(R.id.body).setVisibility(View.GONE);
 
-                            showingLocation = !itemCursor.isNull(itemCursor.getColumnIndex(PlayaItemTable.latitude));
+                            showingLocation = !itemCursor.isNull(itemCursor.getColumnIndex(PlayaItemTable.latitude)) && (itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.latitude)) != 0);
                             if (showingLocation) {
                                 favoriteButton.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
                                     if (favoriteMenuItem != null)
@@ -225,7 +225,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                 latLng = new LatLng(itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.latitude)), itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.longitude)));
                                 //TextView locationView = ((TextView) findViewById(R.id.location));
                                 LatLng start = new LatLng(Geo.MAN_LAT, Geo.MAN_LON);
-                                Log.i("GoogleMapFragment", "adding / centering marker");
+                                Timber.d("adding / centering marker on %f, %f", latLng.latitude, latLng.longitude);
                                 GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
                                 mapFragment.showcaseMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)).anchor(.5f, .5f));
                                 mapFragment.getMapAsync(googleMap -> {
