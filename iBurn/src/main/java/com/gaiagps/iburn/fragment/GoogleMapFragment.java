@@ -55,6 +55,7 @@ import com.squareup.sqlbrite.SqlBrite;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,7 +93,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         // Think the new way to do this is simply provide a cursor to
         mCurFilter = query;
         if (TextUtils.isEmpty(query)) {
-            if (areMarkersVisible()) clearMap();
+            if (areMarkersVisible()) clearMap(true);
             mState = STATE.EXPLORE;
             //if (lastZoomLevel > POI_ZOOM_LEVEL) restartLoaders(true);
 
@@ -138,6 +139,8 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
      */
     private static final int MAX_POIS = 100;
 
+    // Markers that should only be cleared on new query arrival
+    HashSet<Marker> permanentMarkers = new HashSet<>();
     // Markers that should be cleared on camera events
     ArrayDeque<Marker> mMappedTransientMarkers = new ArrayDeque<>(MAX_POIS);
     HashMap<String, String> markerIdToMeta = new HashMap<>();
@@ -431,7 +434,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                             }
                         } else if (currentZoom < POI_ZOOM_LEVEL && areMarkersVisible()) {
                             if (mState == STATE.EXPLORE) {
-                                clearMap();
+                                clearMap(false);
                             }
                         }
                     }
@@ -475,7 +478,23 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         return mMappedTransientMarkers.size() > 0;
     }
 
-    public void clearMap() {
+    /**
+     * Clear markers marked permanent. These are not removed due to camera change events.
+     * Currently used for user-selected favorite items.
+     */
+    public void clearPermanentMarkers() {
+        for (Marker marker : permanentMarkers) {
+            marker.remove();
+            markerIdToMeta.remove(marker.getId());
+        }
+        permanentMarkers.clear();
+    }
+
+    public void clearMap(boolean clearAll) {
+        if (clearAll) {
+           clearPermanentMarkers();
+        }
+
         for (Marker marker : mMappedTransientMarkers) {
             marker.remove();
             markerIdToMeta.remove(marker.getId());
@@ -608,6 +627,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     private void processMapItemResult(Cursor cursor) {
 
+        clearPermanentMarkers();
         mResultBounds = new LatLngBounds.Builder();
 
         Timber.d("Got cursor result with %d items", cursor.getCount());
@@ -635,6 +655,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                     if (!markerIdToMeta.containsValue(markerMapId)) {
                         Marker marker = addNewMarkerForCursorItem(typeInt, cursor);
                         markerIdToMeta.put(marker.getId(), markerMapId);
+                        permanentMarkers.add(marker);
                     }
                 } else if (currentZoom > POI_ZOOM_LEVEL){
                     // Other markers are recyclable, and may be cleared on camera events
