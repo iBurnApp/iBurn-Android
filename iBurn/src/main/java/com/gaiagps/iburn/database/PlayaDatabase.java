@@ -10,7 +10,7 @@ import java.util.ArrayList;
  *
  * Created by davidbrodsky on 7/28/14.
  */
-@Database(version = (int) DataProvider.BUNDLED_DATABASE_VERSION) // Vulnerable to Year 2038 bug
+@Database(version = (int) DataProvider.BUNDLED_DATABASE_VERSION)
 public class PlayaDatabase {
 
     /** Table Definition        Reference Name                        SQL Tablename */

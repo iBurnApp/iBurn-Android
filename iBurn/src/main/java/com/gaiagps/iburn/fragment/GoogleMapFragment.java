@@ -125,7 +125,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     private STATE mState = STATE.EXPLORE;
 
-    private final int POI_ZOOM_LEVEL = 16;
+    private final double POI_ZOOM_LEVEL = 15.5;
     float currentZoom = 0;
 
     private final PublishSubject<VisibleRegion> cameraUpdate = PublishSubject.create();
@@ -416,6 +416,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
                 @Override
                 public void onCameraChange(CameraPosition cameraPosition) {
+//                    Timber.d("Zoom: " + cameraPosition.zoom);
                     if (!BRC_BOUNDS.contains(cameraPosition.target) ||
                             cameraPosition.zoom > MAX_ZOOM || cameraPosition.zoom < MIN_ZOOM) {
                         getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(

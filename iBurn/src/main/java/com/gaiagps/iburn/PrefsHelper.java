@@ -13,6 +13,7 @@ public class PrefsHelper {
     private static final String VALID_UNLOCK_CODE = "unlocked_2015";        // boolean
     private static final String SCHEDULED_UPDATE = "sched_update";          // boolean
 
+    private static final String DEFAULT_RESOURCE_VERSION = "resver";        // long
     private static final String RESOURCE_VERSION_PREFIX = "res-";           // long
 
     private static final String SHARED_PREFS_NAME = PrefsHelper.class.getSimpleName();
@@ -37,7 +38,7 @@ public class PrefsHelper {
     }
 
     public boolean didShowWelcome() {
-        return sharedPrefs.getBoolean(SHOWED_WELCOME, true);
+        return sharedPrefs.getBoolean(SHOWED_WELCOME, false);
     }
 
     public void setDidShowWelcome(boolean didShow) {
@@ -45,8 +46,7 @@ public class PrefsHelper {
     }
 
     public void setDatabaseVersion(long version) {
-        editor.putLong(POPULATED_DB_VERSION, version);
-        editor.commit();
+        editor.putLong(POPULATED_DB_VERSION, version).commit();
     }
 
     public long getDatabaseVersion() {
@@ -64,8 +64,12 @@ public class PrefsHelper {
         editor.putBoolean(SCHEDULED_UPDATE, didScheduleUpdate).apply();
     }
 
+    public void setBaseResourcesVersion(long version) {
+        editor.putLong(DEFAULT_RESOURCE_VERSION, version).commit();
+    }
+
     public long getResourceVersion(String resourceName) {
-        return sharedPrefs.getLong(RESOURCE_VERSION_PREFIX + resourceName, 0);
+        return sharedPrefs.getLong(RESOURCE_VERSION_PREFIX + resourceName, sharedPrefs.getLong(DEFAULT_RESOURCE_VERSION, 0));
     }
 
     public void setResourceVersion(String resourceName, long resourceVersion) {

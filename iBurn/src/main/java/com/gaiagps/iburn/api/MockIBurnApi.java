@@ -42,12 +42,12 @@ public class MockIBurnApi implements IBurnApi {
                 .create();
 
         // Don't trigger an update
-        ResourceManifest art = new ResourceManifest("art.json.js", new Date(0));
-        ResourceManifest event = new ResourceManifest("event.json.js", new Date(0));
         ResourceManifest map = new ResourceManifest("map.mbtiles.jar", new Date(0));
 
         // Do trigger an update
+        ResourceManifest art = new ResourceManifest("art.json.js", new Date());
         ResourceManifest camp = new ResourceManifest("camp.json.js", new Date());
+        ResourceManifest event = new ResourceManifest("event.json.js", new Date());
 
         manifest = new DataManifest(art, camp, event, map);
     }
@@ -63,7 +63,7 @@ public class MockIBurnApi implements IBurnApi {
                 .observeOn(Schedulers.io())
                 .map(path -> {
                     try {
-                        InputStream is = context.getAssets().open("json/camps.json");
+                        InputStream is = context.getAssets().open(path);
                         Camp[] camps = gson.fromJson(new BufferedReader(new InputStreamReader(is)), Camp[].class);
                         List<Camp> campList = new ArrayList<>(Arrays.asList(camps));
                         return campList;
@@ -77,14 +77,38 @@ public class MockIBurnApi implements IBurnApi {
 
     @Override
     public Observable<List<Art>> getArt() {
-        // currently unused
-        return null;
+        return Observable.just("json/art.json")
+                .observeOn(Schedulers.io())
+                .map(path -> {
+                    try {
+                        InputStream is = context.getAssets().open(path);
+                        Art[] art = gson.fromJson(new BufferedReader(new InputStreamReader(is)), Art[].class);
+                        List<Art> artList = new ArrayList<>(Arrays.asList(art));
+                        return artList;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    // How do we throw an exception or indicate error?
+                    return null;
+                });
     }
 
     @Override
     public Observable<List<Event>> getEvents() {
-        // currently unused
-        return null;
+        return Observable.just("json/events.json")
+                .observeOn(Schedulers.io())
+                .map(path -> {
+                    try {
+                        InputStream is = context.getAssets().open(path);
+                        Event[] events = gson.fromJson(new BufferedReader(new InputStreamReader(is)), Event[].class);
+                        List<Event> eventsList = new ArrayList<>(Arrays.asList(events));
+                        return eventsList;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    // How do we throw an exception or indicate error?
+                    return null;
+                });
     }
 
     @Override

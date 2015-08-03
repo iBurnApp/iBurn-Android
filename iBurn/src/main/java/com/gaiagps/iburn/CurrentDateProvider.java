@@ -12,7 +12,7 @@ public class CurrentDateProvider {
     /**
      * Date to use as "now" for Debug builds
      */
-    public static Date DEBUG_NOW_DATE = new GregorianCalendar(2014, Calendar.AUGUST, 28, 12, 0).getTime();
+    public static Date DEBUG_NOW_DATE = new GregorianCalendar(2015, Calendar.AUGUST, 30, 12, 0).getTime();
 
     public static Date getCurrentDate() {
         return BuildConfig.DEBUG ? DEBUG_NOW_DATE : new Date();

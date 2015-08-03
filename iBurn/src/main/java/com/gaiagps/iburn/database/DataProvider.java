@@ -6,11 +6,9 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.PrefsHelper;
-import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 import com.squareup.sqlbrite.SqlBrite;
 
 import java.lang.reflect.InvocationTargetException;
@@ -45,7 +43,15 @@ public class DataProvider {
      */
     public static final String VirtualType = "type";
 
-    public static final long BUNDLED_DATABASE_VERSION = 1435792996306L; // Unix time of creation
+    /**
+     * Version of database schema
+     */
+    public static final long BUNDLED_DATABASE_VERSION = 1;
+
+    /**
+     * Version of database data
+     */
+    public static final long RESOURCES_VERSION = 1438560071000L; // Unix time of creation
 
     private static final boolean USE_BUNDLED_DB = true;
 
@@ -65,7 +71,10 @@ public class DataProvider {
 
         return Observable.just(openHelper)
                 .subscribeOn(Schedulers.io())
-                .doOnNext(database -> prefs.setDatabaseVersion(BUNDLED_DATABASE_VERSION))
+                .doOnNext(database -> {
+                    prefs.setDatabaseVersion(BUNDLED_DATABASE_VERSION);
+                    prefs.setBaseResourcesVersion(RESOURCES_VERSION);
+                })
                 .map(SqlBrite::create)
 //                .doOnNext(sqlBrite1 -> sqlBrite1.setLoggingEnabled(true))
                 .map(sqlBrite -> new DataProvider(sqlBrite, new Embargo(prefs)))
