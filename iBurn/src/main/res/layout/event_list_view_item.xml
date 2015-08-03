@@ -21,6 +21,19 @@
         android:textSize="20sp"/>
 
     <TextView
+        android:id="@+id/list_item_description"
+        style="@style/PlayaTextItem"
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="marquee"
+        android:gravity="center_vertical"
+        android:paddingTop="0dp"
+        android:singleLine="true"
+        android:maxLines="3"
+        android:textSize="18sp"/>
+
+    <TextView
         android:id="@+id/list_item_subtitle"
         android:textColor="@color/sub_text"
         style="@style/PlayaTextItem"

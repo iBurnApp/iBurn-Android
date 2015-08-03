@@ -37,6 +37,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
     static final String[] Projection = new String[]{
             EventTable.id,
             EventTable.name,
+            EventTable.description,
             EventTable.startTime,
             EventTable.startTimePrint,
             EventTable.endTime,
@@ -52,6 +53,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
     static final String[] GroupedProjection = new String[]{
             EventTable.id,
             EventTable.name,
+            EventTable.description,
             EventTable.startTime,
             EventTable.startTimePrint,
             EventTable.endTime,
@@ -75,6 +77,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
 
 
     private int titleCol;
+    private int descCol;
     private int eventTypeCol;
     private int startTimeCol;
     private int startTimePrettyCol;
@@ -86,6 +89,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView titleView;
+        TextView descView;
         TextView typeView;
         TextView timeView;
         TextView distanceView;
@@ -99,6 +103,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
 
             container = view;
             titleView = (TextView) view.findViewById(R.id.list_item_title);
+            descView = (TextView) view.findViewById(R.id.list_item_description);
             timeView = (TextView) view.findViewById(R.id.list_item_sub_right);
             distanceView = (TextView) view.findViewById(R.id.list_item_sub_left);
             typeView = (TextView) view.findViewById(R.id.list_item_subtitle);
@@ -147,6 +152,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
 
         if (titleCol == 0) {
             titleCol = cursor.getColumnIndexOrThrow(EventTable.name);
+            descCol = cursor.getColumnIndexOrThrow(EventTable.description);
             eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
             startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
             startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
@@ -202,6 +208,7 @@ public class EventCursorAdapter extends CursorRecyclerViewAdapter<EventCursorAda
         }
 
         viewHolder.titleView.setText(cursor.getString(titleCol));
+        viewHolder.descView.setText(cursor.getString(descCol));
         viewHolder.timeView.setText(viewHolder.timeLabel);
 
         viewHolder.modelId = cursor.getInt(idCol);

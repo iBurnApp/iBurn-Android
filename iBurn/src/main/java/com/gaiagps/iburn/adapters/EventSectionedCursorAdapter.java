@@ -39,6 +39,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
     static final String[] Projection = new String[]{
             EventTable.id,
             EventTable.name,
+            EventTable.description,
             EventTable.startTime,
             EventTable.startTimePrint,
             EventTable.endTime,
@@ -59,6 +60,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
     List<Integer> headerPositions;
 
     private int titleCol;
+    private int descCol;
     private int eventTypeCol;
     private int startTimeCol;
     private int startTimePrettyCol;
@@ -70,6 +72,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView titleView;
+        TextView descView;
         TextView typeView;
         TextView distanceView;
         View container;
@@ -82,6 +85,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
 
             container = view;
             titleView = (TextView) view.findViewById(R.id.list_item_title);
+            descView = (TextView) view.findViewById(R.id.list_item_description);
             distanceView = (TextView) view.findViewById(R.id.list_item_sub_left);
             typeView = (TextView) view.findViewById(R.id.list_item_subtitle);
         }
@@ -191,6 +195,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
         }
 
         viewHolder.titleView.setText(cursor.getString(titleCol));
+        viewHolder.descView.setText(cursor.getString(descCol));
 
         viewHolder.modelId = cursor.getInt(idCol);
         viewHolder.container.setTag(viewHolder.modelId);
@@ -223,6 +228,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
 
     private void cacheColumns(Cursor cursor) {
         titleCol = cursor.getColumnIndexOrThrow(EventTable.name);
+        descCol = cursor.getColumnIndexOrThrow(EventTable.description);
         eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
         startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
         startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
