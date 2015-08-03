@@ -164,6 +164,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                 .setView(dialogView).create();
         dialogView.setOnClickListener(v -> {
             prefs.setDidShowWelcome(true);
+            dialog.dismiss();
         });
         dialog.show();
     }
