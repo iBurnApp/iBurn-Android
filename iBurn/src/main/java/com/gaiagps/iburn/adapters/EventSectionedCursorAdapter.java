@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.location.Location;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,7 +44,8 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
             EventTable.endTime,
             EventTable.endTimePrint,
             EventTable.allDay,
-            EventTable.eventType
+            EventTable.eventType,
+            EventTable.playaAddress
     };
 
     private SimpleDateFormat dayFormatter;
@@ -52,6 +54,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
     List<Integer> headerPositions;
 
     private int eventTypeCol;
+    private int addressCol;
     private int startTimeCol;
     private int startTimePrettyCol;
     private int endTimeCol;
@@ -60,6 +63,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
     public static class ViewHolder extends PlayaItemCursorAdapter.ViewHolder {
         TextView typeView;
         TextView timeView;
+        TextView addressView;
 
         String timeLabel;
 
@@ -68,6 +72,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
 
             typeView = (TextView) view.findViewById(R.id.type);
             timeView = (TextView) view.findViewById(R.id.time);
+            addressView = (TextView) view.findViewById(R.id.address);
         }
     }
 
@@ -129,6 +134,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
 
         if (eventTypeCol == 0) {
             eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
+            addressCol = cursor.getColumnIndexOrThrow(EventTable.playaAddress);
             startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
             startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
             endTimeCol = cursor.getColumnIndexOrThrow(EventTable.endTime);
@@ -138,10 +144,18 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
         viewHolder.typeView.setText(
                 AdapterUtils.getStringForEventType(cursor.getString(eventTypeCol)));
 
-        viewHolder.timeView.setVisibility(View.GONE); // currently unused
+        viewHolder.timeView.setVisibility(View.INVISIBLE); // currently unused. Keep invisible so addressView doesn't lose anchor
 
         // These views are sectioned by start time but
         // Perhaps we will eventually want to display end time.
+
+        String playaAddress = cursor.getString(addressCol);
+        if (!TextUtils.isEmpty(playaAddress)) {
+            viewHolder.addressView.setText(playaAddress);
+            viewHolder.addressView.setVisibility(View.VISIBLE);
+        } else {
+            viewHolder.addressView.setVisibility(View.GONE);
+        }
 
         setLinearSlmParameters(viewHolder, position);
     }

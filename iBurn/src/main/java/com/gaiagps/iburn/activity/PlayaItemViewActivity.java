@@ -12,7 +12,6 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.Display;
@@ -22,7 +21,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -319,7 +317,23 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
                                     @Override
                                     public void onItemFavoriteButtonSelected(int modelId, Constants.PlayaItemType type) {
+                                        final String modelTable;
+                                        switch (type) {
+                                            case CAMP:
+                                                modelTable = PlayaDatabase.CAMPS;
+                                                break;
+                                            case ART:
+                                                modelTable = PlayaDatabase.ART;
+                                                break;
+                                            case EVENT:
+                                                modelTable = PlayaDatabase.EVENTS;
+                                                break;
 
+                                            default:
+                                                throw new IllegalArgumentException("Invalid type " + type);
+                                        }
+
+                                        provider.toggleFavorite(modelTable, modelId);
                                     }
                                 });
 

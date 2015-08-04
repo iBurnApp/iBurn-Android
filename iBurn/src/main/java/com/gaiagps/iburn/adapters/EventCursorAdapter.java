@@ -2,6 +2,7 @@ package com.gaiagps.iburn.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +36,8 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
             EventTable.endTime,
             EventTable.endTimePrint,
             EventTable.allDay,
-            EventTable.eventType
+            EventTable.eventType,
+            EventTable.playaAddress
     };
 
     /** Projection when Events are grouped by name */
@@ -46,6 +48,7 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
             EventTable.endTimePrint,
             EventTable.allDay,
             EventTable.eventType,
+            EventTable.playaAddress,
             "count(" + EventTable.name + ")",
             "min(" + EventTable.startTime + ")",
             "max(" + EventTable.startTime + ")"
@@ -58,6 +61,7 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
     private SimpleDateFormat timeFormatter;
 
     private int eventTypeCol;
+    private int addressCol;
     private int startTimeCol;
     private int startTimePrettyCol;
     private int endTimeCol;
@@ -66,6 +70,7 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
     public static class ViewHolder extends PlayaItemCursorAdapter.ViewHolder {
         TextView typeView;
         TextView timeView;
+        TextView addressView;
 
         String timeLabel;
 
@@ -74,6 +79,7 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
 
             timeView = (TextView) view.findViewById(R.id.time);
             typeView = (TextView) view.findViewById(R.id.type);
+            addressView = (TextView) view.findViewById(R.id.address);
         }
     }
 
@@ -114,6 +120,7 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
 
         if (eventTypeCol == 0) {
             eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
+            addressCol = cursor.getColumnIndexOrThrow(EventTable.playaAddress);
             startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
             startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
             endTimeCol = cursor.getColumnIndexOrThrow(EventTable.endTime);
@@ -155,6 +162,14 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
         // if items not grouped, time set by super.onBindViewHolder
 
         viewHolder.timeView.setText(viewHolder.timeLabel);
+
+        String playaAddress = cursor.getString(addressCol);
+        if (!TextUtils.isEmpty(playaAddress)) {
+            viewHolder.addressView.setText(playaAddress);
+            viewHolder.addressView.setVisibility(View.VISIBLE);
+        } else {
+            viewHolder.addressView.setVisibility(View.GONE);
+        }
     }
 
     @Override
