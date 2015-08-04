@@ -79,8 +79,8 @@ public class MapProvider {
     /**
      * @return the expected location of the MBTiles database. The file may not yet exist
      */
-    private static File getMBTilesFile(long version) {
-        return new File(String.format("%s/iburn/tiles/%s.%d", Environment.getExternalStorageDirectory().getAbsolutePath(),
+    private File getMBTilesFile(long version) {
+        return new File(String.format("%s/iburn/tiles/%s.%d", context.getFilesDir().getAbsolutePath(),
                 MBTILE_DESTINATION, version));
     }
 
