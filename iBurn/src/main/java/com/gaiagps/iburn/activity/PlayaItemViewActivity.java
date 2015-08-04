@@ -338,7 +338,6 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                 });
 
                                 provider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.campPlayaId + " = ? GROUP BY " + PlayaItemTable.name, String.valueOf(playaId))
-                                        .first()
                                         .map(SqlBrite.Query::run)
                                         .subscribe(eventsCursor -> {
 
@@ -359,6 +358,8 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                             hostedEventsTitle.setText(R.string.hosted_events);
                                             hostedEventsTitle.setTextSize(32);
                                             hostedEventsTitle.setPadding(pad, pad, pad, pad);
+
+                                            overflowContainer.removeAllViews();
 
                                             overflowContainer.addView(hostedEventsTitle);
 
