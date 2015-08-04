@@ -78,9 +78,10 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
 
     @Override
     public void onDataChanged(Cursor newData) {
+        boolean adapterWasEmpty = adapter.getItemCount() == 0;
         super.onDataChanged(newData);
 
-        if (adapter.getItemCount() == 0) {
+        if (adapterWasEmpty) {
             // Fade in the initial data, but let updates happen without animation
             AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
             fadeAnimation.setDuration(250);
