@@ -80,11 +80,14 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
     public void onDataChanged(Cursor newData) {
         super.onDataChanged(newData);
 
-        AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
-        fadeAnimation.setDuration(250);
-        fadeAnimation.setStartOffset(100);
-        fadeAnimation.setFillAfter(true);
-        fadeAnimation.setFillEnabled(true);
-        mRecyclerView.startAnimation(fadeAnimation);
+        if (adapter.getItemCount() == 0) {
+            // Fade in the initial data, but let updates happen without animation
+            AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
+            fadeAnimation.setDuration(250);
+            fadeAnimation.setStartOffset(100);
+            fadeAnimation.setFillAfter(true);
+            fadeAnimation.setFillEnabled(true);
+            mRecyclerView.startAnimation(fadeAnimation);
+        }
     }
 }
