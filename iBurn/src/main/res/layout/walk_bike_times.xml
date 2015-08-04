@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/walk_time"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/description"
+        android:drawableLeft="@drawable/ic_person"
+        android:layout_marginLeft="-4dp"
+        android:layout_marginTop="4dp"
+        android:drawablePadding="4dp"
+        android:ellipsize="marquee"
+        android:gravity="center_vertical"
+        android:singleLine="true"
+        android:textColor="@color/sub_text"
+        android:text="3 min"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/bike_time"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/description"
+        android:layout_toRightOf="@id/walk_time"
+        android:drawableLeft="@drawable/ic_biker"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="4dp"
+        android:drawablePadding="8dp"
+        android:ellipsize="marquee"
+        android:gravity="center_vertical"
+        android:singleLine="true"
+        android:textColor="@color/sub_text"
+        android:text="3 min"
+        android:textSize="18sp" />
+
+</merge>

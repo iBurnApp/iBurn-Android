@@ -40,7 +40,7 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
     }
 
     protected CursorRecyclerViewAdapter getAdapter() {
-        return new EventSectionedCursorAdapter(getActivity(), null, false, this);
+        return new EventSectionedCursorAdapter(getActivity(), null, this);
     }
 
     @Override

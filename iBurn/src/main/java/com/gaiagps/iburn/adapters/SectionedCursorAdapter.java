@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.adapters;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
@@ -14,7 +15,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
-public abstract class SectionedCursorAdapter<T extends RecyclerView.ViewHolder> extends CursorRecyclerViewAdapter<T> {
+public abstract class SectionedCursorAdapter<T extends PlayaItemCursorAdapter.ViewHolder> extends PlayaItemCursorAdapter<T> {
 
     protected static final int VIEW_TYPE_HEADER = 0x01;
 
@@ -22,8 +23,8 @@ public abstract class SectionedCursorAdapter<T extends RecyclerView.ViewHolder> 
 
     List<Integer> headerPositions;
 
-    public SectionedCursorAdapter(Cursor c) {
-        super(c);
+    public SectionedCursorAdapter(Context context, Cursor c, AdapterListener listener) {
+        super(context, c, listener);
         initializeWithNewCursor(c);
     }
 
@@ -88,12 +89,6 @@ public abstract class SectionedCursorAdapter<T extends RecyclerView.ViewHolder> 
             return getHeaderId(position);
         }
         return super.getItemId(getCursorPositionForPosition(position));
-    }
-
-    @Override
-    public void onBindViewHolder(T viewHolder, Cursor cursor) {
-        //unused
-        Timber.w("Unused method called");
     }
 
     public void changeCursor(Cursor cursor) {

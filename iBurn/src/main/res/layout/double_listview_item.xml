@@ -18,7 +18,7 @@
     android:background="?attr/selectableItemBackground">
 
     <TextView
-        android:id="@+id/list_item_title"
+        android:id="@+id/title"
         style="@style/PlayaTextItem"
         android:textStyle="bold"
         android:layout_width="wrap_content"
@@ -29,7 +29,7 @@
         android:textSize="20sp"/>
 
     <TextView
-        android:id="@+id/list_item_sub_left"
+        android:id="@+id/walk_time"
         style="@style/PlayaTextItem"
         android:gravity="center_vertical"
         android:drawableLeft="@drawable/ic_person"

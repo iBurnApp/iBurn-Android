@@ -23,40 +23,13 @@ import java.util.List;
  * using the device's location and date when the adapter was constructed.
  *
  */
-public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<PlayaSearchResponseCursorAdapter.ViewHolder> {
+public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<PlayaItemCursorAdapter.ViewHolder> {
 
-    private Context context;
-    private Location deviceLocation;
-    private AdapterItemSelectedListener listener;
-
-    private static int titleCol;
-    private static int latCol;
-    private static int lonCol;
-    private static int idCol;
     private static int typeCol;
 
-    public PlayaSearchResponseCursorAdapter(Context context, Cursor cursor, AdapterItemSelectedListener listener) {
-        super(cursor);
+    public PlayaSearchResponseCursorAdapter(Context context, Cursor cursor, AdapterListener listener) {
+        super(context, cursor, listener);
         this.listener = listener;
-        this.context = context;
-
-        // TODO : NotifydatasetChanged when location does?
-        LocationProvider.getLastLocation(context).
-                subscribe(lastLocation -> deviceLocation = lastLocation);
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView titleView;
-        TextView distanceView;
-        View container;
-
-        public ViewHolder(View view) {
-            super(view);
-
-            container = view;
-            titleView = (TextView) view.findViewById(R.id.list_item_title);
-            distanceView = (TextView) view.findViewById(R.id.list_item_sub_left);
-        }
     }
 
     @Override
@@ -90,7 +63,6 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
 
     @Override
     protected List<Integer> createHeadersForCursor(Cursor cursor) {
-        cacheColumns(cursor);
         ArrayList<Integer> headers = new ArrayList<>();
 
         int lastType = cursor.getInt(typeCol);
@@ -109,15 +81,17 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
 
     @Override
     protected void onBindViewHolder(ViewHolder viewHolder, Cursor cursor, int position) {
+
+        super.onBindViewHolder(viewHolder, cursor);
+
+        if (typeCol == 0) {
+            typeCol = cursor.getColumnIndexOrThrow(DataProvider.VirtualType); // This is a virtual column created during UNION queries of multiple tables
+        }
+
         setLinearSlmParameters(viewHolder, position);
 
-        viewHolder.titleView.setText(cursor.getString(titleCol));
-
-        AdapterUtils.setDistanceText(deviceLocation, viewHolder.distanceView,
-                cursor.getDouble(latCol), cursor.getDouble(lonCol));
-
-        viewHolder.container.setTag(R.id.list_item_related_model, cursor.getInt(idCol));
-        viewHolder.container.setTag(R.id.list_item_related_model_type, cursor.getInt(typeCol));
+        viewHolder.itemView.setTag(R.id.list_item_related_model, cursor.getInt(idCol));
+        viewHolder.itemView.setTag(R.id.list_item_related_model_type, cursor.getInt(typeCol));
     }
 
     @Override
@@ -146,13 +120,5 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
     @Override
     public String[] getRequiredProjection() {
         return PlayaItemCursorAdapter.Projection;
-    }
-
-    private void cacheColumns(Cursor cursor) {
-        titleCol = cursor.getColumnIndexOrThrow(PlayaItemTable.name);
-        latCol = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
-        lonCol = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
-        idCol = cursor.getColumnIndexOrThrow(PlayaItemTable.id);
-        typeCol = cursor.getColumnIndexOrThrow(DataProvider.VirtualType); // This is a virtual column created during UNION queries of multiple tables
     }
 }

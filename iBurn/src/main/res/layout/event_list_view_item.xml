@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/list_item_container"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
@@ -8,9 +8,20 @@
     android:orientation="vertical"
     android:background="?attr/selectableItemBackground">
 
+    <ImageView
+        android:id="@+id/heart"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:gravity="right"
+        android:layout_alignParentRight="true"
+        android:scaleType="fitEnd"
+        android:src="@drawable/ic_heart_empty"/>
+
     <TextView
-        android:id="@+id/list_item_title"
+        android:id="@+id/title"
         style="@style/PlayaTextItem"
+        android:layout_toLeftOf="@id/heart"
+        android:layout_alignParentLeft="true"
         android:textStyle="bold"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -18,46 +29,86 @@
         android:gravity="center_vertical"
         android:paddingTop="0dp"
         android:singleLine="true"
+        android:text="Dust Feast"
         android:textSize="20sp"/>
 
     <TextView
-        android:id="@+id/list_item_description"
+        android:id="@+id/description"
         style="@style/PlayaTextItem"
-        android:textStyle="bold"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ellipsize="marquee"
+        android:layout_below="@id/title"
+        android:ellipsize="end"
         android:gravity="center_vertical"
         android:paddingTop="0dp"
-        android:singleLine="true"
         android:maxLines="3"
+        android:singleLine="false"
+        android:text="A very long description description. A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description."
         android:textSize="18sp"/>
 
     <TextView
-        android:id="@+id/list_item_subtitle"
+        android:id="@+id/type"
         android:textColor="@color/sub_text"
         style="@style/PlayaTextItem"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ellipsize="marquee"
         android:gravity="center_vertical"
-        android:padding="2dp"
+        android:layout_marginTop="2dp"
         android:paddingTop="0dp"
         android:singleLine="true"
+        android:layout_below="@id/description"
+        android:text="Celebration"
         android:textSize="18sp"/>
 
     <TextView
-        android:id="@+id/list_item_sub_left"
+        android:id="@+id/walk_time"
         style="@style/PlayaTextItem"
-        android:gravity="center_vertical"
-        android:drawableLeft="@drawable/ic_person"
-        android:drawablePadding="0dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/type"
+        android:drawableLeft="@drawable/ic_person"
+        android:layout_marginLeft="-4dp"
+        android:layout_marginTop="4dp"
+        android:drawablePadding="4dp"
         android:ellipsize="marquee"
+        android:gravity="center_vertical"
+        android:singleLine="true"
+        android:textColor="@color/sub_text"
+        android:text="3 min"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/bike_time"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/type"
+        android:layout_toRightOf="@id/walk_time"
+        android:drawableLeft="@drawable/ic_biker"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="4dp"
+        android:drawablePadding="8dp"
+        android:ellipsize="marquee"
+        android:gravity="center_vertical"
+        android:singleLine="true"
+        android:textColor="@color/sub_text"
+        android:text="3 min"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/time"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/type"
+        android:layout_toRightOf="@id/bike_time"
+        android:ellipsize="marquee"
+        android:gravity="right"
         android:padding="2dp"
         android:singleLine="true"
         android:textColor="@color/sub_text"
         android:textSize="18sp"/>
 
-</LinearLayout>
+</RelativeLayout>

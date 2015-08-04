@@ -31,6 +31,7 @@ import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.EventCursorAdapter;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.ArtTable;
@@ -307,11 +308,19 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                             if (modelTable.equals(PlayaDatabase.CAMPS)) {
                                 // Lookup hosted events
 
-                                EventCursorAdapter adapter = new EventCursorAdapter(this, null, true, (relatedEventId, type) -> {
-                                    Intent intent = new Intent(this, PlayaItemViewActivity.class);
-                                    intent.putExtra("model_id", relatedEventId);
-                                    intent.putExtra("model_type", type);
-                                    startActivity(intent);
+                                EventCursorAdapter adapter = new EventCursorAdapter(this, null, true, new AdapterListener() {
+                                    @Override
+                                    public void onItemSelected(int modelId, Constants.PlayaItemType type) {
+                                        Intent intent = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
+                                        intent.putExtra("model_id", modelId);
+                                        intent.putExtra("model_type", type);
+                                        startActivity(intent);
+                                    }
+
+                                    @Override
+                                    public void onItemFavoriteButtonSelected(int modelId, Constants.PlayaItemType type) {
+
+                                    }
                                 });
 
                                 provider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.campPlayaId + " = ? GROUP BY " + PlayaItemTable.name, String.valueOf(playaId))

@@ -10,14 +10,14 @@ import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
-import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Subscriber;
-import com.gaiagps.iburn.adapters.AdapterItemSelectedListener;
+import com.gaiagps.iburn.adapters.AdapterListener;
+import com.gaiagps.iburn.adapters.ArtCursorAdapter;
+import com.gaiagps.iburn.adapters.CampCursorAdapter;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.adapters.EventCursorAdapter;
-import com.gaiagps.iburn.adapters.PlayaItemCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.view.BrowseListHeader;
@@ -35,7 +35,7 @@ import timber.log.Timber;
  * <p/>
  * Created by davidbrodsky on 8/3/13.
  */
-public final class BrowseListViewFragment extends PlayaListViewFragment implements EventListHeader.PlayaListViewHeaderReceiver, BrowseListHeader.BrowseSelectionListener, AdapterItemSelectedListener, Subscriber {
+public final class BrowseListViewFragment extends PlayaListViewFragment implements EventListHeader.PlayaListViewHeaderReceiver, BrowseListHeader.BrowseSelectionListener, AdapterListener, Subscriber {
 
     public static BrowseListViewFragment newInstance() {
         return new BrowseListViewFragment();
@@ -53,7 +53,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         switch (categorySelection) {
 
             case CAMPS:
-                adapter = new PlayaItemCursorAdapter(getActivity(), null, Constants.PlayaItemType.CAMP, this);
+                adapter = new CampCursorAdapter(getActivity(), null, this);
                 if (mRecyclerView != null) mRecyclerView.setAdapter(adapter);
                 return DataProvider.getInstance(getActivity())
                         .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.CAMPS, adapter.getRequiredProjection()))
@@ -69,7 +69,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
 
 
             case ART:
-                adapter = new PlayaItemCursorAdapter(getActivity(), null, Constants.PlayaItemType.ART, this);
+                adapter = new ArtCursorAdapter(getActivity(), null, this);
                 if (mRecyclerView != null) mRecyclerView.setAdapter(adapter);
                 return DataProvider.getInstance(getActivity())
                         .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.ART, adapter.getRequiredProjection()))
@@ -167,6 +167,6 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
 
     @Override
     protected CursorRecyclerViewAdapter getAdapter() {
-        return new PlayaItemCursorAdapter(getActivity(), null, Constants.PlayaItemType.CAMP, this);
+        return new CampCursorAdapter(getActivity(), null, this);
     }
 }

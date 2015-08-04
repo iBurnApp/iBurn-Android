@@ -3,6 +3,7 @@ package com.gaiagps.iburn.fragment;
 import android.os.Bundle;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.adapters.ArtCursorAdapter;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.PlayaItemCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
@@ -25,7 +26,7 @@ public class ArtListViewFragment extends PlayaListViewFragment {
     }
 
     protected CursorRecyclerViewAdapter getAdapter() {
-        return new PlayaItemCursorAdapter(getActivity(), null, Constants.PlayaItemType.ART, this);
+        return new ArtCursorAdapter(getActivity(), null, this);
     }
 
     @Override

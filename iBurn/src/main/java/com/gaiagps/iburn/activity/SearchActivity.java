@@ -14,7 +14,7 @@ import android.widget.EditText;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.adapters.AdapterItemSelectedListener;
+import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
 import com.squareup.sqlbrite.SqlBrite;
@@ -25,7 +25,7 @@ import butterknife.InjectView;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 
-public class SearchActivity extends AppCompatActivity implements AdapterItemSelectedListener {
+public class SearchActivity extends AppCompatActivity implements AdapterListener {
 
     private PlayaSearchResponseCursorAdapter adapter;
     private Subscription searchSubscription;
@@ -96,6 +96,11 @@ public class SearchActivity extends AppCompatActivity implements AdapterItemSele
         i.putExtra("model_id", modelId);
         i.putExtra("model_type", type);
         startActivity(i);
+    }
+
+    @Override
+    public void onItemFavoriteButtonSelected(int modelId, Constants.PlayaItemType type) {
+
     }
 
     public void onBackButtonClick(View view) {

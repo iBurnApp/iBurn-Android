@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.adapters;
 
+import android.content.Context;
 import android.location.Location;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -84,8 +85,8 @@ public class AdapterUtils {
         return null;
     }
 
-    public static double setDistanceText(Location deviceLocation, TextView textView, double lat, double lon) {
-        return setDistanceText(deviceLocation, null, null, null, textView, lat, lon);
+    public static void setDistanceText(Location deviceLocation, TextView walkTimeView, TextView bikeTimeView, double lat, double lon) {
+        setDistanceText(deviceLocation, null, null, null, walkTimeView, bikeTimeView, lat, lon);
     }
 
     /**
@@ -96,67 +97,74 @@ public class AdapterUtils {
      *
      * @return a time estimate in minutes.
      */
-    public static double setDistanceText(Location deviceLocation, Date nowDate, String startDateStr, String endDateStr, TextView textView, double lat, double lon) {
+    public static void setDistanceText(Location deviceLocation, Date nowDate, String startDateStr, String endDateStr, TextView walkTimeView, TextView bikeTimeView, double lat, double lon) {
         if (deviceLocation != null && lat != 0) {
             double metersToTarget = Geo.getDistance(lat, lon, deviceLocation);
-            double minutesToTarget = Geo.getWalkingEstimateMinutes(metersToTarget);
+            int walkingMinutesToTarget = (int) Geo.getWalkingEstimateMinutes(metersToTarget);
+            int bikingMinutesToTarget = (int) Geo.getBikingEstimateMinutes(metersToTarget);
+
             String distanceText;
+            Context context = walkTimeView.getContext();
 
             try {
-                Spannable spanRange;
+                Date startDate = startDateStr != null ? PlayaDateTypeAdapter.iso8601Format.parse(startDateStr) : null;
+                Date endDate = endDateStr != null ? PlayaDateTypeAdapter.iso8601Format.parse(endDateStr) : null;
 
-                if (minutesToTarget < 1) {
-                    distanceText = "<1 m";
-                    spanRange = new SpannableString(distanceText);
-                } else {
-                    distanceText = String.format("%.0f min", minutesToTarget);
-//                    int endSpan = distanceText.length();
-                    spanRange = new SpannableString(distanceText);
-//                    TextAppearanceSpan tas = new TextAppearanceSpan(textView.getContext(), R.style.Subdued);
-//                    spanRange.setSpan(tas, distanceText.indexOf("min") + 3, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }
-
-                if (nowDate != null && startDateStr != null && endDateStr != null) {
-                    // If a date is given, attempt to do coloring of the time estimate (e.g: green if arrival estimate before start date)
-                    Date startDate = PlayaDateTypeAdapter.iso8601Format.parse(startDateStr);
-                    Date endDate = PlayaDateTypeAdapter.iso8601Format.parse(endDateStr);
-                    long duration = endDate.getTime() - startDate.getTime() / 1000 / 60; //minutes
-
-                    if (startDate.before(nowDate) && endDate.after(nowDate)) {
-                        // Event already started
-                        long timeLeftMinutes = ( endDate.getTime() - nowDate.getTime() ) / 1000 / 60;
-//                        Log.i(TAG, "ongoing event ends in " + timeLeftMinutes + " minutes ( " + endDateStr + ") eta " + minutesToTarget + " duration " + duration);
-                        if ( (timeLeftMinutes - minutesToTarget) > 0) {
-                            // If we'll make at least a quarter of the event, Color it yellow
-                            int endSpan = distanceText.indexOf("min") + 3;
-                            spanRange = new SpannableString(distanceText);
-                            TextAppearanceSpan tas = new TextAppearanceSpan(textView.getContext(), R.style.OrangeText);
-                            spanRange.setSpan(tas, 0, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        }
-                    } else if (startDate.after(nowDate)) {
-                        long timeUntilStartMinutes = ( startDate.getTime() - nowDate.getTime() ) / 1000 / 60;
-//                        Log.i(TAG, "fugure event starts in " + timeUntilStartMinutes + " minutes ( " + startDateStr + ") eta " + minutesToTarget + " duration " + duration);
-                        if ( (timeUntilStartMinutes - minutesToTarget) > 0) {
-                            // If we'll make the event start, Color it green
-                            int endSpan = distanceText.indexOf("min") + 3;
-                            TextAppearanceSpan tas = new TextAppearanceSpan(textView.getContext(), R.style.GreenText);
-                            spanRange.setSpan(tas, 0, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        }
-                    }
-                }
-
-                textView.setText(spanRange);
+                walkTimeView.setText(createSpannableForDistance(context, walkingMinutesToTarget, nowDate, startDate, endDate));
+                bikeTimeView.setText(createSpannableForDistance(context, bikingMinutesToTarget, nowDate, startDate, endDate));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
             // If minutes < startDate || minutes < (endDate - now)
-            textView.setVisibility(View.VISIBLE);
-            return minutesToTarget;
+            walkTimeView.setVisibility(View.VISIBLE);
+            bikeTimeView.setVisibility(View.VISIBLE);
         } else {
-            textView.setText("");
-            textView.setVisibility(View.INVISIBLE);
-            return -1;
+            walkTimeView.setText("");
+            walkTimeView.setVisibility(View.GONE);
+            bikeTimeView.setText("");
+            bikeTimeView.setVisibility(View.GONE);
         }
+    }
+
+    private static Spannable createSpannableForDistance(Context context, int minutesToTarget, Date nowDate, Date startDate, Date endDate) {
+        String distanceText;
+        Spannable spanRange;
+
+        if (minutesToTarget < 1) {
+            distanceText = "<1 m";
+            spanRange = new SpannableString(distanceText);
+        } else {
+            distanceText = String.format("%d min", minutesToTarget);
+            spanRange = new SpannableString(distanceText);
+        }
+
+        if (nowDate != null && startDate != null && endDate != null) {
+            // If a date is given, attempt to do coloring of the time estimate (e.g: green if arrival estimate before start date)
+            long duration = endDate.getTime() - startDate.getTime() / 1000 / 60; //minutes
+
+            if (startDate.before(nowDate) && endDate.after(nowDate)) {
+                // Event already started
+                long timeLeftMinutes = ( endDate.getTime() - nowDate.getTime() ) / 1000 / 60;
+                //Timber.d("ongoing event ends in " + timeLeftMinutes + " minutes ( " + endDateStr + ") eta " + minutesToTarget + " duration " + duration);
+                if ( (timeLeftMinutes - minutesToTarget) > 0) {
+                    // If we'll make at least a quarter of the event, Color it yellow
+                    int endSpan = distanceText.indexOf("min") + 3;
+                    spanRange = new SpannableString(distanceText);
+                    TextAppearanceSpan tas = new TextAppearanceSpan(context, R.style.OrangeText);
+                    spanRange.setSpan(tas, 0, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
+            } else if (startDate.after(nowDate)) {
+                long timeUntilStartMinutes = ( startDate.getTime() - nowDate.getTime() ) / 1000 / 60;
+                //Timber.d("future event starts in " + timeUntilStartMinutes + " minutes ( " + startDateStr + ") eta " + minutesToTarget + " duration " + duration);
+                if ( (timeUntilStartMinutes - minutesToTarget) > 0) {
+                    // If we'll make the event start, Color it green
+                    int endSpan = distanceText.indexOf("min") + 3;
+                    TextAppearanceSpan tas = new TextAppearanceSpan(context, R.style.GreenText);
+                    spanRange.setSpan(tas, 0, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
+            }
+        }
+        return spanRange;
     }
 
     public static AdapterView.OnItemLongClickListener mListItemLongClickListener = (parent, v, position, id) -> {

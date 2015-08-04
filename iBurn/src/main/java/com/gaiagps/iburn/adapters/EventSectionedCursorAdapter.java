@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
@@ -37,81 +38,52 @@ import timber.log.Timber;
 public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSectionedCursorAdapter.ViewHolder> {
 
     static final String[] Projection = new String[]{
-            EventTable.id,
-            EventTable.name,
-            EventTable.description,
             EventTable.startTime,
             EventTable.startTimePrint,
             EventTable.endTime,
             EventTable.endTimePrint,
             EventTable.allDay,
-            EventTable.favorite,
-            EventTable.latitude,
-            EventTable.longitude,
             EventTable.eventType
     };
 
-    private Context context;
-    private AdapterItemSelectedListener listener;
-    private boolean areItemsGrouped;
     private SimpleDateFormat dayFormatter;
     private SimpleDateFormat timeFormatter;
 
     List<Integer> headerPositions;
 
-    private int titleCol;
-    private int descCol;
     private int eventTypeCol;
     private int startTimeCol;
     private int startTimePrettyCol;
     private int endTimeCol;
     private int endTimePrettyCol;
-    private int idCol;
-    private int latCol;
-    private int lonCol;
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView titleView;
-        TextView descView;
+    public static class ViewHolder extends PlayaItemCursorAdapter.ViewHolder {
         TextView typeView;
-        TextView distanceView;
-        View container;
+        TextView timeView;
 
-        int modelId;
         String timeLabel;
 
         public ViewHolder(View view) {
             super(view);
 
-            container = view;
-            titleView = (TextView) view.findViewById(R.id.list_item_title);
-            descView = (TextView) view.findViewById(R.id.list_item_description);
-            distanceView = (TextView) view.findViewById(R.id.list_item_sub_left);
-            typeView = (TextView) view.findViewById(R.id.list_item_subtitle);
+            typeView = (TextView) view.findViewById(R.id.type);
+            timeView = (TextView) view.findViewById(R.id.time);
         }
     }
 
-    private Location mDeviceLocation;
     Calendar nowPlusOneHrDate = Calendar.getInstance();
     Calendar nowDate = Calendar.getInstance();
 
-    public EventSectionedCursorAdapter(Context context, Cursor c, boolean isGrouped, AdapterItemSelectedListener listener) {
-        super(c);
-        this.context = context;
-        this.listener = listener;
-        this.areItemsGrouped = isGrouped;
+    public EventSectionedCursorAdapter(Context context, Cursor c, AdapterListener listener) {
+        super(context, c, listener);
+
         Date now = CurrentDateProvider.getCurrentDate();
         nowDate.setTime(now);
         nowPlusOneHrDate.setTime(now);
         nowPlusOneHrDate.add(Calendar.HOUR, 1);
 
-        LocationProvider.getLastLocation(context).
-                subscribe(lastLocation -> mDeviceLocation = lastLocation);
-
-        if (isGrouped) {
-            dayFormatter = new SimpleDateFormat("EE M/d", Locale.US);
-            timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
-        }
+        dayFormatter = new SimpleDateFormat("EE M/d", Locale.US);
+        timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
     }
 
     @Override
@@ -128,12 +100,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
 
         ViewHolder vh = new ViewHolder(itemView);
 
-        itemView.setOnClickListener(view -> {
-            if (view.getTag() != null) {
-                int modelId = (int) view.getTag();
-                listener.onItemSelected(modelId, Constants.PlayaItemType.EVENT);
-            }
-        });
+        if (viewType == VIEW_TYPE_CONTENT) setupClickListeners(vh, Constants.PlayaItemType.EVENT);
 
         return vh;
     }
@@ -143,6 +110,10 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
         setLinearSlmParameters(holder, position);
 
         try {
+            if (startTimeCol == 0) {
+                startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
+                startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
+            }
             ((TextView) holder.itemView).setText(DateUtil.getStartDateString(
                     PlayaDateTypeAdapter.iso8601Format.parse(cursor.getString(startTimeCol)),
                     CurrentDateProvider.getCurrentDate()).toUpperCase());
@@ -154,63 +125,34 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
 
     public void onBindViewHolder(ViewHolder viewHolder, Cursor cursor, int position) {
 
-        try {
-            if (areItemsGrouped) {
+        super.onBindViewHolder(viewHolder, cursor);
 
-                int numEvents = cursor.getInt(11);
-                String minDate = cursor.getString(12);
-                String maxDate = cursor.getString(13);
-
-                Date firstStartDate = PlayaDateTypeAdapter.iso8601Format.parse(minDate);
-                Date lastStartDate = PlayaDateTypeAdapter.iso8601Format.parse(maxDate);
-
-                if (numEvents > 1)
-                    viewHolder.timeLabel = /*String.valueOf(numEvents) + " times " + */ dayFormatter.format(firstStartDate) + " - " + dayFormatter.format(lastStartDate) + " at " + timeFormatter.format(lastStartDate);
-                else
-                    viewHolder.timeLabel = cursor.getString(startTimePrettyCol);
-            } else {
-//                if (cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1) {
-//                    viewHolder.timeLabel = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
-//
-//                } else {
-//                    viewHolder.timeLabel = DateUtil.getEndDateString(PlayaDateTypeAdapter.iso8601Format.parse(cursor.getString(endTimeCol)), CurrentDateProvider.getCurrentDate());
-//                }
-            }
-        } catch (IllegalArgumentException | ParseException e) {
-            Timber.e(e, "Failed to bind event");
+        if (eventTypeCol == 0) {
+            eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
+            startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
+            startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
+            endTimeCol = cursor.getColumnIndexOrThrow(EventTable.endTime);
+            endTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.endTimePrint);
         }
+
         viewHolder.typeView.setText(
                 AdapterUtils.getStringForEventType(cursor.getString(eventTypeCol)));
 
-        if (!areItemsGrouped) {
-            AdapterUtils.setDistanceText(mDeviceLocation,
-                    nowDate.getTime(),
-                    cursor.getString(startTimeCol),
-                    cursor.getString(endTimeCol),
-                    viewHolder.distanceView,
-                    cursor.getDouble(latCol),
-                    cursor.getDouble(lonCol));
-        } else {
-            viewHolder.distanceView.setVisibility(View.GONE);
-        }
+        viewHolder.timeView.setVisibility(View.GONE); // currently unused
 
-        viewHolder.titleView.setText(cursor.getString(titleCol));
-        viewHolder.descView.setText(cursor.getString(descCol));
-
-        viewHolder.modelId = cursor.getInt(idCol);
-        viewHolder.container.setTag(viewHolder.modelId);
+        // These views are sectioned by start time but
+        // Perhaps we will eventually want to display end time.
 
         setLinearSlmParameters(viewHolder, position);
     }
 
     @Override
     public String[] getRequiredProjection() {
-        return Projection;
+        return buildRequiredProjection(Projection);
     }
 
     @Override
     protected List<Integer> createHeadersForCursor(Cursor cursor) {
-        cacheColumns(cursor);
         List<Integer> headerPositions = new ArrayList<>();
         headerPositions.add(0);
         String lastDate = cursor.getString(startTimeCol);
@@ -224,18 +166,5 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
             }
         }
         return headerPositions;
-    }
-
-    private void cacheColumns(Cursor cursor) {
-        titleCol = cursor.getColumnIndexOrThrow(EventTable.name);
-        descCol = cursor.getColumnIndexOrThrow(EventTable.description);
-        eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
-        startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
-        startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
-        endTimeCol = cursor.getColumnIndexOrThrow(EventTable.endTime);
-        endTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.endTimePrint);
-        latCol = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
-        lonCol = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
-        idCol = cursor.getColumnIndexOrThrow(EventTable.id);
     }
 }

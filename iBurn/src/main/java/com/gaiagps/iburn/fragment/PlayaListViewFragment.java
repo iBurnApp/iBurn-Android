@@ -15,9 +15,11 @@ import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Subscriber;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
-import com.gaiagps.iburn.adapters.AdapterItemSelectedListener;
+import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
+import com.gaiagps.iburn.database.DataProvider;
+import com.gaiagps.iburn.database.PlayaDatabase;
 
 import rx.Subscription;
 import timber.log.Timber;
@@ -27,7 +29,7 @@ import timber.log.Timber;
  * <p>
  * Created by davidbrodsky on 8/3/13.
  */
-public abstract class PlayaListViewFragment extends Fragment implements AdapterItemSelectedListener, Subscriber {
+public abstract class PlayaListViewFragment extends Fragment implements AdapterListener, Subscriber {
 
     protected CursorRecyclerViewAdapter adapter;
 
@@ -121,11 +123,36 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterI
         setListShown(doShow);
     }
 
+    @Override
     public void onItemSelected(int modelId, Constants.PlayaItemType type) {
 
         Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
         i.putExtra("model_id", modelId);
         i.putExtra("model_type", type);
         getActivity().startActivity(i);
+    }
+
+    public void onItemFavoriteButtonSelected(int modelId, Constants.PlayaItemType type) {
+
+        final String modelTable;
+        switch (type) {
+            case CAMP:
+                modelTable = PlayaDatabase.CAMPS;
+                break;
+            case ART:
+                modelTable = PlayaDatabase.ART;
+                break;
+            case EVENT:
+                modelTable = PlayaDatabase.EVENTS;
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid type " + type);
+        }
+
+        DataProvider.getInstance(getActivity())
+                .subscribe(dataProvider -> {
+                    dataProvider.toggleFavorite(modelTable, modelId);
+                });
     }
 }

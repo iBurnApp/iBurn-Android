@@ -4,9 +4,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.location.Location;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
@@ -14,33 +14,37 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.LocationProvider;
 
-/**
- * Bind a playa item (camp, art, event) database row to a view with a simple name & distance display,
- * using the device's location and date when the adapter was constructed.
- * <p>
- * TODO: Update device location periodically
- */
-public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemCursorAdapter.ViewHolder> {
+import java.util.Arrays;
 
-    static final String[] Projection = new String[]{
+/**
+ * A class that assists in the creation of {@link CursorRecyclerViewAdapter}s that
+ * bind playa items
+ */
+public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.ViewHolder> extends CursorRecyclerViewAdapter<T> {
+
+    public static final String[] Projection = new String[]{
             PlayaItemTable.id,
             PlayaItemTable.name,
+            PlayaItemTable.description,
+            PlayaItemTable.favorite,
             PlayaItemTable.latitude,
             PlayaItemTable.longitude
     };
 
-    private Constants.PlayaItemType type;
-    private Location deviceLocation;
-    private AdapterItemSelectedListener listener;
+    protected Context context;
+    protected AdapterListener listener;
+    protected Location deviceLocation;
 
-    private int titleCol;
-    private int latCol;
-    private int lonCol;
-    private int idCol;
+    protected int idCol;
+    protected int titleCol;
+    protected int descCol;
+    protected int favoriteCol;
+    protected int latCol;
+    protected int lonCol;
 
-    public PlayaItemCursorAdapter(Context context, Cursor cursor, Constants.PlayaItemType type, AdapterItemSelectedListener listener) {
-        super(cursor);
-        this.type = type;
+    public PlayaItemCursorAdapter(Context context, Cursor c, AdapterListener listener) {
+        super(c);
+        this.context = context;
         this.listener = listener;
 
         LocationProvider.getLastLocation(context).
@@ -49,54 +53,75 @@ public class PlayaItemCursorAdapter extends CursorRecyclerViewAdapter<PlayaItemC
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         int modelId;
+
         TextView titleView;
-        TextView distanceView;
-        View container;
+        TextView descView;
+        ImageView favoriteView;
+        TextView walkTimeView;
+        TextView bikeTimeView;
 
         public ViewHolder(View view) {
             super(view);
 
-            container = view;
-            titleView = (TextView) view.findViewById(R.id.list_item_title);
-            distanceView = (TextView) view.findViewById(R.id.list_item_sub_left);
+            titleView = (TextView) view.findViewById(R.id.title);
+            descView = (TextView) view.findViewById(R.id.description);
+            descView = (TextView) view.findViewById(R.id.description);
+            favoriteView = (ImageView) view.findViewById(R.id.heart);
+
+            walkTimeView = (TextView) view.findViewById(R.id.walk_time);
+            bikeTimeView = (TextView) view.findViewById(R.id.bike_time);
         }
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.double_listview_item, parent, false);
-        ViewHolder vh = new ViewHolder(itemView);
-
-        itemView.setOnClickListener(view -> {
-            int modelId = (int) view.getTag();
-            listener.onItemSelected(modelId, type);
-        });
-
-        return vh;
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder viewHolder, Cursor cursor) {
+    public void onBindViewHolder(T viewHolder, Cursor cursor) {
 
         if (titleCol == 0) {
             titleCol = cursor.getColumnIndexOrThrow(PlayaItemTable.name);
             latCol = cursor.getColumnIndexOrThrow(PlayaItemTable.latitude);
             lonCol = cursor.getColumnIndexOrThrow(PlayaItemTable.longitude);
             idCol = cursor.getColumnIndexOrThrow(PlayaItemTable.id);
+            descCol = cursor.getColumnIndexOrThrow(PlayaItemTable.description);
+            favoriteCol = cursor.getColumnIndexOrThrow(PlayaItemTable.favorite);
         }
 
         viewHolder.titleView.setText(cursor.getString(titleCol));
+        viewHolder.descView.setText(cursor.getString(descCol));
 
-        AdapterUtils.setDistanceText(deviceLocation, viewHolder.distanceView,
+        AdapterUtils.setDistanceText(deviceLocation, viewHolder.walkTimeView, viewHolder.bikeTimeView,
                 cursor.getDouble(latCol), cursor.getDouble(lonCol));
 
+        if (cursor.getInt(favoriteCol) == 1) {
+            viewHolder.favoriteView.setImageResource(R.drawable.ic_heart_full);
+        } else {
+            viewHolder.favoriteView.setImageResource(R.drawable.ic_heart_empty);
+        }
+
         viewHolder.modelId = cursor.getInt(idCol);
-        viewHolder.container.setTag(viewHolder.modelId);
+        viewHolder.itemView.setTag(viewHolder.modelId);
     }
 
-    @Override
-    public String[] getRequiredProjection() {
-        return Projection;
+    public String[] buildRequiredProjection(String[] complementaryProjection) {
+        String[] totalProjection = Arrays.copyOf(Projection, Projection.length + complementaryProjection.length);
+        System.arraycopy(complementaryProjection, 0, totalProjection, Projection.length, complementaryProjection.length);
+        return totalProjection;
+    }
+
+    /**
+     * Convenience method to setup item click and favorite button click.
+     * Splendidly suitable for calling from {@link #onCreateViewHolder(ViewGroup, int)}
+     */
+    protected void setupClickListeners(T viewHolder, Constants.PlayaItemType type) {
+        viewHolder.itemView.setOnClickListener(view -> {
+            if (view.getTag() != null) {
+                int modelId = (int) view.getTag();
+                listener.onItemSelected(modelId, type);
+            }
+        });
+
+        viewHolder.favoriteView.setOnClickListener(v -> {
+            int modelId = (int) ((View) v.getParent()).getTag();
+            listener.onItemFavoriteButtonSelected(modelId, type);
+        });
     }
 }

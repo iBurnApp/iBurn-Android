@@ -302,6 +302,20 @@ public class DataProvider {
         db.update(table, values, PlayaItemTable.id + "=?", String.valueOf(id));
     }
 
+    public void toggleFavorite(@NonNull String table, int id) {
+        db.createQuery(table, "SELECT " + PlayaItemTable.favorite + " FROM " + table + " WHERE " + PlayaItemTable.id + " =?", String.valueOf(id))
+                .first()
+                .map(SqlBrite.Query::run)
+                .map(cursor -> {
+                    if (cursor != null && cursor.moveToFirst()) {
+                        return cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)) == 1;
+                    }
+                    throw new IllegalStateException(String.format("No row in %s with id %d exists", table, id));
+                })
+                .subscribe(isFavorite -> updateFavorite(table, id, !isFavorite),
+                        throwable -> Timber.e(throwable, throwable.getMessage()));
+    }
+
     /**
      * @return the int value used in virtual columns to represent a {@link com.gaiagps.iburn.Constants.PlayaItemType}
      */
