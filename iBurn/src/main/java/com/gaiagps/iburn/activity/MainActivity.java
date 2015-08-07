@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SECRETS;
@@ -36,6 +37,7 @@ import com.gaiagps.iburn.fragment.EventListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.gaiagps.iburn.fragment.PlayaListViewFragment;
+import com.gaiagps.iburn.js.JSEvaluator;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -124,6 +126,14 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             DataUpdateService.scheduleAutoUpdate(this);
             prefs.setDidScheduleUpdate(true);
         }
+
+        // Test JS evaluation
+        JSEvaluator.getInstance(this)
+                .subscribe(jsEvaluator -> {
+                    jsEvaluator.reverseGeocode(Geo.MAN_LAT, Geo.MAN_LON);
+                    jsEvaluator.release();
+                });
+
 
 //        Mock update (Comment out DataService.scheduleAutoUpdate above)
 //        IBurnService service = new IBurnService(this, new MockIBurnApi(this));
