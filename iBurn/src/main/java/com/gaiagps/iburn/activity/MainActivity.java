@@ -129,9 +129,9 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         // Test JS evaluation
         JSEvaluator.getInstance(this)
-                .subscribe(jsEvaluator -> {
-                    jsEvaluator.reverseGeocode(Geo.MAN_LAT, Geo.MAN_LON);
-                    jsEvaluator.release();
+                .flatMap(jsEvaluator -> jsEvaluator.reverseGeocode(Geo.MAN_LAT, Geo.MAN_LON))
+                .subscribe(result -> {
+                    Timber.d("Reverse geocode result " + result);
                 });
 
 

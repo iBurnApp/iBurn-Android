@@ -105,7 +105,6 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.0.0'
     compile 'pl.charmas.android:android-reactive-location:0.6@aar'
     compile 'com.tonicartos:superslim:0.4.13'
-    compile 'org.mozilla:rhino:1.7.7'
 
     apt 'net.simonvt.schematic:schematic-compiler:0.6.1'
     compile 'net.simonvt.schematic:schematic:0.6.1'

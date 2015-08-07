@@ -1,15 +1,16 @@
 package com.gaiagps.iburn.js;
 
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.Scriptable;
+import android.content.Context;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import rx.Observable;
-import rx.schedulers.Schedulers;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.subjects.PublishSubject;
 import timber.log.Timber;
 
@@ -18,75 +19,71 @@ import timber.log.Timber;
  */
 public class JSEvaluator {
 
-    private static final String JS_PATH = "js/bundle.js";
-    private static PublishSubject<JSEvaluator> subject = PublishSubject.create();
+    private static PublishSubject<JSEvaluator> jsEvaluatorSubject = PublishSubject.create();
     private static Observable<JSEvaluator> observable;
     private static AtomicBoolean initializedEvaluator = new AtomicBoolean(false);
 
 
-    private Context context;
-    private Scriptable scope;
-    private Object loadResult;
-
-    public static Observable<JSEvaluator> getInstance(android.content.Context androidContext) {
+    public static Observable<JSEvaluator> getInstance(Context context) {
         if (!initializedEvaluator.getAndSet(true)) {
-            observable = subject.cache(1);
-            Observable.just(androidContext)
-                    .observeOn(Schedulers.io())
-                    .subscribe(context -> {
-                        JSEvaluator evaluator = new JSEvaluator(context);
-                        subject.onNext(evaluator);
+            observable = jsEvaluatorSubject.cache(1);
+            Observable.just(context)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(context1 -> {
+                        JSEvaluator evaluator = new JSEvaluator(new WebView(context1));
+                        Timber.d("Created JSEvaluator");
                     });
         }
 
         return observable;
     }
 
-    private JSEvaluator(android.content.Context androidContext) {
-        context = Context.enter();
-        context.setOptimizationLevel(-1); // Can't compile due to 64k method limit
-        scope = context.initStandardObjects();
-        context.setLanguageVersion(Context.VERSION_1_8);
+    private WebView webView;
+    private PublishSubject<String> reverseGeoCoderSubject = PublishSubject.create();
+
+    private JSEvaluator(WebView webView) {
+        this.webView = webView;
+        setupWebView();
+    }
+
+    private void setupWebView() {
         try {
-            InputStream is = androidContext.getAssets().open(JS_PATH);
-
-            int bytesRead;
             byte[] buffer = new byte[10 * 1024];
-            StringBuilder jsStringBuilder = new StringBuilder();
-            jsStringBuilder.append("var window = this; ");
+            int bytesRead;
+            InputStream is = null;
+            is = webView.getContext().getAssets().open("js/example.html");
+            StringBuilder string = new StringBuilder();
             while ((bytesRead = is.read(buffer)) > 0) {
-                jsStringBuilder.append(new String(buffer, 0, bytesRead));
+                string.append(new String(buffer, 0, bytesRead));
             }
-            Object loadResult = context.evaluateString(scope, jsStringBuilder.toString(), "bundle.js", 1, null);
 
-            Timber.d("Loaded script (%d bytes)", jsStringBuilder.length());
+            webView.setWebViewClient(new WebViewClient() {
+                @Override
+                public void onPageFinished(WebView view, String url) {
+                    webView.evaluateJavascript("(function() { window.coder = prepare(); return 'complete'; })();", value -> {
+                        Timber.d("prepared coder");
+                        jsEvaluatorSubject.onNext(JSEvaluator.this);
+                    });
+                    super.onPageFinished(view, url);
+                }
+            });
+            WebSettings settings = webView.getSettings();
+            settings.setJavaScriptEnabled(true);
+
+            webView.loadDataWithBaseURL("file:///android_asset/js/", string.toString(), "text/html", "utf-8", "");
         } catch (IOException e) {
-            Timber.e(e, "Failed to load script");
+            Timber.e(e, "Error loading webview content");
         }
     }
 
-    public synchronized String reverseGeocode(double latitude, double longitude) {
-        scope.put("coder", scope, "");
+    public Observable<String> reverseGeocode(final double latitude, final double longitude) {
+        webView.evaluateJavascript(
+                String.format("(function() { return reverseGeocode(window.coder, %f, %f); })();", latitude, longitude),
+                result -> {
+                    Timber.d("Got geocoder result " + result);
+                    reverseGeoCoderSubject.onNext(result);
+                });
 
-        context.evaluateString(scope, "coder = prepare();", "prepare", 1, null);
-
-        Object result = context.evaluateString(scope, String.format("reverseGeocode(coder, %s, %s)", latitude, longitude), "geocoder", 1, null);
-
-//        Function prepare = (Function) scope.get("prepare", scope);
-//        Object coder = prepare.call(context, scope, scope, new Object[]{});
-
-//        Function reverseGeocode = (Function) scope.get("reverseGeocode", scope);
-//        Object geocodeArgs[] = {coder, latitude, longitude};
-//        Object geocoderResult = reverseGeocode.call(context, scope, null, geocodeArgs);
-//
-//        Timber.d("Got geocoder result" + geocoderResult);
-
-//        return (String) geocoderResult;
-        return "42";
-    }
-
-    public synchronized void release() {
-        Context.exit();
-        initializedEvaluator.getAndSet(false);
+        return reverseGeoCoderSubject;
     }
 }
