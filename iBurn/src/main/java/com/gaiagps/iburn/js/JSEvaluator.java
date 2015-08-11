@@ -19,18 +19,18 @@ import timber.log.Timber;
  */
 public class JSEvaluator {
 
+    // <editor-fold desc="Singleton management">
     private static PublishSubject<JSEvaluator> jsEvaluatorSubject = PublishSubject.create();
     private static Observable<JSEvaluator> observable;
     private static AtomicBoolean initializedEvaluator = new AtomicBoolean(false);
 
-
-    public static Observable<JSEvaluator> getInstance(Context context) {
+    public static Observable<JSEvaluator> getInstance(WebView webView) {
         if (!initializedEvaluator.getAndSet(true)) {
             observable = jsEvaluatorSubject.cache(1);
-            Observable.just(context)
+            Observable.just(webView)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(context1 -> {
-                        JSEvaluator evaluator = new JSEvaluator(new WebView(context1));
+                        JSEvaluator evaluator = new JSEvaluator(webView);
                         Timber.d("Created JSEvaluator");
                     });
         }
@@ -38,11 +38,18 @@ public class JSEvaluator {
         return observable;
     }
 
+    // </editor-fold desc="Singleton management">
+
     private WebView webView;
+    private Evaluator evaluator;
     private PublishSubject<String> reverseGeoCoderSubject = PublishSubject.create();
+
+    // <editor-fold desc="Private API">
 
     private JSEvaluator(WebView webView) {
         this.webView = webView;
+        // TODO : Select Evaluator based on platform version
+        this.evaluator = new KitKatEvaluator();
         setupWebView();
     }
 
@@ -60,11 +67,15 @@ public class JSEvaluator {
             webView.setWebViewClient(new WebViewClient() {
                 @Override
                 public void onPageFinished(WebView view, String url) {
-                    webView.evaluateJavascript("(function() { window.coder = prepare(); return 'complete'; })();", value -> {
-                        Timber.d("prepared coder");
-                        jsEvaluatorSubject.onNext(JSEvaluator.this);
-                    });
+                    Timber.d("onPageFinished");
+                    evaluator.evaluate(webView, "window.coder = prepare(); return 'complete';",
+                            result -> jsEvaluatorSubject.onNext(JSEvaluator.this));
                     super.onPageFinished(view, url);
+                }
+
+                @Override
+                public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                    Timber.e("Webview error " + errorCode + " desc " + description);
                 }
             });
             WebSettings settings = webView.getSettings();
@@ -76,14 +87,26 @@ public class JSEvaluator {
         }
     }
 
+    // </editor-fold desc="Private API">
+
+    // <editor-fold desc="Public API">
+
     public Observable<String> reverseGeocode(final double latitude, final double longitude) {
-        webView.evaluateJavascript(
-                String.format("(function() { return reverseGeocode(window.coder, %f, %f); })();", latitude, longitude),
-                result -> {
-                    Timber.d("Got geocoder result " + result);
-                    reverseGeoCoderSubject.onNext(result);
-                });
+        evaluator.evaluate(webView,
+                String.format("return reverseGeocode(window.coder, %f, %f); })();", latitude, longitude),
+                reverseGeoCoderSubject::onNext);
 
         return reverseGeoCoderSubject;
+    }
+
+    // </editor-fold desc="Public API">
+
+    public interface Evaluator {
+
+        interface EvaluatorCallback {
+            void onResult(String result);
+        }
+
+        void evaluate(WebView webView, String script, EvaluatorCallback callback);
     }
 }

@@ -17,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -128,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
 
         // Test JS evaluation
-        JSEvaluator.getInstance(this)
+        JSEvaluator.getInstance(new WebView(this))
                 .flatMap(jsEvaluator -> jsEvaluator.reverseGeocode(Geo.MAN_LAT, Geo.MAN_LON))
                 .subscribe(result -> {
                     Timber.d("Reverse geocode result " + result);
