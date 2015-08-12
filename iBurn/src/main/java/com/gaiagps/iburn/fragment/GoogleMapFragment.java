@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.database.Cursor;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AlertDialog;
@@ -324,26 +325,34 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         View locationButton = ((View) parent.findViewById(1).getParent()).findViewById(2);
         setMargins(locationButton, 0, margin, margin, 0, Gravity.TOP | Gravity.RIGHT);
 
-        setupReverseGeocoder();
+        if (mState == STATE.EXPLORE)
+            setupReverseGeocoder();
 
         return parent;
     }
 
     private void setupReverseGeocoder() {
-        locationSubscription = Observable.just(1)
+        // Setting up JSEvaluator seems to be flaky if done immediately after app start :/
+        locationSubscription = Observable.timer(2, TimeUnit.SECONDS)
+                .first()
                 .observeOn(AndroidSchedulers.mainThread())
                 .flatMap(time -> JSEvaluator.createInstance("file:///android_asset/js/geocoder.html", new WebView(getActivity())))
+                .doOnNext(evaluator -> Timber.d("Got evaluator"))
                 .flatMap(jsEvaluator -> LocationProvider.observeCurrentLocation(getActivity(),
                         LocationRequest.create()
                                 .setPriority(LocationRequest.PRIORITY_NO_POWER) // Receive existing GoogleMaps location request results
                                 .setInterval(5 * 1000))
-                        .distinctUntilChanged(location1 -> String.format("%f-%f",location1.getLatitude(), location1.getLongitude()))
+                        .distinctUntilChanged(location1 -> String.format("%f-%f", location1.getLatitude(), location1.getLongitude()))
                         .map(location -> new Pair<>(jsEvaluator, location)))
                 .subscribe(evaluatorLocationPair -> {
-                    String geoCodeResult = evaluatorLocationPair.first.reverseGeocode(evaluatorLocationPair.second.getLatitude(),
-                            evaluatorLocationPair.second.getLongitude());
-                    addressLabel.setVisibility(View.VISIBLE);
-                    addressLabel.setText(geoCodeResult);
+                    Timber.d("Geocoding");
+                    evaluatorLocationPair.first.reverseGeocode(evaluatorLocationPair.second.getLatitude(),
+                            evaluatorLocationPair.second.getLongitude(), playaAddress -> {
+                                addressLabel.post(() -> {
+                                    addressLabel.setVisibility(View.VISIBLE);
+                                    addressLabel.setText(playaAddress);
+                                });
+                            });
                 });
     }
 

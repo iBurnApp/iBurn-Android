@@ -89,28 +89,10 @@ public class JSEvaluator {
 
     // <editor-fold desc="Public API">
 
-    public String reverseGeocode(final double latitude, final double longitude) {
-        final String[] result = new String[1];
-        final Object lock = new Object();
+    public void reverseGeocode(final double latitude, final double longitude, Evaluator.EvaluatorCallback callback) {
         evaluator.evaluate(webView,
                 String.format("return reverseGeocode(window.coder, %f, %f);", latitude, longitude),
-                jsResult -> {
-                    Timber.d("Got geocode result " + jsResult);
-                    result[0] = jsResult;
-                    synchronized (lock) {
-                        lock.notify();
-                    }
-                });
-
-        synchronized (lock) {
-            try {
-                lock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return result[0];
+                callback);
     }
 
     // </editor-fold desc="Public API">
