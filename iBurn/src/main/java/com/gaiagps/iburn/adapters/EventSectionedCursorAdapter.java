@@ -112,6 +112,8 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
 
     public void onBindViewHolderHeader(ViewHolder holder, Cursor cursor, int position) {
 
+        cacheCursorColumns(cursor);
+
         setLinearSlmParameters(holder, position);
 
         try {
@@ -132,14 +134,7 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
 
         super.onBindViewHolder(viewHolder, cursor);
 
-        if (eventTypeCol == 0) {
-            eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
-            addressCol = cursor.getColumnIndexOrThrow(EventTable.playaAddress);
-            startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
-            startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
-            endTimeCol = cursor.getColumnIndexOrThrow(EventTable.endTime);
-            endTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.endTimePrint);
-        }
+        cacheCursorColumns(cursor);
 
         viewHolder.typeView.setText(
                 AdapterUtils.getStringForEventType(cursor.getString(eventTypeCol)));
@@ -165,10 +160,22 @@ public class EventSectionedCursorAdapter extends SectionedCursorAdapter<EventSec
         return buildRequiredProjection(Projection);
     }
 
+    private void cacheCursorColumns(Cursor cursor) {
+        if (eventTypeCol == 0) {
+            eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
+            addressCol = cursor.getColumnIndexOrThrow(EventTable.playaAddress);
+            startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
+            startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
+            endTimeCol = cursor.getColumnIndexOrThrow(EventTable.endTime);
+            endTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.endTimePrint);
+        }
+    }
+
     @Override
     protected List<Integer> createHeadersForCursor(Cursor cursor) {
         List<Integer> headerPositions = new ArrayList<>();
         headerPositions.add(0);
+        cacheCursorColumns(cursor);
         String lastDate = cursor.getString(startTimeCol);
         // We begin at position 2. 0 is first header, 1 is first item
         for (int position = 2; cursor.moveToNext(); position++) {

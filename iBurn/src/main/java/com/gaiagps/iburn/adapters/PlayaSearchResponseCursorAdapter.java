@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.DataProvider;
+import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.LocationProvider;
 
@@ -21,7 +22,6 @@ import java.util.List;
 /**
  * Bind a playa item (camp, art, event) database row to a view with a simple name & distance display,
  * using the device's location and date when the adapter was constructed.
- *
  */
 public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<PlayaItemCursorAdapter.ViewHolder> {
 
@@ -47,7 +47,7 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
         } else if (viewType == VIEW_TYPE_CONTENT) {
 
             View itemView = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.search_result_listview_item, parent, false);
+                    .inflate(R.layout.camp_listview_item, parent, false);
 
             holder = new ViewHolder(itemView);
 
@@ -55,6 +55,12 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
                 int modelId = (int) view.getTag(R.id.list_item_related_model);
                 int modelType = (int) view.getTag(R.id.list_item_related_model_type);
                 listener.onItemSelected(modelId, DataProvider.getTypeValue(modelType));
+            });
+
+            itemView.findViewById(R.id.heart).setOnClickListener(v -> {
+                int modelId = (int) ((View) v.getParent()).getTag(R.id.list_item_related_model);
+                int modelType = (int) ((View) v.getParent()).getTag(R.id.list_item_related_model_type);
+                listener.onItemFavoriteButtonSelected(modelId, DataProvider.getTypeValue(modelType));
             });
         }
 
@@ -64,6 +70,7 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
     @Override
     protected List<Integer> createHeadersForCursor(Cursor cursor) {
         ArrayList<Integer> headers = new ArrayList<>();
+        cacheCursorColumns(cursor);
 
         int lastType = cursor.getInt(typeCol);
         headers.add(0);
@@ -84,9 +91,7 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
 
         super.onBindViewHolder(viewHolder, cursor);
 
-        if (typeCol == 0) {
-            typeCol = cursor.getColumnIndexOrThrow(DataProvider.VirtualType); // This is a virtual column created during UNION queries of multiple tables
-        }
+        cacheCursorColumns(cursor);
 
         setLinearSlmParameters(viewHolder, position);
 
@@ -99,9 +104,11 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
 
         setLinearSlmParameters(holder, position);
 
+        cacheCursorColumns(firstSectionItem);
+
         Constants.PlayaItemType type = DataProvider.getTypeValue(firstSectionItem.getInt(typeCol));
         String headerTitle = null;
-        switch(type) {
+        switch (type) {
             case CAMP:
                 headerTitle = context.getString(R.string.camps_tab);
                 break;
@@ -120,5 +127,9 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
     @Override
     public String[] getRequiredProjection() {
         return PlayaItemCursorAdapter.Projection;
+    }
+
+    private void cacheCursorColumns(Cursor cursor) {
+        typeCol = cursor.getColumnIndexOrThrow(DataProvider.VirtualType); // This is a virtual column created during UNION queries of multiple tables
     }
 }

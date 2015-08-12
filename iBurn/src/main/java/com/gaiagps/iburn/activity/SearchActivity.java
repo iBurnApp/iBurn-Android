@@ -17,6 +17,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
+import com.gaiagps.iburn.database.PlayaDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.tonicartos.superslim.LayoutManager;
 
@@ -100,7 +101,26 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
 
     @Override
     public void onItemFavoriteButtonSelected(int modelId, Constants.PlayaItemType type) {
+        final String modelTable;
+        switch (type) {
+            case CAMP:
+                modelTable = PlayaDatabase.CAMPS;
+                break;
+            case ART:
+                modelTable = PlayaDatabase.ART;
+                break;
+            case EVENT:
+                modelTable = PlayaDatabase.EVENTS;
+                break;
 
+            default:
+                throw new IllegalArgumentException("Invalid type " + type);
+        }
+
+        DataProvider.getInstance(this)
+                .subscribe(dataProvider -> {
+                    dataProvider.toggleFavorite(modelTable, modelId);
+                });
     }
 
     public void onBackButtonClick(View view) {
