@@ -26,6 +26,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
+import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.Geo;
@@ -341,9 +342,10 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 .flatMap(jsEvaluator -> LocationProvider.observeCurrentLocation(getActivity(),
                         LocationRequest.create()
                                 .setPriority(LocationRequest.PRIORITY_NO_POWER) // Receive existing GoogleMaps location request results
-                                .setInterval(5 * 1000))
-                        .distinctUntilChanged(location1 -> String.format("%f-%f", location1.getLatitude(), location1.getLongitude()))
+                                .setInterval(5 * 1000)
+                                .setSmallestDisplacement(10))
                         .map(location -> new Pair<>(jsEvaluator, location)))
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(evaluatorLocationPair -> {
                     Timber.d("Geocoding");
                     evaluatorLocationPair.first.reverseGeocode(evaluatorLocationPair.second.getLatitude(),
@@ -527,6 +529,9 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         getMapAsync(map -> {
             tileProviderHolds.incrementAndGet();
             map.setMapType(GoogleMap.MAP_TYPE_NONE);
+            if (BuildConfig.DEBUG) {
+                map.setLocationSource(new LocationProvider.MockLocationSource());
+            }
             map.setMyLocationEnabled(true);
             TileOverlayOptions opts = new TileOverlayOptions();
             opts.tileProvider(tileProvider);
