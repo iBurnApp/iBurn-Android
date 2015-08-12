@@ -38,12 +38,12 @@ public class LocationProvider {
         if (locationProvider == null) {
             locationProvider = new ReactiveLocationProvider(context);
 
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.MOCK) {
                 mockCurrentLocation();
+            } else {
+                locationProvider.getLastKnownLocation()
+                        .subscribe(locationSubject::onNext);
             }
-
-            locationProvider.getLastKnownLocation()
-                    .subscribe(locationSubject::onNext);
         }
 
         return locationSubject.cache(1).first();
@@ -53,13 +53,13 @@ public class LocationProvider {
         if (locationProvider == null) {
             locationProvider = new ReactiveLocationProvider(context);
 
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.MOCK) {
                 mockCurrentLocation();
             }
         }
 
         // Mocking doesn't seem to work for getUpdatedLocation...
-        if (BuildConfig.DEBUG) {
+        if (BuildConfig.MOCK) {
             return locationSubject.asObservable();
         } else {
             return locationProvider.getUpdatedLocation(request);

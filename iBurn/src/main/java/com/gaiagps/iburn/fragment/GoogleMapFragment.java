@@ -529,7 +529,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         getMapAsync(map -> {
             tileProviderHolds.incrementAndGet();
             map.setMapType(GoogleMap.MAP_TYPE_NONE);
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.MOCK) {
                 map.setLocationSource(new LocationProvider.MockLocationSource());
             }
             map.setMyLocationEnabled(true);

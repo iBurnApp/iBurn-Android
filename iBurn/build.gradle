@@ -45,6 +45,16 @@ android {
         }
     }
 
+    productFlavors {
+        regular {
+            buildConfigField "boolean", "MOCK", "false"
+        }
+        // Mock location and date data
+        mock {
+            buildConfigField "boolean", "MOCK", "true"
+        }
+    }
+
     buildTypes {
 
         release {

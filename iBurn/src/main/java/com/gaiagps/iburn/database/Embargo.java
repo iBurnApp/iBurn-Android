@@ -23,7 +23,7 @@ public class Embargo implements DataProvider.QueryInterceptor {
     public  static final Date   EMBARGO_DATE   = new GregorianCalendar(2015, Calendar.AUGUST, 25, 0, 0).getTime();
 
     // For debug builds, force user to enter unlock code
-    private static final boolean FORCE_EMBARGO = BuildConfig.DEBUG;
+    private static final boolean FORCE_EMBARGO = BuildConfig.MOCK;
     private static final String NULL_LATITUDE  = "NULL AS " + PlayaItemTable.latitude;
     private static final String NULL_LONGITUDE = "NULL AS " + PlayaItemTable.longitude;
 
