@@ -30,6 +30,7 @@ import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
+import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.google.android.gms.common.ConnectionResult;
@@ -77,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         add(IBurnPagerAdapter.IBurnTab.MAP);
         add(IBurnPagerAdapter.IBurnTab.EXPLORE);
         add(IBurnPagerAdapter.IBurnTab.BROWSE);
+        add(IBurnPagerAdapter.IBurnTab.FAVORITES);
     }};
 
     @Override
@@ -261,7 +263,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         public enum IBurnTab {
             MAP(R.string.map_tab, R.drawable.ic_brc, GoogleMapFragment.class),
             EXPLORE(R.string.explore_tab, R.drawable.ic_calendar, ExploreListViewFragment.class),
-            BROWSE(R.string.browse_tab, R.drawable.ic_camp, BrowseListViewFragment.class);
+            BROWSE(R.string.browse_tab, R.drawable.ic_camp, BrowseListViewFragment.class),
+            FAVORITES(R.string.fav_tab, R.drawable.ic_heart, FavoritesListViewFragment.class);
 
             private final Class<? extends Fragment> mFragClass;
             private final Integer mTitleResId;
