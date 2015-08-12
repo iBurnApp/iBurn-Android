@@ -18,37 +18,45 @@ import timber.log.Timber;
  */
 public class LegacyEvaluator implements JSEvaluator.Evaluator {
 
+    private JsBridge jsBridge;
+
+    public LegacyEvaluator(WebView webView) {
+        // This is unsafe pre API-17 but we're running only trusted, bundled Javascript
+        jsBridge = new JsBridge();
+        webView.addJavascriptInterface(jsBridge, "subject");
+    }
+
     @SuppressLint("AddJavascriptInterface")
     @Override
     public void evaluate(WebView webView, String script, EvaluatorCallback callback) {
-        Timber.d("Initial script: %s", script);
+        //Timber.d("Initial script: %s", script);
 
-        // This is unsafe pre API-17 but we're running only trusted, bundled Javascript
-        webView.addJavascriptInterface(new JsObject(callback), "subject");
+        jsBridge.setCallback(callback);
 
-        // Modify script to publish result to JsObject#publishResult instead of
+        // Modify script to publish result to JsBridge#publishResult instead of
         // returning
         int returnIdx = script.indexOf("return");
         int endIdx = script.indexOf(';', returnIdx);
 
         String returnExpression = script.substring(returnIdx + 7, endIdx);
-        Timber.d("Got return expression %s from script", returnExpression);
+        //Timber.d("Got return expression %s from script", returnExpression);
 
         script = script.substring(0, returnIdx) + "subject.publishResult(" + returnExpression + ")" + script.substring(endIdx);
-        Timber.d("Reformed script: %s", script);
+        //Timber.d("Reformed script: %s", script);
 
         webView.loadUrl("javascript:" + script);
-        webView.removeJavascriptInterface("subject");
+        //webView.removeJavascriptInterface("subject");
     }
 
-    class JsObject {
+    class JsBridge {
         private EvaluatorCallback callback;
 
-        public JsObject(EvaluatorCallback callback) {
+        public void setCallback(EvaluatorCallback callback) {
             this.callback = callback;
         }
 
         @JavascriptInterface
-        public void publishResult(String result) { callback.onResult(result); }
+        public void publishResult(String result) {
+            if (callback != null) callback.onResult(result); }
     }
 }

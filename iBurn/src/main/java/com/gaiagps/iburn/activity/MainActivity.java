@@ -17,28 +17,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.Subscriber;
-import com.gaiagps.iburn.api.IBurnService;
-import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
-import com.gaiagps.iburn.fragment.CampListViewFragment;
-import com.gaiagps.iburn.fragment.EventListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
-import com.gaiagps.iburn.fragment.PlayaListViewFragment;
-import com.gaiagps.iburn.js.JSEvaluator;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -46,8 +38,6 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +48,6 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements SearchQueryProvider {
@@ -127,14 +116,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             DataUpdateService.scheduleAutoUpdate(this);
             prefs.setDidScheduleUpdate(true);
         }
-
-        // Test JS evaluation
-        JSEvaluator.getInstance(new WebView(this))
-                .flatMap(jsEvaluator -> jsEvaluator.reverseGeocode(Geo.MAN_LAT, Geo.MAN_LON))
-                .subscribe(result -> {
-                    Timber.d("Reverse geocode result " + result);
-                });
-
 
 //        Mock update (Comment out DataService.scheduleAutoUpdate above)
 //        IBurnService service = new IBurnService(this, new MockIBurnApi(this));

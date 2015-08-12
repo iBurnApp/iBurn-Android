@@ -5,6 +5,7 @@ import android.location.Location;
 
 import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.Geo;
+import com.google.android.gms.location.LocationRequest;
 
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 import rx.Observable;
@@ -35,5 +36,14 @@ public class LocationProvider {
         }
 
         return locationObservable;
+    }
+
+    public static Observable<Location> observeCurrentLocation(Context context, LocationRequest request) {
+        if (locationProvider == null) {
+            locationProvider = new ReactiveLocationProvider(context);
+        }
+
+        ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(context);
+        return locationProvider.getUpdatedLocation(request);
     }
 }

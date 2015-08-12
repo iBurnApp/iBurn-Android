@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -15,11 +16,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
+import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
 import com.gaiagps.iburn.Constants;
@@ -38,6 +41,9 @@ import com.gaiagps.iburn.database.MapProvider;
 import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.database.UserPoiTable;
+import com.gaiagps.iburn.js.JSEvaluator;
+import com.gaiagps.iburn.location.LocationProvider;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -62,6 +68,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import hugo.weaving.DebugLog;
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.subjects.PublishSubject;
 import timber.log.Timber;
@@ -156,6 +163,9 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     PrefsHelper prefs;
 
     MarkerOptions showcaseMarker;
+
+    Subscription locationSubscription;
+    TextView addressLabel;
 
     private View.OnClickListener mOnAddPinBtnListener = v -> {
         Marker marker = addCustomPin(null, null, UserPoiTable.STAR);
@@ -285,7 +295,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         TypedArray a = activity.obtainStyledAttributes(attrs, R.styleable.GoogleMapFragment);
 
         CharSequence initialState = a.getText(R.styleable.GoogleMapFragment_initial_state);
-        if(initialState.equals("showcase")) mState = STATE.SHOWCASE;
+        if (initialState.equals("showcase")) mState = STATE.SHOWCASE;
         a.recycle();
     }
 
@@ -304,20 +314,49 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         int dpValue = 10; // margin in dips
         float d = getActivity().getResources().getDisplayMetrics().density;
         int margin = (int) (dpValue * d); // margin in pixels
-        setMargins(addPoiBtn, 0, margin * 6, margin, 0);
+        setMargins(addPoiBtn, 0, margin * 6, margin, 0, Gravity.TOP | Gravity.RIGHT);
+
+        addressLabel = (TextView) inflater.inflate(R.layout.current_playa_address, container, false);
+        addressLabel.setVisibility(View.INVISIBLE);
+        ((ViewGroup) parent).addView(addressLabel);
+        setMargins(addressLabel, 0, margin + 2, margin * 5, 0, Gravity.TOP | Gravity.RIGHT);
+
+        View locationButton = ((View) parent.findViewById(1).getParent()).findViewById(2);
+        setMargins(locationButton, 0, margin, margin, 0, Gravity.TOP | Gravity.RIGHT);
+
+        setupReverseGeocoder();
+
         return parent;
+    }
+
+    private void setupReverseGeocoder() {
+        locationSubscription = Observable.just(1)
+                .observeOn(AndroidSchedulers.mainThread())
+                .flatMap(time -> JSEvaluator.createInstance("file:///android_asset/js/geocoder.html", new WebView(getActivity())))
+                .flatMap(jsEvaluator -> LocationProvider.observeCurrentLocation(getActivity(),
+                        LocationRequest.create()
+                                .setPriority(LocationRequest.PRIORITY_NO_POWER) // Receive existing GoogleMaps location request results
+                                .setInterval(5 * 1000))
+                        .distinctUntilChanged(location1 -> String.format("%f-%f",location1.getLatitude(), location1.getLongitude()))
+                        .map(location -> new Pair<>(jsEvaluator, location)))
+                .subscribe(evaluatorLocationPair -> {
+                    String geoCodeResult = evaluatorLocationPair.first.reverseGeocode(evaluatorLocationPair.second.getLatitude(),
+                            evaluatorLocationPair.second.getLongitude());
+                    addressLabel.setVisibility(View.VISIBLE);
+                    addressLabel.setText(geoCodeResult);
+                });
     }
 
     /**
      * Thanks to SO:
      * http://stackoverflow.com/questions/4472429/change-the-right-margin-of-a-view-programmatically
      */
-    public static void setMargins(View v, int l, int t, int r, int b) {
+    public static void setMargins(View v, int l, int t, int r, int b, int gravity) {
         if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
             p.setMargins(l, t, r, b);
             if (p instanceof FrameLayout.LayoutParams) {
-                ((FrameLayout.LayoutParams) p).gravity = Gravity.TOP | Gravity.RIGHT;
+                ((FrameLayout.LayoutParams) p).gravity = gravity;
             }
             v.requestLayout();
         }
@@ -343,6 +382,11 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     public void onDestroyView() {
         super.onDestroyView();
         latLngToCenterOn = null;
+
+        if (locationSubscription != null) {
+            locationSubscription.unsubscribe();
+            locationSubscription = null;
+        }
     }
 
     private void initMap() {
@@ -414,9 +458,16 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 private final int CAMERA_MOVE_REACT_THRESHOLD_MS = 500;
                 private long lastCallMs = Long.MIN_VALUE;
 
+                private boolean gotInitialCameraMove;
+
                 @Override
                 public void onCameraChange(CameraPosition cameraPosition) {
 //                    Timber.d("Zoom: " + cameraPosition.zoom);
+                    if (!gotInitialCameraMove) {
+                        gotInitialCameraMove = true;
+                        return;
+                    }
+
                     if (!BRC_BOUNDS.contains(cameraPosition.target) ||
                             cameraPosition.zoom > MAX_ZOOM || cameraPosition.zoom < MIN_ZOOM) {
                         getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(
@@ -493,7 +544,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     public void clearMap(boolean clearAll) {
         if (clearAll) {
-           clearPermanentMarkers();
+            clearPermanentMarkers();
         }
 
         for (Marker marker : mMappedTransientMarkers) {
@@ -658,7 +709,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                         markerIdToMeta.put(marker.getId(), markerMapId);
                         permanentMarkers.add(marker);
                     }
-                } else if (currentZoom > POI_ZOOM_LEVEL){
+                } else if (currentZoom > POI_ZOOM_LEVEL) {
                     // Other markers are recyclable, and may be cleared on camera events
                     mapRecyclableMarker(typeInt, markerMapId, cursor, mResultBounds, areBoundsValid);
                 }

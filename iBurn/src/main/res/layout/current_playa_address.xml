@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mapPoiBtn"
+    android:layout_width="wrap_content"
+    android:layout_height="40dp"
+    android:layout_gravity="left|top"
+    android:gravity="center_vertical"
+    android:background="@drawable/map_btn_bg"
+    android:textColor="@color/off_blk_2"
+    android:padding="6dp"/>
