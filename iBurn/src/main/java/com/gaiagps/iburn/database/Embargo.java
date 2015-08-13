@@ -26,6 +26,7 @@ public class Embargo implements DataProvider.QueryInterceptor {
     private static final boolean FORCE_EMBARGO = BuildConfig.MOCK;
     private static final String NULL_LATITUDE  = "NULL AS " + PlayaItemTable.latitude;
     private static final String NULL_LONGITUDE = "NULL AS " + PlayaItemTable.longitude;
+    private static final String NULL_ADDRESS = "NULL AS " + PlayaItemTable.playaAddress;
 
     private PrefsHelper prefs;
 
@@ -39,7 +40,8 @@ public class Embargo implements DataProvider.QueryInterceptor {
         if (isEmbargoActive(prefs) && !isPoiTableQuery(tables)) {
             return query.replace(PlayaItemTable.latitude, NULL_LATITUDE)
                     .replace(PlayaItemTable.longitude, NULL_LONGITUDE)
-                    .replace("SELECT *", "SELECT *, " + NULL_LATITUDE + ", " + NULL_LONGITUDE);
+                    .replace(PlayaItemTable.playaAddress, NULL_ADDRESS)
+                    .replace("SELECT *", "SELECT *, " + NULL_LATITUDE + ", " + NULL_LONGITUDE + ", " + NULL_ADDRESS);
         }
         return query;
     }
