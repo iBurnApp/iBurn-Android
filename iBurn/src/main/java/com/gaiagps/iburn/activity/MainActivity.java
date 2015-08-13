@@ -4,6 +4,8 @@ import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Animatable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.design.widget.Snackbar;
@@ -18,8 +20,10 @@ import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SECRETS;
@@ -110,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         prefs = new PrefsHelper(this);
 
-        if (!prefs.didShowWelcome()) {
+        if (!prefs.didShowWelcome() || BuildConfig.MOCK) {
             showWelcomeDialog();
         }
 
@@ -161,6 +165,16 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             dialog.dismiss();
         });
         dialog.show();
+
+        final Drawable heart = ((ImageView) dialogView.findViewById(R.id.heart)).getDrawable();
+
+        if (heart instanceof Animatable) {
+            Observable.timer(3, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(time -> {
+                        ((Animatable) heart).start();
+                    });
+        }
     }
 
     public void showUnlockDialog() {

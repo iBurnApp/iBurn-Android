@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="20dp"
-        android:src="@drawable/heart" />
+        android:src="@drawable/big_ol_heart" />
 
     <TextView
         android:id="@+id/salutation"

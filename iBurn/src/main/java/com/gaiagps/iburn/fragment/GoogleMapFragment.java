@@ -347,7 +347,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                         .map(location -> new Pair<>(jsEvaluator, location)))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(evaluatorLocationPair -> {
-                    Timber.d("Geocoding");
+                    //Timber.d("Geocoding");
                     evaluatorLocationPair.first.reverseGeocode(evaluatorLocationPair.second.getLatitude(),
                             evaluatorLocationPair.second.getLongitude(), playaAddress -> {
                                 addressLabel.post(() -> {
