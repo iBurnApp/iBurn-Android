@@ -10,6 +10,7 @@
     <string name="events_tab">EVENTS</string>
     <string name="art_tab">ART</string>
     <string name="explore_tab">Now</string>
+    <string name="feedback_tab">Feedback</string>
     <string name="browse_tab">Browse</string>
     <string name="no_results">No Results</string>
     <string name="mark_some_favorites">Touch the ❤ near any Camp, Event or Art to fall in love</string>
@@ -32,10 +33,6 @@
     <string name="search_title">Search</string>
     <string name="search_hint">Search</string>
     <string name="title_activity_search_results">SearchResultsActivity</string>
-    <string name="tab_favorites">FAVES</string>
-    <string name="tab_distance">DISTANCE</string>
-    <string name="tab_name">NAME</string>
-    <string name="here_now">HERE+NOW</string>
     <string name="starts">Starts </string>
     <string name="ended">Ended </string>
     <string name="ends">Ends </string>
@@ -58,5 +55,9 @@
     <string name="embargo_snackbar_msg">Art, Camp, and Event Location Data is embargoed until %s. Swipe to dismiss.</string>
     <string name="also_at">Other Occurrences</string>
     <string name="hosted_events">Hosted Events</string>
+    <string name="send_feedback">Send Feedback</string>
+    <string name="we_love_feedback">We ❤ Feedback</string>
+    <string name="feedback_hint">What do you think?</string>
+    <string name="email_feedback">Email Feedback</string>
 
 </resources>

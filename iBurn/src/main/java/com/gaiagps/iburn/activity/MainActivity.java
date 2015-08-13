@@ -35,6 +35,7 @@ import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
+import com.gaiagps.iburn.fragment.FeedbackFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.google.android.gms.common.ConnectionResult;
@@ -83,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         add(IBurnPagerAdapter.IBurnTab.EXPLORE);
         add(IBurnPagerAdapter.IBurnTab.BROWSE);
         add(IBurnPagerAdapter.IBurnTab.FAVORITES);
+        add(IBurnPagerAdapter.IBurnTab.FEEDBACK);
     }};
 
     @Override
@@ -104,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
 
-        mTabs.setTabGravity(TabLayout.GRAVITY_FILL);
+        mTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
 
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();
@@ -144,7 +146,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     public void onSearchClick(View view) {
         startActivity(new Intent(this, SearchActivity.class));
     }
-
 
     @Override
     protected void onResume() {
@@ -275,18 +276,20 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         private int mLastPosition = -1;
 
         public enum IBurnTab {
+            // Icons currently unused
             MAP(R.string.map_tab, R.drawable.ic_brc, GoogleMapFragment.class),
             EXPLORE(R.string.explore_tab, R.drawable.ic_calendar, ExploreListViewFragment.class),
             BROWSE(R.string.browse_tab, R.drawable.ic_camp, BrowseListViewFragment.class),
-            FAVORITES(R.string.fav_tab, R.drawable.ic_heart, FavoritesListViewFragment.class);
+            FAVORITES(R.string.fav_tab, R.drawable.ic_heart, FavoritesListViewFragment.class),
+            FEEDBACK(R.string.feedback_tab, R.drawable.ic_heart, FeedbackFragment.class);
 
             private final Class<? extends Fragment> mFragClass;
             private final Integer mTitleResId;
             private final Integer mIconResId;
 
-            private IBurnTab(final Integer titleResId,
-                             final Integer iconResId,
-                             final Class<? extends Fragment> fragClass) {
+            IBurnTab(final Integer titleResId,
+                     final Integer iconResId,
+                     final Class<? extends Fragment> fragClass) {
                 mTitleResId = titleResId;
                 mIconResId = iconResId;
                 mFragClass = fragClass;
