@@ -20,14 +20,18 @@ import rx.subjects.PublishSubject;
 import timber.log.Timber;
 
 /**
+ * Fulfills requests for location and supports mocking based on the value of {@link BuildConfig#MOCK}
  * Created by davidbrodsky on 7/5/15.
  */
 public class LocationProvider {
 
+    private static ReactiveLocationProvider locationProvider;
+
+    // Location Mocking
     private static AtomicBoolean isMockingLocation = new AtomicBoolean(false);
     private static Subscription mockLocationSubscription;
-    private static PublishSubject<Location> locationSubject = PublishSubject.create();
-    private static ReactiveLocationProvider locationProvider;
+    private static Location lastMockLocation;
+    private static PublishSubject<Location> mockLocationSubject = PublishSubject.create();
 
     private static final double MAX_MOCK_LAT = 40.8037;
     private static final double MIN_MOCK_LAT = 40.7727;
@@ -35,41 +39,37 @@ public class LocationProvider {
     private static final double MIN_MOCK_LON = -119.2210;
 
     public static Observable<Location> getLastLocation(Context context) {
-        if (locationProvider == null) {
-            locationProvider = new ReactiveLocationProvider(context);
+        init(context);
 
-            if (BuildConfig.MOCK) {
-                mockCurrentLocation();
-            } else {
-                locationProvider.getLastKnownLocation()
-                        .subscribe(locationSubject::onNext);
-            }
+        if (BuildConfig.MOCK) {
+            return Observable.just(lastMockLocation);
+        } else {
+            return locationProvider.getLastKnownLocation();
         }
-
-        return locationSubject.cache(1).first();
     }
 
     public static Observable<Location> observeCurrentLocation(Context context, LocationRequest request) {
+        init(context);
+
+        if (BuildConfig.MOCK) {
+            return mockLocationSubject.startWith(lastMockLocation);
+        } else {
+            return locationProvider.getUpdatedLocation(request);
+        }
+    }
+
+    private static void init(Context context) {
         if (locationProvider == null) {
             locationProvider = new ReactiveLocationProvider(context);
 
-            if (BuildConfig.MOCK) {
-                mockCurrentLocation();
-            }
-        }
-
-        // Mocking doesn't seem to work for getUpdatedLocation...
-        if (BuildConfig.MOCK) {
-            return locationSubject.asObservable();
-        } else {
-            return locationProvider.getUpdatedLocation(request);
+            if (BuildConfig.MOCK) mockCurrentLocation();
         }
     }
 
     /**
      * @return a mock {@link Location} generally within the bounds of BRC
      */
-    private static Location createMockLocation() {
+    public static Location createMockLocation() {
         Location mockLocation = new Location("mock");
 
         double mockLat = (Math.random() * (MAX_MOCK_LAT - MIN_MOCK_LAT)) + MIN_MOCK_LAT;
@@ -81,20 +81,19 @@ public class LocationProvider {
             mockLocation.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
         }
         mockLocation.setTime(new Date().getTime()); // TODO : Should we use mocked date here as well?
-        //Timber.d("Creating mock location (%f, %f)", mockLat, mockLon);
         return mockLocation;
     }
 
     private static void mockCurrentLocation() {
         if (!isMockingLocation.get()) {
-            //Timber.d("Activating current location mock");
+            lastMockLocation = createMockLocation();
             isMockingLocation.set(true);
 
-            locationProvider.mockLocation(locationSubject);
-            mockLocationSubscription = Observable.timer(0, 10, TimeUnit.SECONDS)
+            mockLocationSubscription = Observable.timer(60, 60, TimeUnit.SECONDS)
+                    .startWith(-1l)
                     .subscribe(time -> {
-                        //Timber.d("Providing mock location");
-                        locationSubject.onNext(createMockLocation());
+                        lastMockLocation = createMockLocation();
+                        mockLocationSubject.onNext(lastMockLocation);
                     });
         }
     }
@@ -108,15 +107,15 @@ public class LocationProvider {
 
         @Override
         public void activate(final OnLocationChangedListener onLocationChangedListener) {
-            //Timber.d("activating MockLocationSource");
             mockCurrentLocation();
-            locationSubscription = locationSubject.subscribe(onLocationChangedListener::onLocationChanged,
-                    throwable -> Timber.e(throwable, "Error sending mock location to map"));
+            locationSubscription = mockLocationSubject
+                    .startWith(lastMockLocation)
+                    .subscribe(onLocationChangedListener::onLocationChanged,
+                            throwable -> Timber.e(throwable, "Error sending mock location to map"));
         }
 
         @Override
         public void deactivate() {
-            //Timber.d("deactivating MockLocationSource");
             if (locationSubscription != null) {
                 locationSubscription.unsubscribe();
                 locationSubscription = null;
