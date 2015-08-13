@@ -1,7 +1,6 @@
 package com.gaiagps.iburn.fragment;
 
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -50,5 +49,10 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
                 .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::onDataChanged);
+    }
+
+    @Override
+    public String getEmptyText() {
+        return getString(R.string.mark_some_favorites);
     }
 }

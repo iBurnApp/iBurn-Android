@@ -8,8 +8,10 @@
 
     <TextView
         android:id="@android:id/empty"
-        android:layout_width="match_parent"
+        android:layout_width="300dp"
+        android:textSize="24sp"
         android:layout_height="match_parent"
+        android:layout_gravity="center"
         android:gravity="center" />
 
     <android.support.v7.widget.RecyclerView

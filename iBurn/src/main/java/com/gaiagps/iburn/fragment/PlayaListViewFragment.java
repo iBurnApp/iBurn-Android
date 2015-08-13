@@ -72,6 +72,12 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
             return;
         }
 
+        if (newData.getCount() == 0) {
+            setListShown(false);
+        } else {
+            setListShown(true);
+        }
+
         Timber.d("%s, onDataChanged with %d items", getClass().getSimpleName(), newData.getCount());
         // Important to use changeCursor bc, unlike swapCursor, it can be executed asynchronously
         adapter.changeCursor(newData);
@@ -104,9 +110,8 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
             subscription.unsubscribe();
     }
 
-    public void setEmptyText(CharSequence text) {
-        setListShown(false);
-        mEmptyText.setText(text);
+    public String getEmptyText() {
+        return getString(R.string.no_items_found);
     }
 
     public void setListShown(boolean doShow) {
@@ -115,6 +120,7 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
             mEmptyText.setVisibility(View.GONE);
         } else {
             mRecyclerView.setVisibility(View.GONE);
+            mEmptyText.setText(getEmptyText());
             mEmptyText.setVisibility(View.VISIBLE);
         }
     }

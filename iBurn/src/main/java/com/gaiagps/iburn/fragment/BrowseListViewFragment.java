@@ -158,7 +158,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         boolean adapterWasEmpty = adapter.getItemCount() == 0;
         super.onDataChanged(newData);
 
-        if (adapterWasEmpty) {
+        if (adapterWasEmpty && adapter.getItemCount() > 0) {
             // Fade in the initial data, but let updates happen without animation
             AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
             fadeAnimation.setDuration(250);
