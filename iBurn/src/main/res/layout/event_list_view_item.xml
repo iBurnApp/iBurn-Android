@@ -6,12 +6,16 @@
     android:focusable="true"
     android:clickable="true"
     android:orientation="vertical"
-    android:background="?attr/selectableItemBackground">
+    android:background="?attr/selectableItemBackground"
+    android:animateLayoutChanges="true">
 
     <ImageView
         android:id="@+id/heart"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:paddingBottom="8dp"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
         android:gravity="right"
         android:layout_alignParentRight="true"
         android:scaleType="fitEnd"
