@@ -121,9 +121,7 @@ dependencies {
 
     releaseCompile project(path: ':libraries:android-gmaps-addons', configuration: 'release')
     debugCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
-
-    // Debugging libraries
-    debugCompile 'com.facebook.stetho:stetho:1.1.1'
+    unsignedCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
 
     // Test dependencies
     testCompile 'junit:junit:4.12'

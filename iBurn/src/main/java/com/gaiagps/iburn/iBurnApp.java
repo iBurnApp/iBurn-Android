@@ -1,7 +1,5 @@
 package com.gaiagps.iburn;
 
-import com.facebook.stetho.Stetho;
-
 import timber.log.Timber;
 
 /**
@@ -16,14 +14,6 @@ public class iBurnApp extends android.app.Application {
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
         }
-
-        Stetho.initialize(
-                Stetho.newInitializerBuilder(this)
-                        .enableDumpapp(
-                                Stetho.defaultDumperPluginsProvider(this))
-                        .enableWebKitInspector(
-                                Stetho.defaultInspectorModulesProvider(this))
-                        .build());
 
         // If we abandon Timber logging in this app, enable below line
         // to enable Timber logging in any library modules that use it
