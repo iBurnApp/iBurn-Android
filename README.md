@@ -47,6 +47,10 @@ Fortunately, you can still run and test the app with the previous year's data.
 * Make map view on detail screen slightly smaller
 * Show Playa location below camp/art relation link on Events detail view
 
+## Releasing
+
+Remember to build an unsigned variant, e.g `./gradlew assembleMockUnsigned` and pass that on to the individual who signs the apk.
+
 ## Contributing
 
 Thank you for your interest in contributing to iBurn! Please open up an issue on our tracker before starting work on major interface or functionality changes. Otherwise, feel free to run wild!
