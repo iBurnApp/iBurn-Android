@@ -221,6 +221,12 @@ public class DataProvider {
                     .append(PlayaItemTable.favorite)
                     .append(" = 1 ");
 
+            if (table.equals(PlayaDatabase.EVENTS)) {
+                sql.append(" ORDER BY ")
+                        .append(EventTable.startTime)
+                        .append(" ASC ");
+            }
+
             if (tableIdx < PlayaDatabase.ALL_TABLES.size())
                 sql.append(" UNION ");
         }
