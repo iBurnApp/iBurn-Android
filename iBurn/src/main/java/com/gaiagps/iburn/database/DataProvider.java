@@ -214,25 +214,31 @@ public class DataProvider {
                     .append(", ")
                     .append(tableIdx)
                     .append(" as ")
-                    .append(VirtualType)
-                    .append(" FROM ")
+                    .append(VirtualType);
+
+            if (!table.equals(PlayaDatabase.EVENTS)) {
+                sql.append(", ")
+                        .append("'0' as ")
+                        .append(EventTable.startTime);
+            } else {
+                sql.append(", ")
+                        .append(EventTable.startTime);
+            }
+
+            sql.append(" FROM ")
                     .append(table)
                     .append(" WHERE ")
                     .append(PlayaItemTable.favorite)
                     .append(" = 1 ");
-
-            if (table.equals(PlayaDatabase.EVENTS)) {
-                sql.append(" ORDER BY ")
-                        .append(EventTable.startTime)
-                        .append(" ASC ");
-            }
 
             if (tableIdx < PlayaDatabase.ALL_TABLES.size())
                 sql.append(" UNION ");
         }
 
         sql.append(" ORDER BY ")
-                .append(VirtualType);
+                .append(VirtualType)
+                .append(", ")
+                .append(EventTable.startTime);
 
         return db.createQuery(PlayaDatabase.ALL_TABLES, interceptQuery(sql.toString(), PlayaDatabase.ALL_TABLES))
                 .subscribeOn(Schedulers.computation())
