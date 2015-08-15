@@ -622,10 +622,10 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
         // Query all items, not just POIs, if we have a visibleRegion and Embargo is inactive
         // POI table is not affected by Embargo
-        boolean queryVisibleRegion = visibleRegion.farLeft != null && !Embargo.isEmbargoActive(prefs);
+        boolean queryVisibleRegion = visibleRegion != null && visibleRegion.farLeft != null && !Embargo.isEmbargoActive(prefs);
 
         // Don't show non-POI items if we're showcasing a marker to keep the map clear
-        boolean queryNonUserItems = mState != STATE.SHOWCASE;
+        boolean queryNonUserItems = mState != STATE.SHOWCASE && !Embargo.isEmbargoActive(prefs);
 
         StringBuilder sql = new StringBuilder();
 
@@ -683,7 +683,11 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 sqlParemeters[5] = sqlParemeters[9] /*= sqlParemeters[13]*/ = String.valueOf(visibleRegion.farLeft.longitude);
             }
         }
-        return provider.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), queryVisibleRegion ? sqlParemeters : null);
+        if (queryNonUserItems) {
+            return provider.createQuery(PlayaDatabase.ALL_TABLES, sql.toString(), queryVisibleRegion ? sqlParemeters : null);
+        } else {
+            return provider.createQuery(PlayaDatabase.POIS, sql.toString());
+        }
     }
 
     /**
