@@ -146,7 +146,7 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
                     viewHolder.timeLabel = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
 
                 } else {
-                    // handled by super.onBindViewHolder
+                    viewHolder.timeLabel = cursor.getString(startTimePrettyCol);
                 }
             }
         } catch (IllegalArgumentException | ParseException e) {
