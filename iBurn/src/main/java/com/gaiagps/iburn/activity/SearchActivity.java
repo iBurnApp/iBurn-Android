@@ -15,6 +15,7 @@ import android.widget.EditText;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterListener;
+import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaDatabase;
@@ -46,6 +47,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
         adapter = new PlayaSearchResponseCursorAdapter(this, null, this);
 
         resultList.setLayoutManager(new LayoutManager(this));
+        resultList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
         resultList.setAdapter(adapter);
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
