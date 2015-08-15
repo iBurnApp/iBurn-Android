@@ -95,6 +95,12 @@ public class JSEvaluator {
                 callback);
     }
 
+    public void forwardGeocode(final String playaAddress, Evaluator.EvaluatorCallback callback) {
+        evaluator.evaluate(webView,
+                String.format("return forwardGeocode(window.coder, %s);", playaAddress),
+                callback);
+    }
+
     // </editor-fold desc="Public API">
 
     public interface JSEvaluatorCallback {
