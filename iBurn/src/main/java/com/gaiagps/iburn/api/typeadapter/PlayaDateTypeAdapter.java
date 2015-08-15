@@ -33,7 +33,7 @@ public final class PlayaDateTypeAdapter extends TypeAdapter<Date> {
 
     private static DateFormat buildIso8601Format() {
         DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-        iso8601Format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        iso8601Format.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
         return iso8601Format;
     }
 
