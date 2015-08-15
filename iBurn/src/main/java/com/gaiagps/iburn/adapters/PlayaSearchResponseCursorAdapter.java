@@ -2,8 +2,6 @@ package com.gaiagps.iburn.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.location.Location;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,8 +11,6 @@ import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.EventTable;
-import com.gaiagps.iburn.database.PlayaItemTable;
-import com.gaiagps.iburn.location.LocationProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,9 +19,25 @@ import java.util.List;
  * Bind a playa item (camp, art, event) database row to a view with a simple name & distance display,
  * using the device's location and date when the adapter was constructed.
  */
-public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<PlayaItemCursorAdapter.ViewHolder> {
+public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<PlayaSearchResponseCursorAdapter.ViewHolder> {
 
     private static int typeCol;
+    private static int startTimeCol;
+    private static int startTimePrettyCol;
+    private static int eventTypeCol;
+
+    public static class ViewHolder extends PlayaItemCursorAdapter.ViewHolder {
+
+        TextView typeView;
+        TextView timeView;
+
+        public ViewHolder(View view) {
+            super(view);
+
+            typeView = (TextView) view.findViewById(R.id.type);
+            timeView = (TextView) view.findViewById(R.id.time);
+        }
+    }
 
     public PlayaSearchResponseCursorAdapter(Context context, Cursor cursor, AdapterListener listener) {
         super(context, cursor, listener);
@@ -47,7 +59,7 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
         } else if (viewType == VIEW_TYPE_CONTENT) {
 
             View itemView = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.camp_listview_item, parent, false);
+                    .inflate(R.layout.event_list_view_item, parent, false);
 
             holder = new ViewHolder(itemView);
 
@@ -97,6 +109,22 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
 
         viewHolder.itemView.setTag(R.id.list_item_related_model, cursor.getInt(idCol));
         viewHolder.itemView.setTag(R.id.list_item_related_model_type, cursor.getInt(typeCol));
+
+        Constants.PlayaItemType type = DataProvider.getTypeValue(cursor.getInt(typeCol));
+        switch (type) {
+            case CAMP:
+            case ART:
+                viewHolder.timeView.setVisibility(View.GONE);
+                viewHolder.typeView.setVisibility(View.GONE);
+                break;
+
+            case EVENT:
+                viewHolder.timeView.setVisibility(View.VISIBLE);
+                viewHolder.timeView.setText(cursor.getString(startTimePrettyCol));
+                viewHolder.typeView.setVisibility(View.VISIBLE);
+                viewHolder.typeView.setText(AdapterUtils.getStringForEventType(cursor.getString(eventTypeCol)));
+                break;
+        }
     }
 
     @Override
@@ -131,5 +159,8 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
 
     private void cacheCursorColumns(Cursor cursor) {
         typeCol = cursor.getColumnIndexOrThrow(DataProvider.VirtualType); // This is a virtual column created during UNION queries of multiple tables
+        eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
+        startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
+        startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
     }
 }

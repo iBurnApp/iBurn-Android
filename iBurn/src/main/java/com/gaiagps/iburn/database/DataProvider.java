@@ -41,7 +41,7 @@ public class DataProvider {
     /**
      * Computed column indicating type for queries that union results across tables
      */
-    public static final String VirtualType = "type";
+    public static final String VirtualType = "vtype";
 
     /**
      * Version of database schema
@@ -202,6 +202,15 @@ public class DataProvider {
                 .skipWhile(query -> upgradeLock.get());
     }
 
+    /**
+     * Observe all favorites.
+     * <p>
+     * Note: This query automatically adds in Event.startTime (and 0 values for all non-events),
+     * since we always want to show this data for an event.
+     *
+     * @param projection a projection of columns from {@link PlayaItemTable}. Columns exclusive to a
+     *                   particular table must not be submitted.
+     */
     public Observable<SqlBrite.Query> observeFavorites(@Nullable String[] projection) {
 
         StringBuilder sql = new StringBuilder();
@@ -216,14 +225,7 @@ public class DataProvider {
                     .append(" as ")
                     .append(VirtualType);
 
-            if (!table.equals(PlayaDatabase.EVENTS)) {
-                sql.append(", ")
-                        .append("'0' as ")
-                        .append(EventTable.startTime);
-            } else {
-                sql.append(", ")
-                        .append(EventTable.startTime);
-            }
+            addEventStartTimeTypeToMultitableQuery(table, sql);
 
             sql.append(" FROM ")
                     .append(table)
@@ -245,6 +247,15 @@ public class DataProvider {
                 .skipWhile(query -> upgradeLock.get());
     }
 
+    /**
+     * Observe all results for a name query.
+     * <p>
+     * Note: This query automatically adds in Event.startTime (and 0 values for all non-events),
+     * since we always want to show this data for an event.
+     *
+     * @param projection a projection of columns from {@link PlayaItemTable}. Columns exclusive to a
+     *                   particular table must not be submitted.
+     */
     public Observable<SqlBrite.Query> observeNameQuery(@NonNull String query,
                                                        @Nullable String[] projection) {
 
@@ -260,8 +271,11 @@ public class DataProvider {
                     .append(", ")
                     .append(tableIdx)
                     .append(" as ")
-                    .append(VirtualType)
-                    .append(" FROM ")
+                    .append(VirtualType);
+
+            addEventStartTimeTypeToMultitableQuery(table, sql);
+
+            sql.append(" FROM ")
                     .append(table)
                     .append(" WHERE ")
                     .append(PlayaItemTable.name)
@@ -370,5 +384,24 @@ public class DataProvider {
     private String interceptQuery(String query, Iterable<String> tables) {
         if (interceptor == null) return query;
         return interceptor.onQueryIntercepted(query, tables);
+    }
+
+    private void addEventStartTimeTypeToMultitableQuery(String table, StringBuilder sql) {
+        if (!table.equals(PlayaDatabase.EVENTS)) {
+            sql.append(", ")
+                    .append("'0' as ")
+                    .append(EventTable.startTime)
+                    .append(", '0' as ")
+                    .append(EventTable.startTimePrint)
+                    .append(", 'none' as ")
+                    .append(EventTable.eventType);
+        } else {
+            sql.append(", ")
+                    .append(EventTable.startTime)
+                    .append(", ")
+                    .append(EventTable.startTimePrint)
+                    .append(", ")
+                    .append(EventTable.eventType);
+        }
     }
 }
