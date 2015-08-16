@@ -151,8 +151,16 @@ public class DataProvider {
 
     public Observable<SqlBrite.Query> observeTable(@NonNull String table,
                                                    @Nullable String[] projection) {
-        return db.createQuery(table,
-                interceptQuery("SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table, table))
+
+        String sql = interceptQuery("SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table, table);
+
+        if (table.equals(PlayaDatabase.EVENTS)) {
+            sql += " ORDER BY " + EventTable.startTime + " ASC";
+        } else {
+            sql += " ORDER BY " + PlayaItemTable.name + " ASC";
+        }
+
+        return db.createQuery(table, sql)
                 .subscribeOn(Schedulers.computation())
                 .skipWhile(query -> upgradeLock.get());
     }
