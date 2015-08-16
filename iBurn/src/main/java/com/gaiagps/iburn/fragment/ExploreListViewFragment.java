@@ -91,4 +91,9 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
             mRecyclerView.startAnimation(fadeAnimation);
         }
     }
+
+    @Override
+    public String getEmptyText() {
+        return getString(R.string.no_now_items)
+    }
 }

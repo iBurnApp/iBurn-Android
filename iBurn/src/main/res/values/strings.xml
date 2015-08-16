@@ -67,5 +67,6 @@
     <string name="mark_home_camp">Mark Home Camp?</string>
     <string name="location_data_notice">Burning Man policy requires that iBurn not display Camp, Event, and Art locations until gates open or you arrive on the Playa.</string>
     <string name="location_notice_title">A Word on Location</string>
+    <string name="no_now_items">Check back once you get to Burning Man</string>
 
 </resources>
