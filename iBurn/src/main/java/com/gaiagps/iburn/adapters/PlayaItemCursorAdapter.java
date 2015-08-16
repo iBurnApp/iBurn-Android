@@ -65,7 +65,6 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
 
             titleView = (TextView) view.findViewById(R.id.title);
             descView = (TextView) view.findViewById(R.id.description);
-            descView = (TextView) view.findViewById(R.id.description);
             favoriteView = (ImageView) view.findViewById(R.id.heart);
 
             walkTimeView = (TextView) view.findViewById(R.id.walk_time);
