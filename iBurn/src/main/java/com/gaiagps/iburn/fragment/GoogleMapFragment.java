@@ -337,7 +337,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         locationSubscription = Observable.timer(2, TimeUnit.SECONDS)
                 .first()
                 .observeOn(AndroidSchedulers.mainThread())
-                .flatMap(time -> JSEvaluator.createInstance("file:///android_asset/js/geocoder.html", new WebView(getActivity())))
+                .flatMap(time -> JSEvaluator.getInstance("file:///android_asset/js/geocoder.html", getActivity()))
                 .doOnNext(evaluator -> Timber.d("Got evaluator"))
                 .flatMap(jsEvaluator -> LocationProvider.observeCurrentLocation(getActivity(),
                         LocationRequest.create()

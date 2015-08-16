@@ -1,9 +1,11 @@
 package com.gaiagps.iburn.js;
 
+import android.content.Context;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import rx.Observable;
@@ -25,15 +27,15 @@ public class JSEvaluator {
 
     // <editor-fold desc="Private API">
 
-    public static void createInstance(String url, WebView webView, JSEvaluatorCallback callback) {
-        new JSEvaluator(url, webView, callback);
+    public static Observable<JSEvaluator> getInstance(Context context) {
+        return getInstance("", context);
     }
 
-    public static Observable<JSEvaluator> createInstance(String url, WebView webView) {
+    public static Observable<JSEvaluator> getInstance(String url, Context context) {
 
         if (!initializedJsEvaluator.getAndSet(true)) {
             // We need to start initializing the singleton
-            new JSEvaluator(url, webView, evaluator -> jsEvaluatorSubject.onNext(evaluator));
+            new JSEvaluator(url, new WebView(context), evaluator -> jsEvaluatorSubject.onNext(evaluator));
         } else if (jsEvaluator != null) {
             // We've already initialized the singleton
             return Observable.just(jsEvaluator);
@@ -62,16 +64,12 @@ public class JSEvaluator {
             @Override
             public void onPageFinished(WebView view, String url) {
                 Timber.d("onPageFinished");
-                evaluator.evaluate(webView, "window.coder = prepare(); return 'complete';",
-                        result -> {
-                            Timber.d("Got prepare result " + result);
-                            Observable.just(result)
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(ignored -> {
-                                        Timber.d("Notifying callback");
-                                        jsEvaluator = JSEvaluator.this;
-                                        callback.onReady(JSEvaluator.this);
-                                    });
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(ignored -> {
+                            Timber.d("Notifying callback");
+                            jsEvaluator = JSEvaluator.this;
+                            callback.onReady(JSEvaluator.this);
                         });
             }
 
@@ -91,13 +89,13 @@ public class JSEvaluator {
 
     public void reverseGeocode(final double latitude, final double longitude, Evaluator.EvaluatorCallback callback) {
         evaluator.evaluate(webView,
-                String.format("return reverseGeocode(window.coder, %f, %f);", latitude, longitude),
+                String.format("return window.coder.reverse(%f, %f);", latitude, longitude),
                 callback);
     }
 
     public void forwardGeocode(final String playaAddress, Evaluator.EvaluatorCallback callback) {
         evaluator.evaluate(webView,
-                String.format("return forwardGeocode(window.coder, %s);", playaAddress),
+                String.format("return window.coder.forwardAsString(\"%s\");", playaAddress),
                 callback);
     }
 
