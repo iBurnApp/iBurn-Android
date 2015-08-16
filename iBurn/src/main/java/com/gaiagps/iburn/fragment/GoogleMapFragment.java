@@ -344,6 +344,20 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                                 .setPriority(LocationRequest.PRIORITY_NO_POWER) // Receive existing GoogleMaps location request results
                                 .setInterval(5 * 1000)
                                 .setSmallestDisplacement(10))
+                                .doOnNext(location -> {
+                                    // If we get within ~3 miles of the man, unlock app
+                                    if (prefs != null && Embargo.isEmbargoActive(prefs)) {
+                                        float[] distance = new float[1];
+                                        Location.distanceBetween(location.getLatitude(), location.getLongitude(), Geo.MAN_LAT, Geo.MAN_LON, distance);
+                                        if (distance[0] < 5000) {
+                                            Timber.d("Unlocking location data by geo trigger!");
+                                            prefs.setEnteredValidUnlockCode(true);
+                                            // Notify all DataProvider clients that data has changed
+                                            DataProvider.getInstance(getActivity())
+                                                    .subscribe(DataProvider::endUpgrade);
+                                        }
+                                    }
+                                })
                         .map(location -> new Pair<>(jsEvaluator, location)))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(evaluatorLocationPair -> {

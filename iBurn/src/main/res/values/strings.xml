@@ -65,7 +65,7 @@
     <string name="place_custom_markers_tip">You can place custom markers at any time from the map.</string>
     <string name="home_camp_hint">Home Camp Name</string>
     <string name="mark_home_camp">Mark Home Camp?</string>
-    <string name="location_data_notice">Burning Man policy requires that Camp, Event, and Art locations are not released until gates open or you arrive on the Playa.\n\nIf you need location data now, ask a Ranger or staff member for the iBurn unlock code.</string>
+    <string name="location_data_notice">Burning Man policy requires that iBurn not display Camp, Event, and Art locations until gates open or you arrive on the Playa.</string>
     <string name="location_notice_title">A Word on Location</string>
 
 </resources>
