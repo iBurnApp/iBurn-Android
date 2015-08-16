@@ -5,11 +5,13 @@ import android.os.Environment;
 
 import com.gaiagps.iburn.Bytestreams;
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,10 +32,10 @@ public class MapProvider {
 
     public static final String MBTILE_DESTINATION = "iburn2015.mbtiles";
 
-    /**
-     * Version of bundled map
+    /** Key for mbtiles version stored in {@link PrefsHelper} and retrieved by {@link com.gaiagps.iburn.api.IBurnService}
+     * for tile updating.
      */
-    public static final long BUNDLED_MAP_VERSION = 1439764994000L; // Unix time of creation
+    private static final String MBTILES_RESOURCE_NAME = "iburn.mbtiles.jar";
 
     private static MapProvider provider;
 
@@ -43,6 +45,7 @@ public class MapProvider {
     }
 
     private Context context;
+    private PrefsHelper prefs;
     private File mapDatabaseFile;
     private AtomicBoolean writingFile = new AtomicBoolean(false);
 
@@ -51,12 +54,14 @@ public class MapProvider {
 
     public MapProvider(Context context) {
         this.context = context;
+        this.prefs = new PrefsHelper(context);
     }
 
     public Observable<File> getMapDatabase() {
         if (mapDatabaseFile != null) return databaseSubject.startWith(mapDatabaseFile);
 
-        mapDatabaseFile = getMBTilesFile(BUNDLED_MAP_VERSION); // TODO : Delete old map tiles
+        mapDatabaseFile = getMBTilesFile(prefs.getResourceVersion(MBTILES_RESOURCE_NAME));
+
         if (mapDatabaseFile.exists()) return databaseSubject.startWith(mapDatabaseFile);
 
         if (!writingFile.getAndSet(true)) {
@@ -96,11 +101,23 @@ public class MapProvider {
                 Timber.d("Copying MBTiles");
                 InputStream in = c.getResources().openRawResource(resourceId);
                 Bytestreams.copy(in, new FileOutputStream(destination));
-                Timber.d("MBTiles copying complete");
+                Timber.d("MBTiles copying complete. Deleting old mbtiles");
+                deleteMbTilesInDirectoryExcept(parent, destination);
             }
         } catch (IOException e) {
             Timber.e(e, "Error copying MBTiles");
         }
         return false;
+    }
+
+    private static void deleteMbTilesInDirectoryExcept(File directory, File doNotDelete) {
+        FilenameFilter filter = (dir, filename) -> filename.contains(".mbtiles");
+        File[] files = directory.listFiles(filter);
+        for (File file : files) {
+            if (!file.getAbsolutePath().equals(doNotDelete.getAbsolutePath())) {
+                Timber.d("Will delete %s", file.getAbsolutePath());
+                file.delete();
+            }
+        }
     }
 }
