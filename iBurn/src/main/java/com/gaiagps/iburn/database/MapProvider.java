@@ -30,6 +30,11 @@ public class MapProvider {
 
     public static final String MBTILE_DESTINATION = "iburn2015.mbtiles";
 
+    /**
+     * Version of bundled map
+     */
+    public static final long BUNDLED_MAP_VERSION = 1439764994000L; // Unix time of creation
+
     private static MapProvider provider;
 
     public static MapProvider getInstance(Context context) {
@@ -51,7 +56,7 @@ public class MapProvider {
     public Observable<File> getMapDatabase() {
         if (mapDatabaseFile != null) return databaseSubject.startWith(mapDatabaseFile);
 
-        mapDatabaseFile = getMBTilesFile(0); // TODO : Store shipping data version
+        mapDatabaseFile = getMBTilesFile(BUNDLED_MAP_VERSION); // TODO : Delete old map tiles
         if (mapDatabaseFile.exists()) return databaseSubject.startWith(mapDatabaseFile);
 
         if (!writingFile.getAndSet(true)) {
