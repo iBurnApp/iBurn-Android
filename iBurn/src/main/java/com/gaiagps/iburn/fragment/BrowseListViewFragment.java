@@ -45,8 +45,8 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     private BrowseListHeader.BrowseSelection categorySelection = BrowseListHeader.BrowseSelection.CAMPS;
 
     // Event filtering
-    private String selectedDay = "8/30";
-    private ArrayList<String> selectedTypes;
+    private String selectedDay = null;
+    private ArrayList<String> selectedTypes = null;
 
     @Override
     protected Subscription createSubscription() {
