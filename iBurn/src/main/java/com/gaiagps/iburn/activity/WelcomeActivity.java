@@ -18,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaDatabase;
@@ -26,6 +27,8 @@ import com.gaiagps.iburn.fragment.WelcomeFragment;
 
 public class WelcomeActivity extends AppCompatActivity implements WelcomeFragment.HomeCampSelectionListener {
     static final int NUM_PAGES = 4;
+
+    private PrefsHelper prefs;
 
     private CampSelection homeCampSelection;
 
@@ -98,6 +101,8 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         });
 
         buildCircles();
+
+        prefs = new PrefsHelper(this);
     }
 
     @Override
@@ -152,6 +157,7 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
                     .subscribe();
         }
 
+        prefs.setDidShowWelcome(true);
         finish();
         overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
     }

@@ -14,6 +14,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -81,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         add(IBurnPagerAdapter.IBurnTab.EXPLORE);
         add(IBurnPagerAdapter.IBurnTab.BROWSE);
         add(IBurnPagerAdapter.IBurnTab.FAVORITES);
-//        add(IBurnPagerAdapter.IBurnTab.FEEDBACK);
+        add(IBurnPagerAdapter.IBurnTab.FEEDBACK);
     }};
 
     @Override
@@ -103,8 +104,22 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
 
-        mTabs.setTabGravity(TabLayout.GRAVITY_FILL);
-//        mTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
+        // We want to show fixed-size tabs when possible because they're more pleasing
+        // but on small screens it just won't fit
+        float fixedTabSizeThreshold = 360;
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+
+        float dpHeight = displayMetrics.heightPixels / displayMetrics.density;
+        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+        Timber.d("Display is %f dp wide", dpWidth);
+        if (dpWidth >= fixedTabSizeThreshold) {
+            Timber.d("Using fixed tabs");
+            mTabs.setTabMode(TabLayout.MODE_FIXED);
+            mTabs.setTabGravity(TabLayout.GRAVITY_CENTER);
+        } else {
+            Timber.d("Using scrollable tabs");
+            mTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
+        }
 
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();
