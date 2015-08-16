@@ -94,6 +94,6 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
 
     @Override
     public String getEmptyText() {
-        return getString(R.string.no_now_items)
+        return getString(R.string.no_now_items);
     }
 }
