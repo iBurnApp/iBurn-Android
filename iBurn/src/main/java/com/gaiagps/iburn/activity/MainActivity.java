@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         add(IBurnPagerAdapter.IBurnTab.EXPLORE);
         add(IBurnPagerAdapter.IBurnTab.BROWSE);
         add(IBurnPagerAdapter.IBurnTab.FAVORITES);
-        add(IBurnPagerAdapter.IBurnTab.FEEDBACK);
+//        add(IBurnPagerAdapter.IBurnTab.FEEDBACK);
     }};
 
     @Override
@@ -106,7 +106,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
 
-        mTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
+        mTabs.setTabGravity(TabLayout.GRAVITY_FILL);
+//        mTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
 
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();
@@ -117,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         prefs = new PrefsHelper(this);
 
         if (!prefs.didShowWelcome() || BuildConfig.MOCK) {
-            showWelcomeDialog();
+            showWelcome();
         }
 
         if (!prefs.didScheduleUpdate()) {
@@ -157,25 +158,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
     }
 
-    private void showWelcomeDialog() {
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_welcome, null);
-        final Dialog dialog = new AlertDialog.Builder(this, R.style.Theme_Iburn_Dialog)
-                .setView(dialogView).create();
-        dialogView.setOnClickListener(v -> {
-            prefs.setDidShowWelcome(true);
-            dialog.dismiss();
-        });
-        dialog.show();
-
-        final Drawable heart = ((ImageView) dialogView.findViewById(R.id.heart)).getDrawable();
-
-        if (heart instanceof Animatable) {
-            Observable.timer(3, TimeUnit.SECONDS)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(time -> {
-                        ((Animatable) heart).start();
-                    });
-        }
+    private void showWelcome() {
+        startActivity(new Intent(this, WelcomeActivity.class));
     }
 
     public void showUnlockDialog() {
