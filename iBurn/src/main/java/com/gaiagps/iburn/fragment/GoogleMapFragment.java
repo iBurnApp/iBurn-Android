@@ -33,6 +33,7 @@ import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Searchable;
+import com.gaiagps.iburn.activity.MainActivity;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.ArtTable;
@@ -355,6 +356,9 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                                             // Notify all DataProvider clients that data has changed
                                             DataProvider.getInstance(getActivity())
                                                     .subscribe(DataProvider::endUpgrade);
+                                            if (getActivity() instanceof MainActivity) {
+                                                ((MainActivity) getActivity()).clearEmbargoSnackbar();
+                                            }
                                         }
                                     }
                                 })

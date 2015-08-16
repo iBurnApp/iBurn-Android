@@ -1,11 +1,8 @@
 package com.gaiagps.iburn.activity;
 
-import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Animatable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.design.widget.Snackbar;
@@ -20,7 +17,6 @@ import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.gaiagps.iburn.BuildConfig;
@@ -74,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private PrefsHelper prefs;
     private IBurnPagerAdapter mPagerAdapter;
     private String mCurFilter;
+    private Snackbar embargoSnackbar;
 
     /**
      * Fragments to appear in main ViewPager
@@ -136,8 +133,9 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     .subscribeOn(AndroidSchedulers.mainThread())
                     .subscribe(counter -> {
                         final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE M/d", Locale.US);
-                        Snackbar.make(mParent, getString(R.string.embargo_snackbar_msg, dayFormatter.format(Embargo.EMBARGO_DATE)), Snackbar.LENGTH_INDEFINITE)
-                                .setAction(R.string.enter_unlock_code, view -> showUnlockDialog()).show();
+                        embargoSnackbar = Snackbar.make(mParent, getString(R.string.embargo_snackbar_msg, dayFormatter.format(Embargo.EMBARGO_DATE)), Snackbar.LENGTH_INDEFINITE)
+                                .setAction(R.string.enter_unlock_code, view -> showUnlockDialog());
+                        embargoSnackbar.show();
                     });
         }
         handleIntent(getIntent());
@@ -410,5 +408,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private void checkForUpdates() {
         // Remove this for store builds!
         UpdateManager.register(this, HOCKEY_ID);
+    }
+
+    public void clearEmbargoSnackbar() {
+        if (embargoSnackbar != null) {
+            embargoSnackbar.dismiss();
+            embargoSnackbar = null;
+        }
     }
 }
