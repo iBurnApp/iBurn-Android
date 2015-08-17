@@ -106,6 +106,7 @@ public class EventListHeader extends RelativeLayout {
                                     String tabTitle = (selection == null) ? getResources().getString(R.string.any_day) : AdapterUtils.sDayNames.toArray(new CharSequence[AdapterUtils.sDayNames.size()])[which].toString();
                                     ((TextView) v).setText(tabTitle.toUpperCase());
                                     dispatchSelection();
+                                    dialog.dismiss();
                                 }
                             }
                     );
