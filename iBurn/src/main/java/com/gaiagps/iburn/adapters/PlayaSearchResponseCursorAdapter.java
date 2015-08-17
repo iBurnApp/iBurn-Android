@@ -8,11 +8,15 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.CurrentDateProvider;
+import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.EventTable;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,7 +28,10 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
     private static int typeCol;
     private static int startTimeCol;
     private static int startTimePrettyCol;
+    private static int allDayCol;
     private static int eventTypeCol;
+    private static int endTimeCol;
+    private static int endTimePrettyCol;
 
     public static class ViewHolder extends PlayaItemCursorAdapter.ViewHolder {
 
@@ -39,9 +46,17 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
         }
     }
 
+    Calendar nowPlusOneHrDate = Calendar.getInstance();
+    Calendar nowDate = Calendar.getInstance();
+
     public PlayaSearchResponseCursorAdapter(Context context, Cursor cursor, AdapterListener listener) {
         super(context, cursor, listener);
         this.listener = listener;
+
+        Date now = CurrentDateProvider.getCurrentDate();
+        nowDate.setTime(now);
+        nowPlusOneHrDate.setTime(now);
+        nowPlusOneHrDate.add(Calendar.HOUR, 1);
     }
 
     @Override
@@ -120,7 +135,17 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
 
             case EVENT:
                 viewHolder.timeView.setVisibility(View.VISIBLE);
-                viewHolder.timeView.setText(cursor.getString(startTimePrettyCol));
+
+                if (cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1) {
+                    viewHolder.timeView.setText("All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint)));
+
+                } else {
+                    viewHolder.timeView.setText(DateUtil.getDateString(context, nowDate.getTime(), nowPlusOneHrDate.getTime(),
+                            cursor.getString(startTimeCol),
+                            cursor.getString(startTimePrettyCol),
+                            cursor.getString(endTimeCol),
+                            cursor.getString(endTimePrettyCol)));
+                }
                 viewHolder.typeView.setVisibility(View.VISIBLE);
                 viewHolder.typeView.setText(AdapterUtils.getStringForEventType(cursor.getString(eventTypeCol)));
                 break;
@@ -162,5 +187,8 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
         eventTypeCol = cursor.getColumnIndexOrThrow(EventTable.eventType);
         startTimeCol = cursor.getColumnIndexOrThrow(EventTable.startTime);
         startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
+        endTimeCol = cursor.getColumnIndexOrThrow(EventTable.endTime);
+        endTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.endTimePrint);
+        allDayCol = cursor.getColumnIndexOrThrow(EventTable.allDay);
     }
 }

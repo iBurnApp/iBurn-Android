@@ -233,7 +233,7 @@ public class DataProvider {
                     .append(" as ")
                     .append(VirtualType);
 
-            addEventStartTimeTypeToMultitableQuery(table, sql);
+            addEventColsToMultitableQuery(table, sql);
 
             sql.append(" FROM ")
                     .append(table)
@@ -281,7 +281,7 @@ public class DataProvider {
                     .append(" as ")
                     .append(VirtualType);
 
-            addEventStartTimeTypeToMultitableQuery(table, sql);
+            addEventColsToMultitableQuery(table, sql);
 
             sql.append(" FROM ")
                     .append(table)
@@ -394,13 +394,23 @@ public class DataProvider {
         return interceptor.onQueryIntercepted(query, tables);
     }
 
-    private void addEventStartTimeTypeToMultitableQuery(String table, StringBuilder sql) {
+    /**
+     * Add Event-specific columns to a multi-table query, which are required whenever
+     * we display an Event.
+     */
+    private void addEventColsToMultitableQuery(String table, StringBuilder sql) {
         if (!table.equals(PlayaDatabase.EVENTS)) {
             sql.append(", ")
                     .append("'0' as ")
                     .append(EventTable.startTime)
                     .append(", '0' as ")
                     .append(EventTable.startTimePrint)
+                    .append(", '0' as ")
+                    .append(EventTable.endTime)
+                    .append(", '0' as ")
+                    .append(EventTable.endTimePrint)
+                    .append(", 0 as ")
+                    .append(EventTable.allDay)
                     .append(", 'none' as ")
                     .append(EventTable.eventType);
         } else {
@@ -408,6 +418,12 @@ public class DataProvider {
                     .append(EventTable.startTime)
                     .append(", ")
                     .append(EventTable.startTimePrint)
+                    .append(", ")
+                    .append(EventTable.endTime)
+                    .append(", ")
+                    .append(EventTable.endTimePrint)
+                    .append(", ")
+                    .append(EventTable.allDay)
                     .append(", ")
                     .append(EventTable.eventType);
         }

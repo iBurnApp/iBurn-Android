@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.CurrentDateProvider;
+import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.EventTable;
@@ -66,6 +67,7 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
     private int startTimePrettyCol;
     private int endTimeCol;
     private int endTimePrettyCol;
+    private int allDayCol;
 
     public static class ViewHolder extends PlayaItemCursorAdapter.ViewHolder {
         TextView typeView;
@@ -125,6 +127,7 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
             startTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.startTimePrint);
             endTimeCol = cursor.getColumnIndexOrThrow(EventTable.endTime);
             endTimePrettyCol = cursor.getColumnIndexOrThrow(EventTable.endTimePrint);
+            allDayCol = cursor.getColumnIndexOrThrow(EventTable.allDay);
         }
 
         try {
@@ -146,7 +149,11 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
                     viewHolder.timeLabel = "All " + cursor.getString(cursor.getColumnIndexOrThrow(EventTable.startTimePrint));
 
                 } else {
-                    viewHolder.timeLabel = cursor.getString(startTimePrettyCol);
+                    viewHolder.timeLabel = DateUtil.getDateString(context, nowDate.getTime(), nowPlusOneHrDate.getTime(),
+                            cursor.getString(startTimeCol),
+                            cursor.getString(startTimePrettyCol),
+                            cursor.getString(endTimeCol),
+                            cursor.getString(endTimePrettyCol));
                 }
             }
         } catch (IllegalArgumentException | ParseException e) {
