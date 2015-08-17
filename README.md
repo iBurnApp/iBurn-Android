@@ -49,7 +49,13 @@ Fortunately, you can still run and test the app with the previous year's data.
 
 ## Releasing
 
-Remember to build an unsigned variant, e.g `./gradlew assembleMockUnsigned` and pass that on to the individual who signs the apk.
+The final pre-signed store release should be built with:
+
+    $ ./gradlew assembleRegularUnsigned
+
+Pass the resulting apk off for signing. Then zipalign before publishing:
+
+    $ zipalign -f -v 4 ./signed.apk ./signed-aligned.apk
 
 ## Contributing
 
