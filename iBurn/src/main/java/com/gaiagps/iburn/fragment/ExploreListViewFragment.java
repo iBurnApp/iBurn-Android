@@ -66,7 +66,7 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_explore_list_view, container, false);
+        View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
         mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));
