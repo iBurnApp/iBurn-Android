@@ -135,7 +135,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     private STATE mState = STATE.EXPLORE;
 
-    private final double POI_ZOOM_LEVEL = 15.5;
+    private final double POI_ZOOM_LEVEL = 16.5;
     float currentZoom = 0;
 
     private final PublishSubject<VisibleRegion> cameraUpdate = PublishSubject.create();
