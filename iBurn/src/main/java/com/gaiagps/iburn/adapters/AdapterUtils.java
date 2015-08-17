@@ -37,8 +37,6 @@ public class AdapterUtils {
     static {
         sDayNames.add("All Days");
         sDayAbbreviations.add(null);
-        sDayNames.add("Sunday 8/30");
-        sDayAbbreviations.add("8/30");
         sDayNames.add("Monday 8/31");
         sDayAbbreviations.add("8/31");
         sDayNames.add("Tuesday 9/1");
