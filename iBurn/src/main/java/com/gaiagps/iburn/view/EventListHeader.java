@@ -110,7 +110,7 @@ public class EventListHeader extends RelativeLayout {
                                 }
                             }
                     );
-                    builder.setPositiveButton("Done", null);
+                    builder.setPositiveButton("Cancel", null);
                     builder.show();
                 }
                 v.setSelected(false);
