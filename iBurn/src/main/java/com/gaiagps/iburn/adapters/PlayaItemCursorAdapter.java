@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.location.Location;
 import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -42,6 +43,12 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
     protected int latCol;
     protected int lonCol;
 
+    /**
+     * The fab obstructs the last item in lists so we must add footer padding
+     */
+    private static int normalPadding;
+    private static int footerBottomPadding;
+
     public PlayaItemCursorAdapter(Context context, Cursor c, AdapterListener listener) {
         super(c);
         this.context = context;
@@ -49,6 +56,11 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
 
         LocationProvider.getLastLocation(context).
                 subscribe(lastLocation -> deviceLocation = lastLocation);
+
+        if (normalPadding == 0) {
+            normalPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, context.getResources().getDisplayMetrics());
+            footerBottomPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80, context.getResources().getDisplayMetrics());
+        }
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -98,6 +110,20 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
 
         viewHolder.modelId = cursor.getInt(idCol);
         viewHolder.itemView.setTag(viewHolder.modelId);
+
+        if (cursor.getPosition() == cursor.getCount() - 1) {
+            // Set footer padding
+            viewHolder.itemView.setPadding(normalPadding,
+                    normalPadding,
+                    normalPadding,
+                    footerBottomPadding);
+        } else {
+            // Set default padding
+            viewHolder.itemView.setPadding(normalPadding,
+                    normalPadding,
+                    normalPadding,
+                    normalPadding);
+        }
     }
 
     public String[] buildRequiredProjection(String[] complementaryProjection) {
