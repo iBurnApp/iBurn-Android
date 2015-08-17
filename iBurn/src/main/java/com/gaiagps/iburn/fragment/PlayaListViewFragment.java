@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
@@ -70,6 +71,18 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
         if (newData == null) {
             Timber.w("Got null data onDataChanged");
             return;
+        }
+
+        boolean adapterWasEmpty = adapter.getItemCount() == 0;
+
+        if (adapterWasEmpty && newData.getCount() > 0) {
+            // Fade in the initial data, but let updates happen without animation
+            AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
+            fadeAnimation.setDuration(250);
+            fadeAnimation.setStartOffset(100);
+            fadeAnimation.setFillAfter(true);
+            fadeAnimation.setFillEnabled(true);
+            mRecyclerView.startAnimation(fadeAnimation);
         }
 
         if (newData.getCount() == 0) {

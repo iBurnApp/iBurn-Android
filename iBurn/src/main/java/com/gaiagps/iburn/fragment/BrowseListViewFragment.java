@@ -1,13 +1,11 @@
 package com.gaiagps.iburn.fragment;
 
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
@@ -151,21 +149,6 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
             categorySelection = selection;
             unsubscribeFromData();
             subscribeToData();
-        }
-    }
-
-    public void onDataChanged(Cursor newData) {
-        boolean adapterWasEmpty = adapter.getItemCount() == 0;
-        super.onDataChanged(newData);
-
-        if (adapterWasEmpty && adapter.getItemCount() > 0) {
-            // Fade in the initial data, but let updates happen without animation
-            AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
-            fadeAnimation.setDuration(250);
-            fadeAnimation.setStartOffset(100);
-            fadeAnimation.setFillAfter(true);
-            fadeAnimation.setFillEnabled(true);
-            mRecyclerView.startAnimation(fadeAnimation);
         }
     }
 
