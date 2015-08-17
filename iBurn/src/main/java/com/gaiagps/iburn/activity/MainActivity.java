@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -17,6 +18,7 @@ import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -46,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -106,19 +109,28 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         // We want to show fixed-size tabs when possible because they're more pleasing
         // but on small screens it just won't fit
-        float fixedTabSizeThreshold = 360;
+        float fixedTabSizeThreshold = 370;
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-
-        float dpHeight = displayMetrics.heightPixels / displayMetrics.density;
         float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
         Timber.d("Display is %f dp wide", dpWidth);
         if (dpWidth >= fixedTabSizeThreshold) {
             Timber.d("Using fixed tabs");
             mTabs.setTabMode(TabLayout.MODE_FIXED);
-            mTabs.setTabGravity(TabLayout.GRAVITY_CENTER);
+            //mTabs.setTabGravity(TabLayout.GRAVITY_CENTER);
         } else {
             Timber.d("Using scrollable tabs");
             mTabs.setTabMode(TabLayout.MODE_SCROLLABLE);
+            // Hack to center the scrollable tabs. Noticed issue on N5 / M where doing this via expected
+            // xml params resulted in tabs that were glitched out and oversized
+            final AtomicBoolean didSetTabLayout = new AtomicBoolean();
+            mTabs.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+                if (!didSetTabLayout.getAndSet(true)) {
+                    Timber.d("Setting tabs width to wrap_content on layout");
+                    AppBarLayout.LayoutParams params = (AppBarLayout.LayoutParams) mTabs.getLayoutParams();
+                    params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                    mTabs.setLayoutParams(params);
+                }
+            });
         }
 
         if (checkPlayServices()) {
