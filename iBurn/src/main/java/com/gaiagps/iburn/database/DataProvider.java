@@ -117,6 +117,10 @@ public class DataProvider {
         }
     }
 
+    public Observable<SqlBrite.Query> createEmbargoExemptQuery(@NonNull final String table, @NonNull String sql, @NonNull String... args) {
+        return db.createQuery(table, sql, args);
+    }
+
     public Observable<SqlBrite.Query> createQuery(@NonNull final String table, @NonNull String sql, @NonNull String... args) {
         return db.createQuery(table, interceptQuery(sql, table), args);
     }
