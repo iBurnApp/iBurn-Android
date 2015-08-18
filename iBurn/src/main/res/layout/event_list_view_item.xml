@@ -107,7 +107,7 @@
         android:layout_marginTop="4dp"
         android:layout_alignParentRight="true"
         android:layout_below="@id/description"
-        android:layout_toRightOf="@id/bike_time"
+        android:layout_toRightOf="@id/type"
         android:ellipsize="marquee"
         android:gravity="right"
         android:padding="2dp"
