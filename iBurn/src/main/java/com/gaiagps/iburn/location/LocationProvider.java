@@ -77,6 +77,7 @@ public class LocationProvider {
         mockLocation.setLatitude(mockLat);
         mockLocation.setLongitude(mockLon);
         mockLocation.setAccuracy(1.0f);
+        mockLocation.setBearing(.4f);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             mockLocation.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
         }
