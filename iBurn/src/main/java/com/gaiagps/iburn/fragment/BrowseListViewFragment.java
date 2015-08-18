@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
+import xyz.danoz.recyclerviewfastscroller.vertical.VerticalRecyclerViewFastScroller;
 
 /**
  * Fragment displaying Playa data
@@ -110,11 +111,37 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         eventListHeader = (ViewGroup) v.findViewById(R.id.eventHeader);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
+
+        VerticalRecyclerViewFastScroller fastScroller = (VerticalRecyclerViewFastScroller) v.findViewById(R.id.fastScroller);
+
+        // Connect the recycler to the scroller (to let the scroller scroll the list)
+        fastScroller.setRecyclerView(mRecyclerView);
+
+        // Connect the scroller to the recycler (to let the recycler scroll the scroller's handle)
+        mRecyclerView.setOnScrollListener(fastScroller.getOnScrollListener());
+
+        setRecyclerViewLayoutManager(mRecyclerView);
+
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         ((BrowseListHeader) v.findViewById(R.id.header)).setBrowseSelectionListener(this);
         ((EventListHeader) v.findViewById(R.id.eventHeader)).setReceiver(this);
         return v;
+    }
+
+    private void setRecyclerViewLayoutManager(RecyclerView recyclerView) {
+        int scrollPosition = 0;
+
+        // If a layout manager has already been set, get current scroll position.
+        if (recyclerView.getLayoutManager() != null) {
+            scrollPosition =
+                    ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+        }
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.scrollToPosition(scrollPosition);
     }
 
     @Override
