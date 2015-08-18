@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
+import xyz.danoz.recyclerviewfastscroller.sectionindicator.title.SectionTitleIndicator;
 import xyz.danoz.recyclerviewfastscroller.vertical.VerticalRecyclerViewFastScroller;
 
 /**
@@ -113,12 +114,16 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
 
         VerticalRecyclerViewFastScroller fastScroller = (VerticalRecyclerViewFastScroller) v.findViewById(R.id.fastScroller);
+        SectionTitleIndicator sectionTitleIndicator =
+                (SectionTitleIndicator) v.findViewById(R.id.fastScrollerSectionIndicator);
 
         // Connect the recycler to the scroller (to let the scroller scroll the list)
         fastScroller.setRecyclerView(mRecyclerView);
 
         // Connect the scroller to the recycler (to let the recycler scroll the scroller's handle)
         mRecyclerView.setOnScrollListener(fastScroller.getOnScrollListener());
+
+        fastScroller.setSectionIndicator(sectionTitleIndicator);
 
         setRecyclerViewLayoutManager(mRecyclerView);
 

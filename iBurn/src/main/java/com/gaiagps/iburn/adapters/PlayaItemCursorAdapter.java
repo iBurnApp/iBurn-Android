@@ -8,6 +8,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.SectionIndexer;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.Constants;
@@ -16,12 +17,13 @@ import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.LocationProvider;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * A class that assists in the creation of {@link CursorRecyclerViewAdapter}s that
  * bind playa items
  */
-public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.ViewHolder> extends CursorRecyclerViewAdapter<T> {
+public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.ViewHolder> extends CursorRecyclerViewAdapter<T> implements SectionIndexer {
 
     public static final String[] Projection = new String[]{
             PlayaItemTable.id,
@@ -161,5 +163,26 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
             int modelId = (int) ((View) v.getParent()).getTag();
             listener.onItemFavoriteButtonSelected(modelId, type);
         });
+    }
+
+    @Override
+    public Object[] getSections() {
+        return AzSectionTitleIndicator.sections;
+    }
+
+    @Override
+    public int getPositionForSection(int sectionIndex) {
+        // not needed
+        return 0;
+    }
+
+    @Override
+    public int getSectionForPosition(int position) {
+        if (position == mCursor.getCount()) return AzSectionTitleIndicator.sections.length - 1;
+
+        mCursor.moveToPosition(position);
+        String title = mCursor.getString(titleCol);
+
+        return AzSectionTitleIndicator.getSectionIndexForName(title);
     }
 }
