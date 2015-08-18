@@ -17,27 +17,12 @@ import com.gaiagps.iburn.database.CampTable;
  * using the device's location and date when the adapter was constructed.
  * <p>
  * TODO: Update device location periodically
+ * TODO: Remove this
  */
-public class CampCursorAdapter extends PlayaItemCursorAdapter<CampCursorAdapter.ViewHolder> {
+public class CampCursorAdapter extends PlayaItemCursorAdapter<PlayaItemCursorAdapter.ViewHolder> {
 
-    static final String[] Projection = new String[]{
-            CampTable.playaAddress,
-    };
-
-    private int addressCol;
-
-    public CampCursorAdapter(Context context, Cursor cursor, AdapterListener listener) {
-        super(context, cursor, listener);
-    }
-
-    public static class ViewHolder extends PlayaItemCursorAdapter.ViewHolder {
-        TextView addressView;
-
-        public ViewHolder(View view) {
-            super(view);
-
-            addressView = (TextView) view.findViewById(R.id.address);
-        }
+    public CampCursorAdapter(Context context, Cursor c, AdapterListener listener) {
+        super(context, c, listener);
     }
 
     @Override
@@ -52,24 +37,7 @@ public class CampCursorAdapter extends PlayaItemCursorAdapter<CampCursorAdapter.
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, Cursor cursor) {
-
-        super.onBindViewHolder(viewHolder, cursor);
-
-        if (addressCol == 0) {
-            addressCol = cursor.getColumnIndexOrThrow(CampTable.playaAddress);
-        }
-
-        String address = cursor.getString(addressCol);
-        if (!TextUtils.isEmpty(address)) {
-            viewHolder.addressView.setText(cursor.getString(addressCol));
-        } else {
-            viewHolder.addressView.setVisibility(View.GONE);
-        }
-    }
-
-    @Override
     public String[] getRequiredProjection() {
-        return buildRequiredProjection(Projection);
+        return PlayaItemCursorAdapter.Projection;
     }
 }
