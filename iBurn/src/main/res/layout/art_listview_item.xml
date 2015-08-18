@@ -67,5 +67,22 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <TextView
+        android:id="@+id/address"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/description"
+        android:layout_marginTop="4dp"
+        android:layout_toRightOf="@+id/bike_time"
+        android:ellipsize="end"
+        android:gravity="right"
+        android:paddingTop="0dp"
+        android:singleLine="true"
+        android:text="7:00 &amp; Esplanade"
+        android:textColor="@color/sub_text"
+        android:textSize="18sp" />
+
 
 </RelativeLayout>

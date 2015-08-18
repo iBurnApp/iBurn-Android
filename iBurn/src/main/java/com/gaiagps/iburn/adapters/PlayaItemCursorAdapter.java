@@ -29,7 +29,8 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
             PlayaItemTable.description,
             PlayaItemTable.favorite,
             PlayaItemTable.latitude,
-            PlayaItemTable.longitude
+            PlayaItemTable.longitude,
+            PlayaItemTable.playaAddress
     };
 
     protected Context context;
@@ -42,6 +43,7 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
     protected int favoriteCol;
     protected int latCol;
     protected int lonCol;
+    protected int addressCol;
 
     /**
      * The fab obstructs the last item in lists so we must add footer padding
@@ -71,6 +73,7 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
         ImageView favoriteView;
         TextView walkTimeView;
         TextView bikeTimeView;
+        TextView addressView;
 
         public ViewHolder(View view) {
             super(view);
@@ -78,6 +81,7 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
             titleView = (TextView) view.findViewById(R.id.title);
             descView = (TextView) view.findViewById(R.id.description);
             favoriteView = (ImageView) view.findViewById(R.id.heart);
+            addressView = (TextView) view.findViewById(R.id.address);
 
             walkTimeView = (TextView) view.findViewById(R.id.walk_time);
             bikeTimeView = (TextView) view.findViewById(R.id.bike_time);
@@ -94,10 +98,12 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
             idCol = cursor.getColumnIndexOrThrow(PlayaItemTable.id);
             descCol = cursor.getColumnIndexOrThrow(PlayaItemTable.description);
             favoriteCol = cursor.getColumnIndexOrThrow(PlayaItemTable.favorite);
+            addressCol = cursor.getColumnIndexOrThrow(PlayaItemTable.playaAddress);
         }
 
         viewHolder.titleView.setText(cursor.getString(titleCol));
         viewHolder.descView.setText(cursor.getString(descCol));
+        viewHolder.addressView.setText(cursor.getString(addressCol));
 
         AdapterUtils.setDistanceText(deviceLocation, viewHolder.walkTimeView, viewHolder.bikeTimeView,
                 cursor.getDouble(latCol), cursor.getDouble(lonCol));
