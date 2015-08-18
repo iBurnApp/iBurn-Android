@@ -103,10 +103,17 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
 
         viewHolder.titleView.setText(cursor.getString(titleCol));
         viewHolder.descView.setText(cursor.getString(descCol));
-        viewHolder.addressView.setText(cursor.getString(addressCol));
 
         AdapterUtils.setDistanceText(deviceLocation, viewHolder.walkTimeView, viewHolder.bikeTimeView,
                 cursor.getDouble(latCol), cursor.getDouble(lonCol));
+
+        if (cursor.getDouble(latCol) == 0 && cursor.isNull(addressCol)) {
+            // No location present, hide address views
+            viewHolder.addressView.setVisibility(View.GONE);
+        } else {
+            viewHolder.addressView.setVisibility(View.VISIBLE);
+            viewHolder.addressView.setText(cursor.getString(addressCol));
+        }
 
         if (cursor.getInt(favoriteCol) == 1) {
             viewHolder.favoriteView.setImageResource(R.drawable.ic_heart_full);
