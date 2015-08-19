@@ -375,6 +375,31 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
                             } else if (modelTable.equals(PlayaDatabase.EVENTS)) {
                                 // Lookup other event occurrences
+
+                                final ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
+                                final Typeface condensed = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
+                                int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+
+                                if (!itemCursor.isNull(itemCursor.getColumnIndex(EventTable.campPlayaId))) {
+                                    final TextView hostedByCamp = new TextView(wrapper);
+                                    hostedByCamp.setText("Hosted by " + itemCursor.getString(itemCursor.getColumnIndex(EventTable.campName)));
+                                    hostedByCamp.setTag(itemCursor.getInt(itemCursor.getColumnIndex(EventTable.campPlayaId)));
+                                    hostedByCamp.setTypeface(condensed);
+                                    hostedByCamp.setTextSize(32);
+                                    hostedByCamp.setPadding(pad, pad, pad, 0);
+
+                                    provider.createQuery(PlayaDatabase.CAMPS, "SELECT * FROM " + PlayaDatabase.CAMPS + " WHERE " + CampTable.playaId + " = ?", String.valueOf(itemCursor.getInt(itemCursor.getColumnIndex(EventTable.campPlayaId))))
+                                            .first()
+                                            .map(SqlBrite.Query::run)
+                                            .subscribe(campCursor -> {
+                                                if (campCursor != null && campCursor.moveToFirst()) {
+                                                    hostedByCamp.setOnClickListener(new RelatedItemOnClickListener(campCursor.getInt(campCursor.getColumnIndex(PlayaItemTable.id)), Constants.PlayaItemType.CAMP));
+                                                    campCursor.close();
+                                                }
+                                            });
+                                    overflowContainer.addView(hostedByCamp);
+                                }
+
                                 provider.createQuery(PlayaDatabase.EVENTS, "SELECT * FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.playaId + " = ? AND " + EventTable.startTime + " != ?", String.valueOf(playaId), itemCursor.getString(itemCursor.getColumnIndex(EventTable.startTime)))
                                         .first()
                                         .map(SqlBrite.Query::run)
@@ -387,10 +412,6 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                                 eventsCursor.close();
                                                 return;
                                             }
-
-                                            int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-                                            ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
-                                            Typeface condensed = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
 
                                             TextView occurrencesTitle = new TextView(wrapper);
                                             occurrencesTitle.setText(R.string.also_at);
