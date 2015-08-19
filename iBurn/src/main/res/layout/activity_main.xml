@@ -30,7 +30,7 @@
         android:layout_marginTop="45dp"/>
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/favorite_button"
+        android:id="@+id/fab"
         style="@style/FloatingActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

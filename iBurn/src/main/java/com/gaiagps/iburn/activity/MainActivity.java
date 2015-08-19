@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -70,6 +71,9 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
     @InjectView(R.id.tabs)
     TabLayout mTabs;
+
+    @InjectView(R.id.fab)
+    FloatingActionButton mFab;
 
     private PrefsHelper prefs;
     private IBurnPagerAdapter mPagerAdapter;
@@ -253,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     }
 
     private void setupFragmentStatePagerAdapter() {
-        mPagerAdapter = new IBurnPagerAdapter(this, sTabs);
+        mPagerAdapter = new IBurnPagerAdapter(this, sTabs, mFab);
         mPagerAdapter.setSearchQueryProvider(this);
 
         mViewPager.setAdapter(mPagerAdapter);
@@ -280,6 +284,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         private Context mContext;
         private List<IBurnTab> mTabs;
+        private FloatingActionButton mFab;
         private Fragment mCurrentPrimaryItem;
         private SearchQueryProvider mSearchQueryProvider;
         private int mLastPosition = -1;
@@ -317,10 +322,11 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             }
         }
 
-        public IBurnPagerAdapter(FragmentActivity host, List<IBurnTab> tabs) {
+        public IBurnPagerAdapter(FragmentActivity host, List<IBurnTab> tabs, FloatingActionButton fab) {
             super(host.getSupportFragmentManager());
             mContext = host;
             mTabs = tabs;
+            mFab = fab;
         }
 
         public void setSearchQueryProvider(SearchQueryProvider provider) {
@@ -351,6 +357,13 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             super.setPrimaryItem(container, position, object);
             mCurrentPrimaryItem = (Fragment) object;
             if (mLastPosition != position) {
+
+                // Hide Fab on last page
+                if (position == getCount() - 1) {
+                    mFab.hide();
+                } else {
+                    mFab.show();
+                }
 
                 if (mCurrentPrimaryItem instanceof Subscriber) {
                     Timber.d("Subscribing %d to data", position);
