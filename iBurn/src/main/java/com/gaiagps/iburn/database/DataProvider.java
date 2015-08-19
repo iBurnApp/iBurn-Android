@@ -205,6 +205,8 @@ public class DataProvider {
         }
 
         sql.append(" ORDER BY ");
+        sql.append(EventTable.allDay);
+        sql.append(", ");
         sql.append(EventTable.startTime);
         sql.append(" ASC");
 
