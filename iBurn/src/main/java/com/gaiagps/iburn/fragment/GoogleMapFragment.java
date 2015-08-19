@@ -632,9 +632,12 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     static String ongoingWhereClause = String.format("(%s < ? AND %s > ?) ",
             EventTable.startTime, EventTable.endTime);
 
+    static String notExpiredWhereClause = String.format("(%s > ?) ",
+            EventTable.endTime);
+
     static String isFavoriteWhereClause = PlayaItemTable.favorite + " = 1";
 
-    static String[] sqlParemeters = new String[10/*14*/];
+    static String[] sqlParemeters = new String[11/*15*/];
 
     public Observable<SqlBrite.Query> performQuery(DataProvider provider) {
 
@@ -654,8 +657,11 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             // Select Events
             sql.append(" UNION ")
                     .append("SELECT ").append(PROJECTION_STRING).append(", ").append(3).append(" AS ").append(DataProvider.VirtualType).append(" FROM ").append(PlayaDatabase.EVENTS)
-                    .append(" WHERE ")
-                    .append(isFavoriteWhereClause);
+                    .append(" WHERE (")
+                    .append(isFavoriteWhereClause)
+                    .append(" AND " )
+                    .append(notExpiredWhereClause)
+                    .append(")");
 
             if (queryVisibleRegion) {
                 sql.append(" OR (")
@@ -692,13 +698,14 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             // Set visible region query parameters
             if (queryVisibleRegion) {
                 // Event time
-                sqlParemeters[0] = sqlParemeters[1] = PlayaDateTypeAdapter.iso8601Format.format(CurrentDateProvider.getCurrentDate());
+                sqlParemeters[0] = PlayaDateTypeAdapter.iso8601Format.format(CurrentDateProvider.getCurrentDate());
+                sqlParemeters[1] = sqlParemeters[2] = PlayaDateTypeAdapter.iso8601Format.format(CurrentDateProvider.getCurrentDate());
 
                 // Event, Art, Camp Geo
-                sqlParemeters[2] = sqlParemeters[6] /*= sqlParemeters[10]*/ = String.valueOf(visibleRegion.farLeft.latitude);
-                sqlParemeters[3] = sqlParemeters[7] /*= sqlParemeters[11]*/ = String.valueOf(visibleRegion.nearRight.latitude);
-                sqlParemeters[4] = sqlParemeters[8] /*= sqlParemeters[12]*/ = String.valueOf(visibleRegion.nearRight.longitude);
-                sqlParemeters[5] = sqlParemeters[9] /*= sqlParemeters[13]*/ = String.valueOf(visibleRegion.farLeft.longitude);
+                sqlParemeters[3] = sqlParemeters[7] /*= sqlParemeters[10]*/ = String.valueOf(visibleRegion.farLeft.latitude);
+                sqlParemeters[4] = sqlParemeters[8] /*= sqlParemeters[11]*/ = String.valueOf(visibleRegion.nearRight.latitude);
+                sqlParemeters[5] = sqlParemeters[9] /*= sqlParemeters[12]*/ = String.valueOf(visibleRegion.nearRight.longitude);
+                sqlParemeters[6] = sqlParemeters[10] /*= sqlParemeters[13]*/ = String.valueOf(visibleRegion.farLeft.longitude);
             }
         }
         if (queryNonUserItems) {
