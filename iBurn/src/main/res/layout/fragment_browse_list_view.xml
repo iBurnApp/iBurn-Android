@@ -76,19 +76,18 @@
 
     <xyz.danoz.recyclerviewfastscroller.vertical.VerticalRecyclerViewFastScroller
         android:id="@+id/fastScroller"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="68dp"
         android:layout_width="24dp"
         android:layout_height="match_parent"
         android:layout_gravity="right" />
 
-    <com.gaiagps.iburn.adapters.AzSectionTitleIndicator
+    <com.gaiagps.iburn.adapters.SimpleSectionTitleIndicator
         android:id="@+id/fastScrollerSectionIndicator"
         android:layout_width="wrap_content"
         android:layout_marginRight="26dp"
         android:layout_height="@dimen/list_item_height"
         android:layout_gravity="right"
         recyclerviewfastscroller:rfs_backgroundColor="@android:color/white"
-        recyclerviewfastscroller:rfs_textColor="@android:color/black"
-        />
+        recyclerviewfastscroller:rfs_textColor="@android:color/black" />
 
 </FrameLayout>

@@ -17,7 +17,6 @@ import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.location.LocationProvider;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * A class that assists in the creation of {@link CursorRecyclerViewAdapter}s that
@@ -167,7 +166,7 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
 
     @Override
     public Object[] getSections() {
-        return AzSectionTitleIndicator.sections;
+        return AZSectionalizer.sections;
     }
 
     @Override
@@ -178,11 +177,11 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
 
     @Override
     public int getSectionForPosition(int position) {
-        if (position == mCursor.getCount()) return AzSectionTitleIndicator.sections.length - 1;
+        if (position == mCursor.getCount()) return AZSectionalizer.sections.length - 1;
 
         mCursor.moveToPosition(position);
         String title = mCursor.getString(titleCol);
 
-        return AzSectionTitleIndicator.getSectionIndexForName(title);
+        return AZSectionalizer.getSectionIndexForName(title);
     }
 }

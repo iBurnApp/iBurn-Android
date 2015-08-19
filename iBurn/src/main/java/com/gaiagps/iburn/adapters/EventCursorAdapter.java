@@ -17,8 +17,10 @@ import com.gaiagps.iburn.database.EventTable;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import timber.log.Timber;
@@ -30,6 +32,8 @@ import timber.log.Timber;
  * TODO: Update device location and delta time periodically
  */
 public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapter.ViewHolder> {
+
+    private List<String> startTimeSections;
 
     static final String[] Projection = new String[]{
             EventTable.startTime,
@@ -183,4 +187,45 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
     public String[] getRequiredProjection() {
         return finalProjection;
     }
+
+    // <editor-fold desc="SectionIndexer">
+
+    @Override
+    public Object[] getSections() {
+        if (startTimeSections == null) {
+            mCursor.moveToFirst();
+            startTimeSections = new ArrayList<>();
+
+            startTimeSections.add(mCursor.getString(startTimePrettyCol));
+
+            while (mCursor.moveToNext()) {
+                if (!startTimeSections.get(startTimeSections.size()-1).equals(mCursor.getString(startTimePrettyCol))) {
+                    if (mCursor.getInt(allDayCol) == 1)
+                        startTimeSections.add("All " + mCursor.getString(startTimePrettyCol));
+                    else
+                        startTimeSections.add(mCursor.getString(startTimePrettyCol));
+                }
+            }
+        }
+        return startTimeSections.toArray();
+    }
+
+    @Override
+    public int getPositionForSection(int sectionIndex) {
+        // not needed
+        return 0;
+    }
+
+    @Override
+    public int getSectionForPosition(int position) {
+        if (position == mCursor.getCount()) return startTimeSections.size() - 1;
+        if (startTimeSections == null) return 0;
+
+        mCursor.moveToPosition(position);
+        String startTime = mCursor.getString(startTimePrettyCol);
+
+        return startTimeSections.indexOf(startTime);
+    }
+
+    // </editor-fold desc="SectionIndexer">
 }
