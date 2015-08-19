@@ -20,8 +20,10 @@ import com.gaiagps.iburn.database.PlayaItemTable;
 import com.squareup.sqlbrite.SqlBrite;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by davidbrodsky on 8/4/14.
@@ -34,9 +36,11 @@ public class AdapterUtils {
     public static final ArrayList<String> sDayAbbreviations = new ArrayList<>();
     public static final ArrayList<String> sDayNames = new ArrayList<>();
 
+    public static final SimpleDateFormat dayAbbrevFormatter = new SimpleDateFormat("EE M/d", Locale.US);
+
     static {
-        sDayNames.add("All Days");
-        sDayAbbreviations.add(null);
+//        sDayNames.add("All Days");
+//        sDayAbbreviations.add(null);
         sDayNames.add("Monday 8/31");
         sDayAbbreviations.add("8/31");
         sDayNames.add("Tuesday 9/1");
@@ -74,6 +78,16 @@ public class AdapterUtils {
         sEventTypeNames.add("Care");
         sEventTypeAbbreviations.add("fire");
         sEventTypeNames.add("Fire");
+    }
+
+    /**
+     * @return the abbreviation for the current day, if it's during the burn, else the first day of the burn
+     */
+    public static String getCurrentOrFirstDayAbbreviation() {
+        String todayAbbrev = dayAbbrevFormatter.format(new Date());
+        if (sDayAbbreviations.contains(todayAbbrev)) return todayAbbrev;
+
+        return sDayAbbreviations.get(0);
     }
 
     public static String getStringForEventType(String typeAbbreviation) {

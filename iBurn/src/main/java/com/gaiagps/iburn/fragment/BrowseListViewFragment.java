@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Subscriber;
 import com.gaiagps.iburn.adapters.AdapterListener;
+import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.adapters.ArtCursorAdapter;
 import com.gaiagps.iburn.adapters.CampCursorAdapter;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
@@ -45,7 +46,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     private BrowseListHeader.BrowseSelection categorySelection = BrowseListHeader.BrowseSelection.CAMPS;
 
     // Event filtering
-    private String selectedDay = null;
+    private String selectedDay = AdapterUtils.getCurrentOrFirstDayAbbreviation();
     private ArrayList<String> selectedTypes = null;
 
     @Override

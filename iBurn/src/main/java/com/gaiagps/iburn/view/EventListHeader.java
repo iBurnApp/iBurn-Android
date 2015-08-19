@@ -123,6 +123,7 @@ public class EventListHeader extends RelativeLayout {
         View v = inflater.inflate(R.layout.list_view_header_two, this, false);
         mTypeFilter = (TextView) v.findViewById(R.id.typeFilter);
         mDayFilter = (TextView) v.findViewById(R.id.dateFilter);
+        mDayFilter.setText(AdapterUtils.sDayNames.get(AdapterUtils.sDayAbbreviations.indexOf(AdapterUtils.getCurrentOrFirstDayAbbreviation())).toUpperCase());
         setupTouchListeners();
         addView(v);
     }
