@@ -203,7 +203,7 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
             startTimeSections = new ArrayList<>();
             startTimeSectionPositions = new ArrayList<>();
 
-            startTimeSections.add(mCursor.getString(startTimePrettyCol));
+            addSectionStringForCursor(mCursor);
             startTimeSectionPositions.add(0);
 
             while (mCursor.moveToNext()) {
