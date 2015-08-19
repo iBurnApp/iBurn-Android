@@ -150,9 +150,14 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
                 Date firstStartDate = PlayaDateTypeAdapter.iso8601Format.parse(minDate);
                 Date lastStartDate = PlayaDateTypeAdapter.iso8601Format.parse(maxDate);
 
-                if (numEvents > 1)
-                    viewHolder.timeLabel = /*String.valueOf(numEvents) + " times " + */ dayFormatter.format(firstStartDate) + " - " + dayFormatter.format(lastStartDate) + " at " + timeFormatter.format(lastStartDate);
-                else
+                if (numEvents > 1) {
+                    viewHolder.timeLabel = dayFormatter.format(firstStartDate) + " - " + dayFormatter.format(lastStartDate);
+                    if (cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1) {
+                        viewHolder.timeLabel += " all day";
+                    } else {
+                        viewHolder.timeLabel += " at " + timeFormatter.format(lastStartDate);
+                    }
+                } else
                     viewHolder.timeLabel = cursor.getString(startTimePrettyCol);
             } else {
                 if (cursor.getInt(cursor.getColumnIndexOrThrow(EventTable.allDay)) == 1) {
