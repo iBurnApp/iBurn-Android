@@ -219,7 +219,7 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
             View welcomeHeader = page.findViewById(R.id.welcomeHeader);
             View video = page.findViewById(R.id.video);
             View welcome2 = page.findViewById(R.id.welcome_fragment2);
-            View bodyContent = page.findViewById(R.id.bodyContent);
+            View yurt = page.findViewById(R.id.yurt);
 
             if (position <= -1.0f || position >= 1.0f) {
                 // do nothing
@@ -239,9 +239,9 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
                 if (welcome2 != null) {
                     welcome2.setAlpha(1.0f - Math.abs(position));
                 }
-                if (bodyContent != null) {
-                    bodyContent.setTranslationX(pageWidth * 1.5f * position);
-                    bodyContent.setAlpha(1.0f - Math.abs(position));
+                if (yurt != null) {
+                    yurt.setTranslationX(pageWidth * 1.5f * position);
+                    yurt.setAlpha(1.0f - Math.abs(position));
                 }
 
                 if (brcOutline != null) {

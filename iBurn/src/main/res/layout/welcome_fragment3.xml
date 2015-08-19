@@ -40,6 +40,16 @@
             android:hint="@string/home_camp_hint"
             android:inputType="textFilter|textNoSuggestions"
             android:singleLine="true" />
+
+        <ImageView
+            android:id="@+id/yurt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/yurt" />
     </LinearLayout>
 
     <TextView
