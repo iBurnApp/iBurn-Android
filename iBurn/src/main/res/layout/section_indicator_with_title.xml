@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/section_title_popup"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/list_item_height"
+    android:layout_gravity="center"
+    android:background="@drawable/section_indicator_background"
+    android:minWidth="@dimen/list_item_height">
+
+    <TextView
+        android:id="@+id/section_indicator_text"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:paddingLeft="@dimen/margin_medium"
+        android:paddingRight="@dimen/margin_medium"
+        android:textSize="48dp" />
+
+</FrameLayout>

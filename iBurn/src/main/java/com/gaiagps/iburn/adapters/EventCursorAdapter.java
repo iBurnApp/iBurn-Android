@@ -36,7 +36,7 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
 
     /** Parsers for start time section header derivation */
     private static final DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-    private static final DateFormat humanFormat = new SimpleDateFormat("E h:mma", Locale.US);
+    private static final DateFormat humanFormat = new SimpleDateFormat("E ha", Locale.US);
 
     private List<String> startTimeSections;
     private List<Integer> startTimeSectionPositions;
