@@ -15,6 +15,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.EventTable;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,7 +34,12 @@ import timber.log.Timber;
  */
 public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapter.ViewHolder> {
 
+    /** Parsers for start time section header derivation */
+    private static final DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+    private static final DateFormat humanFormat = new SimpleDateFormat("E h:mma", Locale.US);
+
     private List<String> startTimeSections;
+    private List<Integer> startTimeSectionPositions;
 
     static final String[] Projection = new String[]{
             EventTable.startTime,
@@ -195,19 +201,38 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
         if (startTimeSections == null) {
             mCursor.moveToFirst();
             startTimeSections = new ArrayList<>();
+            startTimeSectionPositions = new ArrayList<>();
 
             startTimeSections.add(mCursor.getString(startTimePrettyCol));
+            startTimeSectionPositions.add(0);
 
             while (mCursor.moveToNext()) {
-                if (!startTimeSections.get(startTimeSections.size()-1).equals(mCursor.getString(startTimePrettyCol))) {
-                    if (mCursor.getInt(allDayCol) == 1)
-                        startTimeSections.add("All " + mCursor.getString(startTimePrettyCol));
-                    else
-                        startTimeSections.add(mCursor.getString(startTimePrettyCol));
+                if (!startTimeSections.get(startTimeSections.size()-1).equals(mCursor.getString(startTimeCol))) {
+                    addSectionStringForCursor(mCursor);
+                    startTimeSectionPositions.add(startTimeSections.size()-1);
                 }
             }
         }
         return startTimeSections.toArray();
+    }
+
+    private void addSectionStringForCursor(Cursor cursor) {
+        if (mCursor.getInt(allDayCol) == 1) {
+            startTimeSections.add("All " + cursor.getString(startTimePrettyCol));
+        } else {
+            try {
+                startTimeSections.add(humanFormat.format(iso8601Format.parse(cursor.getString(startTimeCol))));
+            } catch (ParseException e) {
+                startTimeSections.add(cursor.getString(startTimePrettyCol));
+            }
+        }
+    }
+
+    private int getSectionForCursorPosition(int position) {
+        for (int idx = 0; idx < startTimeSectionPositions.size(); idx++) {
+            if (startTimeSectionPositions.get(idx) > position) return idx - 1;
+        }
+        return startTimeSectionPositions.size() - 1;
     }
 
     @Override
@@ -221,10 +246,7 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
         if (position == mCursor.getCount()) return startTimeSections.size() - 1;
         if (startTimeSections == null) return 0;
 
-        mCursor.moveToPosition(position);
-        String startTime = mCursor.getString(startTimePrettyCol);
-
-        return startTimeSections.indexOf(startTime);
+        return getSectionForCursorPosition(position);
     }
 
     // </editor-fold desc="SectionIndexer">
