@@ -475,6 +475,11 @@ public class PlayaItemViewActivity extends AppCompatActivity {
     };
 
     private void setFavorite(boolean isFavorite, boolean save) {
+        if (modelTable == null || modelId == 0) {
+            Timber.w("setFavorite called before model data ready. Ignoring");
+            return;
+        }
+
         int newFabDrawableResId = isFavorite ? R.drawable.ic_heart_pressed : R.drawable.ic_heart;
         int newMenuDrawableResId = isFavorite ? R.drawable.ic_heart_full : R.drawable.ic_heart_empty;
         favoriteButton.setImageResource(newFabDrawableResId);
@@ -487,7 +492,8 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
         if (save) {
             DataProvider.getInstance(PlayaItemViewActivity.this)
-                    .subscribe(dataProvider -> dataProvider.updateFavorite(modelTable, modelId, isFavorite));
+                    .subscribe(dataProvider -> dataProvider.updateFavorite(modelTable, modelId, isFavorite),
+                            throwable -> Timber.e(throwable, "Failed to save"));
             this.isFavorite = isFavorite;
         }
     }
