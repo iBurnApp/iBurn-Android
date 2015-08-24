@@ -26,6 +26,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import timber.log.Timber;
 
 public class SearchActivity extends AppCompatActivity implements AdapterListener {
 
@@ -122,7 +123,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
         DataProvider.getInstance(this)
                 .subscribe(dataProvider -> {
                     dataProvider.toggleFavorite(modelTable, modelId);
-                });
+                }, throwable -> Timber.e(throwable, "failed to toggle favorite"));
     }
 
     public void onBackButtonClick(View view) {

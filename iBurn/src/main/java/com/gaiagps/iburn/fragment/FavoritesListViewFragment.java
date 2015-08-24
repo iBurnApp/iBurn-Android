@@ -17,6 +17,7 @@ import com.tonicartos.superslim.LayoutManager;
 
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import timber.log.Timber;
 
 /**
  * Created by davidbrodsky on 8/3/13.
@@ -48,7 +49,7 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
                 .flatMap(dataProvider -> dataProvider.observeFavorites(getAdapter().getRequiredProjection()))
                 .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::onDataChanged);
+                .subscribe(this::onDataChanged, throwable -> Timber.e(throwable, "Failed to load favorites"));
     }
 
     @Override
