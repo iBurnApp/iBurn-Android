@@ -248,8 +248,8 @@ public class EventCursorAdapter extends PlayaItemCursorAdapter<EventCursorAdapte
 
     @Override
     public int getSectionForPosition(int position) {
-        if (position == mCursor.getCount()) return startTimeSections.size() - 1;
         if (startTimeSections == null) return 0;
+        if (position == mCursor.getCount()) return startTimeSections.size() - 1;
 
         return getSectionForCursorPosition(position);
     }
