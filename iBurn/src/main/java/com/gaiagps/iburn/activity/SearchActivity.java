@@ -97,8 +97,8 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
     public void onItemSelected(int modelId, Constants.PlayaItemType type) {
         // Launch detail activity?
         Intent i = new Intent(this, PlayaItemViewActivity.class);
-        i.putExtra("model_id", modelId);
-        i.putExtra("model_type", type);
+        i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, modelId);
+        i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_TYPE, type);
         startActivity(i);
     }
 

@@ -146,8 +146,8 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
     public void onItemSelected(int modelId, Constants.PlayaItemType type) {
 
         Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
-        i.putExtra("model_id", modelId);
-        i.putExtra("model_type", type);
+        i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, modelId);
+        i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_TYPE, type);
         getActivity().startActivity(i);
     }
 

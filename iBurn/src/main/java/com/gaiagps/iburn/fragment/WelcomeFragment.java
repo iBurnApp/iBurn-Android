@@ -37,6 +37,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
     // Welcome 1 - Show video
     private MediaPlayer mediaPlayer;
     private TextureView textureView;
+    private Surface surface;
 
     // Welcome 3 - Set Home
     private AutoCompleteTextView campSearchView;
@@ -90,17 +91,21 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
             mediaPlayer.release();
             mediaPlayer = null;
         }
+
+        if (surface != null) {
+            surface.release();
+        }
     }
 
     @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-        Surface s = new Surface(surface);
+    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+        surface = new Surface(surfaceTexture);
 
         try {
             AssetFileDescriptor descriptor = getActivity().getAssets().openFd("mp4/onboarding_loop_final.mp4");
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setDataSource(descriptor.getFileDescriptor(), descriptor.getStartOffset(), descriptor.getLength());
-            mediaPlayer.setSurface(s);
+            mediaPlayer.setSurface(surface);
             mediaPlayer.prepare();
             scaleTextureView(textureView);
             mediaPlayer.start();

@@ -529,8 +529,8 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                     int model_type = Integer.parseInt(markerMeta.split("-")[0]);
                     Constants.PlayaItemType modelType = DataProvider.getTypeValue(model_type);
                     Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
-                    i.putExtra("model_id", model_id);
-                    i.putExtra("model_type", modelType);
+                    i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, model_id);
+                    i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_TYPE, modelType);
                     getActivity().startActivity(i);
                 } else if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
                     showEditPinDialog(marker);
@@ -604,6 +604,11 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     private void _showcaseMarker() {
         mapMarkerAndFitEntireCity(showcaseMarker);
+        if (locationSubscription != null) {
+            locationSubscription.unsubscribe();
+            locationSubscription = null;
+        }
+        if (addressLabel != null) addressLabel.setVisibility(View.INVISIBLE);
         ImageButton poiBtn = (ImageButton) getActivity().findViewById(R.id.mapPoiBtn);
         if (poiBtn != null) {
             poiBtn.setVisibility(View.GONE);

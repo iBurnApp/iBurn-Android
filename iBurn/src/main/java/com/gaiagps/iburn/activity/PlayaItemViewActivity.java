@@ -64,6 +64,9 @@ import timber.log.Timber;
  */
 public class PlayaItemViewActivity extends AppCompatActivity {
 
+    public static final String EXTRA_MODEL_ID = "model-id";
+    public static final String EXTRA_MODEL_TYPE = "model-type";
+
     DataProvider provider;
 
     String modelTable;
@@ -90,7 +93,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
     @InjectView(R.id.title)
     TextView titleTextView;
 
-    @InjectView(R.id.favorite_button)
+    @InjectView(R.id.fab)
     FloatingActionButton favoriteButton;
 
     @InjectView(R.id.subitem_1)
@@ -112,7 +115,10 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
 
-        if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("");
+        }
 
         populateViews(getIntent());
         setTextContainerMinHeight();
@@ -177,8 +183,8 @@ public class PlayaItemViewActivity extends AppCompatActivity {
     }
 
     private void populateViews(Intent i) {
-        modelId = i.getIntExtra("model_id", 0);
-        Constants.PlayaItemType model_type = (Constants.PlayaItemType) i.getSerializableExtra("model_type");
+        modelId = i.getIntExtra(EXTRA_MODEL_ID, 0);
+        Constants.PlayaItemType model_type = (Constants.PlayaItemType) i.getSerializableExtra(EXTRA_MODEL_TYPE);
         switch (model_type) {
             case CAMP:
                 modelTable = PlayaDatabase.CAMPS;
@@ -310,8 +316,8 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                     @Override
                                     public void onItemSelected(int modelId, Constants.PlayaItemType type) {
                                         Intent intent = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
-                                        intent.putExtra("model_id", modelId);
-                                        intent.putExtra("model_type", type);
+                                        intent.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, modelId);
+                                        intent.putExtra(PlayaItemViewActivity.EXTRA_MODEL_TYPE, type);
                                         startActivity(intent);
                                     }
 
@@ -464,8 +470,8 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             Intent i = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
-            i.putExtra("model_id", modelId);
-            i.putExtra("model_type", modeltype);
+            i.putExtra(EXTRA_MODEL_ID, modelId);
+            i.putExtra(EXTRA_MODEL_TYPE, modeltype);
             startActivity(i);
         }
     }
