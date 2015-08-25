@@ -16,6 +16,7 @@
         android:paddingBottom="8dp"
         android:paddingLeft="4dp"
         android:paddingRight="4dp"
+        android:layout_marginRight="12dp"
         android:gravity="right"
         android:layout_alignParentRight="true"
         android:scaleType="fitEnd"
