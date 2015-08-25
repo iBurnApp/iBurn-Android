@@ -34,10 +34,11 @@
         style="@style/FloatingActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
         app:borderWidth="0dp"
         app:elevation="6dp"
         app:pressedTranslationZ="12dp"
+        app:layout_anchor="@id/parent"
+        app:layout_anchorGravity="bottom|right|end"
         android:src="@drawable/ic_search"
         android:onClick="onSearchClick"/>
 
