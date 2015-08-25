@@ -167,6 +167,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     MarkerOptions showcaseMarker;
 
+    Subscription mapSubscription;
     Subscription locationSubscription;
     TextView addressLabel;
 
@@ -345,23 +346,23 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                                 .setPriority(LocationRequest.PRIORITY_NO_POWER) // Receive existing GoogleMaps location request results
                                 .setInterval(5 * 1000)
                                 .setSmallestDisplacement(10))
-                                .doOnNext(location -> {
-                                    // If we get within ~3 miles of the man, unlock app
-                                    if (prefs != null && Embargo.isEmbargoActive(prefs)) {
-                                        float[] distance = new float[1];
-                                        Location.distanceBetween(location.getLatitude(), location.getLongitude(), Geo.MAN_LAT, Geo.MAN_LON, distance);
-                                        if (distance[0] < 5000) {
-                                            Timber.d("Unlocking location data by geo trigger!");
-                                            prefs.setEnteredValidUnlockCode(true);
-                                            // Notify all DataProvider clients that data has changed
-                                            DataProvider.getInstance(getActivity().getApplicationContext())
-                                                    .subscribe(DataProvider::endUpgrade);
-                                            if (getActivity() instanceof MainActivity) {
-                                                ((MainActivity) getActivity()).clearEmbargoSnackbar();
-                                            }
-                                        }
+                        .doOnNext(location -> {
+                            // If we get within ~3 miles of the man, unlock app
+                            if (prefs != null && Embargo.isEmbargoActive(prefs)) {
+                                float[] distance = new float[1];
+                                Location.distanceBetween(location.getLatitude(), location.getLongitude(), Geo.MAN_LAT, Geo.MAN_LON, distance);
+                                if (distance[0] < 5000) {
+                                    Timber.d("Unlocking location data by geo trigger!");
+                                    prefs.setEnteredValidUnlockCode(true);
+                                    // Notify all DataProvider clients that data has changed
+                                    DataProvider.getInstance(getActivity().getApplicationContext())
+                                            .subscribe(DataProvider::endUpgrade);
+                                    if (getActivity() instanceof MainActivity) {
+                                        ((MainActivity) getActivity()).clearEmbargoSnackbar();
                                     }
-                                })
+                                }
+                            }
+                        })
                         .map(location -> new Pair<>(jsEvaluator, location)))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(evaluatorLocationPair -> {
@@ -408,13 +409,19 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
+    public void onStop() {
+        super.onStop();
         latLngToCenterOn = null;
 
         if (locationSubscription != null) {
+            Timber.d("unsubscribing from location");
             locationSubscription.unsubscribe();
             locationSubscription = null;
+        }
+        if (mapSubscription != null) {
+            Timber.d("unsubscribing from map");
+            mapSubscription.unsubscribe();
+            mapSubscription = null;
         }
     }
 
@@ -422,7 +429,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
         prefs = new PrefsHelper(getActivity().getApplicationContext());
 
-        MapProvider.getInstance(getActivity().getApplicationContext())
+        mapSubscription = MapProvider.getInstance(getActivity().getApplicationContext())
                 .getMapDatabase()
                 .doOnNext(databaseFile -> {
                     Timber.d("Got database file %s", databaseFile.getAbsolutePath());
@@ -605,6 +612,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     private void _showcaseMarker() {
         mapMarkerAndFitEntireCity(showcaseMarker);
         if (locationSubscription != null) {
+            Timber.d("unsubscribing from location");
             locationSubscription.unsubscribe();
             locationSubscription = null;
         }
@@ -664,7 +672,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                     .append("SELECT ").append(PROJECTION_STRING).append(", ").append(3).append(" AS ").append(DataProvider.VirtualType).append(" FROM ").append(PlayaDatabase.EVENTS)
                     .append(" WHERE (")
                     .append(isFavoriteWhereClause)
-                    .append(" AND " )
+                    .append(" AND ")
                     .append(notExpiredWhereClause)
                     .append(")");
 
