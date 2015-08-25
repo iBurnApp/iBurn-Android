@@ -340,7 +340,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 .observeOn(AndroidSchedulers.mainThread())
                 .flatMap(time -> JSEvaluator.getInstance("file:///android_asset/js/geocoder.html", getActivity().getApplicationContext()))
                 .doOnNext(evaluator -> Timber.d("Got evaluator"))
-                .flatMap(jsEvaluator -> LocationProvider.observeCurrentLocation(getActivity(),
+                .flatMap(jsEvaluator -> LocationProvider.observeCurrentLocation(getActivity().getApplicationContext(),
                         LocationRequest.create()
                                 .setPriority(LocationRequest.PRIORITY_NO_POWER) // Receive existing GoogleMaps location request results
                                 .setInterval(5 * 1000)
@@ -420,7 +420,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
     private void initMap() {
 
-        prefs = new PrefsHelper(getActivity());
+        prefs = new PrefsHelper(getActivity().getApplicationContext());
 
         MapProvider.getInstance(getActivity().getApplicationContext())
                 .getMapDatabase()
@@ -528,7 +528,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                     int model_id = Integer.parseInt(markerMeta.split("-")[1]);
                     int model_type = Integer.parseInt(markerMeta.split("-")[0]);
                     Constants.PlayaItemType modelType = DataProvider.getTypeValue(model_type);
-                    Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
+                    Intent i = new Intent(getActivity().getApplicationContext(), PlayaItemViewActivity.class);
                     i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, model_id);
                     i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_TYPE, modelType);
                     getActivity().startActivity(i);

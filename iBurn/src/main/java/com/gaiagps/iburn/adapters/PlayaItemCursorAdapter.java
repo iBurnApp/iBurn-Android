@@ -57,7 +57,7 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
         this.context = context;
         this.listener = listener;
 
-        LocationProvider.getLastLocation(context).
+        LocationProvider.getLastLocation(context.getApplicationContext()).
                 subscribe(lastLocation -> deviceLocation = lastLocation);
 
         if (normalPadding == 0) {

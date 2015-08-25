@@ -32,7 +32,7 @@ public class ArtCursorAdapter extends PlayaItemCursorAdapter<ArtCursorAdapter.Vi
         super(context, cursor, listener);
         this.listener = listener;
 
-        LocationProvider.getLastLocation(context).
+        LocationProvider.getLastLocation(context.getApplicationContext()).
                 subscribe(lastLocation -> deviceLocation = lastLocation);
     }
 
