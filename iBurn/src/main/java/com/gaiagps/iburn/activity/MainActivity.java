@@ -353,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
 
         @Override
-        public void setPrimaryItem(ViewGroup container, int position, Object object) {
+        public void setPrimaryItem(ViewGroup container, int position, final Object object) {
             super.setPrimaryItem(container, position, object);
             mCurrentPrimaryItem = (Fragment) object;
             if (mLastPosition != position) {
@@ -371,9 +371,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     // the tab-switch transition to complete before layout occurs
                     Observable.timer(250, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
                             .subscribe(time -> {
-                                if (time == 0)
-                                    ((Subscriber) mCurrentPrimaryItem).subscribeToData();
-                            });
+                                ((Subscriber) object).subscribeToData();
+                            }, throwable -> Timber.e(throwable, "Failed to subscribe fragment to data"));
                 }
 
                 //if (mCurrentPrimaryItem instanceof Searchable && mSearchQueryProvider != null) {
