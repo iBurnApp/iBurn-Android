@@ -183,6 +183,7 @@ public class IBurnService {
                 .build();
 
         this.service = restAdapter.create(IBurnApi.class);
+        this.context = context;
     }
 
     public IBurnService(@NonNull Context context, IBurnApi service) {
