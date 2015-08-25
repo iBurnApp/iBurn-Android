@@ -31,7 +31,7 @@ public class ArtListViewFragment extends PlayaListViewFragment {
 
     @Override
     public Subscription createSubscription() {
-        return DataProvider.getInstance(getActivity())
+        return DataProvider.getInstance(getActivity().getApplicationContext())
                 .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.ART, getAdapter().getRequiredProjection()))
                 .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())

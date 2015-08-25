@@ -197,7 +197,7 @@ public class AdapterUtils {
                 throw new IllegalStateException("Unknown PLAYA_ITEM");
         }
         final DataProvider[] storedProvider = new DataProvider[1];
-        DataProvider.getInstance(v.getContext())
+        DataProvider.getInstance(v.getContext().getApplicationContext())
                 .doOnNext(provider -> storedProvider[0] = provider)
                 .flatMap(dataProvider -> dataProvider.createQuery(tableName, "SELECT " + PlayaItemTable.favorite + " FROM " + tableName + " WHERE " + PlayaItemTable.id + " = ?", String.valueOf(model_id)))
                 .map(SqlBrite.Query::run)

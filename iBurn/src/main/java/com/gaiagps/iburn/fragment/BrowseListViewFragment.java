@@ -56,7 +56,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
             case CAMPS:
                 adapter = new CampCursorAdapter(getActivity(), null, this);
                 if (mRecyclerView != null) mRecyclerView.setAdapter(adapter);
-                return DataProvider.getInstance(getActivity())
+                return DataProvider.getInstance(getActivity().getApplicationContext())
                         .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.CAMPS, adapter.getRequiredProjection()))
                         .doOnNext(query -> Timber.d("Got query"))
                         .map(SqlBrite.Query::run)
@@ -72,7 +72,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
             case ART:
                 adapter = new ArtCursorAdapter(getActivity(), null, this);
                 if (mRecyclerView != null) mRecyclerView.setAdapter(adapter);
-                return DataProvider.getInstance(getActivity())
+                return DataProvider.getInstance(getActivity().getApplicationContext())
                         .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.ART, adapter.getRequiredProjection()))
                         .map(SqlBrite.Query::run)
                         .observeOn(AndroidSchedulers.mainThread())
@@ -87,7 +87,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
             case EVENT:
                 adapter = new EventCursorAdapter(getActivity(), null, false, this);
                 if (mRecyclerView != null) mRecyclerView.setAdapter(adapter);
-                return DataProvider.getInstance(getActivity())
+                return DataProvider.getInstance(getActivity().getApplicationContext())
                         .flatMap(dataProvider -> dataProvider.observeEventsOnDayOfTypes(selectedDay, selectedTypes, adapter.getRequiredProjection()))
                         .map(SqlBrite.Query::run)
                         .observeOn(AndroidSchedulers.mainThread())

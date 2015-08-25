@@ -31,7 +31,7 @@ public class CampListViewFragment extends PlayaListViewFragment {
 
     @Override
     public Subscription createSubscription() {
-        return DataProvider.getInstance(getActivity())
+        return DataProvider.getInstance(getActivity().getApplicationContext())
                 .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.CAMPS, getAdapter().getRequiredProjection()))
                 .doOnNext(query -> Timber.d("Got query"))
                 .map(SqlBrite.Query::run)

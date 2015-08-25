@@ -197,7 +197,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                 break;
         }
 
-        DataProvider.getInstance(this)
+        DataProvider.getInstance(getApplicationContext())
                 .subscribeOn(Schedulers.computation())
                 .doOnNext(dataProvider -> this.provider = dataProvider)
                 .flatMap(dataProvider -> dataProvider.createQuery(modelTable, "SELECT * FROM " + modelTable + " WHERE _id = ?", String.valueOf(modelId)))
@@ -497,7 +497,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         }
 
         if (save) {
-            DataProvider.getInstance(PlayaItemViewActivity.this)
+            DataProvider.getInstance(PlayaItemViewActivity.this.getApplicationContext())
                     .subscribe(dataProvider -> dataProvider.updateFavorite(modelTable, modelId, isFavorite),
                             throwable -> Timber.e(throwable, "Failed to save"));
             this.isFavorite = isFavorite;

@@ -111,7 +111,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             mState = STATE.SEARCH;
             // TODO : Do we monitor query or just take first result?
             // TODO : Do we want to merge search queries into the cameraUpdate subscription in initMap?
-            DataProvider.getInstance(getActivity())
+            DataProvider.getInstance(getActivity().getApplicationContext())
                     .flatMap(dataProvider -> dataProvider.observeNameQuery(query, PROJECTION))
                     .map(SqlBrite.Query::run)
                     .subscribe(this::processMapItemResult);
@@ -193,7 +193,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         final RadioGroup iconGroup = ((RadioGroup) dialogBody.findViewById(R.id.iconGroup));
 
         // Fetch current Marker icon
-        DataProvider.getInstance(getActivity())
+        DataProvider.getInstance(getActivity().getApplicationContext())
                 .flatMap(dataProvider ->
                         dataProvider.createQuery(PlayaDatabase.POIS,
                                 "SELECT " + PlayaItemTable.id + ", " + UserPoiTable.drawableResId + " FROM " + PlayaDatabase.POIS + " WHERE " + PlayaItemTable.id + " = ?",
@@ -338,7 +338,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         locationSubscription = Observable.timer(2, TimeUnit.SECONDS)
                 .first()
                 .observeOn(AndroidSchedulers.mainThread())
-                .flatMap(time -> JSEvaluator.getInstance("file:///android_asset/js/geocoder.html", getActivity()))
+                .flatMap(time -> JSEvaluator.getInstance("file:///android_asset/js/geocoder.html", getActivity().getApplicationContext()))
                 .doOnNext(evaluator -> Timber.d("Got evaluator"))
                 .flatMap(jsEvaluator -> LocationProvider.observeCurrentLocation(getActivity(),
                         LocationRequest.create()
@@ -354,7 +354,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                                             Timber.d("Unlocking location data by geo trigger!");
                                             prefs.setEnteredValidUnlockCode(true);
                                             // Notify all DataProvider clients that data has changed
-                                            DataProvider.getInstance(getActivity())
+                                            DataProvider.getInstance(getActivity().getApplicationContext())
                                                     .subscribe(DataProvider::endUpgrade);
                                             if (getActivity() instanceof MainActivity) {
                                                 ((MainActivity) getActivity()).clearEmbargoSnackbar();
@@ -422,7 +422,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
         prefs = new PrefsHelper(getActivity());
 
-        MapProvider.getInstance(getActivity())
+        MapProvider.getInstance(getActivity().getApplicationContext())
                 .getMapDatabase()
                 .doOnNext(databaseFile -> {
                     Timber.d("Got database file %s", databaseFile.getAbsolutePath());
@@ -437,7 +437,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
         // TODO : Do full query. Don't run separate POIS, results queries
         Observable.combineLatest(cameraUpdate.debounce(250, TimeUnit.MILLISECONDS).startWith(new VisibleRegion(null, null, null, null, null)),
-                DataProvider.getInstance(getActivity()), (newVisibleRegion, dataProvider) -> {
+                DataProvider.getInstance(getActivity().getApplicationContext()), (newVisibleRegion, dataProvider) -> {
                     GoogleMapFragment.this.visibleRegion = newVisibleRegion;
                     return dataProvider;
                 })
@@ -873,7 +873,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         marker.remove();
         if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
             int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
-            DataProvider.getInstance(getActivity())
+            DataProvider.getInstance(getActivity().getApplicationContext())
                     .map(provider -> provider.delete(PlayaDatabase.POIS, PlayaItemTable.id + " = ?", String.valueOf(itemId)))
                     .subscribe(result -> Timber.d("Deleted marker with result " + result));
         } else Timber.w("Unable to delete marker " + marker.getTitle());
@@ -904,7 +904,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         poiValues.put(UserPoiTable.longitude, latLng.longitude);
         poiValues.put(UserPoiTable.drawableResId, drawableResId);
         try {
-            DataProvider.getInstance(getActivity())
+            DataProvider.getInstance(getActivity().getApplicationContext())
                     .map(dataProvider -> dataProvider.insert(PlayaDatabase.POIS, poiValues))
                     .subscribe(newId -> mMappedCustomMarkerIds.put(marker.getId(), generateDataIdForItem(Constants.PlayaItemType.POI, newId)));
         } catch (NumberFormatException e) {
@@ -954,7 +954,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             if (drawableResId != 0)
                 poiValues.put(UserPoiTable.drawableResId, drawableResId);
             int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
-            DataProvider.getInstance(getActivity())
+            DataProvider.getInstance(getActivity().getApplicationContext())
                     .map(dataProvider -> dataProvider.update(PlayaDatabase.POIS, poiValues, PlayaItemTable.id + " = ?", String.valueOf(itemId)))
                     .subscribe(numUpdated -> Timber.d("Updated marker with status " + numUpdated));
         } else

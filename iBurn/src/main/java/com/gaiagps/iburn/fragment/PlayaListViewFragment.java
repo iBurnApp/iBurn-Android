@@ -169,9 +169,9 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
                 throw new IllegalArgumentException("Invalid type " + type);
         }
 
-        DataProvider.getInstance(getActivity())
+        DataProvider.getInstance(getActivity().getApplicationContext())
                 .subscribe(dataProvider -> {
                     dataProvider.toggleFavorite(modelTable, modelId);
-                });
+                }, throwable -> Timber.e(throwable, "Failed to update favorite"));
     }
 }

@@ -149,7 +149,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
         public CampAutoCompleteAdapter(Context context) {
             inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            DataProvider.getInstance(context)
+            DataProvider.getInstance(context.getApplicationContext())
                     .subscribe(readyDataProvider -> this.dataProvider = readyDataProvider);
         }
 

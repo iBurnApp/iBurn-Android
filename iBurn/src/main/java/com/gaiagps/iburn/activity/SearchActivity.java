@@ -85,7 +85,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
         if (searchSubscription != null && !searchSubscription.isUnsubscribed())
             searchSubscription.unsubscribe();
 
-        searchSubscription = DataProvider.getInstance(this)
+        searchSubscription = DataProvider.getInstance(getApplicationContext())
                 .flatMap(dataProvider -> dataProvider.observeNameQuery(query, adapter.getRequiredProjection()))
                 .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
@@ -120,7 +120,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
                 throw new IllegalArgumentException("Invalid type " + type);
         }
 
-        DataProvider.getInstance(this)
+        DataProvider.getInstance(getApplicationContext())
                 .subscribe(dataProvider -> {
                     dataProvider.toggleFavorite(modelTable, modelId);
                 }, throwable -> Timber.e(throwable, "failed to toggle favorite"));

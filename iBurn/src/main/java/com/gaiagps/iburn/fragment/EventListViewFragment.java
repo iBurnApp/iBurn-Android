@@ -42,7 +42,7 @@ public class EventListViewFragment extends PlayaListViewFragment implements Even
 
     @Override
     public Subscription createSubscription() {
-        return DataProvider.getInstance(getActivity())
+        return DataProvider.getInstance(getActivity().getApplicationContext())
                 .flatMap(dataProvider -> dataProvider.observeEventsOnDayOfTypes(selectedDay, selectedTypes, getAdapter().getRequiredProjection()))
                 .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
