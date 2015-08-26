@@ -325,8 +325,11 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         ((ViewGroup) parent).addView(addressLabel);
         setMargins(addressLabel, 0, margin + 2, margin * 5, 0, Gravity.TOP | Gravity.RIGHT);
 
-        View locationButton = ((View) parent.findViewById(1).getParent()).findViewById(2);
-        setMargins(locationButton, 0, margin, margin, 0, Gravity.TOP | Gravity.RIGHT);
+        if (parent.findViewById(1) != null && ((View) parent.findViewById(1).getParent()).findViewById(2) != null) {
+            // If possible, try to adjust the margins of Google's "current location" button to match our buttons
+            View locationButton = ((View) parent.findViewById(1).getParent()).findViewById(2);
+            setMargins(locationButton, 0, margin, margin, 0, Gravity.TOP | Gravity.RIGHT);
+        }
 
         if (mState == STATE.EXPLORE)
             setupReverseGeocoder();
