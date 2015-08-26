@@ -12,14 +12,9 @@
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true">
 
-        <android.support.design.widget.TabLayout
+        <include
             android:id="@+id/tabs"
-            android:layout_width="match_parent"
-            android:layout_height="45dp"
-            android:layout_gravity="center_horizontal"
-            app:tabMode="scrollable"
-            app:tabIndicatorColor="@color/iburn_color_accent_yel"
-            app:tabIndicatorHeight="4dp" />
+            layout="@layout/tablayout" />
 
     </android.support.design.widget.AppBarLayout>
 
