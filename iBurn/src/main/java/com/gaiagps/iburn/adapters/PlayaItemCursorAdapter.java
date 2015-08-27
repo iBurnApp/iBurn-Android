@@ -177,6 +177,7 @@ public abstract class PlayaItemCursorAdapter<T extends PlayaItemCursorAdapter.Vi
 
     @Override
     public int getSectionForPosition(int position) {
+        if (mCursor == null) return 0;
         if (position == mCursor.getCount()) return AZSectionalizer.sections.length - 1;
 
         mCursor.moveToPosition(position);
