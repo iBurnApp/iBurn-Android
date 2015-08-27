@@ -334,6 +334,8 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         if (mState == STATE.EXPLORE)
             setupReverseGeocoder();
 
+        setupMapTiles();
+
         return parent;
     }
 
@@ -407,20 +409,17 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
+    public void onDestroyView() {
+        super.onDestroyView();
         latLngToCenterOn = null;
 
+        // Cancel subscription created by setupReverseGeocoder()
         if (locationSubscription != null) {
             Timber.d("unsubscribing from location");
             locationSubscription.unsubscribe();
             locationSubscription = null;
         }
+        // Cancel subscription created by setupMapTiles
         if (mapSubscription != null) {
             Timber.d("unsubscribing from map");
             mapSubscription.unsubscribe();
@@ -428,22 +427,26 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         }
     }
 
+    private void setupMapTiles() {
+        if (mapSubscription == null) {
+            mapSubscription = MapProvider.getInstance(getActivity().getApplicationContext())
+                    .getMapDatabase()
+                    .doOnNext(databaseFile -> {
+                        Timber.d("Got database file %s", databaseFile.getAbsolutePath());
+                        if (tileProvider == null)
+                            tileProvider = new MapBoxOfflineTileProvider(databaseFile);
+                        else
+                            tileProvider.swapDatabase(databaseFile);
+                    })
+                    .filter(file -> !addedTileOverlay.get())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(databaseFile -> _addMBTilesOverlay());
+        }
+    }
+
     private void initMap() {
 
         prefs = new PrefsHelper(getActivity().getApplicationContext());
-
-        mapSubscription = MapProvider.getInstance(getActivity().getApplicationContext())
-                .getMapDatabase()
-                .doOnNext(databaseFile -> {
-                    Timber.d("Got database file %s", databaseFile.getAbsolutePath());
-                    if (tileProvider == null)
-                        tileProvider = new MapBoxOfflineTileProvider(databaseFile);
-                    else
-                        tileProvider.swapDatabase(databaseFile);
-                })
-                .filter(file -> !addedTileOverlay.get())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(databaseFile -> _addMBTilesOverlay());
 
         // TODO : Do full query. Don't run separate POIS, results queries
         Observable.combineLatest(cameraUpdate.debounce(250, TimeUnit.MILLISECONDS).startWith(new VisibleRegion(null, null, null, null, null)),
