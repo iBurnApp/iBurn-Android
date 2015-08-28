@@ -76,14 +76,19 @@ public class MapProvider {
 
     public void offerMapUpgrade(InputStream newMap, long version) throws IOException {
         File dest = getMBTilesFile(version);
-        FileOutputStream fos = new FileOutputStream(dest);
-        Bytestreams.copy(newMap, fos);
-        newMap.close();
-        fos.close();
+        if (dest.mkdirs() || dest.isDirectory()) {
+            dest.getParentFile().mkdirs();
+            FileOutputStream fos = new FileOutputStream(dest);
+            Bytestreams.copy(newMap, fos);
+            newMap.close();
+            fos.close();
 
-        // Notify observers
-        Timber.d("Notifying observers");
-        databaseSubject.onNext(dest);
+            // Notify observers
+            Timber.d("Notifying observers");
+            databaseSubject.onNext(dest);
+        } else {
+            Timber.e("Tiles directory not available. Could not copy tiles");
+        }
     }
 
     /**
