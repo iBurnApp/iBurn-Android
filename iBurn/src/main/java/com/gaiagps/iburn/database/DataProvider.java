@@ -146,6 +146,7 @@ public class DataProvider {
     }
 
     public void endTransaction() {
+        // Don't allow this call to proceed without prior call to beginTransaction
         db.endTransaction();
     }
 
