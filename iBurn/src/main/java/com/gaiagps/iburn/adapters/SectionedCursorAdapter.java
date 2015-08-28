@@ -39,7 +39,11 @@ public abstract class SectionedCursorAdapter<T extends PlayaItemCursorAdapter.Vi
             return;
         }
         else if (!mCursor.moveToPosition(getCursorPositionForPosition(position))) {
-            throw new IllegalStateException("couldn't move cursor to position " + position);
+            Timber.e("couldn't move cursor to position " + position);
+            // I've observed a crash report here when we threw an exception. Think it's preferable to
+            // just not bind the view under the assumption that this is spurious behavior
+            // caused by the recyclerview being fast scroller (Not sure this is possible?) before data bound.
+            return;
         }
         onBindViewHolder(viewHolder, mCursor, position);
     }
