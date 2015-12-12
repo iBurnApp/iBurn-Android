@@ -76,8 +76,11 @@ public class MapProvider {
 
     public void offerMapUpgrade(InputStream newMap, long version) throws IOException {
         File dest = getMBTilesFile(version);
-        if (dest.mkdirs() || dest.isDirectory()) {
-            dest.getParentFile().mkdirs();
+        // Bug in version 12 created 'dest' as a directory, causing EISDIR error on attempted write
+        if (dest.exists() && dest.isDirectory()) dest.delete();
+
+        File destDirectory = dest.getParentFile();
+        if (destDirectory.mkdirs() || destDirectory.isDirectory()) {
             FileOutputStream fos = new FileOutputStream(dest);
             Bytestreams.copy(newMap, fos);
             newMap.close();
