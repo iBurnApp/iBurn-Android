@@ -1,6 +1,8 @@
 package com.gaiagps.iburn.activity;
 
+import android.Manifest;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -25,6 +27,10 @@ import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.database.UserPoiTable;
 import com.gaiagps.iburn.fragment.WelcomeFragment;
 
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.RuntimePermissions;
+
+@RuntimePermissions
 public class WelcomeActivity extends AppCompatActivity implements WelcomeFragment.HomeCampSelectionListener {
     static final int NUM_PAGES = 4;
 
@@ -34,7 +40,6 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
 
     private ViewPager pager;
     private PagerAdapter pagerAdapter;
-    private LinearLayout circles;
     private Button skip;
     private Button done;
     private ImageButton next;
@@ -80,7 +85,6 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
 
             @Override
             public void onPageSelected(int position) {
-                setIndicator(position);
                 if (position == NUM_PAGES - 2) {
                     skip.setVisibility(View.GONE);
                     next.setVisibility(View.GONE);
@@ -100,9 +104,12 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
             }
         });
 
-        buildCircles();
-
         prefs = new PrefsHelper(this);
+    }
+
+    @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+    void testPermission() {
+
     }
 
     @Override
@@ -110,37 +117,6 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         super.onDestroy();
         if (pager != null) {
             pager.clearOnPageChangeListeners();
-        }
-    }
-
-    private void buildCircles() {
-        circles = LinearLayout.class.cast(findViewById(R.id.circles));
-
-        float scale = getResources().getDisplayMetrics().density;
-        int padding = (int) (5 * scale + 0.5f);
-
-        for (int i = 0; i < NUM_PAGES - 1; i++) {
-            ImageView circle = new ImageView(this);
-            circle.setImageResource(R.drawable.ic_swipe_indicator_white_18dp);
-            circle.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            circle.setAdjustViewBounds(true);
-            circle.setPadding(padding, 0, padding, 0);
-            circles.addView(circle);
-        }
-
-        setIndicator(0);
-    }
-
-    private void setIndicator(int index) {
-        if (index < NUM_PAGES) {
-            for (int i = 0; i < NUM_PAGES - 1; i++) {
-                ImageView circle = (ImageView) circles.getChildAt(i);
-                if (i == index) {
-                    circle.setColorFilter(getResources().getColor(R.color.iburn_color));
-                } else {
-                    circle.setColorFilter(getResources().getColor(android.R.color.transparent));
-                }
-            }
         }
     }
 
@@ -158,8 +134,11 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         }
 
         prefs.setDidShowWelcome(true);
+        Intent mainIntent = new Intent(getApplicationContext(), MainActivity.class);
+        mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(mainIntent);
         finish();
-        overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
+        //overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
     }
 
     @Override

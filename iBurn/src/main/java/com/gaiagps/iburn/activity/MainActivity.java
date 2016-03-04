@@ -1,25 +1,26 @@
 package com.gaiagps.iburn.activity;
 
+import android.Manifest;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.support.design.widget.AppBarLayout;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -37,6 +38,7 @@ import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.FeedbackFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
+import com.gaiagps.iburn.fragment.MapPlaceHolderFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -49,14 +51,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnPermissionDenied;
+import permissions.dispatcher.RuntimePermissions;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
+@RuntimePermissions
 public class MainActivity extends AppCompatActivity implements SearchQueryProvider {
 
     private static final String HOCKEY_ID = SECRETS.HOCKEY_ID;
@@ -111,14 +116,20 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        prefs = new PrefsHelper(this);
+
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();
-        } else {
+            if (prefs.didShowWelcome() && Build.VERSION.SDK_INT >= 23 /* Use version code */) {
+                mPagerAdapter.setWaitingForLocationPermission(true);
+                MainActivityPermissionsDispatcher.gotLocationPermissionWithCheck(MainActivity.this);
+            }
+        }
+        if (!checkPlayServices()) {
             googlePlayServicesMissing = true;
         }
 
-        prefs = new PrefsHelper(this);
-
+        Timber.d("onCreate");
         if (!prefs.didShowWelcome() || BuildConfig.MOCK) {
             showWelcome();
         }
@@ -160,8 +171,19 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
     }
 
+    @OnPermissionDenied(Manifest.permission.ACCESS_FINE_LOCATION)
+    @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+    void gotLocationPermission() {
+        // Add GoogleMapFragment (Needs to be added after permission acquired)
+        // If permission was denied, user location simply won't display
+        mPagerAdapter.setWaitingForLocationPermission(false);
+    }
+
     private void showWelcome() {
-        startActivity(new Intent(this, WelcomeActivity.class));
+        Intent welcomeIntent = new Intent(getApplicationContext(), WelcomeActivity.class);
+        welcomeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(welcomeIntent);
+        finish();
     }
 
     public void showUnlockDialog() {
@@ -253,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
      * <p>
      * Each Fragment must have a no-arg newInstance() method.
      */
-    public static class IBurnPagerAdapter extends FragmentPagerAdapter {
+    public static class IBurnPagerAdapter extends FragmentStatePagerAdapter {
 
         private Context mContext;
         private List<IBurnTab> mTabs;
@@ -261,6 +283,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         private Fragment mCurrentPrimaryItem;
         private SearchQueryProvider mSearchQueryProvider;
         private int mLastPosition = -1;
+        private boolean waitingForLocationPermission;
 
         public enum IBurnTab {
             // Icons currently unused
@@ -302,6 +325,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             mFab = fab;
         }
 
+        public void setWaitingForLocationPermission(boolean waitingForLocationPermission) {
+            this.waitingForLocationPermission = waitingForLocationPermission;
+            Timber.d("NotifyingDataSetChanged for permission status %b", waitingForLocationPermission);
+            notifyDataSetChanged();
+        }
+
         public void setSearchQueryProvider(SearchQueryProvider provider) {
             mSearchQueryProvider = provider;
         }
@@ -312,14 +341,40 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
 
         @Override
+        public int getItemPosition (Object object) {
+
+            int resultValue = POSITION_UNCHANGED;
+            if (object instanceof MapPlaceHolderFragment) {
+                resultValue = POSITION_NONE;
+            }
+            Timber.d("getItemPosition for %s result %d",
+                    object.getClass().getSimpleName(), resultValue);
+
+            return resultValue;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup collection, int position, Object o) {
+            super.destroyItem(collection, position, o);
+        }
+
+        @Override
         public Fragment getItem(int position) {
             try {
-                Fragment newFrag = mTabs.get(position).getFragmentClass().newInstance();
+                Fragment newFrag = null;
+                Class<? extends Fragment> fragmentClass = mTabs.get(position).getFragmentClass();
+                if (fragmentClass.equals(GoogleMapFragment.class) && waitingForLocationPermission) {
+                    newFrag = new MapPlaceHolderFragment();
+                } else {
+                    newFrag = fragmentClass.newInstance();
+                }
+                Timber.d("get Item %d. Returned class %s", position, newFrag.getClass().getSimpleName());
                 return newFrag; //.getMethod("newInstance", null).invoke(null, null);
             } catch (Exception e) {
                 // Actually (InstantiationException | IllegalAccessException), but we don't have
                 // Java7 multi-catch pre API 19. We don't treat these exceptions separately,
                 // so here we are catching Exception for now
+                Timber.w("Failed to getItem for position %d", position);
                 e.printStackTrace();
                 throw new IllegalStateException("Unexpected ViewPager item requested: " + position);
             }
@@ -427,5 +482,14 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             embargoSnackbar.dismiss();
             embargoSnackbar = null;
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
     }
 }

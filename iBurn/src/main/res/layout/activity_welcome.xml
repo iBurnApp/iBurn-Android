@@ -34,15 +34,6 @@
             android:textColor="@color/abc_primary_text_material_dark"
             android:textSize="18sp" />
 
-        <LinearLayout
-            android:id="@+id/circles"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:orientation="horizontal">
-
-        </LinearLayout>
-
         <Button
             android:id="@+id/done"
             android:layout_width="80dp"

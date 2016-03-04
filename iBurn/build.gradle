@@ -1,10 +1,10 @@
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
-        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.2'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
     }
 }
 
@@ -15,6 +15,7 @@ apply plugin: 'me.tatarka.retrolambda'
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 android {
@@ -37,7 +38,7 @@ android {
             // We'll read release signingConfig's data from
             // gradle.properties in the project's root directory
         }
-        unsigned{
+        unsigned {
             storePassword = ""
             keyAlias = ""
             keyPassword = ""
@@ -117,10 +118,14 @@ dependencies {
     compile 'com.tonicartos:superslim:0.4.13'
     compile 'xyz.danoz:recyclerviewfastscroller:0.1.3'
 
-
-    apt 'net.simonvt.schematic:schematic-compiler:0.6.4'
+    // 3rd Party libraries with apt
     compile 'net.simonvt.schematic:schematic:0.6.4'
+    apt 'net.simonvt.schematic:schematic-compiler:0.6.4'
 
+    compile 'com.github.hotchemi:permissionsdispatcher:2.0.7'
+    apt 'com.github.hotchemi:permissionsdispatcher-processor:2.0.7'
+
+    // Submodule dependencies
     releaseCompile project(path: ':libraries:android-gmaps-addons', configuration: 'release')
     debugCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
     unsignedCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
@@ -132,4 +137,5 @@ dependencies {
     androidTestCompile 'com.android.support.test:rules:0.4.1'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
     androidTestCompile 'com.android.support:support-annotations:23.2.0'
+
 }

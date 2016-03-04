@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.SystemClock;
 
 import com.gaiagps.iburn.BuildConfig;
+import com.gaiagps.iburn.PermissionManager;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.LocationSource;
 
@@ -41,6 +42,11 @@ public class LocationProvider {
     public static Observable<Location> getLastLocation(Context context) {
         init(context);
 
+        if (!PermissionManager.hasLocationPermissions(context)) {
+            // TODO: stall location result until permission ready
+            return Observable.empty();
+        }
+
         if (BuildConfig.MOCK) {
             return Observable.just(lastMockLocation);
         } else {
@@ -50,6 +56,11 @@ public class LocationProvider {
 
     public static Observable<Location> observeCurrentLocation(Context context, LocationRequest request) {
         init(context);
+
+        if (!PermissionManager.hasLocationPermissions(context)) {
+            // TODO: stall location result until permission ready
+            return Observable.empty();
+        }
 
         if (BuildConfig.MOCK) {
             return mockLocationSubject.startWith(lastMockLocation);
@@ -90,7 +101,7 @@ public class LocationProvider {
             lastMockLocation = createMockLocation();
             isMockingLocation.set(true);
 
-            mockLocationSubscription = Observable.timer(60, 60, TimeUnit.SECONDS)
+            mockLocationSubscription = Observable.interval(60, 60, TimeUnit.SECONDS)
                     .startWith(-1l)
                     .subscribe(time -> {
                         lastMockLocation = createMockLocation();

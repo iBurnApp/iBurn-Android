@@ -42,7 +42,7 @@ public class PrefsHelper {
     }
 
     public void setDidShowWelcome(boolean didShow) {
-        editor.putBoolean(SHOWED_WELCOME, didShow).apply();
+        editor.putBoolean(SHOWED_WELCOME, didShow).commit();
     }
 
     public void setDatabaseVersion(long version) {
