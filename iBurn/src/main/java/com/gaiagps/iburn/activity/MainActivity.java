@@ -133,8 +133,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 //        service.updateData().subscribe();
 
         if (Embargo.isEmbargoActive(prefs)) {
-            Observable.timer(1, 1, TimeUnit.SECONDS)
-                    .first()
+            Observable.timer(1, TimeUnit.SECONDS)
                     .subscribeOn(AndroidSchedulers.mainThread())
                     .subscribe(counter -> {
                         final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE M/d", Locale.US);
@@ -225,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private void dispatchSearchQuery(String query) {
         mCurFilter = query;
         if (mPagerAdapter.getCurrentFragment() instanceof Searchable) {
-            Timber.d("dispatch query " + query);
+            Timber.d("dispatch query '%s", query);
             ((Searchable) mPagerAdapter.getCurrentFragment()).onSearchQueryRequested(query);
         }
     }
