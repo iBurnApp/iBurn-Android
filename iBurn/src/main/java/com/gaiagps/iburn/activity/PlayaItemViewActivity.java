@@ -5,11 +5,8 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.Typeface;
-import android.graphics.drawable.Animatable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
@@ -39,6 +36,7 @@ import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
+import com.gaiagps.iburn.view.AnimatedFloatingActionButton;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -94,7 +92,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
     TextView titleTextView;
 
     @Bind(R.id.fab)
-    FloatingActionButton favoriteButton;
+    AnimatedFloatingActionButton favoriteButton;
 
     @Bind(R.id.subitem_1)
     TextView subItem1TextView;
@@ -486,15 +484,10 @@ public class PlayaItemViewActivity extends AppCompatActivity {
             return;
         }
 
-        int newFabDrawableResId = isFavorite ? R.drawable.ic_heart_pressed : R.drawable.ic_heart;
         int newMenuDrawableResId = isFavorite ? R.drawable.ic_heart_full : R.drawable.ic_heart_empty;
-        favoriteButton.setImageResource(newFabDrawableResId);
-        if (favoriteMenuItem != null) favoriteMenuItem.setIcon(newMenuDrawableResId);
 
-        Drawable drawable = favoriteButton.getDrawable();
-        if (drawable instanceof Animatable) {
-            ((Animatable) drawable).start();
-        }
+        favoriteButton.setSelectedState(isFavorite, save);
+        if (favoriteMenuItem != null) favoriteMenuItem.setIcon(newMenuDrawableResId);
 
         if (save) {
             DataProvider.getInstance(PlayaItemViewActivity.this.getApplicationContext())

@@ -127,14 +127,13 @@
 
     </android.support.v4.widget.NestedScrollView>
 
-    <android.support.design.widget.FloatingActionButton
+    <com.gaiagps.iburn.view.AnimatedFloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:backgroundTint="#FFFFFF"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
-        android:src="@drawable/ic_heart"
         app:borderWidth="0dp"
         app:elevation="16dp"
         app:layout_anchor="@id/appbar"
