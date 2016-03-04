@@ -51,8 +51,8 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
@@ -63,16 +63,16 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private boolean googlePlayServicesMissing = false;
 
-    @InjectView(R.id.parent)
+    @Bind(R.id.parent)
     ViewGroup mParent;
 
-    @InjectView(R.id.pager)
+    @Bind(R.id.pager)
     ViewPager mViewPager;
 
-    @InjectView(R.id.tabs)
+    @Bind(R.id.tabs)
     TabLayout mTabs;
 
-    @InjectView(R.id.fab)
+    @Bind(R.id.fab)
     FloatingActionButton mFab;
 
     private PrefsHelper prefs;
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
 
         setContentView(R.layout.activity_main);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();

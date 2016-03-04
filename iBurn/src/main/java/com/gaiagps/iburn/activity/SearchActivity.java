@@ -22,8 +22,8 @@ import com.gaiagps.iburn.database.PlayaDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.tonicartos.superslim.LayoutManager;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
@@ -33,17 +33,17 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
     private PlayaSearchResponseCursorAdapter adapter;
     private Subscription searchSubscription;
 
-    @InjectView(R.id.results)
+    @Bind(R.id.results)
     RecyclerView resultList;
 
-    @InjectView(R.id.search)
+    @Bind(R.id.search)
     EditText searchEntry;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         adapter = new PlayaSearchResponseCursorAdapter(this, null, this);
 

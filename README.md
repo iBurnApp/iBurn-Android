@@ -1,13 +1,10 @@
 # [iBurn-Android](https://github.com/Burning-Man-Earth/iBurn-Android)
 
 iBurn is an offline map and guide for the [Burning Man](http://www.burningman.com) art festival.
-The 2014 release has been refactored for Android 4.0.3+ (API 15) with improvements to Map performance, (hopefully) common-sense design and a bunch of cleanup.
-We use [Schematic](https://github.com/SimonVT/schematic) to generate SQLiteOpenHelper and ContentProvider boilerplate.
-For mapping we've stuck with Google's Maps API after thoroughly evaluating the Mapbox Android SDK. Maybe next year (along with vector tiles?).
 
-For users of iOS devices, we also developed a completely re-written version of [iBurn for iOS](https://github.com/Burning-Man-Earth/iBurn-iOS).
+Got iOS? You'll love [iBurn for iOS](https://github.com/Burning-Man-Earth/iBurn-iOS).
 
-[![iBurn Google Play Store Link](http://developer.android.com/images/brand/en_generic_rgb_wo_45.png)](https://play.google.com/store/apps/details?id=com.gaiagps.iburn&hl=en)
+[![Google Play link](http://steverichey.github.io/google-play-badge-svg/img/en_get.svg)](https://play.google.com/store/apps/details?id=com.gaiagps.iburn)
 
 ## Installation
 
@@ -30,13 +27,12 @@ For users of iOS devices, we also developed a completely re-written version of [
     ```
 * `$ ./gradlew assembleDebug` or from Android Studio invoke 'Import Project' and select the `./iBurn-Android` directory.
 
-**Note**: Camp, Art and Event location data (`camps.json`, `art.json`, `events.json`) are embargoed by BMorg until the gates open each year. There isn't anything we can do about this until BMorg changes their policy. Sorry!
+**Note**: Camp, Art and Event location data (`camps.json`, `art.json`, `events.json`) are embargoed by the Burning Man Organization until the gates open each year. Sorry!
 
 Fortunately, you can still run and test the app with the previous year's data.
 
 ## TODO
 
-* On-Boarder
 * When searching map, smooth zoom to frame results
 * Pretty up that item detail view.
 * Show Favorites on the Map
@@ -48,7 +44,7 @@ Fortunately, you can still run and test the app with the previous year's data.
 * Show Playa location below camp/art relation link on Events detail view
 
 ## Releasing
-
+Make sure you've incremented the version code and name in ./iBurn/build.grade
 The final pre-signed store release should be built with:
 
     $ ./gradlew assembleRegularUnsigned
@@ -83,7 +79,7 @@ Your contributions will need to be licensed to us under the [MPL 2.0](https://ww
 
 ## License
 
-© 2014 [David Brodsky](https://github.com/onlyinamerica)
+© 2016 [David Brodsky](https://github.com/onlyinamerica)
 
 Code: [MPL 2.0](https://www.mozilla.org/MPL/2.0/) (similar to the LGPL in terms of [copyleft](https://en.wikipedia.org/wiki/Copyleft) but more compatible with the App Store)
 

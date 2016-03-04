@@ -52,8 +52,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
@@ -78,40 +78,40 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
     MenuItem favoriteMenuItem;
 
-    @InjectView(R.id.toolbar)
+    @Bind(R.id.toolbar)
     Toolbar toolbar;
 
-    @InjectView(R.id.map_container)
+    @Bind(R.id.map_container)
     FrameLayout mapContainer;
 
-    @InjectView(R.id.overflow_container)
+    @Bind(R.id.overflow_container)
     LinearLayout overflowContainer;
 
-    @InjectView(R.id.text_container)
+    @Bind(R.id.text_container)
     LinearLayout textContainer;
 
-    @InjectView(R.id.title)
+    @Bind(R.id.title)
     TextView titleTextView;
 
-    @InjectView(R.id.fab)
+    @Bind(R.id.fab)
     FloatingActionButton favoriteButton;
 
-    @InjectView(R.id.subitem_1)
+    @Bind(R.id.subitem_1)
     TextView subItem1TextView;
 
-    @InjectView(R.id.subitem_2)
+    @Bind(R.id.subitem_2)
     TextView subItem2TextView;
 
-    @InjectView(R.id.subitem_3)
+    @Bind(R.id.subitem_3)
     TextView subItem3TextView;
 
-    @InjectView(R.id.collapsing_toolbar)
+    @Bind(R.id.collapsing_toolbar)
     CollapsingToolbarLayout collapsingToolbarLayout;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playa_item_view);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         setSupportActionBar(toolbar);
 
