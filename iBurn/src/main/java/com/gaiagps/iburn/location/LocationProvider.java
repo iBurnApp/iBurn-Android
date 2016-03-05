@@ -42,14 +42,13 @@ public class LocationProvider {
     public static Observable<Location> getLastLocation(Context context) {
         init(context);
 
-        if (!PermissionManager.hasLocationPermissions(context)) {
-            // TODO: stall location result until permission ready
-            return Observable.empty();
-        }
-
         if (BuildConfig.MOCK) {
             return Observable.just(lastMockLocation);
         } else {
+            if (!PermissionManager.hasLocationPermissions(context)) {
+                // TODO: stall location result until permission ready
+                return Observable.empty();
+            }
             return locationProvider.getLastKnownLocation();
         }
     }
@@ -57,14 +56,13 @@ public class LocationProvider {
     public static Observable<Location> observeCurrentLocation(Context context, LocationRequest request) {
         init(context);
 
-        if (!PermissionManager.hasLocationPermissions(context)) {
-            // TODO: stall location result until permission ready
-            return Observable.empty();
-        }
-
         if (BuildConfig.MOCK) {
             return mockLocationSubject.startWith(lastMockLocation);
         } else {
+            if (!PermissionManager.hasLocationPermissions(context)) {
+                // TODO: stall location result until permission ready
+                return Observable.empty();
+            }
             return locationProvider.getUpdatedLocation(request);
         }
     }
