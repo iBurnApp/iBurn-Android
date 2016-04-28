@@ -99,6 +99,11 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:23.2.0'
     compile 'com.android.support:support-annotations:23.2.0'
 
+    // Mapbox!
+    compile ('com.mapbox.mapboxsdk:mapbox-android-sdk:3.2.0@aar'){
+        transitive=true
+    }
+
     // Google Play Services
     compile 'com.google.android.gms:play-services-gcm:8.4.0'
     compile 'com.google.android.gms:play-services-maps:8.4.0'

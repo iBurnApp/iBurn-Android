@@ -26,6 +26,10 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDnRMtKNtTd_eJ-OmToHqa4hIYpVHVz9J4"/>
 
+        <meta-data
+            android:name="com.mapbox.AccessToken"
+            android:value="pk.eyJ1Ijoib25seWluYW1lcmljYSIsImEiOiJhOTE5ZmIyYzc1MDE2MzYwN2NkNTFlYzk0ODVmNjEzMiJ9.fRCyZOeALx8fLW2to-ZVZA"/>
+
         <!-- HockeyApp -->
         <activity android:name="net.hockeyapp.android.UpdateActivity" />
         <activity

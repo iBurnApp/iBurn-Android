@@ -39,6 +39,7 @@ import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.FeedbackFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.gaiagps.iburn.fragment.MapPlaceHolderFragment;
+import com.gaiagps.iburn.fragment.MapboxMapFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -287,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         public enum IBurnTab {
             // Icons currently unused
-            MAP(R.string.map_tab, R.drawable.ic_brc, GoogleMapFragment.class),
+            MAP(R.string.map_tab, R.drawable.ic_brc, MapboxMapFragment.class),
             EXPLORE(R.string.explore_tab, R.drawable.ic_calendar, ExploreListViewFragment.class),
             BROWSE(R.string.browse_tab, R.drawable.ic_camp, BrowseListViewFragment.class),
             FAVORITES(R.string.fav_tab, R.drawable.ic_heart, FavoritesListViewFragment.class),
@@ -363,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             try {
                 Fragment newFrag = null;
                 Class<? extends Fragment> fragmentClass = mTabs.get(position).getFragmentClass();
-                if (fragmentClass.equals(GoogleMapFragment.class) && waitingForLocationPermission) {
+                if (fragmentClass.equals(MapboxMapFragment.class) && waitingForLocationPermission) {
                     newFrag = new MapPlaceHolderFragment();
                 } else {
                     newFrag = fragmentClass.newInstance();

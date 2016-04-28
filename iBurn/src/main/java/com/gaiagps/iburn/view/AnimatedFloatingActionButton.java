@@ -11,7 +11,6 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.FloatingActionButton;
 import android.util.AttributeSet;
