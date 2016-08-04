@@ -20,7 +20,7 @@ import com.gaiagps.iburn.R;
  */
 public class BrowseListHeader extends RelativeLayout {
 
-    public static enum BrowseSelection { ART, CAMPS, EVENT }
+    public enum BrowseSelection { ART, CAMPS, EVENT }
 
     private BrowseSelectionListener listener;
 

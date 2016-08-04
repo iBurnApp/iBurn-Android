@@ -1,7 +1,6 @@
 package com.gaiagps.iburn.view;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -16,10 +15,10 @@ import java.util.ArrayList;
 
 /**
  * A ListView header presenting filter options for day and type
- * <p/>
+ * <p>
  * Clients register for feedback with
  * {@link #setReceiver(com.gaiagps.iburn.view.EventListHeader.PlayaListViewHeaderReceiver)}
- * <p/>
+ * <p>
  * Created by davidbrodsky on 8/2/14.
  */
 public class EventListHeader extends RelativeLayout {
@@ -69,25 +68,24 @@ public class EventListHeader extends RelativeLayout {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_Iburn_Dialog);
                     builder.setTitle(getContext().getString(R.string.filter_by_type));
                     builder.setMultiChoiceItems(AdapterUtils.sEventTypeNames.toArray(new CharSequence[AdapterUtils.sEventTypeNames.size()]),
-                            mTypeSelectionIndexes, new DialogInterface.OnMultiChoiceClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                                    CharSequence selection = AdapterUtils.sEventTypeAbbreviations.toArray(new CharSequence[AdapterUtils.sEventTypeAbbreviations.size()])[which];
-                                    String tabTitle = null;
-                                    if (isChecked) {
-                                        mTypeSelectionIndexes[which] = true;
-                                        mTypeSelection.add((selection == null) ? null : selection.toString());
-                                        tabTitle = (selection == null) ? getResources().getString(R.string.any_type) : AdapterUtils.sEventTypeNames.toArray(new CharSequence[AdapterUtils.sEventTypeNames.size()])[which].toString();
-                                    } else {
-                                        mTypeSelectionIndexes[which] = false;
-                                        mTypeSelection.remove((selection == null) ? null : selection.toString());
-                                        tabTitle = (mTypeSelection.size() == 0) ? getResources().getString(R.string.any_type) : AdapterUtils.sEventTypeNames.get(AdapterUtils.sEventTypeAbbreviations.indexOf(mTypeSelection.get(mTypeSelection.size() - 1)));
-                                    }
-
-                                    if (mTypeSelection.size() > 1) tabTitle += "+" + String.valueOf(mTypeSelection.size() - 1);
-                                    ((TextView) v).setText(tabTitle.toUpperCase());
-                                    dispatchSelection();
+                            mTypeSelectionIndexes,
+                            (dialog, which, isChecked) -> {
+                                CharSequence selection = AdapterUtils.sEventTypeAbbreviations.toArray(new CharSequence[AdapterUtils.sEventTypeAbbreviations.size()])[which];
+                                String tabTitle = null;
+                                if (isChecked) {
+                                    mTypeSelectionIndexes[which] = true;
+                                    mTypeSelection.add((selection == null) ? null : selection.toString());
+                                    tabTitle = (selection == null) ? getResources().getString(R.string.any_type) : AdapterUtils.sEventTypeNames.toArray(new CharSequence[AdapterUtils.sEventTypeNames.size()])[which].toString();
+                                } else {
+                                    mTypeSelectionIndexes[which] = false;
+                                    mTypeSelection.remove((selection == null) ? null : selection.toString());
+                                    tabTitle = (mTypeSelection.size() == 0) ? getResources().getString(R.string.any_type) : AdapterUtils.sEventTypeNames.get(AdapterUtils.sEventTypeAbbreviations.indexOf(mTypeSelection.get(mTypeSelection.size() - 1)));
                                 }
+
+                                if (mTypeSelection.size() > 1)
+                                    tabTitle += "+" + String.valueOf(mTypeSelection.size() - 1);
+                                ((TextView) v).setText(tabTitle.toUpperCase());
+                                dispatchSelection();
                             });
                     builder.setPositiveButton(getContext().getString(R.string.done), null);
                     builder.show();
@@ -96,18 +94,14 @@ public class EventListHeader extends RelativeLayout {
                     builder.setTitle(getContext().getString(R.string.filter_by_day));
                     builder.setSingleChoiceItems(AdapterUtils.sDayNames.toArray(new CharSequence[AdapterUtils.sDayNames.size()]),
                             mDaySelectionIndex,
-                            new DialogInterface.OnClickListener() {
-
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    mDaySelectionIndex = which;
-                                    CharSequence selection = AdapterUtils.sDayAbbreviations.toArray(new CharSequence[AdapterUtils.sDayAbbreviations.size()])[which];
-                                    mDaySelection = (selection == null) ? null : selection.toString();
-                                    String tabTitle = (selection == null) ? getResources().getString(R.string.any_day) : AdapterUtils.sDayNames.toArray(new CharSequence[AdapterUtils.sDayNames.size()])[which].toString();
-                                    ((TextView) v).setText(tabTitle.toUpperCase());
-                                    dispatchSelection();
-                                    dialog.dismiss();
-                                }
+                            (dialog, which) -> {
+                                mDaySelectionIndex = which;
+                                CharSequence selection = AdapterUtils.sDayAbbreviations.toArray(new CharSequence[AdapterUtils.sDayAbbreviations.size()])[which];
+                                mDaySelection = (selection == null) ? null : selection.toString();
+                                String tabTitle = (selection == null) ? getResources().getString(R.string.any_day) : AdapterUtils.sDayNames.toArray(new CharSequence[AdapterUtils.sDayNames.size()])[which].toString();
+                                ((TextView) v).setText(tabTitle.toUpperCase());
+                                dispatchSelection();
+                                dialog.dismiss();
                             }
                     );
                     builder.setPositiveButton("Cancel", null);
