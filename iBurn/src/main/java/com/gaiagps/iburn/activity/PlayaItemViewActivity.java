@@ -229,8 +229,9 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                 //TextView locationView = ((TextView) findViewById(R.id.location));
                                 LatLng start = new LatLng(Geo.MAN_LAT, Geo.MAN_LON);
                                 Timber.d("adding / centering marker on %f, %f", latLng.latitude, latLng.longitude);
-                                GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+                                GoogleMapFragment mapFragment = GoogleMapFragment.newInstance();
                                 mapFragment.showcaseMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)).anchor(.5f, .5f));
+                                getSupportFragmentManager().beginTransaction().add(R.id.map_container, mapFragment).commit();
                                 mapFragment.getMapAsync(googleMap -> {
                                     UiSettings settings = googleMap.getUiSettings();
                                     settings.setMyLocationButtonEnabled(false);
@@ -246,7 +247,8 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                             } else {
                                 // Adjust the margin / padding show the heart icon doesn't
                                 // overlap title + descrition
-//                                findViewById(R.id.map_container).setVisibility(View.GONE);
+                                findViewById(R.id.map_container).setVisibility(View.GONE);
+                                //GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
                                 //getSupportFragmentManager().beginTransaction().remove(mapFragment).commit();
                                 collapsingToolbarLayout.setBackgroundResource(android.R.color.transparent);
                                 CollapsingToolbarLayout.LayoutParams parms = new CollapsingToolbarLayout.LayoutParams(CollapsingToolbarLayout.LayoutParams.MATCH_PARENT, 24);
