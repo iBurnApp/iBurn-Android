@@ -52,7 +52,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
@@ -68,16 +68,16 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private boolean googlePlayServicesMissing = false;
 
-    @Bind(R.id.parent)
+    @BindView(R.id.parent)
     ViewGroup mParent;
 
-    @Bind(R.id.pager)
+    @BindView(R.id.pager)
     ViewPager mViewPager;
 
-    @Bind(R.id.tabs)
+    @BindView(R.id.tabs)
     TabLayout mTabs;
 
-    @Bind(R.id.fab)
+    @BindView(R.id.fab)
     FloatingActionButton mFab;
 
     private PrefsHelper prefs;
@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
 
         Timber.d("onCreate");
-        if (!prefs.didShowWelcome() || BuildConfig.MOCK) {
+        if (!prefs.didShowWelcome()) {
             showWelcome();
         }
 

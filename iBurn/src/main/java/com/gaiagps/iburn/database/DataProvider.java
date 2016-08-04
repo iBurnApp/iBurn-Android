@@ -9,10 +9,12 @@ import android.support.annotation.Nullable;
 
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.PrefsHelper;
+import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -21,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import rx.Observable;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
@@ -57,9 +60,11 @@ public class DataProvider {
 
     private static DataProvider provider;
 
-    private SqlBrite db;
+    private BriteDatabase db;
     private QueryInterceptor interceptor;
     private final AtomicBoolean upgradeLock = new AtomicBoolean(false);
+
+    private ArrayDeque<BriteDatabase.Transaction> transactionStack = new ArrayDeque<>();
 
     public static Observable<DataProvider> getInstance(@NonNull Context context) {
 
@@ -75,7 +80,7 @@ public class DataProvider {
                     prefs.setDatabaseVersion(BUNDLED_DATABASE_VERSION);
                     prefs.setBaseResourcesVersion(RESOURCES_VERSION);
                 })
-                .map(SqlBrite::create)
+                .map(sqLiteOpenHelper -> SqlBrite.create().wrapDatabaseHelper(sqLiteOpenHelper, Schedulers.io()))
 //                .doOnNext(sqlBrite1 -> sqlBrite1.setLoggingEnabled(true))
                 .map(sqlBrite -> new DataProvider(sqlBrite, new Embargo(prefs)))
                 .doOnNext(dataProvider -> provider = dataProvider);
@@ -91,12 +96,12 @@ public class DataProvider {
         return builder.substring(0, builder.length() - 1);
     }
 
-    private DataProvider(SqlBrite db, @Nullable QueryInterceptor interceptor) {
+    private DataProvider(BriteDatabase db, @Nullable QueryInterceptor interceptor) {
         this.db = db;
         this.interceptor = interceptor;
     }
 
-    public SqlBrite getDb() {
+    public BriteDatabase getDb() {
         return db;
     }
 
@@ -138,16 +143,27 @@ public class DataProvider {
     }
 
     public void beginTransaction() {
-        db.beginTransaction();
+        BriteDatabase.Transaction t = db.newTransaction();
+        transactionStack.push(t);
     }
 
     public void setTransactionSuccessful() {
-        db.setTransactionSuccessful();
+        if (transactionStack.size() == 0) {
+            return;
+        }
+
+        BriteDatabase.Transaction t = transactionStack.peekLast();
+        t.markSuccessful();
     }
 
     public void endTransaction() {
+        if (transactionStack.size() == 0) {
+            return;
+        }
+
         // Don't allow this call to proceed without prior call to beginTransaction
-        db.endTransaction();
+        BriteDatabase.Transaction t = transactionStack.pop();
+        t.end();
     }
 
     public long insert(@NonNull String table, @NonNull ContentValues values) {

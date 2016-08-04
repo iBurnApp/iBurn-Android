@@ -22,7 +22,7 @@ import com.gaiagps.iburn.database.PlayaDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.tonicartos.superslim.LayoutManager;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -33,10 +33,10 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
     private PlayaSearchResponseCursorAdapter adapter;
     private Subscription searchSubscription;
 
-    @Bind(R.id.results)
+    @BindView(R.id.results)
     RecyclerView resultList;
 
-    @Bind(R.id.search)
+    @BindView(R.id.search)
     EditText searchEntry;
 
     @Override

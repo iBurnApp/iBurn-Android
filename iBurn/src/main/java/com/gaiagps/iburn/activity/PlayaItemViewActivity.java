@@ -50,7 +50,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -76,34 +76,34 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
     MenuItem favoriteMenuItem;
 
-    @Bind(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @Bind(R.id.map_container)
+    @BindView(R.id.map_container)
     FrameLayout mapContainer;
 
-    @Bind(R.id.overflow_container)
+    @BindView(R.id.overflow_container)
     LinearLayout overflowContainer;
 
-    @Bind(R.id.text_container)
+    @BindView(R.id.text_container)
     LinearLayout textContainer;
 
-    @Bind(R.id.title)
+    @BindView(R.id.title)
     TextView titleTextView;
 
-    @Bind(R.id.fab)
+    @BindView(R.id.fab)
     AnimatedFloatingActionButton favoriteButton;
 
-    @Bind(R.id.subitem_1)
+    @BindView(R.id.subitem_1)
     TextView subItem1TextView;
 
-    @Bind(R.id.subitem_2)
+    @BindView(R.id.subitem_2)
     TextView subItem2TextView;
 
-    @Bind(R.id.subitem_3)
+    @BindView(R.id.subitem_3)
     TextView subItem3TextView;
 
-    @Bind(R.id.collapsing_toolbar)
+    @BindView(R.id.collapsing_toolbar)
     CollapsingToolbarLayout collapsingToolbarLayout;
 
     public void onCreate(Bundle savedInstanceState) {

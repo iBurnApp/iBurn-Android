@@ -17,7 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
-import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -172,8 +171,10 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     TextView addressLabel;
 
     private View.OnClickListener mOnAddPinBtnListener = v -> {
-        Marker marker = addCustomPin(null, null, UserPoiTable.STAR);
-        dropPinAndShowEditDialog(marker);
+        getMapAsync(map -> {
+            Marker marker = addCustomPin(map, null, null, UserPoiTable.STAR);
+            dropPinAndShowEditDialog(marker);
+        });
     };
 
     private void dropPinAndShowEditDialog(final Marker marker) {
@@ -456,7 +457,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 })
                 .flatMap(this::performQuery)
                 .map(SqlBrite.Query::run)
-                        // Can we do this on bg thread? prolly not
+                // Can we do this on bg thread? prolly not
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::processMapItemResult, throwable -> Timber.e(throwable, "Error querying"));
 
@@ -512,19 +513,21 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
                     if (!BRC_BOUNDS.contains(cameraPosition.target) ||
                             cameraPosition.zoom > MAX_ZOOM || cameraPosition.zoom < MIN_ZOOM) {
-                        getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        getMapAsync(map -> map.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                 new LatLng(
                                         Math.min(MAX_LAT - BUFFER, Math.max(cameraPosition.target.latitude, MIN_LAT + BUFFER)),
                                         Math.min(MAX_LON - BUFFER, Math.max(cameraPosition.target.longitude, MIN_LON + BUFFER))),
-                                (float) Math.min(Math.max(cameraPosition.zoom, MIN_ZOOM), MAX_ZOOM)));
+                                (float) Math.min(Math.max(cameraPosition.zoom, MIN_ZOOM), MAX_ZOOM))));
                     } else {
                         currentZoom = cameraPosition.zoom;
                         // Map view bounds valid. Load POIs if necessary
                         if (currentZoom > POI_ZOOM_LEVEL) {
                             if (mState == STATE.EXPLORE) {
-                                visibleRegion = getMap().getProjection().getVisibleRegion();
-                                // Don't bother restartingLoader more than THRESHOLD_MS
-                                cameraUpdate.onNext(visibleRegion);
+                                getMapAsync(map -> {
+                                    visibleRegion = map.getProjection().getVisibleRegion();
+                                    // Don't bother restartingLoader more than THRESHOLD_MS
+                                    cameraUpdate.onNext(visibleRegion);
+                                });
                             }
                         } else if (currentZoom < POI_ZOOM_LEVEL && areMarkersVisible()) {
                             if (mState == STATE.EXPLORE) {
@@ -563,6 +566,8 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             if (BuildConfig.MOCK) {
                 map.setLocationSource(new LocationProvider.MockLocationSource());
             }
+            // Permissions checked by MainActivity
+            //noinspection MissingPermission
             map.setMyLocationEnabled(true);
             TileOverlayOptions opts = new TileOverlayOptions();
             opts.tileProvider(tileProvider);
@@ -761,19 +766,19 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 if (type == Constants.PlayaItemType.POI) {
                     // POIs are permanent markers that are editable when their info window is clicked
                     if (!mMappedCustomMarkerIds.containsValue(markerMapId)) {
-                        Marker marker = addNewMarkerForCursorItem(typeInt, cursor);
+                        Marker marker = addNewMarkerForCursorItem(googleMap, typeInt, cursor);
                         mMappedCustomMarkerIds.put(marker.getId(), markerMapId);
                     }
                 } else if (cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)) == 1) {
                     // Favorites are permanent markers, but are not editable
                     if (!markerIdToMeta.containsValue(markerMapId)) {
-                        Marker marker = addNewMarkerForCursorItem(typeInt, cursor);
+                        Marker marker = addNewMarkerForCursorItem(googleMap, typeInt, cursor);
                         markerIdToMeta.put(marker.getId(), markerMapId);
                         permanentMarkers.add(marker);
                     }
                 } else if (currentZoom > POI_ZOOM_LEVEL) {
                     // Other markers are recyclable, and may be cleared on camera events
-                    mapRecyclableMarker(typeInt, markerMapId, cursor, mResultBounds, areBoundsValid);
+                    mapRecyclableMarker(googleMap, typeInt, markerMapId, cursor, mResultBounds, areBoundsValid);
                 }
             }
             cursor.close();
@@ -813,7 +818,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
      * @param areBoundsValid a hack one-dimensional boolean array used to report whether boundsBuilder
      *                       includes at least one point and will not throw an exception on its build()
      */
-    private void mapRecyclableMarker(int itemType, String markerMapId, Cursor cursor, LatLngBounds.Builder boundsBuilder, boolean[] areBoundsValid) {
+    private void mapRecyclableMarker(GoogleMap map, int itemType, String markerMapId, Cursor cursor, LatLngBounds.Builder boundsBuilder, boolean[] areBoundsValid) {
         if (!markerIdToMeta.containsValue(markerMapId)) {
             // This POI is not yet mapped
             LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)), cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.longitude)));
@@ -847,14 +852,14 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 markerIdToMeta.put(marker.getId(), markerMapId);
             } else {
                 // We shall create a new Marker
-                Marker marker = addNewMarkerForCursorItem(itemType, cursor);
+                Marker marker = addNewMarkerForCursorItem(map, itemType, cursor);
                 markerIdToMeta.put(marker.getId(), markerMapId);
                 mMappedTransientMarkers.add(marker);
             }
         }
     }
 
-    private Marker addNewMarkerForCursorItem(int itemType, Cursor cursor) {
+    private Marker addNewMarkerForCursorItem(GoogleMap map, int itemType, Cursor cursor) {
         LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)),
                 cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.longitude)));
         MarkerOptions markerOptions;
@@ -879,7 +884,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         }
 
         markerOptions.anchor(0.5f, 0.5f);
-        Marker marker = getMap().addMarker(markerOptions);
+        Marker marker = map.addMarker(markerOptions);
         return marker;
     }
 
@@ -896,9 +901,9 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     /**
      * Adds a custom pin to the current map and database
      */
-    private Marker addCustomPin(LatLng latLng, String title, int drawableResId) {
+    private Marker addCustomPin(GoogleMap map, LatLng latLng, String title, int drawableResId) {
         if (latLng == null) {
-            LatLng mapCenter = getMap().getCameraPosition().target;
+            LatLng mapCenter = map.getCameraPosition().target;
             latLng = new LatLng(mapCenter.latitude, mapCenter.longitude);
         }
         if (title == null)
@@ -911,7 +916,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
         styleCustomMarkerOption(markerOptions, drawableResId);
 
-        Marker marker = getMap().addMarker(markerOptions);
+        Marker marker = map.addMarker(markerOptions);
         ContentValues poiValues = new ContentValues();
         poiValues.put(UserPoiTable.name, title);
         poiValues.put(UserPoiTable.latitude, latLng.latitude);
@@ -976,6 +981,6 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     }
 
     private void resetMapView() {
-        getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 14));
+        getMapAsync(map -> map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 14)));
     }
 }
