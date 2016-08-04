@@ -8,12 +8,12 @@ public class PlayaItem {
 
     public String contactEmail;
     public String description;
-    public int id;
+    public String uid;
     public double latitude;
     public double longitude;
     public String location;
     public String matchedName;
     public String name;
     public String url;
-    public Year year;
+    public int year;
 }

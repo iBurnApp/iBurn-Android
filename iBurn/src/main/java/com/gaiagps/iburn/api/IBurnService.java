@@ -2,7 +2,6 @@ package com.gaiagps.iburn.api;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 
@@ -39,12 +38,8 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import retrofit.RestAdapter;
-import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
-import retrofit.http.GET;
-import retrofit.http.Streaming;
 import rx.Observable;
-import rx.functions.Action0;
 import timber.log.Timber;
 
 /**
@@ -87,7 +82,7 @@ public class IBurnService {
     private class SimpleLifeboat implements UpgradeLifeboat {
 
         private String tableName;
-        private List<Integer> favoritePlayaIds;
+        private List<String> favoritePlayaIds;
 
         public SimpleLifeboat(String tableName) {
             this.tableName = tableName;
@@ -101,7 +96,7 @@ public class IBurnService {
                         favoritePlayaIds = new ArrayList<>(cursor.getCount());
                         Timber.d("Found %d %s favorites", cursor.getCount(), tableName);
                         while (cursor.moveToNext()) {
-                            favoritePlayaIds.add(cursor.getInt(cursor.getColumnIndex(PlayaItemTable.playaId)));
+                            favoritePlayaIds.add(cursor.getString(cursor.getColumnIndex(PlayaItemTable.playaId)));
                         }
                         cursor.close();
                         return true;
@@ -111,14 +106,14 @@ public class IBurnService {
 
         @Override
         public void restoreData(ContentValues row) {
-            row.put(PlayaItemTable.favorite, favoritePlayaIds.contains(row.getAsInteger(PlayaItemTable.playaId)));
+            row.put(PlayaItemTable.favorite, favoritePlayaIds.contains(row.getAsString(PlayaItemTable.playaId)));
         }
     }
 
     private class EventLifeboat implements UpgradeLifeboat {
 
         private final String tableName = PlayaDatabase.EVENTS;
-        private HashMap<Integer, HashSet<String>> favoriteIds;
+        private HashMap<String, HashSet<String>> favoriteIds;
 
         @Override
         public Observable<Boolean> saveData(DataProvider provider) {
@@ -127,14 +122,14 @@ public class IBurnService {
                     .map(cursor -> {
                         favoriteIds = new HashMap<>(cursor.getCount());
                         Timber.d("Found %d %s favorites", cursor.getCount(), tableName);
-                        int favoriteId;
+                        String favoriteId;
                         while (cursor.moveToNext()) {
-                            favoriteId = cursor.getInt(0);
+                            favoriteId = cursor.getString(0); // PlayaId
                             if (!favoriteIds.containsKey(favoriteId))
                                 favoriteIds.put(favoriteId, new HashSet<>());
 
                             Timber.d("Added fav event with id %d start time %s", cursor.getInt(0), cursor.getString(1));
-                            favoriteIds.get(favoriteId).add(cursor.getString(1));
+                            favoriteIds.get(favoriteId).add(cursor.getString(1)); // startTime
                         }
                         cursor.close();
                         return true;
@@ -144,7 +139,7 @@ public class IBurnService {
 
         @Override
         public void restoreData(ContentValues row) {
-            int playaId = row.getAsInteger(EventTable.playaId);
+            String playaId = row.getAsString(EventTable.playaId);
             row.put(EventTable.favorite, favoriteIds.containsKey(playaId) &&
                     favoriteIds.get(playaId).contains(row.getAsString(EventTable.startTime)));
         }
@@ -273,7 +268,7 @@ public class IBurnService {
         Timber.d("Updating Events");
 
         // Date format for machine-readable
-        final SimpleDateFormat mahineDateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ", Locale.US);
+        //final SimpleDateFormat mahineDateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssX", Locale.US);
         // Date format for human-readable specific-time
         final SimpleDateFormat timeDayFormatter = new SimpleDateFormat("EE M/d h:mm a", Locale.US);
         // Date format for human-readable all-day
@@ -284,25 +279,30 @@ public class IBurnService {
 
             Event event = (Event) item;
 
+            if (event.occurrenceSet == null) {
+                // If no occurrence set, ignore for now?
+                Timber.d("Event %s without occurrence", event.uid);
+                return;
+            }
+
             // Event uses title, not name
             values.put(EventTable.name, event.title);
 
-            values.put(EventTable.allDay, event.allDay ? 1 : 0);
-            values.put(EventTable.checkLocation, event.checkLocation ? 1 : 0);
+            values.put(EventTable.allDay, event.allDay);
+            values.put(EventTable.checkLocation, event.checkLocation);
             values.put(EventTable.eventType, event.eventType.abbr);
 
             if (event.hostedByCamp != null) {
-                values.put(EventTable.campName, event.hostedByCamp.name);
-                values.put(EventTable.campPlayaId, event.hostedByCamp.id);
+                values.put(EventTable.campPlayaId, event.hostedByCamp);
             }
 
             for (EventOccurrence occurrence : event.occurrenceSet) {
-                values.put(EventTable.startTime, mahineDateFormatter.format(occurrence.startTime));
-                values.put(EventTable.startTimePrint, event.allDay ? dayFormatter.format(occurrence.startTime) :
+                values.put(EventTable.startTime, PlayaDateTypeAdapter.iso8601Format.format(occurrence.startTime));
+                values.put(EventTable.startTimePrint, (event.allDay == 1) ? dayFormatter.format(occurrence.startTime) :
                         timeDayFormatter.format(occurrence.startTime));
 
-                values.put(EventTable.endTime, mahineDateFormatter.format(occurrence.endTime));
-                values.put(EventTable.endTimePrint, event.allDay ? dayFormatter.format(occurrence.endTime) :
+                values.put(EventTable.endTime, PlayaDateTypeAdapter.iso8601Format.format(occurrence.endTime));
+                values.put(EventTable.endTimePrint, (event.allDay == 1) ? dayFormatter.format(occurrence.endTime) :
                         timeDayFormatter.format(occurrence.endTime));
 
                 database.insert(values);
@@ -389,7 +389,7 @@ public class IBurnService {
 
         values.put(PlayaItemTable.contact, item.contactEmail);
         values.put(PlayaItemTable.description, item.description);
-        values.put(PlayaItemTable.playaId, item.id);
+        values.put(PlayaItemTable.playaId, item.uid);
         values.put(PlayaItemTable.latitude, item.latitude);
         values.put(PlayaItemTable.longitude, item.longitude);
         values.put(PlayaItemTable.playaAddress, item.location);

@@ -19,7 +19,7 @@ import java.util.TimeZone;
 
 /**
  * A ever-so-slightly modified version of {@link com.google.gson.internal.bind.DateTypeAdapter}
- * that works with the PlayaEventsAPI Date format e.g: "2015-09-01 21:00:00"
+ * that works with the PlayaEventsAPI Date format e.g: "2016-09-01T21:00:00-7:00"
  */
 public final class PlayaDateTypeAdapter extends TypeAdapter<Date> {
     public static final TypeAdapterFactory FACTORY = new TypeAdapterFactory() {
@@ -32,7 +32,7 @@ public final class PlayaDateTypeAdapter extends TypeAdapter<Date> {
     public static final DateFormat iso8601Format = buildIso8601Format();
 
     private static DateFormat buildIso8601Format() {
-        DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+        DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX", Locale.US);
         iso8601Format.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
         return iso8601Format;
     }

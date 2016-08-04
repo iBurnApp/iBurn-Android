@@ -23,7 +23,7 @@ public interface PlayaItemTable {
     @DataType(TEXT)                                 String url              = "url";
     @DataType(TEXT)                                 String contact          = "contact";
     @DataType(TEXT)                                 String playaAddress     = "p_addr";
-    @DataType(INTEGER)                              String playaId          = "p_id";
+    @DataType(TEXT)                                 String playaId          = "p_id";
     @DataType(REAL)                                 String latitude         = "lat";
     @DataType(REAL)                                 String longitude        = "lon";
     @DataType(INTEGER)  @DefaultValue("0")          String favorite         = "fav";

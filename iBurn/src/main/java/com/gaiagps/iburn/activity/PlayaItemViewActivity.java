@@ -386,7 +386,6 @@ public class PlayaItemViewActivity extends AppCompatActivity {
 
                                 if (!itemCursor.isNull(itemCursor.getColumnIndex(EventTable.campPlayaId))) {
                                     final TextView hostedByCamp = new TextView(wrapper);
-                                    hostedByCamp.setText("Hosted by " + itemCursor.getString(itemCursor.getColumnIndex(EventTable.campName)));
                                     hostedByCamp.setTag(itemCursor.getInt(itemCursor.getColumnIndex(EventTable.campPlayaId)));
                                     hostedByCamp.setTypeface(condensed);
                                     hostedByCamp.setTextSize(32);
@@ -398,6 +397,8 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                             .subscribe(campCursor -> {
                                                 if (campCursor != null && campCursor.moveToFirst()) {
                                                     hostedByCamp.setOnClickListener(new RelatedItemOnClickListener(campCursor.getInt(campCursor.getColumnIndex(PlayaItemTable.id)), Constants.PlayaItemType.CAMP));
+                                                    String campName = campCursor.getString(campCursor.getColumnIndex(PlayaItemTable.name));
+                                                    hostedByCamp.setText("Hosted by " + campName);
                                                     campCursor.close();
                                                 }
                                             });
