@@ -2,6 +2,7 @@ package com.gaiagps.iburn.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,10 +24,12 @@ public class ArtCursorAdapter extends PlayaItemCursorAdapter<ArtCursorAdapter.Vi
     static final String[] Projection = new String[]{
             ArtTable.artist,
             ArtTable.artistLoc,
+            ArtTable.audioTourUrl
     };
 
     private int artistCol;
     private int artistLocCol;
+    private int audioTourUrlCol;
 
     public ArtCursorAdapter(Context context, Cursor cursor, AdapterListener listener) {
         super(context, cursor, listener);
@@ -38,11 +41,13 @@ public class ArtCursorAdapter extends PlayaItemCursorAdapter<ArtCursorAdapter.Vi
 
     public static class ViewHolder extends PlayaItemCursorAdapter.ViewHolder {
         TextView artistView;
+        TextView audioTourLabel;
 
         public ViewHolder(View view) {
             super(view);
 
             artistView = (TextView) view.findViewById(R.id.artist);
+            audioTourLabel = (TextView) view.findViewById(R.id.audioTourLabel);
         }
     }
 
@@ -65,8 +70,11 @@ public class ArtCursorAdapter extends PlayaItemCursorAdapter<ArtCursorAdapter.Vi
         if (artistCol == 0) {
             artistCol = cursor.getColumnIndexOrThrow(ArtTable.artist);
             artistLocCol = cursor.getColumnIndexOrThrow(ArtTable.artistLoc);
+            audioTourUrlCol = cursor.getColumnIndexOrThrow(ArtTable.audioTourUrl);
         }
 
+        boolean hasTour = !cursor.isNull(audioTourUrlCol);
+        viewHolder.audioTourLabel.setVisibility(hasTour ? View.VISIBLE : View.GONE);
         viewHolder.artistView.setText(cursor.getString(artistCol));
     }
 

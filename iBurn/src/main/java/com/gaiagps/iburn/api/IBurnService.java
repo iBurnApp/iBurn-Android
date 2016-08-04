@@ -250,6 +250,7 @@ public class IBurnService {
             Art art = (Art) item;
             values.put(ArtTable.artist, art.artist);
             values.put(ArtTable.artistLoc, art.artistLocation);
+            values.put(ArtTable.audioTourUrl, art.audioTourUrl);
             database.insert(values);
         });
     }

@@ -7,4 +7,5 @@ public class Art extends PlayaItem {
 
     public String artist;
     public String artistLocation;
+    public String audioTourUrl;
 }

@@ -68,5 +68,7 @@
     <string name="location_data_notice">Burning Man policy requires that iBurn not display Camp, Event, and Art locations until gates open or you arrive on the Playa.</string>
     <string name="location_notice_title">A Word on Location</string>
     <string name="no_now_items">Check back once you get to Burning Man</string>
+    <string name="audio_tour_art_only">AUDIO TOUR ART</string>
+    <string name="all_art">ALL ART</string>
 
 </resources>

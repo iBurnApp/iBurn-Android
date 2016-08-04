@@ -173,7 +173,18 @@ public class DataProvider {
     public Observable<SqlBrite.Query> observeTable(@NonNull String table,
                                                    @Nullable String[] projection) {
 
+        return observeTable(table, projection, null);
+    }
+
+    public Observable<SqlBrite.Query> observeTable(@NonNull String table,
+                                                   @Nullable String[] projection,
+                                                   @Nullable String whereClause) {
+
         String sql = interceptQuery("SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table, table);
+
+        if (whereClause != null) {
+            sql += " WHERE " + whereClause;
+        }
 
         if (table.equals(PlayaDatabase.EVENTS)) {
             sql += " ORDER BY " + EventTable.startTime + " ASC";
@@ -184,6 +195,7 @@ public class DataProvider {
         return db.createQuery(table, sql)
                 .subscribeOn(Schedulers.computation())
                 .skipWhile(query -> upgradeLock.get());
+
     }
 
     public Observable<SqlBrite.Query> observeEventsOnDayOfTypes(@Nullable String day,

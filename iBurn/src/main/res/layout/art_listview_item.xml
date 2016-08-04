@@ -49,11 +49,27 @@
         android:textSize="20sp" />
 
     <TextView
-        android:id="@+id/description"
+        android:id="@+id/audioTourLabel"
         style="@style/PlayaTextItem"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/artist"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:paddingTop="0dp"
+        android:singleLine="true"
+        android:text="Audio Tour Available"
+        android:drawableLeft="@drawable/ic_headset_light_24dp"
+        android:visibility="gone"
+        android:drawablePadding="2dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/description"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/audioTourLabel"
         android:ellipsize="end"
         android:gravity="center_vertical"
         android:maxLines="3"

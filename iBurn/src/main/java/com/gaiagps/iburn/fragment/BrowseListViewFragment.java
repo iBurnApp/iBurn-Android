@@ -17,8 +17,10 @@ import com.gaiagps.iburn.adapters.CampCursorAdapter;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.adapters.EventCursorAdapter;
+import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaDatabase;
+import com.gaiagps.iburn.view.ArtListHeader;
 import com.gaiagps.iburn.view.BrowseListHeader;
 import com.gaiagps.iburn.view.EventListHeader;
 import com.squareup.sqlbrite.SqlBrite;
@@ -36,18 +38,22 @@ import xyz.danoz.recyclerviewfastscroller.vertical.VerticalRecyclerViewFastScrol
  * <p/>
  * Created by davidbrodsky on 8/3/13.
  */
-public final class BrowseListViewFragment extends PlayaListViewFragment implements EventListHeader.PlayaListViewHeaderReceiver, BrowseListHeader.BrowseSelectionListener, AdapterListener, Subscriber {
+public final class BrowseListViewFragment extends PlayaListViewFragment implements EventListHeader.PlayaListViewHeaderReceiver, BrowseListHeader.BrowseSelectionListener, AdapterListener, Subscriber, ArtListHeader.Listener {
 
     public static BrowseListViewFragment newInstance() {
         return new BrowseListViewFragment();
     }
 
+    private ViewGroup artListHeader;
     private ViewGroup eventListHeader;
     private BrowseListHeader.BrowseSelection categorySelection = BrowseListHeader.BrowseSelection.CAMPS;
 
     // Event filtering
     private String selectedDay = AdapterUtils.getCurrentOrFirstDayAbbreviation();
     private ArrayList<String> selectedTypes = null;
+
+    // Art filtering
+    private boolean showAudioTourOnly;
 
     @Override
     protected Subscription createSubscription() {
@@ -73,7 +79,13 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
                 adapter = new ArtCursorAdapter(getActivity(), null, this);
                 if (mRecyclerView != null) mRecyclerView.setAdapter(adapter);
                 return DataProvider.getInstance(getActivity().getApplicationContext())
-                        .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.ART, adapter.getRequiredProjection()))
+                        .flatMap(dataProvider -> {
+                            if (showAudioTourOnly) {
+                                return dataProvider.observeTable(PlayaDatabase.ART, adapter.getRequiredProjection(), ArtTable.audioTourUrl + " IS NOT NULL");
+                            } else {
+                                return dataProvider.observeTable(PlayaDatabase.ART, adapter.getRequiredProjection());
+                            }
+                        })
                         .map(SqlBrite.Query::run)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(cursor -> {
@@ -111,6 +123,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_browse_list_view, container, false);
         eventListHeader = (ViewGroup) v.findViewById(R.id.eventHeader);
+        artListHeader = (ViewGroup) v.findViewById(R.id.artHeader);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
 
@@ -132,6 +145,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         ((BrowseListHeader) v.findViewById(R.id.header)).setBrowseSelectionListener(this);
         ((EventListHeader) v.findViewById(R.id.eventHeader)).setReceiver(this);
+        ((ArtListHeader) v.findViewById(R.id.artHeader)).setListener(this);
         return v;
     }
 
@@ -165,16 +179,18 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         switch (selection) {
             case CAMPS:
                 eventListHeader.setVisibility(View.GONE);
-
+                artListHeader.setVisibility(View.GONE);
                 break;
 
             case ART:
                 eventListHeader.setVisibility(View.GONE);
+                artListHeader.setVisibility(View.VISIBLE);
 
                 break;
 
             case EVENT:
                 eventListHeader.setVisibility(View.VISIBLE);
+                artListHeader.setVisibility(View.GONE);
                 break;
         }
 
@@ -188,5 +204,12 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     @Override
     protected CursorRecyclerViewAdapter getAdapter() {
         return new CampCursorAdapter(getActivity(), null, this);
+    }
+
+    @Override
+    public void onSelectionChanged(boolean showAudioTourOnly) {
+        this.showAudioTourOnly = showAudioTourOnly;
+        unsubscribeFromData();
+        subscribeToData();
     }
 }

@@ -13,4 +13,5 @@ public interface ArtTable extends PlayaItemTable {
     @DataType(TEXT)                                 String artist           = "artist";
     @DataType(TEXT)                                 String artistLoc        = "a_loc";
     @DataType(TEXT)                                 String imageUrl         = "i_url";
+    @DataType(TEXT)                                 String audioTourUrl     = "a_url";
 }

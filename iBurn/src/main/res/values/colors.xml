@@ -45,15 +45,15 @@
     <color name="tab_divider">@color/off_blk_3</color>
 
     <!-- Art, Camps Events Header Tabs -->
-    <color name="sub_tab_bg">@color/off_blk_2</color>
+    <color name="sub_tab_bg">@color/off_blk</color>
     <color name="sub_tab_text">@color/white</color>
-    <color name="sub_tab_pressed">@color/map_bg</color>
+    <color name="sub_tab_pressed">@color/off_blk_4</color>
     <color name="sub_tab_selected">@color/off_blk_3</color>
 
     <!-- Types, Days Header tabs -->
-    <color name="sub_sub_tab_bg">#1f1f1f</color>
+    <color name="sub_sub_tab_bg">@color/off_blk_2</color>
     <color name="sub_sub_tab_text">@color/white</color>
-    <color name="sub_sub_tab_pressed">@color/map_bg</color>
+    <color name="sub_sub_tab_pressed">@color/off_blk_4</color>
     <color name="sub_sub_tab_selected">@color/off_blk_3</color>
 
     <color name="off_blk_4">#ffbcbcbc</color>
