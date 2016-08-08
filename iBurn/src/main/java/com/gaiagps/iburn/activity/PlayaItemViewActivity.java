@@ -16,11 +16,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.gaiagps.iburn.AudioTourManager;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.DateUtil;
@@ -44,6 +46,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.squareup.sqlbrite.SqlBrite;
 
+import org.prx.playerhater.PlayerHaterListener;
+import org.prx.playerhater.Song;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -60,7 +65,7 @@ import timber.log.Timber;
  * Show the detail view for a Camp, Art installation, or Event
  * Created by davidbrodsky on 8/11/13.
  */
-public class PlayaItemViewActivity extends AppCompatActivity {
+public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHaterListener {
 
     public static final String EXTRA_MODEL_ID = "model-id";
     public static final String EXTRA_MODEL_TYPE = "model-type";
@@ -75,6 +80,11 @@ public class PlayaItemViewActivity extends AppCompatActivity {
     boolean showingLocation;
 
     MenuItem favoriteMenuItem;
+
+    private AudioTourManager audioTourManager;
+    private boolean didPopulateViews;
+    private TextView audioTourToggle;
+    private String audioTourUrl;
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -110,6 +120,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playa_item_view);
         ButterKnife.bind(this);
+        didPopulateViews = false;
 
         setSupportActionBar(toolbar);
 
@@ -118,7 +129,7 @@ public class PlayaItemViewActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("");
         }
 
-        populateViews(getIntent());
+        // Need to defer populating views until AudioTourManagerReady
         setTextContainerMinHeight();
 
         AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
@@ -129,6 +140,22 @@ public class PlayaItemViewActivity extends AppCompatActivity {
         mapContainer.startAnimation(fadeAnimation);
 
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        audioTourManager = new AudioTourManager(this, this);
+        if (!didPopulateViews) {
+            populateViews(getIntent());
+            didPopulateViews = true;
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        audioTourManager.release();
     }
 
     /**
@@ -261,18 +288,58 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                                 case ART:
                                     if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.playaAddress))) {
                                         subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.playaAddress)));
-                                    } else
+                                    } else {
                                         subItem1TextView.setVisibility(View.GONE);
+                                    }
 
                                     if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.artist))) {
                                         subItem2TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.artist)));
-                                    } else
+                                    } else {
                                         subItem2TextView.setVisibility(View.GONE);
+                                    }
 
                                     if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.artistLoc))) {
                                         subItem3TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.artistLoc)));
-                                    } else
+                                    } else {
                                         subItem3TextView.setVisibility(View.GONE);
+                                    }
+
+                                    if (!itemCursor.isNull(itemCursor.getColumnIndexOrThrow(ArtTable.audioTourUrl))) {
+                                        audioTourUrl = itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.audioTourUrl));
+
+                                        Timber.d("Add audio tour control view");
+                                        audioTourToggle = new TextView(this);
+                                        audioTourToggle.setTextColor(getResources().getColor(R.color.regular_text));
+                                        audioTourToggle.setTextSize(22);
+                                        audioTourToggle.setCompoundDrawablePadding(12);  // 8 dp
+                                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                                        params.bottomMargin = 12; // 8 dp
+                                        audioTourToggle.setLayoutParams(params);
+                                        if (isAudioTourManagerPlayingThis()) {
+                                            audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_pause_circle_outline_light_24dp), null, null, null);
+                                            audioTourToggle.setText(R.string.pause_audio_tour);
+                                        } else {
+                                            audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_play_circle_outline_light_24dp), null, null, null);
+                                            audioTourToggle.setText(R.string.play_audio_tour);
+                                        }
+                                        audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_play_circle_outline_light_24dp), null, null, null);
+                                        LinearLayout contentContainer = (LinearLayout) findViewById(R.id.content_container);
+                                        contentContainer.addView(audioTourToggle, 3);
+
+                                        audioTourToggle.setOnClickListener(view -> {
+                                            view.setSelected(!view.isSelected());
+                                            onAudioTourToggleSelectedChanged();
+
+                                            if (view.isSelected()) {
+                                                // Playing. Show Pause button
+                                                audioTourManager.playAudioTourUrl(audioTourUrl, title);
+                                            } else {
+                                                // Paused. Show Play button
+                                                audioTourManager.pause();
+                                            }
+                                        });
+                                    }
+
                                     break;
                                 case CAMP:
                                     if (!itemCursor.isNull(itemCursor.getColumnIndex(CampTable.playaAddress))) {
@@ -456,6 +523,58 @@ public class PlayaItemViewActivity extends AppCompatActivity {
                         if (itemCursor != null) itemCursor.close();
                     }
                 }, throwable -> Timber.e(throwable, "Failed to populate views from item"));
+    }
+
+    @Override
+    public void onStopped() {
+        if (isAudioTourManagerPlayingThis()) {
+            audioTourToggle.setSelected(false);
+            onAudioTourToggleSelectedChanged();
+        }
+    }
+
+    @Override
+    public void onPaused(Song song) {
+        if (isAudioTourManagerPlayingThis()) {
+            audioTourToggle.setSelected(false);
+            onAudioTourToggleSelectedChanged();
+        }
+    }
+
+    @Override
+    public void onLoading(Song song) {
+        // unused
+    }
+
+    @Override
+    public void onPlaying(Song song, int i) {
+        if (isAudioTourManagerPlayingThis()) {
+            audioTourToggle.setSelected(true);
+            onAudioTourToggleSelectedChanged();
+        }
+    }
+
+    @Override
+    public void onStreaming(Song song) {
+        // unused
+    }
+
+    private boolean isAudioTourManagerPlayingThis() {
+        return audioTourManager != null && audioTourManager.getCurrentAudioTourUrl() != null &&
+                audioTourManager.getCurrentAudioTourUrl().equals(audioTourUrl);
+    }
+
+    private void onAudioTourToggleSelectedChanged() {
+        if (audioTourToggle.isSelected()) {
+            // Playing. Show Pause button
+            audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_pause_circle_outline_light_24dp), null, null, null);
+            audioTourToggle.setText(R.string.pause_audio_tour);
+
+        } else {
+            // Paused. Show Play button
+            audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_play_circle_outline_light_24dp), null, null, null);
+            audioTourToggle.setText(R.string.play_audio_tour);
+        }
     }
 
     class RelatedItemOnClickListener implements View.OnClickListener {

@@ -118,6 +118,7 @@ dependencies {
     compile 'pl.charmas.android:android-reactive-location:0.9@aar'
     compile 'com.tonicartos:superslim:0.4.13'
     compile 'xyz.danoz:recyclerviewfastscroller:0.1.3'
+    compile 'org.prx:playerhater:0.3.6@aar'
 
     // 3rd Party libraries with apt
     compile 'net.simonvt.schematic:schematic:0.6.7'

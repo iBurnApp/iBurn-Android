@@ -64,6 +64,14 @@
                 <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
             </intent-filter>
         </service>
+
+        <!-- PRX Player Hater -->
+        <service android:name="org.prx.playerhater.PlaybackService" />
+        <receiver android:name="org.prx.playerhater.BroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

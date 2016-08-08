@@ -54,9 +54,10 @@
     <color name="sub_sub_tab_bg">@color/off_blk_2</color>
     <color name="sub_sub_tab_text">@color/white</color>
     <color name="sub_sub_tab_pressed">@color/off_blk_4</color>
-    <color name="sub_sub_tab_selected">@color/off_blk_3</color>
+    <color name="sub_sub_tab_selected">@color/off_blk_35</color>
 
     <color name="off_blk_4">#ffbcbcbc</color>
+    <color name="off_blk_35">#969696</color>
     <color name="off_blk_3">#797979</color>
     <color name="off_blk_2">#262626</color>
     <color name="off_blk">#ff151515</color>

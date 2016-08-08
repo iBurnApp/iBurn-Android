@@ -1,7 +1,6 @@
 package com.gaiagps.iburn.view;
 
 import android.content.Context;
-import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,9 +8,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.adapters.AdapterUtils;
-
-import java.util.ArrayList;
 
 /**
  * A ListView header presenting filter options for Art featured in the audio tour
@@ -23,7 +19,8 @@ import java.util.ArrayList;
  */
 public class ArtListHeader extends RelativeLayout {
 
-    protected TextView mTextView;
+    protected TextView mAllArt;
+    protected TextView mAudioTourArt;
 
     protected Listener mListener;
 
@@ -59,18 +56,23 @@ public class ArtListHeader extends RelativeLayout {
         mShowAudioTourOnly = !mShowAudioTourOnly;
 
         if (mShowAudioTourOnly) {
-            ((TextView) view).setText(R.string.audio_tour_art_only);
+            mAudioTourArt.setSelected(true);
+            mAllArt.setSelected(false);
         } else {
-            ((TextView) view).setText(R.string.all_art);
+            mAudioTourArt.setSelected(false);
+            mAllArt.setSelected(true);
         }
         dispatchSelection(mShowAudioTourOnly);
     };
 
     protected void init(Context context) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View v = inflater.inflate(R.layout.list_view_header_one, this, false);
-        mTextView = (TextView) v.findViewById(R.id.filter);
-        mTextView.setText(R.string.all_art);
+        View v = inflater.inflate(R.layout.list_view_header_two, this, false);
+        mAllArt = (TextView) v.findViewById(R.id.typeFilter);
+        mAllArt.setText(R.string.all_art);
+        mAllArt.setSelected(true);
+        mAudioTourArt = (TextView) v.findViewById(R.id.dateFilter);
+        mAudioTourArt.setText(R.string.audio_tour_art_only);
         setupTouchListeners();
         addView(v);
     }
@@ -80,7 +82,8 @@ public class ArtListHeader extends RelativeLayout {
     }
 
     protected void setupTouchListeners() {
-        mTextView.setOnClickListener(mOnClickListener);
+        mAllArt.setOnClickListener(mOnClickListener);
+        mAudioTourArt.setOnClickListener(mOnClickListener);
     }
 
     protected void dispatchSelection(boolean showAudioTourOnly) {
