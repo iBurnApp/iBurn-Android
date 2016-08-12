@@ -220,7 +220,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
                 if (constraint != null) {
                     String query = '%' + constraint.toString() + '%';
-                    Cursor newResult = dataProvider.createEmbargoExemptQuery(PlayaDatabase.CAMPS, "SELECT * FROM " + PlayaDatabase.CAMPS + " WHERE " + CampTable.name + " LIKE ? AND " + CampTable.latitude + " IS NOT NULL AND " + CampTable.latitude + " != 0", query)
+                    Cursor newResult = dataProvider.createEmbargoExemptQuery(PlayaDatabase.CAMPS, "SELECT * FROM " + PlayaDatabase.CAMPS + " WHERE " + CampTable.name + " LIKE ?", query)
                             .map(SqlBrite.Query::run)
                             .toBlocking()
                             .first();
