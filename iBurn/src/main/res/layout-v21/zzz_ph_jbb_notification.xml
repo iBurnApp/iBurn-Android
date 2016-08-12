@@ -38,12 +38,13 @@
             style="@android:style/TextAppearance.Material.Notification.Title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginLeft="16dp"
             android:layout_marginRight="40dp"
-            android:layout_weight="1"
             android:ellipsize="end"
             android:gravity="bottom"
             android:maxLines="1"
+            android:textSize="18sp"
             android:paddingBottom="2dp"
             android:singleLine="true" >
 
@@ -56,14 +57,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_weight="1"
+            android:layout_marginLeft="16dp"
+            android:textSize="16sp"
             android:ellipsize="end"
             android:gravity="top"
             android:singleLine="true" />
 
         <ImageView
             android:layout_width="match_parent"
+            android:layout_marginTop="16dp"
             android:layout_height="1dp"
             android:background="?android:attr/dividerHorizontal"
             android:contentDescription="@android:string/cancel" />

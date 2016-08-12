@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+
+    <plugin
+        name="org.prx.playerhater.plugins.ExpandableNotificationPlugin"
+        disabled="true" />
+
+    <plugin
+        name="com.gaiagps.iburn.MaterialExpandableNotificationPlugin"
+        enabled="true"/>
+
+</config>

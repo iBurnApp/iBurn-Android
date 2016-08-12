@@ -66,12 +66,25 @@
         </service>
 
         <!-- PRX Player Hater -->
-        <service android:name="org.prx.playerhater.PlaybackService" />
+        <service android:name="org.prx.playerhater.PlaybackService" >
+            <meta-data android:name="org.prx.playerhater.Config"
+                       android:resource="@xml/playerhater_config" />
+        </service>
         <receiver android:name="org.prx.playerhater.BroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON"/>
             </intent-filter>
         </receiver>
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.gaiagps.iburn.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/fileprovider_paths" />
+        </provider>
     </application>
 
 </manifest>
