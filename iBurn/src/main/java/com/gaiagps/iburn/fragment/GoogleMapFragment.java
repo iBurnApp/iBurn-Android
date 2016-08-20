@@ -202,6 +202,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                                 String.valueOf(getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId())))))
                 .first()
                 .map(SqlBrite.Query::run)
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(poi -> {
                     if (poi != null && poi.moveToFirst()) {
                         int drawableResId = poi.getInt(poi.getColumnIndex(UserPoiTable.drawableResId));
