@@ -30,6 +30,7 @@ android {
         versionName "2016.0.0.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        archivesBaseName = "iburn-$versionName-$versionCode"
 
     }
 
@@ -37,11 +38,6 @@ android {
         release {
             // We'll read release signingConfig's data from
             // gradle.properties in the project's root directory
-        }
-        unsigned {
-            storePassword = ""
-            keyAlias = ""
-            keyPassword = ""
         }
     }
 
@@ -64,7 +60,8 @@ android {
             debuggable false
         }
         unsigned {
-            signingConfig signingConfigs.unsigned
+            minifyEnabled false
+            signingConfig null
             debuggable false
         }
     }
