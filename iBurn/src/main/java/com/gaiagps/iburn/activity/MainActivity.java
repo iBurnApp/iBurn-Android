@@ -37,6 +37,7 @@ import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.FeedbackFragment;
 import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.gaiagps.iburn.fragment.MapPlaceHolderFragment;
+import com.gaiagps.iburn.fragment.PlayaListViewFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -166,6 +167,18 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         if (googlePlayServicesMissing && checkPlayServices()) {
             setupFragmentStatePagerAdapter();
             googlePlayServicesMissing = false;
+        }
+    }
+
+    public void onStart() {
+        super.onStart();
+
+        if (mPagerAdapter != null) {
+            Fragment currentFrag = mPagerAdapter.getCurrentFragment();
+            if (currentFrag instanceof PlayaListViewFragment) {
+                Timber.d("Refreshing data on current fragment onStart");
+                ((PlayaListViewFragment) currentFrag).reSubscribeToData();
+            }
         }
     }
 

@@ -123,6 +123,11 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
             subscription.unsubscribe();
     }
 
+    public void reSubscribeToData() {
+        unsubscribeFromData();
+        subscribeToData();
+    }
+
     public String getEmptyText() {
         return getString(R.string.no_items_found);
     }
