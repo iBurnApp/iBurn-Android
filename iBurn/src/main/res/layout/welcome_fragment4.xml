@@ -1,10 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/welcome_fragment"
+    android:id="@+id/welcome_fragment2"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:clipChildren="false">
+    android:clipChildren="false"
+    android:paddingTop="32dp" >
 
-    <!-- Welcome 4 : Intentionally empty final page -->
+    <!-- Welcome 4 : Audio Tour Download -->
+
+    <TextView
+        android:id="@+id/heading"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="@dimen/welcome_text_margin"
+        android:layout_marginRight="@dimen/welcome_text_margin"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif-condensed"
+        android:text="Art Discovery Audio Guide"
+        android:textSize="32sp" />
+
+    <TextView
+        android:id="@+id/content"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/heading"
+        android:layout_marginLeft="@dimen/welcome_text_margin"
+        android:layout_marginRight="@dimen/welcome_text_margin"
+        android:layout_marginTop="8dp"
+        android:textSize="20sp"
+        android:fontFamily="sans-serif-condensed"
+        android:text="Some Art installations include an audio tour. We can grab these files now to make sure you have a smooth listening experience on Playa.\n\nAudio prepared by Jim Tierney.\n\n40 MB Download."
+        android:textAppearance="@style/WelcomeContentAppearance" />
+
+    <FrameLayout
+        android:id="@+id/images"
+        android:layout_width="@dimen/welcome_images_size"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/content"
+        android:layout_centerHorizontal="true"
+        android:clipChildren="false">
+
+        <Button
+            android:id="@+id/downloadAudioTour"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="32dp"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:onClick="onAudioTourDownloadButtonClicked"
+            android:text="Pre-Download Audio Tour"/>
+    </FrameLayout>
 
 </RelativeLayout>

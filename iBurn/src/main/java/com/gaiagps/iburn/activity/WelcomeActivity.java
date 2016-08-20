@@ -12,14 +12,12 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 
+import com.gaiagps.iburn.AudioTourDownloader;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.DataProvider;
@@ -32,7 +30,7 @@ import permissions.dispatcher.RuntimePermissions;
 
 @RuntimePermissions
 public class WelcomeActivity extends AppCompatActivity implements WelcomeFragment.HomeCampSelectionListener {
-    static final int NUM_PAGES = 4;
+    static final int NUM_PAGES = 5;
 
     private PrefsHelper prefs;
 
@@ -155,6 +153,15 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         homeCampSelection = selection;
     }
 
+    public void onAudioTourDownloadButtonClicked(View view) {
+        Button downloadButton = (Button) view;
+        downloadButton.setText("Consider it done!");
+        downloadButton.setEnabled(false);
+
+        AudioTourDownloader atd = new AudioTourDownloader();
+        atd.downloadAudioTours(this);
+    }
+
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
 
         public ScreenSlidePagerAdapter(FragmentManager fm) {
@@ -176,6 +183,9 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
                     break;
                 case 3:
                     tp = WelcomeFragment.newInstance(R.layout.welcome_fragment4);
+                    break;
+                case 4:
+                    tp = WelcomeFragment.newInstance(R.layout.welcome_fragment5);
                     break;
             }
 

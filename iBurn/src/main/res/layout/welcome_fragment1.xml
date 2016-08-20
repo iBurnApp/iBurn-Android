@@ -31,7 +31,7 @@
             android:padding="8dp"
             android:fontFamily="sans-serif-condensed"
             android:gravity="center"
-            android:text="Welcome to iBurn"
+            android:text="Welcome to iBurn\n2016"
             android:textColor="#ffffff"
             android:shadowColor="#000000"
             android:shadowDx="2"

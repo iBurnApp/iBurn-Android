@@ -46,6 +46,18 @@ public class AudioTourManager {
     private File mediaArtDir;
     private File mediaDir;
 
+    public static File getAudioTourDirectory(@NonNull Context context) {
+        File audioTourDir = new File(context.getFilesDir(), "audio_tour");
+        audioTourDir.mkdirs();
+        return audioTourDir;
+    }
+
+    public static File getAudioTourArtDirectory(@NonNull Context context) {
+        File audioTourArtDir = new File(context.getFilesDir(), "audio_tour_art");
+        audioTourArtDir.mkdirs();
+        return audioTourArtDir;
+    }
+
     /**
      * Create a new AudioTourManager bound to the given Context.
      * Generally call this on {@link Activity#onResume()}
@@ -57,14 +69,10 @@ public class AudioTourManager {
         player = PlayerHater.bind(context);
         player.setLocalPlugin(new PlayerHaterListenerPlugin(listener));
         defaultAlbumArtUri = getResourceUri(context, R.drawable.iburn_logo);
-        mediaArtDir = new File(context.getFilesDir(), "audio_tour_art");
-        mediaDir = new File(context.getFilesDir(), "audio_tour");
+        mediaArtDir = getAudioTourArtDirectory(context);
+        mediaDir = getAudioTourDirectory(context);
 
-        boolean madeDirs;
-        madeDirs = mediaArtDir.mkdirs() & mediaDir.mkdirs();
-        madeDirs &= mediaDir.mkdirs();
-
-        if (!madeDirs & (!mediaDir.exists() && !mediaArtDir.exists())) {
+        if (!mediaDir.exists() && !mediaArtDir.exists()) {
             Timber.e("Failed to create audio tour directories!");
         }
     }
@@ -195,42 +203,57 @@ public class AudioTourManager {
         return new File(mediaDir, mediaPath.substring(mediaPath.lastIndexOf("/"), mediaPath.length()));
     }
 
+    static File getCachedFileForRemoteMediaPath(@NonNull Context context, @NonNull String mediaPath) {
+        return new File(getAudioTourDirectory(context), mediaPath.substring(mediaPath.lastIndexOf("/"), mediaPath.length()));
+    }
+
     private void cacheAndPlayRemoteMediaPath(@NonNull String remoteMediaPath, @Nullable String title) {
         Observable.just(remoteMediaPath)
                 .observeOn(Schedulers.io())
                 .subscribe(path -> {
 
-                    try {
-                        Request request = new Request.Builder()
-                                .url(remoteMediaPath)
-                                .build();
+                    boolean didCache = cacheRemoteMediaPath(context, http, remoteMediaPath);
 
-                        long startTime = System.currentTimeMillis();
-                        Response response = http.newCall(request).execute();
-                        if (!response.isSuccessful()) {
-                            Timber.e("Media download of %s reported unexpected code %s", remoteMediaPath, response);
-                            return;
-                        } else {
-                            Timber.d("Downloaded %s in %s ms", remoteMediaPath, System.currentTimeMillis() - startTime);
-                        }
-
-                        File destFile = getCachedFileForRemoteMediaPath(remoteMediaPath);
-                        FileOutputStream os = new FileOutputStream(destFile);
-                        InputStream is = response.body().byteStream();
-
-                        byte[] buff = new byte[1024];
-                        int bytesRead = 0;
-                        while ((bytesRead = is.read(buff)) > 0) {
-                            os.write(buff, 0, bytesRead);
-                        }
-                        is.close();
-                        os.close();
-
-                        playLocalMediaUrl(Uri.fromFile(destFile), title);
-
-                    } catch (IOException e) {
-                        Timber.e(e, "Failed to fetch %s", remoteMediaPath);
+                    if (didCache) {
+                        File cachedFile = getCachedFileForRemoteMediaPath(remoteMediaPath);
+                        playLocalMediaUrl(Uri.fromFile(cachedFile), title);
                     }
+
                 });
+    }
+
+    static boolean cacheRemoteMediaPath(@NonNull Context context, @NonNull OkHttpClient http, @NonNull String remoteMediaPath) {
+        try {
+            Request request = new Request.Builder()
+                    .url(remoteMediaPath)
+                    .build();
+
+            long startTime = System.currentTimeMillis();
+            Response response = http.newCall(request).execute();
+            if (!response.isSuccessful()) {
+                Timber.e("Media download of %s reported unexpected code %s", remoteMediaPath, response);
+                return false;
+            } else {
+                Timber.d("Downloaded %s in %s ms", remoteMediaPath, System.currentTimeMillis() - startTime);
+            }
+
+            File destFile = getCachedFileForRemoteMediaPath(context, remoteMediaPath);
+            FileOutputStream os = new FileOutputStream(destFile);
+            InputStream is = response.body().byteStream();
+
+            byte[] buff = new byte[1024];
+            int bytesRead = 0;
+            while ((bytesRead = is.read(buff)) > 0) {
+                os.write(buff, 0, bytesRead);
+            }
+            is.close();
+            os.close();
+
+            return true;
+
+        } catch (IOException e) {
+            Timber.e(e, "Failed to fetch %s", remoteMediaPath);
+        }
+        return false;
     }
 }
