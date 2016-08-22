@@ -33,7 +33,7 @@ public class EventListViewFragment extends PlayaListViewFragment implements Even
         return new EventListViewFragment();
     }
 
-    private String selectedDay = "8/31";
+    private String selectedDay = "8/29";
     private ArrayList<String> selectedTypes;
 
     protected CursorRecyclerViewAdapter getAdapter() {

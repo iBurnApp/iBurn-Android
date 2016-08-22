@@ -41,22 +41,25 @@ public class AdapterUtils {
     static {
 //        sDayNames.add("All Days");
 //        sDayAbbreviations.add(null);
-        sDayNames.add("Monday 8/31");
+        sDayNames.add("Monday 8/29");
+        sDayAbbreviations.add("8/29");
+        sDayNames.add("Tuesday 8/30");
+        sDayAbbreviations.add("8/30");
+        sDayNames.add("Wednesday 8/31");
         sDayAbbreviations.add("8/31");
-        sDayNames.add("Tuesday 9/1");
+        sDayNames.add("Thursday 9/1");
         sDayAbbreviations.add("9/1");
-        sDayNames.add("Wednesday 9/2");
+        sDayNames.add("Friday 9/2");
         sDayAbbreviations.add("9/2");
-        sDayNames.add("Thursday 9/3");
+        sDayNames.add("Saturday 9/3");
         sDayAbbreviations.add("9/3");
-        sDayNames.add("Friday 9/4");
+        sDayNames.add("Sunday 9/4");
         sDayAbbreviations.add("9/4");
-        sDayNames.add("Saturday 9/5");
+        sDayNames.add("Monday 9/5");
         sDayAbbreviations.add("9/5");
-        sDayNames.add("Sunday 9/6");
+        sDayNames.add("Tuesday 9/6");
         sDayAbbreviations.add("9/6");
-        sDayNames.add("Monday 9/7");
-        sDayAbbreviations.add("9/7");
+
 
         sEventTypeAbbreviations.add("work");
         sEventTypeNames.add("Work");

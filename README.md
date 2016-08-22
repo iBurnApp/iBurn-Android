@@ -44,7 +44,10 @@ Fortunately, you can still run and test the app with the previous year's data.
 * Show Playa location below camp/art relation link on Events detail view
 
 ## Releasing
-Make sure you've incremented the version code and name in ./iBurn/build.grade
+Make sure you've:
+
++ Set embargo date correctly in `Embargo.java`, and adjust dates in `EventListViewFragment` and `AdapterUtils`
++ Incremented the version code and name in ./iBurn/build.grade
 The final pre-signed store release should be built with:
 
     $ ./gradlew assembleRegularUnsigned
