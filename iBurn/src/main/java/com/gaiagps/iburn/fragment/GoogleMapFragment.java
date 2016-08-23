@@ -440,9 +440,10 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                         else
                             tileProvider.swapDatabase(databaseFile);
                     })
+                    .retry(1)
                     .filter(file -> !addedTileOverlay.get())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(databaseFile -> _addMBTilesOverlay());
+                    .subscribe(databaseFile -> _addMBTilesOverlay(), throwable -> Timber.e(throwable, "Failed to swap map tiles"));
         }
     }
 

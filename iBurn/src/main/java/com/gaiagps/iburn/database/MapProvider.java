@@ -87,7 +87,7 @@ public class MapProvider {
             fos.close();
 
             // Notify observers
-            Timber.d("Notifying observers");
+            Timber.d("Notifying observers of new database %s", dest.getAbsolutePath());
             databaseSubject.onNext(dest);
         } else {
             Timber.e("Tiles directory not available. Could not copy tiles");
