@@ -30,7 +30,7 @@ import timber.log.Timber;
  */
 public class MapProvider {
 
-    public static final String MBTILE_DESTINATION = "iburn2015.mbtiles";
+    public static final String MBTILE_DESTINATION = "iburn2016.mbtiles";
 
     /** Key for mbtiles version stored in {@link PrefsHelper} and retrieved by {@link com.gaiagps.iburn.api.IBurnService}
      * for tile updating.
