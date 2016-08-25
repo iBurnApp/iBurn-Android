@@ -391,9 +391,11 @@ public class IBurnService {
         values.put(PlayaItemTable.contact, item.contactEmail);
         values.put(PlayaItemTable.description, item.description);
         values.put(PlayaItemTable.playaId, item.uid);
-        values.put(PlayaItemTable.latitude, item.latitude);
-        values.put(PlayaItemTable.longitude, item.longitude);
-        values.put(PlayaItemTable.playaAddress, item.location);
+        if (item.location != null) {
+            values.put(PlayaItemTable.latitude, item.location.gps_latitude);
+            values.put(PlayaItemTable.longitude, item.location.gps_longitude);
+            values.put(PlayaItemTable.playaAddress, item.location.string);
+        }
         values.put(PlayaItemTable.url, item.url);
     }
 

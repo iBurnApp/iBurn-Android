@@ -9,10 +9,7 @@ public class PlayaItem {
     public String contactEmail;
     public String description;
     public String uid;
-    public double latitude;
-    public double longitude;
-    public String location;
-    public String matchedName;
+    public Location location;
     public String name;
     public String url;
     public int year;
