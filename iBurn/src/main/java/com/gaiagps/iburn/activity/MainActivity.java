@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     });
         }
         handleIntent(getIntent());
-        checkForUpdates();
+        //checkForUpdates();
     }
 
     public void onSearchClick(View view) {
