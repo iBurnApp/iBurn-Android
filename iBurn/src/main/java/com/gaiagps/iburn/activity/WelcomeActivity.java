@@ -30,7 +30,7 @@ import permissions.dispatcher.RuntimePermissions;
 
 @RuntimePermissions
 public class WelcomeActivity extends AppCompatActivity implements WelcomeFragment.HomeCampSelectionListener {
-    static final int NUM_PAGES = 4; // TODO : Increase to 5 once we re-enable home camp selection
+    static final int NUM_PAGES = 5;
 
     private PrefsHelper prefs;
 
@@ -179,22 +179,14 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
                     tp = WelcomeFragment.newInstance(R.layout.welcome_fragment2);
                     break;
                 case 2:
-                    tp = WelcomeFragment.newInstance(R.layout.welcome_fragment4);
+                    tp = WelcomeFragment.newInstance(R.layout.welcome_fragment3);
                     break;
                 case 3:
+                    tp = WelcomeFragment.newInstance(R.layout.welcome_fragment4);
+                    break;
+                case 4:
                     tp = WelcomeFragment.newInstance(R.layout.welcome_fragment5);
                     break;
-
-                // TODO : Re-enable with home-camp selection
-//                case 2:
-//                    tp = WelcomeFragment.newInstance(R.layout.welcome_fragment3);
-//                    break;
-//                case 3:
-//                    tp = WelcomeFragment.newInstance(R.layout.welcome_fragment4);
-//                    break;
-//                case 4:
-//                    tp = WelcomeFragment.newInstance(R.layout.welcome_fragment5);
-//                    break;
             }
 
             return tp;

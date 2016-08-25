@@ -54,9 +54,9 @@ public class DataProvider {
     /**
      * Version of database data and mbtiles. This is basically the unix time at which bundled data was provided to this build.
      */
-    public static final long RESOURCES_VERSION = 1471720939000L; // Unix time of creation
+    public static final long RESOURCES_VERSION = 1472093065000L; // Unix time of creation
 
-    private static final boolean USE_BUNDLED_DB = true;
+    private static final boolean USE_BUNDLED_DB = false;
 
     private static DataProvider provider;
 
