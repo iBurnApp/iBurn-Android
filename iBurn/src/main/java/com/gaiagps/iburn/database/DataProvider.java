@@ -56,7 +56,7 @@ public class DataProvider {
      */
     public static final long RESOURCES_VERSION = 1472093065000L; // Unix time of creation
 
-    private static final boolean USE_BUNDLED_DB = false;
+    private static final boolean USE_BUNDLED_DB = true;
 
     private static DataProvider provider;
 
