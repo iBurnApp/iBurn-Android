@@ -11,8 +11,10 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.IntentUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
@@ -95,11 +97,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
 
     @Override
     public void onItemSelected(int modelId, Constants.PlayaItemType type) {
-        // Launch detail activity?
-        Intent i = new Intent(this, PlayaItemViewActivity.class);
-        i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, modelId);
-        i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_TYPE, type);
-        startActivity(i);
+        IntentUtil.viewItemDetail(this, modelId, type);
     }
 
     @Override
@@ -115,7 +113,9 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
             case EVENT:
                 modelTable = PlayaDatabase.EVENTS;
                 break;
-
+            case POI:
+                modelTable = PlayaDatabase.POIS;
+                break;
             default:
                 throw new IllegalArgumentException("Invalid type " + type);
         }

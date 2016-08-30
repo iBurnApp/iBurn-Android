@@ -125,8 +125,12 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
         viewHolder.itemView.setTag(R.id.list_item_related_model, cursor.getInt(idCol));
         viewHolder.itemView.setTag(R.id.list_item_related_model_type, cursor.getInt(typeCol));
 
+        viewHolder.descView.setVisibility(View.VISIBLE);
+
         Constants.PlayaItemType type = DataProvider.getTypeValue(cursor.getInt(typeCol));
         switch (type) {
+            case POI:
+                viewHolder.descView.setVisibility(View.GONE);
             case CAMP:
             case ART:
                 viewHolder.timeView.setVisibility(View.GONE);
@@ -172,6 +176,10 @@ public class PlayaSearchResponseCursorAdapter extends SectionedCursorAdapter<Pla
 
             case EVENT:
                 headerTitle = context.getString(R.string.events_tab);
+                break;
+
+            case POI:
+                headerTitle = "YOUR MAP MARKERS";
                 break;
         }
         ((TextView) holder.itemView).setText(headerTitle);

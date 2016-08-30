@@ -11,8 +11,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.IntentUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Subscriber;
 import com.gaiagps.iburn.activity.PlayaItemViewActivity;
@@ -177,11 +179,7 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
 
     @Override
     public void onItemSelected(int modelId, Constants.PlayaItemType type) {
-
-        Intent i = new Intent(getActivity(), PlayaItemViewActivity.class);
-        i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, modelId);
-        i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_TYPE, type);
-        getActivity().startActivity(i);
+        IntentUtil.viewItemDetail(getActivity(), modelId, type);
     }
 
     public void onItemFavoriteButtonSelected(int modelId, Constants.PlayaItemType type) {
