@@ -471,7 +471,9 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             settings.setScrollGesturesEnabled(mState != STATE.SHOWCASE);
 
             // TODO: If user location present, start there
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 14));
+            if (mState != STATE.SHOWCASE) {
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 14));
+            }
             googleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
                 @Override
                 public void onMarkerDragStart(Marker marker) {
@@ -609,8 +611,16 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     public void mapMarkerAndFitEntireCity(final MarkerOptions marker) {
         latLngToCenterOn = marker.getPosition();
         getMapAsync(googleMap -> {
+
             googleMap.addMarker(marker);
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 13));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 16));
+
+            Observable.timer(3, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(ignored -> {
+                        Timber.d("Animating camera");
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 13));
+                    });
         });
     }
 
@@ -623,6 +633,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     }
 
     private void _showcaseMarker() {
+        Timber.d("_showcaseMarker");
         mapMarkerAndFitEntireCity(showcaseMarker);
         if (locationSubscription != null) {
             Timber.d("unsubscribing from location");
@@ -788,7 +799,6 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mResultBounds.build(), 80));
             } else if (!areBoundsValid[0] && mState == STATE.SEARCH) {
                 // No results
-                Timber.d("Resetting map view");
                 resetMapView();
             }
         });
@@ -983,6 +993,9 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
     }
 
     private void resetMapView() {
-        getMapAsync(map -> map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 14)));
+        getMapAsync(map -> {
+            Timber.d("Resetting map view");
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Geo.MAN_LAT, Geo.MAN_LON), 14));
+        });
     }
 }
