@@ -15,7 +15,7 @@ public class IntentUtil {
     public static void viewItemDetail(@NonNull Activity host, int modelId, Constants.PlayaItemType type) {
         // Launch detail activity?
         if (type == Constants.PlayaItemType.POI) {
-            Toast.makeText(host.getApplicationContext(), "MAYBE NEXT YEAR\n¯\\_(ツ)_/¯", Toast.LENGTH_SHORT).show();
+            Toast.makeText(host.getApplicationContext(), "MAYBE NEXT YEAR\n       ¯\\_(ツ)_/¯", Toast.LENGTH_SHORT).show();
         } else {
             Intent i = new Intent(host, PlayaItemViewActivity.class);
             i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, modelId);
