@@ -21,6 +21,7 @@ import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaDatabase;
+import com.tonicartos.superslim.LayoutManager;
 
 import rx.Subscription;
 import timber.log.Timber;
@@ -32,12 +33,25 @@ import timber.log.Timber;
  */
 public abstract class PlayaListViewFragment extends Fragment implements AdapterListener, Subscriber {
 
+    public static final String ARG_SCROLL_POS = "spos";
+
     protected CursorRecyclerViewAdapter adapter;
 
     protected RecyclerView mRecyclerView;
     protected TextView mEmptyText;
 
     protected Subscription subscription;
+
+    private int lastScrollPos;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            lastScrollPos = savedInstanceState.getInt(ARG_SCROLL_POS, 0);
+            Timber.d("%s onCreate with scroll ps %d", getClass().getSimpleName(), lastScrollPos);
+        }
+    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -46,14 +60,23 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
         mRecyclerView.setAdapter(adapter);
     }
 
+    public void onSaveInstanceState(Bundle outState) {
+        // Save the scroll position with this instance and in Bundle for retrieval whether or not
+        // this instance is recreated
+        lastScrollPos = getScrollPosition();
+        outState.putInt(ARG_SCROLL_POS, lastScrollPos);
+        Timber.d("%s onSaveInstanceState with scroll pos %d", getClass().getSimpleName(), lastScrollPos);
+    }
+
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
+    public void onStop() {
+        super.onStop();
         unsubscribeFromData();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Timber.d("%s onCreateView", getClass().getSimpleName());
         View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);
         //super.onCreateView(inflater, container, savedInstanceState);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
@@ -73,6 +96,9 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
             return;
         }
 
+        Timber.d("%s onDataChanged Had %d items. Now %d items", getClass().getSimpleName(),
+                adapter.getItemCount(), newData.getCount());
+
         boolean adapterWasEmpty = adapter.getItemCount() == 0;
 
         if (adapterWasEmpty && newData.getCount() > 0) {
@@ -91,9 +117,11 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
             setListShown(true);
         }
 
-        Timber.d("%s, onDataChanged with %d items", getClass().getSimpleName(), newData.getCount());
         // Important to use changeCursor bc, unlike swapCursor, it can be executed asynchronously
         adapter.changeCursor(newData);
+
+        Timber.d("%s Scrolling to prior scroll position %d", getClass().getSimpleName(), lastScrollPos);
+        mRecyclerView.scrollToPosition(lastScrollPos);
     }
 
     /**
@@ -178,5 +206,23 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
                 .subscribe(dataProvider -> {
                     dataProvider.toggleFavorite(modelTable, modelId);
                 }, throwable -> Timber.e(throwable, "Failed to update favorite"));
+    }
+
+    /**
+     * @return the current scroll position, or 0 if no scrolling has occurred
+     */
+    private int getScrollPosition() {
+        if (mRecyclerView != null) {
+            int scrollPos = 0;
+            if (mRecyclerView.getLayoutManager() instanceof LayoutManager) {
+                scrollPos = ((LayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+            } else if (mRecyclerView.getLayoutManager() instanceof LinearLayoutManager) {
+                scrollPos = ((LinearLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+            }
+
+            Timber.d("%s onSaveInstanceState scrollPos %d", getClass().getSimpleName(), scrollPos);
+            return scrollPos;
+        }
+        return 0;
     }
 }
