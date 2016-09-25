@@ -5,7 +5,7 @@ import net.simonvt.schematic.annotation.DataType;
 import static net.simonvt.schematic.annotation.DataType.Type.INTEGER;
 
 /**
- * Art SQL Table definition.
+ * User POI SQL Table definition.
  */
 public interface UserPoiTable extends PlayaItemTable {
 

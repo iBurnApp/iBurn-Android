@@ -26,8 +26,8 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 24
-        versionCode 20
-        versionName "2016.0.0.6"
+        versionCode 21
+        versionName "2017.0.0.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         archivesBaseName = "iburn-$versionName-$versionCode"
@@ -90,16 +90,16 @@ if (project.hasProperty('keyPassword')) {
 dependencies {
 
     // Android Support libraries
-    compile 'com.android.support:design:24.1.1'
-    compile 'com.android.support:support-v4:24.1.1'
-    compile 'com.android.support:appcompat-v7:24.1.1'
-    compile 'com.android.support:recyclerview-v7:24.1.1'
-    compile 'com.android.support:support-annotations:24.1.1'
+    compile 'com.android.support:design:24.2.1'
+    compile 'com.android.support:support-v4:24.2.1'
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'com.android.support:recyclerview-v7:24.2.1'
+    compile 'com.android.support:support-annotations:24.2.1'
 
     // Google Play Services
-    compile 'com.google.android.gms:play-services-gcm:9.4.0'
-    compile 'com.google.android.gms:play-services-maps:9.4.0'
-    compile 'com.google.android.gms:play-services-location:9.4.0'
+    compile 'com.google.android.gms:play-services-gcm:9.6.1'
+    compile 'com.google.android.gms:play-services-maps:9.6.1'
+    compile 'com.google.android.gms:play-services-location:9.6.1'
 
     // 3rd Party libraries
     compile 'com.google.code.gson:gson:2.7'
@@ -132,9 +132,9 @@ dependencies {
     // Test dependencies
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.10.19'
-    androidTestCompile 'com.android.support.test:runner:0.4.1'
-    androidTestCompile 'com.android.support.test:rules:0.4.1'
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
-    androidTestCompile 'com.android.support:support-annotations:24.1.1'
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support.test:rules:0.5'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
+    androidTestCompile 'com.android.support:support-annotations:24.2.1'
 
 }
