@@ -5,8 +5,8 @@ dbro.pro
 SECRETS.java
 
 #Embargo Data
-iBurn/src/main/assets/databases/
-iBurn/src/main/assets/json/
+#iBurn/src/main/assets/databases/
+#iBurn/src/main/assets/json/
 .DS_Store
 *.class
 data/
