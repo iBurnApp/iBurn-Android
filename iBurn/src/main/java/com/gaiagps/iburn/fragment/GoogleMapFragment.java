@@ -493,7 +493,8 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 }
             });
 
-            googleMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            googleMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+
                 /** Lat, Lon tolerance used to determine if location within BRC boundaries */
                 private final double BUFFER = .00005;
 
@@ -501,19 +502,18 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
                 private final double MAX_ZOOM = 19.5;
                 private final double MIN_ZOOM = 12;
 
-                /** POI Search throttling */
-                private final int CAMERA_MOVE_REACT_THRESHOLD_MS = 500;
-                private long lastCallMs = Long.MIN_VALUE;
-
                 private boolean gotInitialCameraMove;
 
                 @Override
-                public void onCameraChange(CameraPosition cameraPosition) {
+                public void onCameraIdle() {
+                    Timber.d("onCameraIdle");
 //                    Timber.d("Zoom: " + cameraPosition.zoom);
                     if (!gotInitialCameraMove) {
                         gotInitialCameraMove = true;
                         return;
                     }
+
+                    CameraPosition cameraPosition = googleMap.getCameraPosition();
 
                     if (!BRC_BOUNDS.contains(cameraPosition.target) ||
                             cameraPosition.zoom > MAX_ZOOM || cameraPosition.zoom < MIN_ZOOM) {
