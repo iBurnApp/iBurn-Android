@@ -167,7 +167,7 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
             mRecyclerView.setVisibility(View.VISIBLE);
             mEmptyText.setVisibility(View.GONE);
         } else {
-            mRecyclerView.setVisibility(View.GONE);
+            mRecyclerView.setVisibility(View.INVISIBLE);  // Using GONE caused the recyclerview to improperly render after a transition to the empty state
             mEmptyText.setText(getEmptyText());
             mEmptyText.setVisibility(View.VISIBLE);
         }
