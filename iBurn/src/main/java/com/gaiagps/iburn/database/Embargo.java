@@ -19,10 +19,10 @@ import java.util.Iterator;
  */
 public class Embargo implements DataProvider.QueryInterceptor {
 
-    // 2015 Embargo date is August 25, 2015.
+    // 2016 Embargo date is August 28, 2016.
     public  static final Date   EMBARGO_DATE   = new GregorianCalendar(2016, Calendar.AUGUST, 28, 0, 0).getTime();
 
-    // For debug builds, force user to enter unlock code
+    // For mock builds, force user to enter unlock code
     private static final boolean FORCE_EMBARGO = BuildConfig.MOCK;
     private static final String NULL_LATITUDE  = "NULL AS " + PlayaItemTable.latitude;
     private static final String NULL_LONGITUDE = "NULL AS " + PlayaItemTable.longitude;

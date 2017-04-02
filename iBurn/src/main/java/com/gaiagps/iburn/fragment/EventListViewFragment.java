@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.adapters.EventCursorAdapter;
@@ -33,7 +34,7 @@ public class EventListViewFragment extends PlayaListViewFragment implements Even
         return new EventListViewFragment();
     }
 
-    private String selectedDay = "8/29";
+    private String selectedDay = AdapterUtils.getCurrentOrFirstDayAbbreviation();
     private ArrayList<String> selectedTypes;
 
     protected CursorRecyclerViewAdapter getAdapter() {

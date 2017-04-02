@@ -149,7 +149,7 @@ public class AdapterUtils {
             distanceText = "<1 m";
             spanRange = new SpannableString(distanceText);
         } else {
-            distanceText = String.format("%d min", minutesToTarget);
+            distanceText = String.format(Locale.US, "%d min", minutesToTarget);
             spanRange = new SpannableString(distanceText);
         }
 
