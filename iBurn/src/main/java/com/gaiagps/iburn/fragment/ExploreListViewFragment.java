@@ -27,7 +27,7 @@ import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
- * Fragment displaying all Playa Events
+ * Fragment displaying Playa Events happening right now / soon
  * <p/>
  * Created by davidbrodsky on 8/3/13.
  */

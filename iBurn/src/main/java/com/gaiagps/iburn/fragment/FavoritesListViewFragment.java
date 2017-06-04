@@ -20,6 +20,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 /**
+ * Display Camps, Art, and Events that the user has favorited
  * Created by davidbrodsky on 8/3/13.
  */
 public class FavoritesListViewFragment extends PlayaListViewFragment {

@@ -14,6 +14,9 @@ import com.gaiagps.iburn.R;
 
 import java.util.Locale;
 
+/**
+ * Send app feedback
+ */
 public class FeedbackFragment extends Fragment {
 
     EditText feedbackView;

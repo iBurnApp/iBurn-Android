@@ -34,7 +34,7 @@ import xyz.danoz.recyclerviewfastscroller.sectionindicator.title.SectionTitleInd
 import xyz.danoz.recyclerviewfastscroller.vertical.VerticalRecyclerViewFastScroller;
 
 /**
- * Fragment displaying Playa data
+ * Fragment displaying lists of Camps, Art, and Events
  * <p/>
  * Created by davidbrodsky on 8/3/13.
  */
