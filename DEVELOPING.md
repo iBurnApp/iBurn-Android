@@ -1,8 +1,10 @@
 # Developing
 
-iBurn is a pretty simple app with a polling-based background data update service.
-`MainActivity` handles most of the UI, and  `DataUpdateService` manages the
-background data update mechanism.
+iBurn allows you to browse a database of Burning Man Camps, Art, and Events within list and map views.
+The map view includes a bespoke Black Rock City layer made by us.
+The app includes a polling-based background data update service to keep itself up-to-date.
+
+`MainActivity` handles most of the UI, and `DataUpdateService` manages the background data update.
 
 You can build the special `mockDebug` build variant to simulate your test device
 being on Playa during the Burn (see [`CurrentDataProvider.MOCK_NOW_DATE`](https://github.com/Burning-Man-Earth/iBurn-Android/blob/345b8df09620b1fede7ad4649a068e7dc9f61982/iBurn/src/main/java/com/gaiagps/iburn/CurrentDateProvider.java#L15-L15) and [`LocationProvider.mockCurrentLocation`](https://github.com/Burning-Man-Earth/iBurn-Android/blob/211c133f6ade747b2d9f0644972eac64f83fd0da/iBurn/src/main/java/com/gaiagps/iburn/location/LocationProvider.java#L97-L97)).
@@ -54,6 +56,6 @@ for fetching database and map updates from our API and importing that data into 
 The database update process is complicated by the fact that we allow the user to modify the database by
 marking favorites and adding custom map markers. We could evaluate separating all user-made data into a separate
 database from the API-supplied data. This would allow us to simplify the update process but would
-complicate the querying. The current system has gone through a year of battle testing and
+complicate the querying. The current system has gone through two years of battle testing and
 the data update mechanism is pretty critical so mayyybee  ¯\_(ツ)_/¯
 
