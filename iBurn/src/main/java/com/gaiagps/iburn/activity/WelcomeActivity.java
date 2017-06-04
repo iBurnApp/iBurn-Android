@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.activity;
 
 import android.Manifest;
+import android.animation.ValueAnimator;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Color;
@@ -42,6 +43,8 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
     private Button done;
     private ImageButton next;
     private boolean isOpaque = true;
+
+    private boolean performedEntranceAnimation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +118,22 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         super.onDestroy();
         if (pager != null) {
             pager.clearOnPageChangeListeners();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!performedEntranceAnimation) {
+            View target = findViewById(R.id.button_layout);
+            target.setAlpha(0);
+            ValueAnimator subFadeIn = ValueAnimator.ofFloat(0, 1);
+            subFadeIn.addUpdateListener(animation -> target.setAlpha((Float) animation.getAnimatedValue()));
+            subFadeIn.setStartDelay(3000);
+            subFadeIn.setDuration(1 * 1000);
+            subFadeIn.start();
+            performedEntranceAnimation = true;
         }
     }
 

@@ -10,12 +10,6 @@
         android:layout_height="match_parent"
         android:background="@color/off_blk_2" />
 
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:layout_above="@+id/button_layout"
-        android:background="#33ffffff" />
-
     <RelativeLayout
         android:id="@+id/button_layout"
         android:layout_width="fill_parent"
