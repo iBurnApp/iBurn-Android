@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         if (checkPlayServices()) {
             setupFragmentStatePagerAdapter();
-            if (prefs.didShowWelcome() && Build.VERSION.SDK_INT >= 23 /* Use version code */) {
+            if (prefs.didShowWelcome() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 mPagerAdapter.setWaitingForLocationPermission(true);
                 MainActivityPermissionsDispatcher.gotLocationPermissionWithCheck(MainActivity.this);
             }
