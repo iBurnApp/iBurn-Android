@@ -11,7 +11,6 @@ buildscript {
 apply plugin: 'com.android.application'
 apply plugin: 'android-apt'
 apply plugin: 'com.jakewharton.hugo'
-apply plugin: 'me.tatarka.retrolambda'
 
 repositories {
     mavenCentral()
@@ -40,13 +39,17 @@ android {
         }
     }
 
+    flavorDimensions "production"
+
     productFlavors {
         regular {
             buildConfigField "boolean", "MOCK", "false"
+            dimension "production"
         }
         // Mock location and date data
         mock {
             buildConfigField "boolean", "MOCK", "true"
+            dimension "production"
         }
     }
 
@@ -109,14 +112,18 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.2.1'
     apt 'com.jakewharton:butterknife-compiler:8.2.1'
     compile 'com.jakewharton.timber:timber:4.1.2'
-    compile 'io.reactivex:rxandroid:1.2.1'
-    compile 'com.squareup.sqlbrite:sqlbrite:0.7.0'
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    compile 'io.reactivex.rxjava2:rxjava:2.1.0'
+    compile 'com.squareup.sqlbrite:sqlbrite:1.1.1'
     compile 'com.squareup.retrofit:retrofit:1.9.0'
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
     compile 'pl.charmas.android:android-reactive-location:0.9@aar'
     compile 'com.tonicartos:superslim:0.4.13'
     compile 'xyz.danoz:recyclerviewfastscroller:0.1.3'
     compile 'org.prx:playerhater:0.3.6@aar'
+    compile "android.arch.persistence.room:runtime:1.0.0-alpha1"
+    annotationProcessor "android.arch.persistence.room:compiler:1.0.0-alpha1"
+    compile "android.arch.persistence.room:rxjava2:1.0.0-alpha1"
 
     // 3rd Party libraries with apt
     compile 'net.simonvt.schematic:schematic:0.6.7'
@@ -126,9 +133,10 @@ dependencies {
     apt 'com.github.hotchemi:permissionsdispatcher-processor:2.0.7'
 
     // Submodule dependencies
-    releaseCompile project(path: ':libraries:android-gmaps-addons', configuration: 'release')
-    debugCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
-    unsignedCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
+    implementation project(':libraries:android-gmaps-addons')
+//    releaseCompile project(path: ':libraries:android-gmaps-addons', configuration: 'release')
+//    debugCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
+//    unsignedCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
 
     // Test dependencies
     testCompile 'junit:junit:4.12'
