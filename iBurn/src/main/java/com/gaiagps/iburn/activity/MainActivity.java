@@ -124,7 +124,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             setupFragmentStatePagerAdapter();
             if (prefs.didShowWelcome() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 mPagerAdapter.setWaitingForLocationPermission(true);
-                MainActivityPermissionsDispatcher.gotLocationPermissionWithCheck(MainActivity.this);
+                // TODO : Build error
+//                MainActivityPermissionsDispatcher.gotLocationPermissionWithCheck(MainActivity.this);
             }
         }
         if (!checkPlayServices()) {
@@ -504,6 +505,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                                            @NonNull int[] grantResults) {
 
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+        // TODO : Build error
+//        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
     }
 }

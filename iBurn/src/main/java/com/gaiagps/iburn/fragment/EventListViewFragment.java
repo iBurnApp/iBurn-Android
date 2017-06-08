@@ -40,7 +40,7 @@ public class EventListViewFragment extends PlayaListViewFragment implements Even
     @Override
     public Disposable createDisposable() {
         return DataProvider.getInstance(getActivity().getApplicationContext())
-                .flatMap(dataProvider -> dataProvider.observeEventsOnDayOfTypes(selectedDay, selectedTypes))
+                .flatMap(dataProvider -> dataProvider.observeEventsOnDayOfTypes(selectedDay, selectedTypes).toObservable()) // TODO : RM toObservable
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(events -> {
                             Timber.d("Data onNext %d items", events.size());

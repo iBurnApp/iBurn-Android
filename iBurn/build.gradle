@@ -1,16 +1,7 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
-    }
-}
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'com.jakewharton.hugo'
+//apply plugin: 'kotlin-kapt'
 
 repositories {
     mavenCentral()
@@ -30,6 +21,12 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         archivesBaseName = "iburn-$versionName-$versionCode"
 
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation":
+                                     "$projectDir/schemas".toString()]
+            }
+        }
     }
 
     packagingOptions {
@@ -43,9 +40,9 @@ android {
         }
     }
 
-    dataBinding {
-        enabled = true
-    }
+//    dataBinding {
+//        enabled = true
+//    }
 
     flavorDimensions "production"
 
@@ -109,16 +106,16 @@ dependencies {
     compile "com.android.support:support-annotations:$SUPPORT_LIB_VERSION"
 
     // Google Play Services
-    compile 'com.google.android.gms:play-services-gcm:10.2.6'
-    compile 'com.google.android.gms:play-services-maps:10.2.6'
-    compile 'com.google.android.gms:play-services-location:10.2.6'
+    compile 'com.google.android.gms:play-services-gcm:11.0.0'
+    compile 'com.google.android.gms:play-services-maps:11.0.0'
+    compile 'com.google.android.gms:play-services-location:11.0.0'
 
     // 3rd Party libraries
     compile 'com.google.code.gson:gson:2.8.1'
     compile 'net.hockeyapp.android:HockeySDK:4.0.2'
     compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
-    compile 'com.jakewharton:butterknife:8.2.1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.2.1'
+    compile 'com.jakewharton:butterknife:8.6.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
     compile 'com.jakewharton.timber:timber:4.5.1'
     compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
     compile 'io.reactivex.rxjava2:rxjava:2.1.0'
@@ -131,10 +128,10 @@ dependencies {
     compile 'com.tonicartos:superslim:0.4.13'
     compile 'xyz.danoz:recyclerviewfastscroller:0.1.3'
     compile 'org.prx:playerhater:0.3.6@aar'
-    compile "android.arch.persistence.room:runtime:1.0.0-alpha1"
-    annotationProcessor "android.arch.persistence.room:compiler:1.0.0-alpha1"
-    kapt "android.arch.persistence.room:compiler:1.0.0-alpha1"
-    compile "android.arch.persistence.room:rxjava2:1.0.0-alpha1"
+    compile "android.arch.persistence.room:runtime:1.0.0-alpha2"
+    annotationProcessor "android.arch.persistence.room:compiler:1.0.0-alpha2"
+    kapt "android.arch.persistence.room:compiler:1.0.0-alpha2"
+    compile "android.arch.persistence.room:rxjava2:1.0.0-alpha2"
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
 
     // Kotlin
@@ -144,8 +141,8 @@ dependencies {
     compile 'net.simonvt.schematic:schematic:0.6.7'
     annotationProcessor 'net.simonvt.schematic:schematic-compiler:0.6.7'
 
-    compile 'com.github.hotchemi:permissionsdispatcher:2.1.3'
-    annotationProcessor 'com.github.hotchemi:permissionsdispatcher-processor:2.1.3'
+    compile 'com.github.hotchemi:permissionsdispatcher:2.4.0'
+    annotationProcessor 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'
 
     // Submodule dependencies
     implementation project(':libraries:android-gmaps-addons')

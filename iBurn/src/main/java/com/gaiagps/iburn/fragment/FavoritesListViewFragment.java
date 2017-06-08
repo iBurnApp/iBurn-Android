@@ -40,7 +40,7 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
     protected Disposable createDisposable() {
 
         return DataProvider.getInstance(getActivity().getApplicationContext())
-                .flatMap(DataProvider::observeFavorites)
+                .flatMap(provider -> provider.observeFavorites().toObservable()) // TODO : rm toObservable
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::onDataChanged, throwable -> Timber.e(throwable, "Failed to load favorites"));
     }

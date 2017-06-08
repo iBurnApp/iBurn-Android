@@ -6,6 +6,8 @@ import com.gaiagps.iburn.database.Event.Companion.ColStartTime
 import com.gaiagps.iburn.database.Event.Companion.ColStartTimePretty
 import com.gaiagps.iburn.database.Event.Companion.ColType
 import com.gaiagps.iburn.database.Event.Companion.TableName
+import com.gaiagps.iburn.database.PlayaItem.Companion.ColName
+import io.reactivex.Flowable
 import io.reactivex.Observable
 import java.util.*
 
@@ -52,24 +54,26 @@ class Event(
 
 @Dao
 interface EventDao {
+    // TODO : 'p0' is used vs 'name' b/c Kotlin isn't preserving function parameter names properly
+    // https://youtrack.jetbrains.com/issue/KT-17959
 
     @Query("SELECT * FROM $TableName")
-    fun getAll(): Observable<List<Event>>
+    fun getAll(): Flowable<List<Event>>
 
     @Query("SELECT * FROM $TableName")
-    fun getFavorites(): Observable<List<Event>>
+    fun getFavorites(): Flowable<List<Event>>
 
-    @Query("SELECT * FROM $TableName WHERE $ColCampPlayaId = :campPlayaId ORDER BY $ColStartTime")
-    fun findByCampPlayaId(campPlayaId: Int): Observable<List<Event>>
+//    @Query("SELECT * FROM $TableName WHERE $ColCampPlayaId = :p0 ORDER BY $ColStartTime")
+//    fun findByCampPlayaId(campPlayaId: Int): Flowable<List<Event>>
 
-    @Query("SELECT * FROM $TableName WHERE $ColStartTimePretty LIKE :day% ORDER BY $ColStartTime")
-    fun findByDay(day: String): Observable<List<Event>>
+//    @Query("SELECT * FROM $TableName WHERE $ColStartTimePretty LIKE :p0 ORDER BY $ColStartTime")
+//    fun findByDay(day: String): Flowable<List<Event>>
 
-    @Query("SELECT * FROM $TableName WHERE ( start_time_pretty LIKE :day% AND $ColType IN (:types) )  ORDER BY $ColStartTime")
-    fun findByDayAndType(day: String, types: List<String>): Observable<List<Event>>
+//    @Query("SELECT * FROM $TableName WHERE ( start_time_pretty LIKE :day% AND $ColType IN (:types) )  ORDER BY $ColStartTime")
+//    fun findByDayAndType(day: String, types: List<String>): Flowable<List<Event>>
 
-    @Query("SELECT * FROM $TableName WHERE name LIKE :name GROUP BY $") // GROUP_BY name eliminates duplicate entries for separate occurrences
-    fun findByName(name: String): Observable<List<Event>>
+//    @Query("SELECT * FROM $TableName WHERE $ColName LIKE :p0 GROUP BY $ColName") // GROUP_BY name eliminates duplicate entries for separate occurrences
+//    fun findByName(name: String): Flowable<List<Event>>
 
     @Insert
     fun insert(vararg event: Event)

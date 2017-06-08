@@ -61,7 +61,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
 
             case CAMPS:
                 playaItems = dataProvider
-                        .flatMap(DataProvider::observeCamps);
+                        .flatMap(dataProvider1 -> dataProvider1.observeCamps().toObservable()); // TODO : rm toObservable
 
                 break;
 
@@ -69,9 +69,9 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
                 playaItems = dataProvider
                         .flatMap(dp -> {
                             if (showAudioTourOnly) {
-                                return dp.observeArtWithAudioTour();
+                                return dp.observeArtWithAudioTour().toObservable();
                             } else {
-                                return dp.observeArt();
+                                return dp.observeArt().toObservable();
                             }
                         });
 
@@ -79,7 +79,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
 
             case EVENT:
                 playaItems = dataProvider
-                        .flatMap(dp -> dp.observeEventsOnDayOfTypes(selectedDay, selectedTypes));
+                        .flatMap(dp -> dp.observeEventsOnDayOfTypes(selectedDay, selectedTypes).toObservable());
 
                 break;
         }

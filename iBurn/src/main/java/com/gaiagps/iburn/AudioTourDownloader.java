@@ -26,7 +26,7 @@ public class AudioTourDownloader {
         final OkHttpClient http = new OkHttpClient();
 
         DataProvider.getInstance(context)
-                .flatMap(DataProvider::observeArtWithAudioTour)
+                .flatMap(provider -> provider.observeArtWithAudioTour().toObservable())  // TODO : Rm toObservable
                 .observeOn(Schedulers.io())
                 .flatMap(Observable::fromIterable)
                 .subscribe(art -> {

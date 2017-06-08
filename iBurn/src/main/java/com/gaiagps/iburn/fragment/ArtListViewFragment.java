@@ -35,9 +35,9 @@ public class ArtListViewFragment extends PlayaListViewFragment implements ArtLis
         return DataProvider.getInstance(getActivity().getApplicationContext())
                 .flatMap(dataProvider -> {
                     if (showAudioTourOnly) {
-                        return dataProvider.observeArtWithAudioTour();
+                        return dataProvider.observeArtWithAudioTour().toObservable(); // TODO : Rm toObservable
                     } else {
-                        return dataProvider.observeArt();
+                        return dataProvider.observeArt().toObservable();  // TODO : Rm toObservable
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())

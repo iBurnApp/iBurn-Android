@@ -5,6 +5,7 @@ import com.gaiagps.iburn.database.Art.Companion.ColAudioTourUrl
 import com.gaiagps.iburn.database.Art.Companion.TableName
 import com.gaiagps.iburn.database.PlayaItem.Companion.ColFavorite
 import com.gaiagps.iburn.database.PlayaItem.Companion.ColName
+import io.reactivex.Flowable
 import io.reactivex.Observable
 
 /**
@@ -42,16 +43,18 @@ class Art(
 interface ArtDao {
 
     @Query("SELECT * FROM $TableName")
-    fun getAll(): Observable<List<Art>>
+    fun getAll(): Flowable<List<Art>>
 
     @Query("SELECT * FROM $TableName WHERE $ColAudioTourUrl IS NOT NULL")
-    fun getAllWithAudioTour(): Observable<List<Art>>
+    fun getAllWithAudioTour(): Flowable<List<Art>>
 
     @Query("SELECT * FROM $TableName WHERE $ColFavorite = 1")
-    fun getFavorites(): Observable<List<Art>>
+    fun getFavorites(): Flowable<List<Art>>
 
-    @Query("SELECT * FROM $TableName WHERE $ColName LIKE :name")
-    fun findByName(name: String): Observable<List<Art>>
+    // TODO : 'p0' is used vs 'name' b/c Kotlin isn't preserving function parameter names properly
+    // https://youtrack.jetbrains.com/issue/KT-17959
+//    @Query("SELECT * FROM $TableName WHERE $ColName LIKE :p0")
+//    fun findByName(name: String): Flowable<List<Art>>
 
     @Insert
     fun insert(vararg art: Art)

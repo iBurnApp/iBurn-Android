@@ -22,7 +22,7 @@ public class CampListViewFragment extends PlayaListViewFragment {
     @Override
     public Disposable createDisposable() {
         return DataProvider.getInstance(getActivity().getApplicationContext())
-                .flatMap(dataProvider -> dataProvider.observeCamps())
+                .flatMap(dataProvider -> dataProvider.observeCamps().toObservable()) // TODO : Rm toObservable
                 .doOnNext(query -> Timber.d("Got query"))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(cursor -> {

@@ -9,11 +9,14 @@ import android.support.annotation.Nullable;
 import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.PrefsHelper;
 
+import org.intellij.lang.annotations.Flow;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
@@ -121,21 +124,22 @@ public class DataProvider {
 //        if (result != null) result.close();
     }
 
-    public Observable<List<Camp>> observeCamps() {
+    public Flowable<List<Camp>> observeCamps() {
         return db.campDao().getAll();
     }
 
-    public Observable<List<Camp>> observeCampFavorites() {
+    public Flowable<List<Camp>> observeCampFavorites() {
 
         // TODO : Honor upgradeLock?
         return db.campDao().getFavorites();
     }
 
-    public Observable<List<Camp>> observeCampsByName(@NonNull String query) {
+    public Flowable<List<Camp>> observeCampsByName(@NonNull String query) {
 
         // TODO : Honor upgradeLock
         // TODO : Return structure with metadata on how many art, camps, events etc?
-        return db.campDao().findByName(query);
+//        return db.campDao().findByName(query);
+        return Flowable.empty();
     }
 
     // TODO : Replace with Table-specific queries
@@ -183,7 +187,7 @@ public class DataProvider {
     }
 
     public void insert(@NonNull String table, @NonNull ContentValues values) {
-        db.getOpenHelper().getWritableDatabase().insert(table, null, values);
+        db.getOpenHelper().getWritableDatabase().insert(table, 0, values); // TODO : wtf is the int here?
     }
 
     public int delete(@NonNull String table) {
@@ -238,18 +242,19 @@ public class DataProvider {
 //        if (result != null) result.close();
     }
 
-    public Observable<List<Event>> observeEventsOnDayOfTypes(@NonNull String day,
+    public Flowable<List<Event>> observeEventsOnDayOfTypes(@NonNull String day,
                                                              @Nullable ArrayList<String> types) {
 
         // TODO : Honor upgradeLock?
-        if (types == null) {
-            return db.eventDao().findByDay(day);
-        } else {
-            return db.eventDao().findByDayAndType(day, types);
-        }
+//        if (types == null) {
+//            return db.eventDao().findByDay(day);
+//        } else {
+//            return db.eventDao().findByDayAndType(day, types);
+//        }
+        return Flowable.empty();
     }
 
-    public Observable<List<Event>> observeEventFavorites() {
+    public Flowable<List<Event>> observeEventFavorites() {
 
         // TODO : Honor upgradeLock?
         return db.eventDao().getFavorites();
@@ -261,19 +266,19 @@ public class DataProvider {
 //        if (result != null) result.close();
     }
 
-    public Observable<List<Art>> observeArt() {
+    public Flowable<List<Art>> observeArt() {
 
         // TODO : Honor upgradeLock?
         return db.artDao().getAll();
     }
 
-    public Observable<List<Art>> observeArtFavorites() {
+    public Flowable<List<Art>> observeArtFavorites() {
 
         // TODO : Honor upgradeLock?
         return db.artDao().getFavorites();
     }
 
-    public Observable<List<Art>> observeArtWithAudioTour() {
+    public Flowable<List<Art>> observeArtWithAudioTour() {
 
         // TODO : Honor upgradeLock?
         return db.artDao().getAllWithAudioTour();
@@ -285,11 +290,11 @@ public class DataProvider {
      * Note: This query automatically adds in Event.startTime (and 0 values for all non-events),
      * since we always want to show this data for an event.
      */
-    public Observable<List<PlayaItem>> observeFavorites() {
+    public Flowable<List<PlayaItem>> observeFavorites() {
 
         // TODO : Honor upgradeLock
         // TODO : Return structure with metadata on how many art, camps, events etc?
-        return Observable.zip(
+        return Flowable.zip(
                 db.artDao().getFavorites(),
                 db.campDao().getFavorites(),
                 db.eventDao().getFavorites(),
@@ -309,22 +314,23 @@ public class DataProvider {
      * Note: This query automatically adds in Event.startTime (and 0 values for all non-events),
      * since we always want to show this data for an event.
      */
-    public Observable<List<PlayaItem>> observeNameQuery(@NonNull String query) {
+    public Flowable<List<PlayaItem>> observeNameQuery(@NonNull String query) {
 
         // TODO : Honor upgradeLock
         // TODO : Return structure with metadata on how many art, camps, events etc?
-        return Observable.zip(
-                db.artDao().findByName(query),
-                db.campDao().findByName(query),
-                db.eventDao().findByName(query),
-                (arts, camps, events) -> {
-                    ArrayList<PlayaItem> all = new ArrayList<>(arts.size() + camps.size() + events.size());
-                    all.addAll(arts);
-                    all.addAll(camps);
-                    all.addAll(events);
-                    return all;
-                }
-        );
+//        return Flowable.zip(
+//                db.artDao().findByName(query),
+//                db.campDao().findByName(query),
+//                db.eventDao().findByName(query),
+//                (arts, camps, events) -> {
+//                    ArrayList<PlayaItem> all = new ArrayList<>(arts.size() + camps.size() + events.size());
+//                    all.addAll(arts);
+//                    all.addAll(camps);
+//                    all.addAll(events);
+//                    return all;
+//                }
+//        );
+        return Flowable.empty();
     }
 
     private void update(@NonNull PlayaItem item) {

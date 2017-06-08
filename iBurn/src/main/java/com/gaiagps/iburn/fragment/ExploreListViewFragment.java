@@ -48,7 +48,7 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
         // Get Events that start now to the next several hours
         return DataProvider.getInstance(getActivity().getApplicationContext())
                 .subscribeOn(Schedulers.computation())
-                .flatMap(dataProvider -> dataProvider.observeEventFavorites())//dataProvider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.startTime + " > '" + lowerBoundDateStr + "' AND " + EventTable.startTime + " < '" + upperBoundDateStr + "\' ORDER BY " + EventTable.startTime + " ASC LIMIT 100"))
+                .flatMap(dataProvider -> dataProvider.observeEventFavorites().toObservable()) // TODO : rm toObservabe //dataProvider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.startTime + " > '" + lowerBoundDateStr + "' AND " + EventTable.startTime + " < '" + upperBoundDateStr + "\' ORDER BY " + EventTable.startTime + " ASC LIMIT 100"))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(events -> {
                             Timber.d("Data onNext %d items", events.size());

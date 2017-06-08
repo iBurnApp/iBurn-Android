@@ -97,9 +97,10 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             mState = STATE.SEARCH;
             // TODO : Do we monitor query or just take first result?
             // TODO : Do we want to merge search queries into the cameraUpdate subscription in initMap?
-            DataProvider.getInstance(getActivity().getApplicationContext())
-                    .flatMap(dataProvider -> dataProvider.observeNameQuery(query))
-                    .subscribe(this::processMapItemResult);
+            // TODO : Fix DB query with parameter
+//            DataProvider.getInstance(getActivity().getApplicationContext())
+//                    .flatMap(dataProvider -> dataProvider.observeNameQuery(query))
+//                    .subscribe(this::processMapItemResult);
         }
     }
 

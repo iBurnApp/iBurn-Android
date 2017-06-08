@@ -16,7 +16,7 @@ abstract class PlayaItem(
                             @ColumnInfo(name = ColContact)      val contact: String,
                             @ColumnInfo(name = ColPlayaAddress) val playaAddress: String?,
                             @ColumnInfo(name = ColPlayaId)      val playaId: String,
-        @Embedded           @ColumnInfo(name = ColLocation)     val location: Location,
+                            @Embedded                           val location: Location,
                             @ColumnInfo(name = ColFavorite)     val isFavorite: Boolean) : Serializable {
 
     companion object {
@@ -27,7 +27,6 @@ abstract class PlayaItem(
         const val ColContact = "contact"
         const val ColPlayaAddress = "playa_address"
         const val ColPlayaId = "playa_id"
-        const val ColLocation = "location"
         const val ColFavorite = "favorite"
     }
 }

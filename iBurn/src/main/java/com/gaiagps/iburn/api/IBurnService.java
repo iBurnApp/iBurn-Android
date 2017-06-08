@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import retrofit2.Retrofit;
@@ -104,7 +105,7 @@ public class IBurnService {
 
         @Override
         public Observable<Boolean> saveData(DataProvider provider) {
-            Observable<? extends List<? extends com.gaiagps.iburn.database.PlayaItem>> items = null;
+            Flowable<? extends List<? extends com.gaiagps.iburn.database.PlayaItem>> items = null;
 
             if (table == Table.Camp) {
                 items = provider.observeCampFavorites();

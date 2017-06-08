@@ -39,13 +39,15 @@ class Camp(
 interface CampDao {
 
     @Query("SELECT * FROM $TableName")
-    fun getAll(): Observable<List<Camp>>
+    fun getAll(): Flowable<List<Camp>>
 
     @Query("SELECT * FROM $TableName WHERE $ColFavorite = 1")
-    fun getFavorites(): Observable<List<Camp>>
+    fun getFavorites(): Flowable<List<Camp>>
 
-    @Query("SELECT * FROM $TableName WHERE $ColName LIKE :name")
-    fun findByName(name: String): Observable<List<Camp>>
+    // TODO : 'p0' is used vs 'name' b/c Kotlin isn't preserving function parameter names properly
+    // https://youtrack.jetbrains.com/issue/KT-17959
+//    @Query("SELECT * FROM $TableName WHERE $ColName LIKE :p0")
+//    fun findByName(name: String): Flowable<List<Camp>>
 
     @Insert
     fun insert(vararg camps: Camp)

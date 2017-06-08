@@ -81,7 +81,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
             searchSubscription.dispose();
 
         searchSubscription = DataProvider.getInstance(getApplicationContext())
-                .flatMap(dataProvider -> dataProvider.observeNameQuery(query))
+                .flatMap(dataProvider -> dataProvider.observeNameQuery(query).toObservable()) // TODO : rm toObservable
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(playaItems -> {
                     // TODO : Send to adapter
