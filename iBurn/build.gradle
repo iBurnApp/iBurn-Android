@@ -1,11 +1,19 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+    }
+}
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-//apply plugin: 'kotlin-kapt'
 
 repositories {
     mavenCentral()
     jcenter()
+    // For Mapbox SDK snapshots. Currently using unreleased map camera bounding
+    maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
 }
 
 android {
@@ -40,9 +48,9 @@ android {
         }
     }
 
-//    dataBinding {
-//        enabled = true
-//    }
+    packagingOptions {
+        exclude 'META-INF/rxjava.properties'
+    }
 
     flavorDimensions "production"
 
@@ -95,6 +103,7 @@ if (project.hasProperty('keyPassword')) {
 }
 
 def SUPPORT_LIB_VERSION = "25.3.1"
+def PLAY_SERVICES_VERSION = "11.0.0"
 
 dependencies {
 
@@ -106,9 +115,9 @@ dependencies {
     compile "com.android.support:support-annotations:$SUPPORT_LIB_VERSION"
 
     // Google Play Services
-    compile 'com.google.android.gms:play-services-gcm:11.0.0'
-    compile 'com.google.android.gms:play-services-maps:11.0.0'
-    compile 'com.google.android.gms:play-services-location:11.0.0'
+    compile "com.google.android.gms:play-services-gcm:$PLAY_SERVICES_VERSION"
+    compile "com.google.android.gms:play-services-maps:$PLAY_SERVICES_VERSION"
+    compile "com.google.android.gms:play-services-location:$PLAY_SERVICES_VERSION"
 
     // 3rd Party libraries
     compile 'com.google.code.gson:gson:2.8.1'
@@ -134,8 +143,9 @@ dependencies {
     compile "android.arch.persistence.room:rxjava2:1.0.0-alpha2"
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
 
-    // Kotlin
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    compile('com.mapbox.mapboxsdk:mapbox-android-sdk:5.1.0-SNAPSHOT@aar') {
+        transitive = true
+    }
 
     // 3rd Party libraries with apt
     compile 'net.simonvt.schematic:schematic:0.6.7'
@@ -146,9 +156,6 @@ dependencies {
 
     // Submodule dependencies
     implementation project(':libraries:android-gmaps-addons')
-//    releaseCompile project(path: ':libraries:android-gmaps-addons', configuration: 'release')
-//    debugCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
-//    unsignedCompile project(path: ':libraries:android-gmaps-addons', configuration: 'debug')
 
     // Test dependencies
     testCompile 'junit:junit:4.12'
@@ -158,4 +165,5 @@ dependencies {
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
     androidTestCompile "com.android.support:support-annotations:$SUPPORT_LIB_VERSION"
 
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }

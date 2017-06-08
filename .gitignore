@@ -3,6 +3,7 @@ dbro.pro
 
 #Secrets
 SECRETS.java
+SECRETS.kt
 
 #Embargo Data
 #iBurn/src/main/assets/databases/

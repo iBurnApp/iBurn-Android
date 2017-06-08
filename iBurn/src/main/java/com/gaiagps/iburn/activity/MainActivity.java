@@ -23,9 +23,9 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.Subscriber;
@@ -35,7 +35,6 @@ import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.FeedbackFragment;
-import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.gaiagps.iburn.fragment.MapPlaceHolderFragment;
 import com.gaiagps.iburn.fragment.PlayaListViewFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
@@ -63,10 +62,12 @@ import permissions.dispatcher.RuntimePermissions;
 import rx.Observable;
 import timber.log.Timber;
 
+import static com.gaiagps.iburn.SECRETSKt.HOCKEY_ID;
+import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
+
 @RuntimePermissions
 public class MainActivity extends AppCompatActivity implements SearchQueryProvider {
 
-    private static final String HOCKEY_ID = SECRETS.HOCKEY_ID;
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private boolean googlePlayServicesMissing = false;
 
@@ -211,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         alert.setView(input);
         alert.setPositiveButton(getString(R.string.ok), (dialog, whichButton) -> {
             String pwGuess = input.getText().toString();
-            if (pwGuess.equals(SECRETS.UNLOCK_CODE)) {
+            if (pwGuess.equals(UNLOCK_CODE)) {
                 prefs.setEnteredValidUnlockCode(true);
                 // Notify all observers that embargo is clear
                 DataProvider.getInstance(getApplicationContext()).subscribe(DataProvider::endUpgrade);
@@ -302,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         public enum IBurnTab {
             // Icons currently unused
-            MAP(R.string.map_tab, R.drawable.ic_brc, GoogleMapFragment.class),
+            MAP(R.string.map_tab, R.drawable.ic_brc, MapboxMapFragment.class),
             EXPLORE(R.string.explore_tab, R.drawable.ic_calendar, ExploreListViewFragment.class),
             BROWSE(R.string.browse_tab, R.drawable.ic_camp, BrowseListViewFragment.class),
             FAVORITES(R.string.fav_tab, R.drawable.ic_heart, FavoritesListViewFragment.class),
@@ -378,7 +379,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             try {
                 Fragment newFrag = null;
                 Class<? extends Fragment> fragmentClass = mTabs.get(position).getFragmentClass();
-                if (fragmentClass.equals(GoogleMapFragment.class) && waitingForLocationPermission) {
+                if (fragmentClass.equals(MapboxMapFragment.class) && waitingForLocationPermission) {
                     newFrag = new MapPlaceHolderFragment();
                 } else {
                     newFrag = fragmentClass.newInstance();

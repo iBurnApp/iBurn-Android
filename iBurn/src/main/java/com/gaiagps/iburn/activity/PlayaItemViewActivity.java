@@ -21,10 +21,17 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.AudioTourManager;
 import com.gaiagps.iburn.Constants;
+import com.gaiagps.iburn.CurrentDateProvider;
+import com.gaiagps.iburn.DateUtil;
+import com.gaiagps.iburn.Geo;
+import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.view.AnimatedFloatingActionButton;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.squareup.sqlbrite.SqlBrite;
 
 import org.prx.playerhater.PlayerHaterListener;
 import org.prx.playerhater.Song;
@@ -39,10 +46,10 @@ import timber.log.Timber;
  */
 public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHaterListener {
 
+    private static final boolean USE_MAPBOX_MAP = true;
+
     public static final String EXTRA_MODEL_ID = "model-id";
     public static final String EXTRA_MODEL_TYPE = "model-type";
-
-    public static final String EXTRA_PLAYA_ITEM = "playa-item";
 
     DataProvider provider;
 
@@ -565,7 +572,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         public void onClick(View v) {
             Intent i = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
             i.putExtra(EXTRA_MODEL_ID, modelId);
-            i.putExtra(EXTRA_PLAYA_ITEM, modeltype);
+            i.putExtra(EXTRA_MODEL_TYPE, modeltype);
             startActivity(i);
         }
     }

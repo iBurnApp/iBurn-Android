@@ -56,8 +56,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
+import rx.Observable;
 import rx.Subscription;
 import rx.subjects.PublishSubject;
 import timber.log.Timber;
@@ -75,7 +74,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
      * within the general vicinity
      */
     public static final double MAX_LAT = 40.812161;
-    public static final double MAX_LON = -119.170061;
+    public static final double MAX_LON = -119.164607;
     public static final double MIN_LAT = 40.764702;
     public static final double MIN_LON = -119.247798;
 

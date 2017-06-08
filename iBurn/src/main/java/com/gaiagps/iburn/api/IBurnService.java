@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 
 import com.gaiagps.iburn.PrefsHelper;
-import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.api.response.Art;
 import com.gaiagps.iburn.api.response.Camp;
 import com.gaiagps.iburn.api.response.DataManifest;
@@ -42,18 +41,7 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import timber.log.Timber;
 
-import static com.gaiagps.iburn.database.Art.ColArtist;
-import static com.gaiagps.iburn.database.Art.ColArtistLocation;
-import static com.gaiagps.iburn.database.Art.ColAudioTourUrl;
-import static com.gaiagps.iburn.database.Event.ColAllDay;
-import static com.gaiagps.iburn.database.Event.ColCampPlayaId;
-import static com.gaiagps.iburn.database.Event.ColCheckLocation;
-import static com.gaiagps.iburn.database.Event.ColStartTime;
-import static com.gaiagps.iburn.database.Event.ColStartTimePretty;
-import static com.gaiagps.iburn.database.Event.ColType;
-import static com.gaiagps.iburn.database.PlayaItem.ColFavorite;
-import static com.gaiagps.iburn.database.PlayaItem.ColName;
-import static com.gaiagps.iburn.database.PlayaItem.ColPlayaId;
+import static com.gaiagps.iburn.SECRETSKt.IBURN_API_URL;
 
 /**
  * A monolithic iBurn data updater. Handles fetching IBurn update data and update the database while
