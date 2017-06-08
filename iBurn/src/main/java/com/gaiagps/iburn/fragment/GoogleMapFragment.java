@@ -68,7 +68,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import hugo.weaving.DebugLog;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -230,7 +229,6 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
                         String lastEntry;
 
-                        @DebugLog
                         @Override
                         public void onFocusChange(View v, boolean hasFocus) {
                             if (hasFocus) {

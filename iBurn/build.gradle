@@ -3,13 +3,10 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
     }
 }
 
 apply plugin: 'com.android.application'
-apply plugin: 'com.jakewharton.hugo'
-apply plugin: 'me.tatarka.retrolambda'
 
 repositories {
     mavenCentral()
@@ -36,6 +33,10 @@ android {
             // We'll read release signingConfig's data from
             // gradle.properties in the project's root directory
         }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/rxjava.properties'
     }
 
     flavorDimensions "production"
@@ -89,6 +90,7 @@ if (project.hasProperty('keyPassword')) {
 }
 
 def SUPPORT_LIB_VERSION = "25.3.1"
+def PLAY_SERVICES_VERSION = "11.0.0"
 
 dependencies {
 
@@ -100,21 +102,21 @@ dependencies {
     compile "com.android.support:support-annotations:$SUPPORT_LIB_VERSION"
 
     // Google Play Services
-    compile 'com.google.android.gms:play-services-gcm:10.2.6'
-    compile 'com.google.android.gms:play-services-maps:10.2.6'
-    compile 'com.google.android.gms:play-services-location:10.2.6'
+    compile "com.google.android.gms:play-services-gcm:$PLAY_SERVICES_VERSION"
+    compile "com.google.android.gms:play-services-maps:$PLAY_SERVICES_VERSION"
+    compile "com.google.android.gms:play-services-location:$PLAY_SERVICES_VERSION"
 
     // 3rd Party libraries
-    compile 'com.google.code.gson:gson:2.7'
+    compile 'com.google.code.gson:gson:2.8.1'
     compile 'net.hockeyapp.android:HockeySDK:4.0.2'
     compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
-    compile 'com.jakewharton:butterknife:8.2.1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.2.1'
-    compile 'com.jakewharton.timber:timber:4.1.2'
+    compile 'com.jakewharton:butterknife:8.6.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
+    compile 'com.jakewharton.timber:timber:4.5.1'
     compile 'io.reactivex:rxandroid:1.2.1'
-    compile 'com.squareup.sqlbrite:sqlbrite:0.7.0'
+    compile 'com.squareup.sqlbrite:sqlbrite:1.1.1'
     compile 'com.squareup.retrofit:retrofit:1.9.0'
-    compile 'com.squareup.okhttp3:okhttp:3.4.1'
+    compile 'com.squareup.okhttp3:okhttp:3.8.0'
     compile 'pl.charmas.android:android-reactive-location:0.9@aar'
     compile 'com.tonicartos:superslim:0.4.13'
     compile 'xyz.danoz:recyclerviewfastscroller:0.1.3'
