@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SECRETS;
@@ -41,6 +42,7 @@ import com.gaiagps.iburn.fragment.PlayaListViewFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.mapbox.mapboxsdk.Mapbox;
 
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
@@ -298,7 +300,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         public enum IBurnTab {
             // Icons currently unused
-            MAP(R.string.map_tab, R.drawable.ic_brc, GoogleMapFragment.class),
+            MAP(R.string.map_tab, R.drawable.ic_brc, MapboxMapFragment.class),
             EXPLORE(R.string.explore_tab, R.drawable.ic_calendar, ExploreListViewFragment.class),
             BROWSE(R.string.browse_tab, R.drawable.ic_camp, BrowseListViewFragment.class),
             FAVORITES(R.string.fav_tab, R.drawable.ic_heart, FavoritesListViewFragment.class),
@@ -374,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             try {
                 Fragment newFrag = null;
                 Class<? extends Fragment> fragmentClass = mTabs.get(position).getFragmentClass();
-                if (fragmentClass.equals(GoogleMapFragment.class) && waitingForLocationPermission) {
+                if (fragmentClass.equals(MapboxMapFragment.class) && waitingForLocationPermission) {
                     newFrag = new MapPlaceHolderFragment();
                 } else {
                     newFrag = fragmentClass.newInstance();

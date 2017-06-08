@@ -1,14 +1,17 @@
 package com.gaiagps.iburn.location;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
 import android.os.Build;
 import android.os.SystemClock;
 
 import com.gaiagps.iburn.BuildConfig;
+import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PermissionManager;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.LocationSource;
+import com.mapbox.services.android.telemetry.location.LocationEngine;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -130,6 +133,50 @@ public class LocationProvider {
                 locationSubscription.unsubscribe();
                 locationSubscription = null;
             }
+        }
+    }
+
+    public static class MapboxMockLocationSource extends LocationEngine {
+
+        @Override
+        public void activate() {
+            mockCurrentLocation();
+        }
+
+        @Override
+        public void deactivate() {
+        }
+
+        @Override
+        public boolean isConnected() {
+            return true;
+        }
+
+        @SuppressLint("MissingPermission")
+        @Override
+        public Location getLastLocation() {
+            Location loc = new Location("MOCK_PROVIDER");
+            if (lastMockLocation != null) {
+                loc.setLatitude(lastMockLocation.getLatitude());
+                loc.setLongitude(lastMockLocation.getLongitude());
+            } else {
+                loc.setLatitude(Geo.MAN_LAT);
+                loc.setLongitude(Geo.MAN_LON);
+            }
+            loc.setBearing((float) (Math.random() * 360));
+            loc.setAccuracy((float) (Math.random() * 30));
+            Timber.d("Sending mock location %f, %f", loc.getLatitude(), loc.getLongitude());
+            return loc;
+        }
+
+        @Override
+        public void requestLocationUpdates() {
+
+        }
+
+        @Override
+        public void removeLocationUpdates() {
+
         }
     }
 }

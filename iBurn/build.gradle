@@ -7,10 +7,13 @@ buildscript {
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 repositories {
     mavenCentral()
     jcenter()
+    // For Mapbox SDK snapshots. Currently using unreleased map camera bounding
+    maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
 }
 
 android {
@@ -122,6 +125,10 @@ dependencies {
     compile 'xyz.danoz:recyclerviewfastscroller:0.1.3'
     compile 'org.prx:playerhater:0.3.6@aar'
 
+    compile('com.mapbox.mapboxsdk:mapbox-android-sdk:5.1.0-SNAPSHOT@aar') {
+        transitive = true
+    }
+
     // 3rd Party libraries with apt
     compile 'net.simonvt.schematic:schematic:0.6.7'
     annotationProcessor 'net.simonvt.schematic:schematic-compiler:0.6.7'
@@ -140,4 +147,5 @@ dependencies {
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
     androidTestCompile "com.android.support:support-annotations:$SUPPORT_LIB_VERSION"
 
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }

@@ -27,6 +27,7 @@ import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.Geo;
+import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.EventCursorAdapter;
@@ -44,6 +45,7 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.squareup.sqlbrite.SqlBrite;
 
 import org.prx.playerhater.PlayerHaterListener;
@@ -66,6 +68,8 @@ import timber.log.Timber;
  * Created by davidbrodsky on 8/11/13.
  */
 public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHaterListener {
+
+    private static final boolean USE_MAPBOX_MAP = true;
 
     public static final String EXTRA_MODEL_ID = "model-id";
     public static final String EXTRA_MODEL_TYPE = "model-type";
@@ -254,21 +258,30 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
                                 });
                                 latLng = new LatLng(itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.latitude)), itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.longitude)));
                                 //TextView locationView = ((TextView) findViewById(R.id.location));
-                                LatLng start = new LatLng(Geo.MAN_LAT, Geo.MAN_LON);
                                 Timber.d("adding / centering marker on %f, %f", latLng.latitude, latLng.longitude);
-                                GoogleMapFragment mapFragment = GoogleMapFragment.newInstance();
-                                mapFragment.showcaseMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)).anchor(.5f, .5f));
-                                getSupportFragmentManager().beginTransaction().add(R.id.map_container, mapFragment).commit();
-                                mapFragment.getMapAsync(googleMap -> {
-                                    UiSettings settings = googleMap.getUiSettings();
-                                    settings.setMyLocationButtonEnabled(false);
-                                    settings.setZoomControlsEnabled(false);
-                                    googleMap.setOnCameraChangeListener(cameraPosition -> {
-                                        if (cameraPosition.zoom >= 20) {
-                                            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.99));
-                                        }
+                                if (USE_MAPBOX_MAP) {
+                                    com.mapbox.mapboxsdk.geometry.LatLng mbLatLng = new com.mapbox.mapboxsdk.geometry.LatLng(latLng.latitude, latLng.longitude);
+                                    MapboxMapFragment mapFragment = new MapboxMapFragment();
+                                    mapFragment.showcaseMarker(new com.mapbox.mapboxsdk.annotations.MarkerOptions().position(mbLatLng).icon(IconFactory.getInstance(getApplicationContext()).fromResource(R.drawable.pin))); //BitmapDescriptorFactory.fromResource(R.drawable.pin)).anchor(.5f, .5f));
+                                    getSupportFragmentManager().beginTransaction().add(R.id.map_container, mapFragment).commit();
+
+                                } else {
+                                    LatLng start = new LatLng(Geo.MAN_LAT, Geo.MAN_LON);
+                                    GoogleMapFragment mapFragment = GoogleMapFragment.newInstance();
+                                    mapFragment.showcaseMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)).anchor(.5f, .5f));
+                                    getSupportFragmentManager().beginTransaction().add(R.id.map_container, mapFragment).commit();
+                                    mapFragment.getMapAsync(googleMap -> {
+                                        UiSettings settings = googleMap.getUiSettings();
+                                        settings.setMyLocationButtonEnabled(false);
+                                        settings.setZoomControlsEnabled(false);
+                                        googleMap.setOnCameraChangeListener(cameraPosition -> {
+                                            if (cameraPosition.zoom >= 20) {
+                                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.99));
+                                            }
+                                        });
                                     });
-                                });
+                                }
+
                                 //favoriteMenuItem.setVisible(false);
                                 //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
                             } else {

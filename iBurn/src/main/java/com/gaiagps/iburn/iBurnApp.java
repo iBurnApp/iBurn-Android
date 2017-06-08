@@ -1,5 +1,7 @@
 package com.gaiagps.iburn;
 
+import com.mapbox.mapboxsdk.Mapbox;
+
 import timber.log.Timber;
 
 /**
@@ -14,6 +16,8 @@ public class iBurnApp extends android.app.Application {
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
         }
+
+        Mapbox.getInstance(getApplicationContext(), SECRETS.MAPBOX_API_KEY);
 
         // If we abandon Timber logging in this app, enable below line
         // to enable Timber logging in any library modules that use it

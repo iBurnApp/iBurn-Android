@@ -69,6 +69,7 @@
     <color name="dull_white_3">#cc4c5149</color>
 
     <!-- Map Colors -->
+    <color name="map_my_location">#139dff</color>
     <color name="map_bg">#E8E0D8</color>
     <color name="map_highlight">#FFA851</color>
     <color name="map_streets">#D9CCBE</color>
