@@ -11,19 +11,16 @@ Got iOS? You'll love [iBurn for iOS](https://github.com/Burning-Man-Earth/iBurn-
 * Make sure your Android SDK packages are up to date.
 * `$ git clone https://github.com/Burning-Man-Earth/iBurn-Android --recursive`
 * `$ cd ./iBurn-Android`
-* `$ touch ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.java && open ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.java`
+* `$ touch ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.kt && open ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.kt`
 * Copy the following into SECRETS.java:
 
     ```java
-    package com.gaiagps.iburn;
+    package com.gaiagps.iburn
 
-    public class SECRETS {
-
-        public static final String HOCKEY_ID = "YOUR_HOCKEYAPP_ID";
-        public static final String UNLOCK_CODE = "WHATEVER";
-        public static final String IBURN_API_URL = "SOME_URL";
-
-    }
+    const val HOCKEY_ID = "SOME_ID"
+    const val UNLOCK_CODE = "WHATEVER_PASSWORD"
+    const val IBURN_API_URL = "https://SOME_API"
+    const val MAPBOX_API_KEY = "YOUR_MAPBOX_KEY"
     ```
 * `$ ./gradlew assembleDebug` or from Android Studio invoke 'Import Project' and select the `./iBurn-Android` directory.
 

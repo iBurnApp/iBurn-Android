@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 
 import com.gaiagps.iburn.PrefsHelper;
-import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.api.response.Art;
 import com.gaiagps.iburn.api.response.Camp;
 import com.gaiagps.iburn.api.response.DataManifest;
@@ -41,6 +40,8 @@ import retrofit.RestAdapter;
 import retrofit.converter.GsonConverter;
 import rx.Observable;
 import timber.log.Timber;
+
+import static com.gaiagps.iburn.SECRETSKt.IBURN_API_URL;
 
 /**
  * A monolithic iBurn data updater. Handles fetching IBurn update data and update the database while
@@ -173,7 +174,7 @@ public class IBurnService {
                 .create();
 
         RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(SECRETS.IBURN_API_URL)
+                .setEndpoint(IBURN_API_URL)
                 .setConverter(new GsonConverter(gson))
                 .build();
 

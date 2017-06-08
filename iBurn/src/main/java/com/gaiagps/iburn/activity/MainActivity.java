@@ -26,7 +26,6 @@ import android.widget.Toast;
 import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.SECRETS;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.Subscriber;
@@ -36,13 +35,11 @@ import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.FeedbackFragment;
-import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.gaiagps.iburn.fragment.MapPlaceHolderFragment;
 import com.gaiagps.iburn.fragment.PlayaListViewFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.mapbox.mapboxsdk.Mapbox;
 
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
@@ -62,10 +59,12 @@ import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
+import static com.gaiagps.iburn.SECRETSKt.HOCKEY_ID;
+import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
+
 @RuntimePermissions
 public class MainActivity extends AppCompatActivity implements SearchQueryProvider {
 
-    private static final String HOCKEY_ID = SECRETS.HOCKEY_ID;
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private boolean googlePlayServicesMissing = false;
 
@@ -209,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         alert.setView(input);
         alert.setPositiveButton(getString(R.string.ok), (dialog, whichButton) -> {
             String pwGuess = input.getText().toString();
-            if (pwGuess.equals(SECRETS.UNLOCK_CODE)) {
+            if (pwGuess.equals(UNLOCK_CODE)) {
                 prefs.setEnteredValidUnlockCode(true);
                 // Notify all observers that embargo is clear
                 DataProvider.getInstance(getApplicationContext()).subscribe(DataProvider::endUpgrade);
