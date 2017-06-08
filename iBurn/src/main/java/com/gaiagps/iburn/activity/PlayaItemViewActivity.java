@@ -4,19 +4,16 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Point;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
-import android.view.ContextThemeWrapper;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -24,41 +21,16 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.AudioTourManager;
 import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.CurrentDateProvider;
-import com.gaiagps.iburn.DateUtil;
-import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.adapters.AdapterListener;
-import com.gaiagps.iburn.adapters.EventCursorAdapter;
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
-import com.gaiagps.iburn.database.ArtTable;
-import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.EventTable;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.gaiagps.iburn.database.PlayaItemTable;
-import com.gaiagps.iburn.fragment.GoogleMapFragment;
 import com.gaiagps.iburn.view.AnimatedFloatingActionButton;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.UiSettings;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.squareup.sqlbrite.SqlBrite;
 
 import org.prx.playerhater.PlayerHaterListener;
 import org.prx.playerhater.Song;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
@@ -69,6 +41,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
 
     public static final String EXTRA_MODEL_ID = "model-id";
     public static final String EXTRA_MODEL_TYPE = "model-type";
+
+    public static final String EXTRA_PLAYA_ITEM = "playa-item";
 
     DataProvider provider;
 
@@ -208,321 +182,321 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
     }
 
     private void populateViews(Intent i) {
-        modelId = i.getIntExtra(EXTRA_MODEL_ID, 0);
-        Constants.PlayaItemType model_type = (Constants.PlayaItemType) i.getSerializableExtra(EXTRA_MODEL_TYPE);
-        switch (model_type) {
-            case CAMP:
-                modelTable = PlayaDatabase.CAMPS;
-                break;
-            case ART:
-                modelTable = PlayaDatabase.ART;
-                break;
-            case EVENT:
-                modelTable = PlayaDatabase.EVENTS;
-                break;
-        }
-
-        DataProvider.getInstance(getApplicationContext())
-                .subscribeOn(Schedulers.computation())
-                .doOnNext(dataProvider -> this.provider = dataProvider)
-                .flatMap(dataProvider -> dataProvider.createQuery(modelTable, "SELECT * FROM " + modelTable + " WHERE _id = ?", String.valueOf(modelId)))
-                .first()    // Do we want to receive updates?
-                .map(SqlBrite.Query::run)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(itemCursor -> {
-                    try {
-                        if (itemCursor != null && itemCursor.moveToFirst()) {
-                            final String title = itemCursor.getString(itemCursor.getColumnIndexOrThrow(PlayaItemTable.name));
-                            titleTextView.setText(title);
-                            isFavorite = itemCursor.getInt(itemCursor.getColumnIndex(PlayaItemTable.favorite)) == 1;
-                            setFavorite(isFavorite, false);
-
-                            favoriteButton.setTag(R.id.list_item_related_model, modelId);
-                            favoriteButton.setTag(R.id.list_item_related_model_type, model_type);
-                            favoriteButton.setOnClickListener(favoriteButtonOnClickListener);
-
-                            if (!itemCursor.isNull(itemCursor.getColumnIndex(PlayaItemTable.description))) {
-                                ((TextView) findViewById(R.id.body)).setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(PlayaItemTable.description)));
-                            } else
-                                findViewById(R.id.body).setVisibility(View.GONE);
-
-                            showingLocation = !itemCursor.isNull(itemCursor.getColumnIndex(PlayaItemTable.latitude)) && (itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.latitude)) != 0);
-                            if (showingLocation) {
-                                favoriteButton.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-                                    if (favoriteMenuItem != null)
-                                        favoriteMenuItem.setVisible(v.getVisibility() == View.GONE);
-                                });
-                                latLng = new LatLng(itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.latitude)), itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.longitude)));
-                                //TextView locationView = ((TextView) findViewById(R.id.location));
-                                LatLng start = new LatLng(Geo.MAN_LAT, Geo.MAN_LON);
-                                Timber.d("adding / centering marker on %f, %f", latLng.latitude, latLng.longitude);
-                                GoogleMapFragment mapFragment = GoogleMapFragment.newInstance();
-                                mapFragment.showcaseMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)).anchor(.5f, .5f));
-                                getSupportFragmentManager().beginTransaction().add(R.id.map_container, mapFragment).commit();
-                                mapFragment.getMapAsync(googleMap -> {
-                                    UiSettings settings = googleMap.getUiSettings();
-                                    settings.setMyLocationButtonEnabled(false);
-                                    settings.setZoomControlsEnabled(false);
-                                    googleMap.setOnCameraChangeListener(cameraPosition -> {
-                                        if (cameraPosition.zoom >= 20) {
-                                            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.99));
-                                        }
-                                    });
-                                });
-                                //favoriteMenuItem.setVisible(false);
-                                //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
-                            } else {
-                                // Adjust the margin / padding show the heart icon doesn't
-                                // overlap title + descrition
-                                findViewById(R.id.map_container).setVisibility(View.GONE);
-                                //GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                                //getSupportFragmentManager().beginTransaction().remove(mapFragment).commit();
-                                collapsingToolbarLayout.setBackgroundResource(android.R.color.transparent);
-                                CollapsingToolbarLayout.LayoutParams parms = new CollapsingToolbarLayout.LayoutParams(CollapsingToolbarLayout.LayoutParams.MATCH_PARENT, 24);
-                                mapContainer.setLayoutParams(parms);
-                                favoriteButton.setVisibility(View.GONE);
-                                //favoriteMenuItem.setVisible(true);
-                            }
-
-                            switch (model_type) {
-                                case ART:
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.playaAddress))) {
-                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.playaAddress)));
-                                    } else {
-                                        subItem1TextView.setVisibility(View.GONE);
-                                    }
-
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.artist))) {
-                                        subItem2TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.artist)));
-                                    } else {
-                                        subItem2TextView.setVisibility(View.GONE);
-                                    }
-
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.artistLoc))) {
-                                        subItem3TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.artistLoc)));
-                                    } else {
-                                        subItem3TextView.setVisibility(View.GONE);
-                                    }
-
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndexOrThrow(ArtTable.audioTourUrl))) {
-                                        audioTourUrl = itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.audioTourUrl));
-
-                                        Timber.d("Add audio tour control view");
-                                        audioTourToggle = new TextView(this);
-                                        audioTourToggle.setTextColor(getResources().getColor(R.color.regular_text));
-                                        audioTourToggle.setTextSize(22);
-                                        audioTourToggle.setCompoundDrawablePadding(12);  // 8 dp
-                                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                                        params.bottomMargin = 12; // 8 dp
-                                        audioTourToggle.setLayoutParams(params);
-                                        if (isAudioTourManagerPlayingThis()) {
-                                            audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_pause_circle_outline_light_24dp), null, null, null);
-                                            audioTourToggle.setText(R.string.pause_audio_tour);
-                                        } else {
-                                            audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_play_circle_outline_light_24dp), null, null, null);
-                                            audioTourToggle.setText(R.string.play_audio_tour);
-                                        }
-                                        audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_play_circle_outline_light_24dp), null, null, null);
-                                        LinearLayout contentContainer = (LinearLayout) findViewById(R.id.content_container);
-                                        contentContainer.addView(audioTourToggle, 3);
-
-                                        audioTourToggle.setOnClickListener(view -> {
-                                            view.setSelected(!view.isSelected());
-                                            onAudioTourToggleSelectedChanged();
-
-                                            if (view.isSelected()) {
-                                                // Playing. Show Pause button
-                                                audioTourManager.playAudioTourUrl(audioTourUrl, title);
-                                            } else {
-                                                // Paused. Show Play button
-                                                audioTourManager.pause();
-                                            }
-                                        });
-                                    }
-
-                                    break;
-                                case CAMP:
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(CampTable.playaAddress))) {
-                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(CampTable.playaAddress)));
-                                    } else
-                                        subItem1TextView.setVisibility(View.GONE);
-
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(CampTable.hometown))) {
-                                        subItem2TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(CampTable.hometown)));
-                                    } else
-                                        subItem2TextView.setVisibility(View.GONE);
-                                    subItem3TextView.setVisibility(View.GONE);
-                                    break;
-                                case EVENT:
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(EventTable.playaAddress))) {
-                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.playaAddress)));
-                                    } else
-                                        subItem1TextView.setVisibility(View.GONE);
-
-                                    Date nowDate = CurrentDateProvider.getCurrentDate();
-                                    Calendar nowPlusOneHrDate = Calendar.getInstance();
-                                    nowPlusOneHrDate.setTime(nowDate);
-                                    nowPlusOneHrDate.add(Calendar.HOUR, 1);
-
-                                    subItem2TextView.setText(DateUtil.getDateString(this, nowDate, nowPlusOneHrDate.getTime(),
-                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.startTime)),
-                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.startTimePrint)),
-                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.endTime)),
-                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.endTimePrint))));
-                                    subItem3TextView.setVisibility(View.GONE);
-                                    break;
-                            }
-
-                            // Look up hosted events or other occurrences
-                            int playaId = itemCursor.getInt(itemCursor.getColumnIndex(PlayaItemTable.playaId));
-
-                            if (modelTable.equals(PlayaDatabase.CAMPS)) {
-                                // Lookup hosted events
-
-                                EventCursorAdapter adapter = new EventCursorAdapter(this, null, true, new AdapterListener() {
-                                    @Override
-                                    public void onItemSelected(int modelId, Constants.PlayaItemType type) {
-                                        Intent intent = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
-                                        intent.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, modelId);
-                                        intent.putExtra(PlayaItemViewActivity.EXTRA_MODEL_TYPE, type);
-                                        startActivity(intent);
-                                    }
-
-                                    @Override
-                                    public void onItemFavoriteButtonSelected(int modelId, Constants.PlayaItemType type) {
-                                        final String modelTable;
-                                        switch (type) {
-                                            case CAMP:
-                                                modelTable = PlayaDatabase.CAMPS;
-                                                break;
-                                            case ART:
-                                                modelTable = PlayaDatabase.ART;
-                                                break;
-                                            case EVENT:
-                                                modelTable = PlayaDatabase.EVENTS;
-                                                break;
-
-                                            default:
-                                                throw new IllegalArgumentException("Invalid type " + type);
-                                        }
-
-                                        provider.toggleFavorite(modelTable, modelId);
-                                    }
-                                });
-
-                                provider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.campPlayaId + " = ? GROUP BY " + PlayaItemTable.name, String.valueOf(playaId))
-                                        .map(SqlBrite.Query::run)
-                                        .subscribe(eventsCursor -> {
-
-                                            if (eventsCursor == null) return;
-
-                                            Timber.d("Got %d hosted events", eventsCursor.getCount());
-
-                                            if (eventsCursor.getCount() == 0) {
-                                                eventsCursor.close();
-                                                return;
-                                            }
-
-                                            int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-
-                                            ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
-
-                                            TextView hostedEventsTitle = new TextView(wrapper);
-                                            hostedEventsTitle.setText(R.string.hosted_events);
-                                            hostedEventsTitle.setTextSize(32);
-                                            hostedEventsTitle.setPadding(pad, pad, pad, pad);
-
-                                            overflowContainer.removeAllViews();
-
-                                            overflowContainer.addView(hostedEventsTitle);
-
-                                            adapter.swapCursor(eventsCursor);
-
-                                            for (int idx = 0; idx < eventsCursor.getCount(); idx++) {
-                                                EventCursorAdapter.ViewHolder holder = adapter.createViewHolder(overflowContainer, 0);
-                                                adapter.bindViewHolder(holder, idx);
-                                                overflowContainer.addView(holder.itemView);
-                                            }
-                                            eventsCursor.close();
-                                        }, throwable -> Timber.e(throwable, "Failed to bind hosted events"));
-
-                            } else if (modelTable.equals(PlayaDatabase.EVENTS)) {
-                                // Lookup other event occurrences
-
-                                final ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
-                                final Typeface condensed = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
-                                int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-
-                                if (!itemCursor.isNull(itemCursor.getColumnIndex(EventTable.campPlayaId))) {
-                                    final TextView hostedByCamp = new TextView(wrapper);
-                                    hostedByCamp.setTag(itemCursor.getInt(itemCursor.getColumnIndex(EventTable.campPlayaId)));
-                                    hostedByCamp.setTypeface(condensed);
-                                    hostedByCamp.setTextSize(32);
-                                    hostedByCamp.setPadding(pad, pad, pad, 0);
-
-                                    provider.createQuery(PlayaDatabase.CAMPS, "SELECT * FROM " + PlayaDatabase.CAMPS + " WHERE " + CampTable.playaId + " = ?", String.valueOf(itemCursor.getInt(itemCursor.getColumnIndex(EventTable.campPlayaId))))
-                                            .first()
-                                            .map(SqlBrite.Query::run)
-                                            .subscribe(campCursor -> {
-                                                if (campCursor != null && campCursor.moveToFirst()) {
-                                                    hostedByCamp.setOnClickListener(new RelatedItemOnClickListener(campCursor.getInt(campCursor.getColumnIndex(PlayaItemTable.id)), Constants.PlayaItemType.CAMP));
-                                                    String campName = campCursor.getString(campCursor.getColumnIndex(PlayaItemTable.name));
-                                                    hostedByCamp.setText("Hosted by " + campName);
-                                                    campCursor.close();
-                                                }
-                                            });
-                                    overflowContainer.addView(hostedByCamp);
-                                }
-
-                                provider.createQuery(PlayaDatabase.EVENTS, "SELECT * FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.playaId + " = ? AND " + EventTable.startTime + " != ?", String.valueOf(playaId), itemCursor.getString(itemCursor.getColumnIndex(EventTable.startTime)))
-                                        .first()
-                                        .map(SqlBrite.Query::run)
-                                        .subscribe(eventsCursor -> {
-                                            if (eventsCursor == null) return;
-
-                                            Timber.d("Got %d other occurrences", eventsCursor.getCount());
-
-                                            if (eventsCursor.getCount() == 0) {
-                                                eventsCursor.close();
-                                                return;
-                                            }
-
-                                            TextView occurrencesTitle = new TextView(wrapper);
-                                            occurrencesTitle.setText(R.string.also_at);
-                                            occurrencesTitle.setTypeface(condensed);
-                                            occurrencesTitle.setTextSize(32);
-                                            occurrencesTitle.setPadding(pad,pad,pad,0);
-                                            overflowContainer.addView(occurrencesTitle);
-
-                                            final SimpleDateFormat timeDayFormatter = new SimpleDateFormat("EEEE, M/d 'at' h:mm a", Locale.US);
-
-                                            while (eventsCursor.moveToNext()) {
-                                                TextView event = new TextView(wrapper);
-                                                event.setTypeface(condensed);
-                                                event.setTextSize(20);
-                                                event.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                                                try {
-                                                    event.setText(timeDayFormatter.format(PlayaDateTypeAdapter.iso8601Format.parse(eventsCursor.getString(eventsCursor.getColumnIndex(EventTable.startTime)))));
-                                                } catch (ParseException e) {
-                                                    Timber.w(e, "Unable to parse date, using pre-computed");
-                                                    event.setText(eventsCursor.getString(eventsCursor.getColumnIndex(EventTable.startTimePrint)).toUpperCase());
-                                                }
-                                                event.setOnClickListener(new RelatedItemOnClickListener(eventsCursor.getInt(eventsCursor.getColumnIndex(PlayaItemTable.id)), Constants.PlayaItemType.EVENT));
-                                                event.setPadding(pad,pad,pad,pad);
-
-                                                TypedValue outValue = new TypedValue();
-                                                getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
-                                                event.setBackgroundResource(outValue.resourceId);
-                                                overflowContainer.addView(event);
-                                            }
-                                            eventsCursor.close();
-                                        }, throwable -> Timber.e(throwable, "Failed to bind event occurrences"));
-                            }
-                        }
-                    } finally {
-                        if (itemCursor != null) itemCursor.close();
-                    }
-                }, throwable -> Timber.e(throwable, "Failed to populate views from item"));
+//        modelId = i.getIntExtra(EXTRA_MODEL_ID, 0);
+//        Constants.PlayaItemType model_type = (Constants.PlayaItemType) i.getSerializableExtra(EXTRA_PLAYA_ITEM);
+//        switch (model_type) {
+//            case CAMP:
+//                modelTable = PlayaDatabase.CAMPS;
+//                break;
+//            case ART:
+//                modelTable = PlayaDatabase.ART;
+//                break;
+//            case EVENT:
+//                modelTable = PlayaDatabase.EVENTS;
+//                break;
+//        }
+//
+//        DataProvider.getInstance(getApplicationContext())
+//                .subscribeOn(getIoScheduler())
+//                .doOnNext(dataProvider -> this.provider = dataProvider)
+//                .flatMap(dataProvider -> dataProvider.createQuery(modelTable, "SELECT * FROM " + modelTable + " WHERE _id = ?", String.valueOf(modelId)))
+//                .first()    // Do we want to receive updates?
+//                .map(SqlBrite.Query::run)
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(itemCursor -> {
+//                    try {
+//                        if (itemCursor != null && itemCursor.moveToFirst()) {
+//                            final String title = itemCursor.getString(itemCursor.getColumnIndexOrThrow(PlayaItemTable.name));
+//                            titleTextView.setText(title);
+//                            isFavorite = itemCursor.getInt(itemCursor.getColumnIndex(PlayaItemTable.favorite)) == 1;
+//                            setFavorite(isFavorite, false);
+//
+//                            favoriteButton.setTag(R.id.list_item_related_model, modelId);
+//                            favoriteButton.setTag(R.id.list_item_related_model_type, model_type);
+//                            favoriteButton.setOnClickListener(favoriteButtonOnClickListener);
+//
+//                            if (!itemCursor.isNull(itemCursor.getColumnIndex(PlayaItemTable.description))) {
+//                                ((TextView) findViewById(R.id.body)).setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(PlayaItemTable.description)));
+//                            } else
+//                                findViewById(R.id.body).setVisibility(View.GONE);
+//
+//                            showingLocation = !itemCursor.isNull(itemCursor.getColumnIndex(PlayaItemTable.latitude)) && (itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.latitude)) != 0);
+//                            if (showingLocation) {
+//                                favoriteButton.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+//                                    if (favoriteMenuItem != null)
+//                                        favoriteMenuItem.setVisible(v.getVisibility() == View.GONE);
+//                                });
+//                                latLng = new LatLng(itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.latitude)), itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.longitude)));
+//                                //TextView locationView = ((TextView) findViewById(R.id.location));
+//                                LatLng start = new LatLng(Geo.MAN_LAT, Geo.MAN_LON);
+//                                Timber.d("adding / centering marker on %f, %f", latLng.latitude, latLng.longitude);
+//                                GoogleMapFragment mapFragment = GoogleMapFragment.newInstance();
+//                                mapFragment.showcaseMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)).anchor(.5f, .5f));
+//                                getSupportFragmentManager().beginTransaction().add(R.id.map_container, mapFragment).commit();
+//                                mapFragment.getMapAsync(googleMap -> {
+//                                    UiSettings settings = googleMap.getUiSettings();
+//                                    settings.setMyLocationButtonEnabled(false);
+//                                    settings.setZoomControlsEnabled(false);
+//                                    googleMap.setOnCameraChangeListener(cameraPosition -> {
+//                                        if (cameraPosition.zoom >= 20) {
+//                                            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.99));
+//                                        }
+//                                    });
+//                                });
+//                                //favoriteMenuItem.setVisible(false);
+//                                //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
+//                            } else {
+//                                // Adjust the margin / padding show the heart icon doesn't
+//                                // overlap title + descrition
+//                                findViewById(R.id.map_container).setVisibility(View.GONE);
+//                                //GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+//                                //getSupportFragmentManager().beginTransaction().remove(mapFragment).commit();
+//                                collapsingToolbarLayout.setBackgroundResource(android.R.color.transparent);
+//                                CollapsingToolbarLayout.LayoutParams parms = new CollapsingToolbarLayout.LayoutParams(CollapsingToolbarLayout.LayoutParams.MATCH_PARENT, 24);
+//                                mapContainer.setLayoutParams(parms);
+//                                favoriteButton.setVisibility(View.GONE);
+//                                //favoriteMenuItem.setVisible(true);
+//                            }
+//
+//                            switch (model_type) {
+//                                case ART:
+//                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.playaAddress))) {
+//                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.playaAddress)));
+//                                    } else {
+//                                        subItem1TextView.setVisibility(View.GONE);
+//                                    }
+//
+//                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.artist))) {
+//                                        subItem2TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.artist)));
+//                                    } else {
+//                                        subItem2TextView.setVisibility(View.GONE);
+//                                    }
+//
+//                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.artistLoc))) {
+//                                        subItem3TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.artistLoc)));
+//                                    } else {
+//                                        subItem3TextView.setVisibility(View.GONE);
+//                                    }
+//
+//                                    if (!itemCursor.isNull(itemCursor.getColumnIndexOrThrow(ArtTable.audioTourUrl))) {
+//                                        audioTourUrl = itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.audioTourUrl));
+//
+//                                        Timber.d("Add audio tour control view");
+//                                        audioTourToggle = new TextView(this);
+//                                        audioTourToggle.setTextColor(getResources().getColor(R.color.regular_text));
+//                                        audioTourToggle.setTextSize(22);
+//                                        audioTourToggle.setCompoundDrawablePadding(12);  // 8 dp
+//                                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+//                                        params.bottomMargin = 12; // 8 dp
+//                                        audioTourToggle.setLayoutParams(params);
+//                                        if (isAudioTourManagerPlayingThis()) {
+//                                            audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_pause_circle_outline_light_24dp), null, null, null);
+//                                            audioTourToggle.setText(R.string.pause_audio_tour);
+//                                        } else {
+//                                            audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_play_circle_outline_light_24dp), null, null, null);
+//                                            audioTourToggle.setText(R.string.play_audio_tour);
+//                                        }
+//                                        audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_play_circle_outline_light_24dp), null, null, null);
+//                                        LinearLayout contentContainer = (LinearLayout) findViewById(R.id.content_container);
+//                                        contentContainer.addView(audioTourToggle, 3);
+//
+//                                        audioTourToggle.setOnClickListener(view -> {
+//                                            view.setSelected(!view.isSelected());
+//                                            onAudioTourToggleSelectedChanged();
+//
+//                                            if (view.isSelected()) {
+//                                                // Playing. Show Pause button
+//                                                audioTourManager.playAudioTourUrl(audioTourUrl, title);
+//                                            } else {
+//                                                // Paused. Show Play button
+//                                                audioTourManager.pause();
+//                                            }
+//                                        });
+//                                    }
+//
+//                                    break;
+//                                case CAMP:
+//                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(CampTable.playaAddress))) {
+//                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(CampTable.playaAddress)));
+//                                    } else
+//                                        subItem1TextView.setVisibility(View.GONE);
+//
+//                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(CampTable.hometown))) {
+//                                        subItem2TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(CampTable.hometown)));
+//                                    } else
+//                                        subItem2TextView.setVisibility(View.GONE);
+//                                    subItem3TextView.setVisibility(View.GONE);
+//                                    break;
+//                                case EVENT:
+//                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(EventTable.playaAddress))) {
+//                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.playaAddress)));
+//                                    } else
+//                                        subItem1TextView.setVisibility(View.GONE);
+//
+//                                    Date nowDate = CurrentDateProvider.getCurrentDate();
+//                                    Calendar nowPlusOneHrDate = Calendar.getInstance();
+//                                    nowPlusOneHrDate.setTime(nowDate);
+//                                    nowPlusOneHrDate.add(Calendar.HOUR, 1);
+//
+//                                    subItem2TextView.setText(DateUtil.getDateString(this, nowDate, nowPlusOneHrDate.getTime(),
+//                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.startTime)),
+//                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.startTimePrint)),
+//                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.endTime)),
+//                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.endTimePrint))));
+//                                    subItem3TextView.setVisibility(View.GONE);
+//                                    break;
+//                            }
+//
+//                            // Look up hosted events or other occurrences
+//                            int playaId = itemCursor.getInt(itemCursor.getColumnIndex(PlayaItemTable.playaId));
+//
+//                            if (modelTable.equals(PlayaDatabase.CAMPS)) {
+//                                // Lookup hosted events
+//
+//                                EventCursorAdapter adapter = new EventCursorAdapter(this, null, true, new AdapterListener() {
+//                                    @Override
+//                                    public void onItemSelected(int modelId, Constants.PlayaItemType type) {
+//                                        Intent intent = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
+//                                        intent.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, modelId);
+//                                        intent.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM, type);
+//                                        startActivity(intent);
+//                                    }
+//
+//                                    @Override
+//                                    public void onItemFavoriteButtonSelected(int modelId, Constants.PlayaItemType type) {
+//                                        final String modelTable;
+//                                        switch (type) {
+//                                            case CAMP:
+//                                                modelTable = PlayaDatabase.CAMPS;
+//                                                break;
+//                                            case ART:
+//                                                modelTable = PlayaDatabase.ART;
+//                                                break;
+//                                            case EVENT:
+//                                                modelTable = PlayaDatabase.EVENTS;
+//                                                break;
+//
+//                                            default:
+//                                                throw new IllegalArgumentException("Invalid type " + type);
+//                                        }
+//
+//                                        provider.toggleFavorite(modelTable, modelId);
+//                                    }
+//                                });
+//
+//                                provider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.campPlayaId + " = ? GROUP BY " + PlayaItemTable.name, String.valueOf(playaId))
+//                                        .map(SqlBrite.Query::run)
+//                                        .subscribe(eventsCursor -> {
+//
+//                                            if (eventsCursor == null) return;
+//
+//                                            Timber.d("Got %d hosted events", eventsCursor.getCount());
+//
+//                                            if (eventsCursor.getCount() == 0) {
+//                                                eventsCursor.close();
+//                                                return;
+//                                            }
+//
+//                                            int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+//
+//                                            ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
+//
+//                                            TextView hostedEventsTitle = new TextView(wrapper);
+//                                            hostedEventsTitle.setText(R.string.hosted_events);
+//                                            hostedEventsTitle.setTextSize(32);
+//                                            hostedEventsTitle.setPadding(pad, pad, pad, pad);
+//
+//                                            overflowContainer.removeAllViews();
+//
+//                                            overflowContainer.addView(hostedEventsTitle);
+//
+//                                            adapter.swapCursor(eventsCursor);
+//
+//                                            for (int idx = 0; idx < eventsCursor.getCount(); idx++) {
+//                                                EventCursorAdapter.ViewHolder holder = adapter.createViewHolder(overflowContainer, 0);
+//                                                adapter.bindViewHolder(holder, idx);
+//                                                overflowContainer.addView(holder.itemView);
+//                                            }
+//                                            eventsCursor.close();
+//                                        }, throwable -> Timber.e(throwable, "Failed to bind hosted events"));
+//
+//                            } else if (modelTable.equals(PlayaDatabase.EVENTS)) {
+//                                // Lookup other event occurrences
+//
+//                                final ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
+//                                final Typeface condensed = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
+//                                int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+//
+//                                if (!itemCursor.isNull(itemCursor.getColumnIndex(EventTable.campPlayaId))) {
+//                                    final TextView hostedByCamp = new TextView(wrapper);
+//                                    hostedByCamp.setTag(itemCursor.getInt(itemCursor.getColumnIndex(EventTable.campPlayaId)));
+//                                    hostedByCamp.setTypeface(condensed);
+//                                    hostedByCamp.setTextSize(32);
+//                                    hostedByCamp.setPadding(pad, pad, pad, 0);
+//
+//                                    provider.createQuery(PlayaDatabase.CAMPS, "SELECT * FROM " + PlayaDatabase.CAMPS + " WHERE " + CampTable.playaId + " = ?", String.valueOf(itemCursor.getInt(itemCursor.getColumnIndex(EventTable.campPlayaId))))
+//                                            .first()
+//                                            .map(SqlBrite.Query::run)
+//                                            .subscribe(campCursor -> {
+//                                                if (campCursor != null && campCursor.moveToFirst()) {
+//                                                    hostedByCamp.setOnClickListener(new RelatedItemOnClickListener(campCursor.getInt(campCursor.getColumnIndex(PlayaItemTable.id)), Constants.PlayaItemType.CAMP));
+//                                                    String campName = campCursor.getString(campCursor.getColumnIndex(PlayaItemTable.name));
+//                                                    hostedByCamp.setText("Hosted by " + campName);
+//                                                    campCursor.close();
+//                                                }
+//                                            });
+//                                    overflowContainer.addView(hostedByCamp);
+//                                }
+//
+//                                provider.createQuery(PlayaDatabase.EVENTS, "SELECT * FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.playaId + " = ? AND " + EventTable.startTime + " != ?", String.valueOf(playaId), itemCursor.getString(itemCursor.getColumnIndex(EventTable.startTime)))
+//                                        .first()
+//                                        .map(SqlBrite.Query::run)
+//                                        .subscribe(eventsCursor -> {
+//                                            if (eventsCursor == null) return;
+//
+//                                            Timber.d("Got %d other occurrences", eventsCursor.getCount());
+//
+//                                            if (eventsCursor.getCount() == 0) {
+//                                                eventsCursor.close();
+//                                                return;
+//                                            }
+//
+//                                            TextView occurrencesTitle = new TextView(wrapper);
+//                                            occurrencesTitle.setText(R.string.also_at);
+//                                            occurrencesTitle.setTypeface(condensed);
+//                                            occurrencesTitle.setTextSize(32);
+//                                            occurrencesTitle.setPadding(pad,pad,pad,0);
+//                                            overflowContainer.addView(occurrencesTitle);
+//
+//                                            final SimpleDateFormat timeDayFormatter = new SimpleDateFormat("EEEE, M/d 'at' h:mm a", Locale.US);
+//
+//                                            while (eventsCursor.moveToNext()) {
+//                                                TextView event = new TextView(wrapper);
+//                                                event.setTypeface(condensed);
+//                                                event.setTextSize(20);
+//                                                event.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+//                                                try {
+//                                                    event.setText(timeDayFormatter.format(PlayaDateTypeAdapter.iso8601Format.parse(eventsCursor.getString(eventsCursor.getColumnIndex(EventTable.startTime)))));
+//                                                } catch (ParseException e) {
+//                                                    Timber.w(e, "Unable to parse date, using pre-computed");
+//                                                    event.setText(eventsCursor.getString(eventsCursor.getColumnIndex(EventTable.startTimePrint)).toUpperCase());
+//                                                }
+//                                                event.setOnClickListener(new RelatedItemOnClickListener(eventsCursor.getInt(eventsCursor.getColumnIndex(PlayaItemTable.id)), Constants.PlayaItemType.EVENT));
+//                                                event.setPadding(pad,pad,pad,pad);
+//
+//                                                TypedValue outValue = new TypedValue();
+//                                                getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+//                                                event.setBackgroundResource(outValue.resourceId);
+//                                                overflowContainer.addView(event);
+//                                            }
+//                                            eventsCursor.close();
+//                                        }, throwable -> Timber.e(throwable, "Failed to bind event occurrences"));
+//                            }
+//                        }
+//                    } finally {
+//                        if (itemCursor != null) itemCursor.close();
+//                    }
+//                }, throwable -> Timber.e(throwable, "Failed to populate views from item"));
     }
 
     @Override
@@ -591,7 +565,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         public void onClick(View v) {
             Intent i = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
             i.putExtra(EXTRA_MODEL_ID, modelId);
-            i.putExtra(EXTRA_MODEL_TYPE, modeltype);
+            i.putExtra(EXTRA_PLAYA_ITEM, modeltype);
             startActivity(i);
         }
     }
@@ -612,9 +586,10 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         if (favoriteMenuItem != null) favoriteMenuItem.setIcon(newMenuDrawableResId);
 
         if (save) {
-            DataProvider.getInstance(PlayaItemViewActivity.this.getApplicationContext())
-                    .subscribe(dataProvider -> dataProvider.updateFavorite(modelTable, modelId, isFavorite),
-                            throwable -> Timber.e(throwable, "Failed to save"));
+            // TODO
+//            DataProvider.getInstance(PlayaItemViewActivity.this.getApplicationContext())
+//                    .subscribe(dataProvider -> dataProvider.toggleFavorite(item),
+//                            throwable -> Timber.e(throwable, "Failed to save"));
             this.isFavorite = isFavorite;
         }
     }

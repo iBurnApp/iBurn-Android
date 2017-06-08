@@ -8,15 +8,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
-import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.squareup.sqlbrite.SqlBrite;
 import com.tonicartos.superslim.LayoutManager;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
 /**
@@ -27,10 +24,6 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
 
     public static FavoritesListViewFragment newInstance() {
         return new FavoritesListViewFragment();
-    }
-
-    protected CursorRecyclerViewAdapter getAdapter() {
-        return new PlayaSearchResponseCursorAdapter(getActivity(), null, this);
     }
 
     @Override
@@ -44,11 +37,10 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
     }
 
     @Override
-    protected Subscription createSubscription() {
+    protected Disposable createDisposable() {
 
         return DataProvider.getInstance(getActivity().getApplicationContext())
-                .flatMap(dataProvider -> dataProvider.observeFavorites(getAdapter().getRequiredProjection()))
-                .map(SqlBrite.Query::run)
+                .flatMap(DataProvider::observeFavorites)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::onDataChanged, throwable -> Timber.e(throwable, "Failed to load favorites"));
     }

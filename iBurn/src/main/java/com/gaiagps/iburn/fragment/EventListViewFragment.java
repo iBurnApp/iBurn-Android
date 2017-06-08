@@ -12,15 +12,15 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
-import com.gaiagps.iburn.adapters.EventCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.view.EventListHeader;
 import com.squareup.sqlbrite.SqlBrite;
 
 import java.util.ArrayList;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 /**
@@ -37,19 +37,14 @@ public class EventListViewFragment extends PlayaListViewFragment implements Even
     private String selectedDay = AdapterUtils.getCurrentOrFirstDayAbbreviation();
     private ArrayList<String> selectedTypes;
 
-    protected CursorRecyclerViewAdapter getAdapter() {
-        return new EventCursorAdapter(getActivity(), null, false, this);
-    }
-
     @Override
-    public Subscription createSubscription() {
+    public Disposable createDisposable() {
         return DataProvider.getInstance(getActivity().getApplicationContext())
-                .flatMap(dataProvider -> dataProvider.observeEventsOnDayOfTypes(selectedDay, selectedTypes, getAdapter().getRequiredProjection()))
-                .map(SqlBrite.Query::run)
+                .flatMap(dataProvider -> dataProvider.observeEventsOnDayOfTypes(selectedDay, selectedTypes))
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(cursor -> {
-                            Timber.d("Data onNext %d items", cursor.getCount());
-                            onDataChanged(cursor);
+                .subscribe(events -> {
+                            Timber.d("Data onNext %d items", events.size());
+                            onDataChanged(events);
                         },
                         throwable -> Timber.e(throwable, "Data onError"),
                         () -> Timber.d("Data onComplete"));

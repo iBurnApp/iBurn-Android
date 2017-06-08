@@ -9,9 +9,7 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
-import com.gaiagps.iburn.adapters.EventSectionedCursorAdapter;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.EventTable;
@@ -21,9 +19,9 @@ import com.tonicartos.superslim.LayoutManager;
 
 import java.util.Calendar;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
@@ -37,12 +35,8 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
         return new ExploreListViewFragment();
     }
 
-    protected CursorRecyclerViewAdapter getAdapter() {
-        return new EventSectionedCursorAdapter(getActivity(), null, this);
-    }
-
     @Override
-    public Subscription createSubscription() {
+    public Disposable createDisposable() {
         Calendar modifiedDate = Calendar.getInstance();
         modifiedDate.setTime(CurrentDateProvider.getCurrentDate());
         String lowerBoundDateStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
@@ -50,15 +44,15 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
         String upperBoundDateStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
 
 
+        // TODO : Expose ongoing events API
         // Get Events that start now to the next several hours
         return DataProvider.getInstance(getActivity().getApplicationContext())
                 .subscribeOn(Schedulers.computation())
-                .flatMap(dataProvider -> dataProvider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.startTime + " > '" + lowerBoundDateStr + "' AND " + EventTable.startTime + " < '" + upperBoundDateStr + "\' ORDER BY " + EventTable.startTime + " ASC LIMIT 100"))
-                .map(SqlBrite.Query::run)
+                .flatMap(dataProvider -> dataProvider.observeEventFavorites())//dataProvider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.startTime + " > '" + lowerBoundDateStr + "' AND " + EventTable.startTime + " < '" + upperBoundDateStr + "\' ORDER BY " + EventTable.startTime + " ASC LIMIT 100"))
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(cursor -> {
-                            Timber.d("Data onNext %d items", cursor.getCount());
-                            onDataChanged(cursor);
+                .subscribe(events -> {
+                            Timber.d("Data onNext %d items", events.size());
+                            onDataChanged(events);
                         },
                         throwable -> Timber.e(throwable, "Data onError"),
                         () -> Timber.d("Data onComplete"));

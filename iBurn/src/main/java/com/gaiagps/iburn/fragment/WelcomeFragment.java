@@ -20,13 +20,13 @@ import android.widget.Filterable;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.database.Camp;
 import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.database.PlayaItemTable;
-import com.squareup.sqlbrite.SqlBrite;
 
 import java.io.IOException;
+import java.util.List;
 
 import timber.log.Timber;
 
@@ -142,7 +142,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
     private class CampAutoCompleteAdapter extends BaseAdapter implements Filterable {
 
-        private Cursor cursor;
+        private List<Camp> camps;
         private DataProvider dataProvider;
         private CampNameFilter filter;
         LayoutInflater inflater;
@@ -153,32 +153,25 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
                     .subscribe(readyDataProvider -> this.dataProvider = readyDataProvider);
         }
 
-        public void changeCursor(Cursor newCursor) {
-            if (cursor != null) {
-                cursor.close();
-                cursor = null;
-            }
-
-            cursor = newCursor;
+        public void changeData(List<Camp> camps) {
+            this.camps = camps;
         }
 
         @Override
         public int getCount() {
-            return cursor == null ? 0 : cursor.getCount();
+            return camps == null ? 0 : camps.size();
         }
 
         @Override
         public Object getItem(int position) {
-            if (cursor == null) return null;
-            cursor.moveToPosition(position);
-            return cursor;
+            if (camps == null) return null;
+            return camps.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            if (cursor == null) return -1;
-            cursor.moveToPosition(position);
-            return cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id));
+            if (camps == null) return -1;
+            return camps.get(position).getId();
         }
 
         @Override
@@ -191,11 +184,9 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
                 ((TextView) convertView).setTextAppearance(getActivity(), R.style.PlayaTextItem);
             }
 
-            if (cursor != null) {
-
-                cursor.moveToPosition(position);
-
-                ((TextView) convertView).setText(cursor.getString(cursor.getColumnIndex(PlayaItemTable.name)));
+            if (camps != null) {
+                Camp camp = camps.get(position);
+                ((TextView) convertView).setText(camp.getName());
             }
 
             return convertView;
@@ -219,25 +210,22 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
                 FilterResults r = new FilterResults();
 
                 if (constraint != null) {
-                    String query = '%' + constraint.toString() + '%';
-                    Cursor newResult = dataProvider.createEmbargoExemptQuery(PlayaDatabase.CAMPS, "SELECT * FROM " + PlayaDatabase.CAMPS + " WHERE " + CampTable.name + " LIKE ?", query)
-                            .map(SqlBrite.Query::run)
-                            .toBlocking()
-                            .first();
+                    String query = constraint.toString();// '%' + constraint.toString() + '%';
+                    List<Camp> camps = dataProvider.observeCampsByName(query).blockingFirst();
 
-                    r.values = newResult;
-                    r.count = newResult.getCount();
+                    r.values = camps;
+                    r.count = camps.size();
                 }
                 return r;
             }
 
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
-                Timber.d("Publish %d result for %s", results.values == null ? 0 : ((Cursor) results.values).getCount(), constraint == null ? "None" : constraint.toString());
+                Timber.d("Publish %d result for %s", results.values == null ? 0 : ((List<Camp>) results.values).size(), constraint == null ? "None" : constraint.toString());
 
                 if (results.values == null || results.count > 0) {
                     Timber.d("Publishing results to adapter");
-                    changeCursor((Cursor) results.values);
+                    changeData((List<Camp>) results.values);
                     notifyDataSetChanged();
                 } else {
                     notifyDataSetInvalidated();

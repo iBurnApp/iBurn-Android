@@ -5,11 +5,10 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.subjects.PublishSubject;
 import timber.log.Timber;
 
@@ -64,13 +63,11 @@ public class JSEvaluator {
             @Override
             public void onPageFinished(WebView view, String url) {
                 Timber.d("onPageFinished");
-                Observable.just(1)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(ignored -> {
-                            Timber.d("Notifying callback");
-                            jsEvaluator = JSEvaluator.this;
-                            callback.onReady(JSEvaluator.this);
-                        });
+                AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                    Timber.d("Notifying callback");
+                    jsEvaluator = JSEvaluator.this;
+                    callback.onReady(JSEvaluator.this);
+                });
             }
 
             @Override

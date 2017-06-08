@@ -45,6 +45,8 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
+import org.intellij.lang.annotations.Flow;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,11 +55,12 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
 import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 @RuntimePermissions
@@ -143,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 //        service.updateData().subscribe();
 
         if (Embargo.isEmbargoActive(prefs)) {
-            Observable.timer(1, TimeUnit.SECONDS)
+            Flowable.timer(1, TimeUnit.SECONDS)
                     .subscribeOn(AndroidSchedulers.mainThread())
                     .subscribe(counter -> {
                         final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE M/d", Locale.US);
@@ -408,7 +411,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     Timber.d("Subscribing %d to data", position);
                     // We delay data subscription for a few milliseconds to allow
                     // the tab-switch transition to complete before layout occurs
-                    Observable.timer(250, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
+                    Flowable.timer(250, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
                             .subscribe(time -> {
                                 ((Subscriber) object).subscribeToData();
                             }, throwable -> Timber.e(throwable, "Failed to subscribe fragment to data"));

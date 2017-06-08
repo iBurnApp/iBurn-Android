@@ -19,25 +19,25 @@ import com.gaiagps.iburn.database.CampTable;
  * TODO: Update device location periodically
  * TODO: Remove this
  */
-public class CampCursorAdapter extends PlayaItemCursorAdapter<PlayaItemCursorAdapter.ViewHolder> {
-
-    public CampCursorAdapter(Context context, Cursor c, AdapterListener listener) {
-        super(context, c, listener);
-    }
-
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.camp_listview_item, parent, false);
-        ViewHolder vh = new ViewHolder(itemView);
-
-        setupClickListeners(vh, Constants.PlayaItemType.CAMP);
-
-        return vh;
-    }
-
-    @Override
-    public String[] getRequiredProjection() {
-        return PlayaItemCursorAdapter.Projection;
-    }
-}
+//public class CampCursorAdapter extends PlayaItemCursorAdapter<PlayaItemCursorAdapter.ViewHolder> {
+//
+//    public CampCursorAdapter(Context context, Cursor c, AdapterListener listener) {
+//        super(context, c, listener);
+//    }
+//
+//    @Override
+//    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+//        View itemView = LayoutInflater.from(parent.getContext())
+//                .inflate(R.layout.camp_listview_item, parent, false);
+//        ViewHolder vh = new ViewHolder(itemView);
+//
+//        setupClickListeners(vh, Constants.PlayaItemType.CAMP);
+//
+//        return vh;
+//    }
+//
+//    @Override
+//    public String[] getRequiredProjection() {
+//        return PlayaItemCursorAdapter.Projection;
+//    }
+//}

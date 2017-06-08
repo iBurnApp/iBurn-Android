@@ -100,7 +100,7 @@ public class AdapterUtils {
         return null;
     }
 
-    public static void setDistanceText(Location deviceLocation, TextView walkTimeView, TextView bikeTimeView, double lat, double lon) {
+    public static void setDistanceText(Location deviceLocation, TextView walkTimeView, TextView bikeTimeView, float lat, float lon) {
         setDistanceText(deviceLocation, null, null, null, walkTimeView, bikeTimeView, lat, lon);
     }
 
@@ -112,7 +112,7 @@ public class AdapterUtils {
      *
      * @return a time estimate in minutes.
      */
-    public static void setDistanceText(Location deviceLocation, Date nowDate, String startDateStr, String endDateStr, TextView walkTimeView, TextView bikeTimeView, double lat, double lon) {
+    public static void setDistanceText(Location deviceLocation, Date nowDate, String startDateStr, String endDateStr, TextView walkTimeView, TextView bikeTimeView, float lat, float lon) {
         if (deviceLocation != null && lat != 0) {
             double metersToTarget = Geo.getDistance(lat, lon, deviceLocation);
             int walkingMinutesToTarget = (int) Geo.getWalkingEstimateMinutes(metersToTarget);
@@ -181,34 +181,4 @@ public class AdapterUtils {
         }
         return spanRange;
     }
-
-    public static AdapterView.OnItemLongClickListener mListItemLongClickListener = (parent, v, position, id) -> {
-        int model_id = (Integer) v.getTag(R.id.list_item_related_model);
-        Constants.PlayaItemType itemType = (Constants.PlayaItemType) v.getTag(R.id.list_item_related_model_type);
-        String tableName;
-        switch (itemType) {
-            case ART:
-                tableName = PlayaDatabase.ART;
-                break;
-            case CAMP:
-                tableName = PlayaDatabase.CAMPS;
-                break;
-            case EVENT:
-                tableName = PlayaDatabase.EVENTS;
-                break;
-            default:
-                throw new IllegalStateException("Unknown PLAYA_ITEM");
-        }
-        final DataProvider[] storedProvider = new DataProvider[1];
-        DataProvider.getInstance(v.getContext().getApplicationContext())
-                .doOnNext(provider -> storedProvider[0] = provider)
-                .flatMap(dataProvider -> dataProvider.createQuery(tableName, "SELECT " + PlayaItemTable.favorite + " FROM " + tableName + " WHERE " + PlayaItemTable.id + " = ?", String.valueOf(model_id)))
-                .map(SqlBrite.Query::run)
-                .subscribe(cursor -> {
-                    boolean isFavorite = cursor.getInt(0) == 1;
-                    storedProvider[0].updateFavorite(PlayaItemTable.favorite, model_id, !isFavorite);
-                    Toast.makeText(v.getContext(), String.format("%s Favorites", isFavorite ? "Removed from" : "Added to"), Toast.LENGTH_SHORT).show();
-                });
-        return true;
-    };
 }

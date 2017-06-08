@@ -2,16 +2,10 @@ package com.gaiagps.iburn.fragment;
 
 import android.os.Bundle;
 
-import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.adapters.CampCursorAdapter;
-import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
-import com.gaiagps.iburn.adapters.PlayaItemCursorAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.squareup.sqlbrite.SqlBrite;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
 /**
@@ -25,16 +19,11 @@ public class CampListViewFragment extends PlayaListViewFragment {
         return new CampListViewFragment();
     }
 
-    protected CursorRecyclerViewAdapter getAdapter() {
-        return new CampCursorAdapter(getActivity(), null, this);
-    }
-
     @Override
-    public Subscription createSubscription() {
+    public Disposable createDisposable() {
         return DataProvider.getInstance(getActivity().getApplicationContext())
-                .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.CAMPS, getAdapter().getRequiredProjection()))
+                .flatMap(dataProvider -> dataProvider.observeCamps())
                 .doOnNext(query -> Timber.d("Got query"))
-                .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(cursor -> {
                             Timber.d("Data onNext");

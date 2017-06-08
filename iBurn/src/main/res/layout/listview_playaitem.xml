@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             xmlns:tools="http://schemas.android.com/tools"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="match_parent"
+                                             android:padding="16dp">
+
+    <ImageView
+        android:id="@+id/heart"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginEnd="18dp"
+        android:layout_marginRight="18dp"
+        android:gravity="right"
+        android:paddingBottom="8dp"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:scaleType="fitEnd"
+        android:src="@drawable/ic_heart_empty"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="marquee"
+        android:gravity="center_vertical"
+        android:paddingTop="0dp"
+        android:singleLine="true"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/heart"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Dust Feast"/>
+
+    <TextView
+        android:id="@+id/artist"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:paddingTop="0dp"
+        android:singleLine="true"
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@id/title"
+        tools:text="Joe Artist"/>
+
+    <TextView
+        android:id="@+id/description"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:maxLines="3"
+        android:paddingTop="0dp"
+        android:singleLine="false"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/artist"
+        tools:text="A very long description description. A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description."/>
+
+    <TextView
+        android:id="@+id/type"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:paddingTop="0dp"
+        android:singleLine="true"
+        android:textColor="@color/sub_text"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/description"
+        tools:text="Celebration"/>
+
+    <TextView
+        android:id="@+id/walk_time"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="-4dp"
+        android:layout_marginTop="4dp"
+        android:drawableLeft="@drawable/ic_person"
+        android:drawablePadding="4dp"
+        android:ellipsize="marquee"
+        android:gravity="center_vertical"
+        android:singleLine="true"
+        android:textColor="@color/sub_text"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/type"
+        tools:text="6 min"/>
+
+    <TextView
+        android:id="@+id/bike_time"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/type"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:drawableLeft="@drawable/ic_biker"
+        android:drawablePadding="8dp"
+        android:ellipsize="marquee"
+        android:gravity="center_vertical"
+        android:singleLine="true"
+        android:textColor="@color/sub_text"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@id/walk_time"
+        app:layout_constraintTop_toTopOf="@id/walk_time"
+        tools:text="3 min"/>
+
+    <TextView
+        android:id="@+id/time"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/description"
+        android:layout_marginTop="4dp"
+        android:ellipsize="marquee"
+        android:gravity="right"
+        android:padding="2dp"
+        android:singleLine="true"
+        android:textColor="@color/sub_text"
+        android:textSize="18sp"
+        app:layout_constraintBaseline_toBaselineOf="@id/type"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1"
+        app:layout_constraintStart_toEndOf="@id/type"
+        tools:text="All Sun 8/30"/>
+
+    <TextView
+        android:id="@+id/address"
+        style="@style/PlayaTextItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/time"
+        android:layout_marginTop="4dp"
+        android:ellipsize="marquee"
+        android:gravity="right"
+        android:singleLine="true"
+        android:textColor="@color/sub_text"
+        android:textSize="18sp"
+        app:layout_constraintBaseline_toBaselineOf="@id/walk_time"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1"
+        app:layout_constraintStart_toEndOf="@id/bike_time"
+        tools:text="7:30 &amp; Esplanade"/>
+
+</android.support.constraint.ConstraintLayout>

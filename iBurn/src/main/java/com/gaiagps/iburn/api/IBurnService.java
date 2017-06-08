@@ -15,8 +15,6 @@ import com.gaiagps.iburn.api.response.EventOccurrence;
 import com.gaiagps.iburn.api.response.PlayaItem;
 import com.gaiagps.iburn.api.response.ResourceManifest;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
-import com.gaiagps.iburn.database.ArtTable;
-import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.EventTable;
 import com.gaiagps.iburn.database.MapProvider;
@@ -25,22 +23,36 @@ import com.gaiagps.iburn.database.PlayaItemTable;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.squareup.sqlbrite.SqlBrite;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import retrofit.RestAdapter;
-import retrofit.converter.GsonConverter;
-import rx.Observable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 import timber.log.Timber;
+
+import static com.gaiagps.iburn.database.Art.ColArtist;
+import static com.gaiagps.iburn.database.Art.ColArtistLocation;
+import static com.gaiagps.iburn.database.Art.ColAudioTourUrl;
+import static com.gaiagps.iburn.database.Event.ColAllDay;
+import static com.gaiagps.iburn.database.Event.ColCampPlayaId;
+import static com.gaiagps.iburn.database.Event.ColCheckLocation;
+import static com.gaiagps.iburn.database.Event.ColStartTime;
+import static com.gaiagps.iburn.database.Event.ColStartTimePretty;
+import static com.gaiagps.iburn.database.Event.ColType;
+import static com.gaiagps.iburn.database.PlayaItem.ColFavorite;
+import static com.gaiagps.iburn.database.PlayaItem.ColName;
+import static com.gaiagps.iburn.database.PlayaItem.ColPlayaId;
 
 /**
  * A monolithic iBurn data updater. Handles fetching IBurn update data and update the database while
@@ -79,29 +91,40 @@ public class IBurnService {
      * It *cannot* be used with {@link PlayaDatabase#EVENTS} because there may be multiple Event entries
      * sharing the same playaId but having differing start and end times
      */
-    private class SimpleLifeboat implements UpgradeLifeboat {
+    private static class SimpleLifeboat implements UpgradeLifeboat {
+        enum Table {Camp, Art}
 
-        private String tableName;
-        private List<String> favoritePlayaIds;
+        private Table table;
 
-        public SimpleLifeboat(String tableName) {
-            this.tableName = tableName;
+        public SimpleLifeboat(@NonNull Table table) {
+            this.table = table;
         }
+
+        private Set<String> favoritePlayaIds = new HashSet<>();
 
         @Override
         public Observable<Boolean> saveData(DataProvider provider) {
-            return provider.createQuery(tableName, "SELECT " + PlayaItemTable.playaId + " FROM " + tableName + " WHERE " + PlayaItemTable.favorite + " = ?", new String[]{"1"})
-                    .map(SqlBrite.Query::run)
-                    .map(cursor -> {
-                        favoritePlayaIds = new ArrayList<>(cursor.getCount());
-                        Timber.d("Found %d %s favorites", cursor.getCount(), tableName);
-                        while (cursor.moveToNext()) {
-                            favoritePlayaIds.add(cursor.getString(cursor.getColumnIndex(PlayaItemTable.playaId)));
+            Observable<? extends List<? extends com.gaiagps.iburn.database.PlayaItem>> items = null;
+
+            if (table == Table.Camp) {
+                items = provider.observeCampFavorites();
+
+            } else if (table == Table.Art) {
+                items = provider.observeArtFavorites();
+            } else {
+                throw new IllegalStateException("Unknown table type " + table);
+            }
+
+            return items
+                    .firstOrError()
+                    .map(favorites -> {
+                        Timber.d("Found %d favorites", favorites.size());
+                        for (com.gaiagps.iburn.database.PlayaItem fav : favorites) {
+                            favoritePlayaIds.add(fav.getPlayaId());
                         }
-                        cursor.close();
                         return true;
                     })
-                    .first();
+                    .toObservable();
         }
 
         @Override
@@ -110,38 +133,33 @@ public class IBurnService {
         }
     }
 
-    private class EventLifeboat implements UpgradeLifeboat {
+    private static class EventLifeboat implements UpgradeLifeboat {
 
-        private final String tableName = PlayaDatabase.EVENTS;
-        private HashMap<String, HashSet<String>> favoriteIds;
+        private HashMap<String, HashSet<Long>> favoriteIds = new HashMap<>();
 
         @Override
         public Observable<Boolean> saveData(DataProvider provider) {
-            return provider.createQuery(tableName, "SELECT " + PlayaItemTable.playaId + " , " + EventTable.startTime + " FROM " + tableName + " WHERE " + PlayaItemTable.favorite + " = ?", new String[]{"1"})
-                    .map(SqlBrite.Query::run)
-                    .map(cursor -> {
-                        favoriteIds = new HashMap<>(cursor.getCount());
-                        Timber.d("Found %d %s favorites", cursor.getCount(), tableName);
+            return provider.observeEventFavorites()
+                    .firstOrError()
+                    .map(favorites -> {
+                        Timber.d("Found %d event favorites", favorites.size());
                         String favoriteId;
-                        while (cursor.moveToNext()) {
-                            favoriteId = cursor.getString(0); // PlayaId
+                        for (com.gaiagps.iburn.database.Event favEvent : favorites) {
+                            favoriteId = favEvent.getPlayaId();
                             if (!favoriteIds.containsKey(favoriteId))
                                 favoriteIds.put(favoriteId, new HashSet<>());
-
-                            Timber.d("Added fav event with id %d start time %s", cursor.getInt(0), cursor.getString(1));
-                            favoriteIds.get(favoriteId).add(cursor.getString(1)); // startTime
+                            favoriteIds.get(favoriteId).add(favEvent.getStartTime().getTime());
                         }
-                        cursor.close();
                         return true;
                     })
-                    .first();
+                    .toObservable();
         }
 
         @Override
         public void restoreData(ContentValues row) {
-            String playaId = row.getAsString(EventTable.playaId);
-            row.put(EventTable.favorite, favoriteIds.containsKey(playaId) &&
-                    favoriteIds.get(playaId).contains(row.getAsString(EventTable.startTime)));
+            String playaId = row.getAsString(ColPlayaId);
+            row.put(ColFavorite, favoriteIds.containsKey(playaId) &&
+                    favoriteIds.get(playaId).contains(row.getAsString(ColStartTime)));
         }
     }
 
@@ -172,12 +190,13 @@ public class IBurnService {
                 .registerTypeAdapter(Date.class, new PlayaDateTypeAdapter())
                 .create();
 
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(SECRETS.IBURN_API_URL)
-                .setConverter(new GsonConverter(gson))
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(SECRETS.IBURN_API_URL)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
 
-        this.service = restAdapter.create(IBurnApi.class);
+        this.service = retrofit.create(IBurnApi.class);
         this.context = context;
     }
 
@@ -186,7 +205,7 @@ public class IBurnService {
         this.service = service;
     }
 
-    public Observable<Boolean> updateData() {
+    public Single<Boolean> updateData() {
         // Check local update dates for each endpoint, update those that are stale
         final PrefsHelper storage = new PrefsHelper(context);
 
@@ -205,7 +224,7 @@ public class IBurnService {
                     ResourceManifest[] resources = new ResourceManifest[]
                             {dataManifest.art, dataManifest.camps, dataManifest.events, dataManifest.tiles};
 
-                    return Observable.from(resources).map(resource ->
+                    return Observable.fromArray(resources).map(resource ->
                             new UpdateDataDependencies((DataProvider) providerPair.first, (MapProvider) providerPair.second, dataManifest, resource));
                 })
                 .filter(dependencies -> shouldUpdateResource(storage, dependencies.resourceManifest))
@@ -217,55 +236,58 @@ public class IBurnService {
                                     if (itemsUpdated > 0)
                                         storage.setResourceVersion(dependencies.resourceManifest.file, dependencies.resourceManifest.updated.getTime());
                                     return dependencies;
-                                }))
-                .toList()
-                .doOnNext(updateDataDependencies -> {
-                    if (updateDataDependencies.size() > 0)
-                        updateDataDependencies.get(0).dataProvider.endUpgrade();
-                })
+                                })
+                                .toObservable())
                 .doOnError(throwable -> Timber.e(throwable, "updateData error"))
-                .doOnCompleted(() -> Timber.d("updateData Complete"))
+                .toList()
+                .doOnSuccess(updateDataDependencies -> {
+                    Timber.d("updateData Complete");
+                    if (updateDataDependencies.size() > 0) {
+                        updateDataDependencies.get(0).dataProvider.endUpgrade();
+                    }
+                })
                 .map(dependencies -> true); // TODO : More granular success / failure?
 //                .subscribe(totalUpdated -> Timber.d("Update complete"), throwable -> Timber.e(throwable, "Update error"));
     }
 
-    private Observable<Integer> updateTiles(ResourceManifest resourceManifest, MapProvider provider) {
+    private Single<Long> updateTiles(ResourceManifest resourceManifest, MapProvider provider) {
         return service.getTiles()
+                .firstOrError()
                 .map(response -> {
                     try {
-                        provider.offerMapUpgrade(response.getBody().in(), resourceManifest.updated.getTime());
-                        return 1;
-                    } catch (IOException e) {
+                        provider.offerMapUpgrade(response.raw().body().byteStream(), resourceManifest.updated.getTime());
+                        return 1l;
+                    } catch (IOException | NullPointerException e) {
                         Timber.e(e, "Error copying mbtiles!");
-                        return 0;
+                        return 0l;
                     }
                 });
     }
 
-    private Observable<Integer> updateArt(DataProvider provider) {
+    private Single<Long> updateArt(DataProvider provider) {
         Timber.d("Updating art");
 
         final String tableName = PlayaDatabase.ART;
-        return updateTable(provider, service.getArt(), tableName, new SimpleLifeboat(tableName), (item, values, database) -> {
+        return updateTable(provider, service.getArt(), tableName, new SimpleLifeboat(SimpleLifeboat.Table.Art), (item, values, database) -> {
             Art art = (Art) item;
-            values.put(ArtTable.artist, art.artist);
-            values.put(ArtTable.artistLoc, art.artistLocation);
-            values.put(ArtTable.audioTourUrl, art.audioTourUrl);
+            values.put(ColArtist, art.artist);
+            values.put(ColArtistLocation, art.artistLocation);
+            values.put(ColAudioTourUrl, art.audioTourUrl);
             database.insert(values);
         });
     }
 
-    private Observable<Integer> updateCamps(DataProvider provider) {
+    private Single<Long> updateCamps(DataProvider provider) {
         Timber.d("Updating Camps");
 
         final String tableName = PlayaDatabase.CAMPS;
-        return updateTable(provider, service.getCamps(), tableName, new SimpleLifeboat(tableName), (item, values, database) -> {
-            values.put(CampTable.hometown, ((Camp) item).hometown);
+        return updateTable(provider, service.getCamps(), tableName, new SimpleLifeboat(SimpleLifeboat.Table.Camp), (item, values, database) -> {
+            values.put(com.gaiagps.iburn.database.Camp.ColHometown, ((Camp) item).hometown);
             database.insert(values);
         });
     }
 
-    private Observable<Integer> updateEvents(DataProvider provider) {
+    private Single<Long> updateEvents(DataProvider provider) {
         Timber.d("Updating Events");
 
         // Date format for machine-readable
@@ -287,19 +309,19 @@ public class IBurnService {
             }
 
             // Event uses title, not name
-            values.put(EventTable.name, event.title);
+            values.put(ColName, event.title);
 
-            values.put(EventTable.allDay, event.allDay);
-            values.put(EventTable.checkLocation, event.checkLocation);
-            values.put(EventTable.eventType, event.eventType.abbr);
+            values.put(ColAllDay, event.allDay);
+            values.put(ColCheckLocation, event.checkLocation);
+            values.put(ColType, event.eventType.abbr);
 
             if (event.hostedByCamp != null) {
-                values.put(EventTable.campPlayaId, event.hostedByCamp);
+                values.put(ColCampPlayaId, event.hostedByCamp);
             }
 
             for (EventOccurrence occurrence : event.occurrenceSet) {
-                values.put(EventTable.startTime, PlayaDateTypeAdapter.iso8601Format.format(occurrence.startTime));
-                values.put(EventTable.startTimePrint, (event.allDay == 1) ? dayFormatter.format(occurrence.startTime) :
+                values.put(ColStartTime, PlayaDateTypeAdapter.iso8601Format.format(occurrence.startTime));
+                values.put(ColStartTimePretty, (event.allDay == 1) ? dayFormatter.format(occurrence.startTime) :
                         timeDayFormatter.format(occurrence.startTime));
 
                 values.put(EventTable.endTime, PlayaDateTypeAdapter.iso8601Format.format(occurrence.endTime));
@@ -311,11 +333,11 @@ public class IBurnService {
         });
     }
 
-    private Observable<Integer> updateTable(DataProvider provider,
-                                            Observable<? extends Iterable<? extends PlayaItem>> items,
-                                            String tableName,
-                                            UpgradeLifeboat lifeboat,
-                                            BindObjectToContentValues binder) {
+    private Single<Long> updateTable(DataProvider provider,
+                                     Observable<? extends Iterable<? extends PlayaItem>> items,
+                                     String tableName,
+                                     UpgradeLifeboat lifeboat,
+                                     BindObjectToContentValues binder) {
 
         final AtomicBoolean initializedInsert = new AtomicBoolean(false);
         final android.content.ContentValues values = new android.content.ContentValues();
@@ -329,14 +351,14 @@ public class IBurnService {
                     return playaItems;
                 })
 
-                .flatMap(Observable::from)
+                .flatMap(Observable::fromIterable)
 
                 .map(item -> {
                     // Delete all old rows before inserting first new row
                     if (!initializedInsert.getAndSet(true)) {
-                        int numDeleted = provider.delete(tableName, PlayaItemTable.id + " > 0", null);
-                        Timber.d("Deleted %d existing rows. Beginning %s inserts", numDeleted, tableName);
                         provider.beginTransaction();
+                        int numDeleted = provider.delete(tableName);
+                        Timber.d("Deleted %d existing rows. Beginning %s inserts", numDeleted, tableName);
                     }
 
                     values.clear();
@@ -348,7 +370,7 @@ public class IBurnService {
                     return true;
                 })
 
-                .doOnCompleted(() -> {
+                .doOnComplete(() -> {
                     Timber.d("Successfully closing %s transaction", tableName);
                     provider.setTransactionSuccessful();
                     provider.endTransaction();
@@ -356,7 +378,7 @@ public class IBurnService {
 
                 .count()
 
-                .doOnNext(count -> Timber.d("Inserted %d %s", count, tableName))
+//                .doOnNext(count -> Timber.d("Inserted %d %s", count, tableName))
 
                 .doOnError(throwable -> {
                     Timber.e(throwable, "Error. Rolling back %s transacton ", tableName);
@@ -399,7 +421,7 @@ public class IBurnService {
         values.put(PlayaItemTable.url, item.url);
     }
 
-    private Observable<Integer> updateResource(UpdateDataDependencies dependencies) {
+    private Single<Long> updateResource(UpdateDataDependencies dependencies) {
         String resourceName = dependencies.resourceManifest.file;
 
         if (resourceName.equals(dependencies.dataManifest.art.file))
@@ -416,7 +438,7 @@ public class IBurnService {
 
         // Unknown or Unimplemented situation
         Timber.w("Unknown resource name %s. Cannot perform update", resourceName);
-        return Observable.just(0);
+        return Single.just(0l);
     }
 
     private boolean shouldUpdateResource(PrefsHelper storage, ResourceManifest resource) {

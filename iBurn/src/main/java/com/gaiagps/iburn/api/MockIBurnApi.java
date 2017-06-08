@@ -21,9 +21,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import retrofit.client.Response;
-import rx.Observable;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
+import retrofit2.Response;
+
 
 /**
  * Created by dbro on 8/1/15.

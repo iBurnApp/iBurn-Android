@@ -127,8 +127,7 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
             poiValues.put(UserPoiTable.longitude, homeCampSelection.lon);
             poiValues.put(UserPoiTable.drawableResId, UserPoiTable.HOME);
             DataProvider.getInstance(getApplicationContext())
-                    .map(dataProvider -> dataProvider.insert(PlayaDatabase.POIS, poiValues))
-                    .subscribe();
+                    .subscribe(dataProvider -> dataProvider.insert(PlayaDatabase.POIS, poiValues));
         }
 
         prefs.setDidShowWelcome(true);
