@@ -171,7 +171,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
         @Override
         public long getItemId(int position) {
             if (camps == null) return -1;
-            return camps.get(position).getId();
+            return camps.get(position).id;
         }
 
         @Override
@@ -186,7 +186,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
             if (camps != null) {
                 Camp camp = camps.get(position);
-                ((TextView) convertView).setText(camp.getName());
+                ((TextView) convertView).setText(camp.name);
             }
 
             return convertView;

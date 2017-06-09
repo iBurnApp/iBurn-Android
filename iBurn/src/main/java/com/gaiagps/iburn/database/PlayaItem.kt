@@ -8,6 +8,8 @@ import java.io.Serializable
 /**
  * Created by dbro on 6/6/17.
  */
+/*
+Kotlin models on ice pending release of https://youtrack.jetbrains.com/issue/KT-18048
 abstract class PlayaItem(
         @PrimaryKey         @ColumnInfo(name = ColId)           val id: Int = 0,
                             @ColumnInfo(name = ColName)         val name: String,
@@ -39,3 +41,4 @@ class Location(@ColumnInfo(name = ColLatitude)      val latitude: Float,
         const val ColLongitude = "longitude"
     }
 }
+        */

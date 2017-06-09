@@ -44,8 +44,6 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
-import org.intellij.lang.annotations.Flow;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +57,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
-import rx.Observable;
 import timber.log.Timber;
 
 import static com.gaiagps.iburn.SECRETSKt.HOCKEY_ID;
@@ -126,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             if (prefs.didShowWelcome() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 mPagerAdapter.setWaitingForLocationPermission(true);
                 // TODO : Build error
-//                MainActivityPermissionsDispatcher.gotLocationPermissionWithCheck(MainActivity.this);
+                MainActivityPermissionsDispatcher.gotLocationPermissionWithCheck(MainActivity.this);
             }
         }
         if (!checkPlayServices()) {
@@ -507,6 +504,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         // TODO : Build error
-//        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
     }
 }

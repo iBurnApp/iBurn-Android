@@ -2,8 +2,10 @@ package com.gaiagps.iburn.database
 
 import android.arch.persistence.room.Database
 import android.arch.persistence.room.RoomDatabase
+import android.arch.persistence.room.TypeConverter
 import android.arch.persistence.room.TypeConverters
 import android.content.Context
+import java.util.*
 
 
 /**
@@ -27,12 +29,24 @@ fun getSharedDb(context: Context): AppDatabase {
     if (db == null) {
         val builder = android.arch.persistence.room.Room.databaseBuilder(
                 context,
-                AppDatabase::class.java, "home-db")
+                AppDatabase::class.java, "playaDatabase2017.db")
         // TODO : Possible to optionally use bundled db?
         val newDb = builder.build()
         sharedDb = newDb
         return newDb
     } else {
         return db
+    }
+}
+
+object Converters {
+    @TypeConverter
+    fun fromTimestamp(value: Long?): Date? {
+        return if (value == null) null else Date(value)
+    }
+
+    @TypeConverter
+    fun dateToTimestamp(date: Date?): Long? {
+        return (if (date == null) null else date!!.getTime())!!.toLong()
     }
 }

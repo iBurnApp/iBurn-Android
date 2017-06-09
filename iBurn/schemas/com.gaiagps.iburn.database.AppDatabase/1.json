@@ -2,12 +2,62 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "09af8e322ee8c9af494da991fa515816",
+    "identityHash": "c4cc0ca8f13a5d87a22863f69adc4365",
     "entities": [
       {
         "tableName": "arts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`artist` TEXT, `artist_location` TEXT, `image_url` TEXT, `audio_tour_url` TEXT, `id` INTEGER, `name` TEXT, `description` TEXT, `url` TEXT, `contact` TEXT, `playa_address` TEXT, `playa_id` TEXT, `favorite` INTEGER, `latitude` REAL, `longitude` REAL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT, `desc` TEXT, `url` TEXT, `contact` TEXT, `p_addr` TEXT, `p_id` TEXT, `lat` REAL, `lon` REAL, `fav` INTEGER, `artist` TEXT, `a_loc` TEXT, `i_url` TEXT, `a_url` TEXT)",
         "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "_id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "desc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contact",
+            "columnName": "contact",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaAddress",
+            "columnName": "p_addr",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaId",
+            "columnName": "p_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "lat",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "lon",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "isFavorite",
+            "columnName": "fav",
+            "affinity": "INTEGER"
+          },
           {
             "fieldPath": "artist",
             "columnName": "artist",
@@ -15,91 +65,36 @@
           },
           {
             "fieldPath": "artistLocation",
-            "columnName": "artist_location",
+            "columnName": "a_loc",
             "affinity": "TEXT"
           },
           {
             "fieldPath": "imageUrl",
-            "columnName": "image_url",
+            "columnName": "i_url",
             "affinity": "TEXT"
           },
           {
             "fieldPath": "audioTourUrl",
-            "columnName": "audio_tour_url",
+            "columnName": "a_url",
             "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "name",
-            "columnName": "name",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "description",
-            "columnName": "description",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "url",
-            "columnName": "url",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "contact",
-            "columnName": "contact",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "playaAddress",
-            "columnName": "playa_address",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "playaId",
-            "columnName": "playa_id",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "isFavorite",
-            "columnName": "favorite",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "location.latitude",
-            "columnName": "latitude",
-            "affinity": "REAL"
-          },
-          {
-            "fieldPath": "location.longitude",
-            "columnName": "longitude",
-            "affinity": "REAL"
           }
         ],
         "primaryKey": {
           "columnNames": [
-            "id"
+            "_id"
           ],
-          "autoGenerate": false
+          "autoGenerate": true
         },
         "indices": [],
         "foreignKeys": []
       },
       {
         "tableName": "camps",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`hometown` TEXT, `id` INTEGER, `name` TEXT, `description` TEXT, `url` TEXT, `contact` TEXT, `playa_address` TEXT, `playa_id` TEXT, `favorite` INTEGER, `latitude` REAL, `longitude` REAL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT, `desc` TEXT, `url` TEXT, `contact` TEXT, `p_addr` TEXT, `p_id` TEXT, `lat` REAL, `lon` REAL, `fav` INTEGER, `hometown` TEXT)",
         "fields": [
           {
-            "fieldPath": "hometown",
-            "columnName": "hometown",
-            "affinity": "TEXT"
-          },
-          {
             "fieldPath": "id",
-            "columnName": "id",
+            "columnName": "_id",
             "affinity": "INTEGER"
           },
           {
@@ -109,7 +104,7 @@
           },
           {
             "fieldPath": "description",
-            "columnName": "description",
+            "columnName": "desc",
             "affinity": "TEXT"
           },
           {
@@ -124,46 +119,101 @@
           },
           {
             "fieldPath": "playaAddress",
-            "columnName": "playa_address",
+            "columnName": "p_addr",
             "affinity": "TEXT"
           },
           {
             "fieldPath": "playaId",
-            "columnName": "playa_id",
+            "columnName": "p_id",
             "affinity": "TEXT"
           },
           {
+            "fieldPath": "latitude",
+            "columnName": "lat",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "lon",
+            "affinity": "REAL"
+          },
+          {
             "fieldPath": "isFavorite",
-            "columnName": "favorite",
+            "columnName": "fav",
             "affinity": "INTEGER"
           },
           {
-            "fieldPath": "location.latitude",
-            "columnName": "latitude",
-            "affinity": "REAL"
-          },
-          {
-            "fieldPath": "location.longitude",
-            "columnName": "longitude",
-            "affinity": "REAL"
+            "fieldPath": "hometown",
+            "columnName": "hometown",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
           "columnNames": [
-            "id"
+            "_id"
           ],
-          "autoGenerate": false
+          "autoGenerate": true
         },
         "indices": [],
         "foreignKeys": []
       },
       {
         "tableName": "events",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`type` TEXT, `all_day` INTEGER, `check_location` INTEGER, `camp_playa_id` INTEGER, `start_time` INTEGER, `start_time_pretty` TEXT, `end_time` INTEGER, `end_time_pretty` TEXT, `id` INTEGER, `name` TEXT, `description` TEXT, `url` TEXT, `contact` TEXT, `playa_address` TEXT, `playa_id` TEXT, `favorite` INTEGER, `latitude` REAL, `longitude` REAL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT, `desc` TEXT, `url` TEXT, `contact` TEXT, `p_addr` TEXT, `p_id` TEXT, `lat` REAL, `lon` REAL, `fav` INTEGER, `artist` TEXT, `all_day` INTEGER, `check_loc` INTEGER, `c_id` INTEGER, `s_time` TEXT, `s_time_p` TEXT, `e_time` TEXT, `e_time_p` TEXT)",
         "fields": [
           {
+            "fieldPath": "id",
+            "columnName": "_id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "desc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contact",
+            "columnName": "contact",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaAddress",
+            "columnName": "p_addr",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaId",
+            "columnName": "p_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "lat",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "lon",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "isFavorite",
+            "columnName": "fav",
+            "affinity": "INTEGER"
+          },
+          {
             "fieldPath": "type",
-            "columnName": "type",
+            "columnName": "artist",
             "affinity": "TEXT"
           },
           {
@@ -173,90 +223,40 @@
           },
           {
             "fieldPath": "checkLocation",
-            "columnName": "check_location",
+            "columnName": "check_loc",
             "affinity": "INTEGER"
           },
           {
             "fieldPath": "campPlayaId",
-            "columnName": "camp_playa_id",
+            "columnName": "c_id",
             "affinity": "INTEGER"
           },
           {
             "fieldPath": "startTime",
-            "columnName": "start_time",
-            "affinity": "INTEGER"
+            "columnName": "s_time",
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "startTimePretty",
-            "columnName": "start_time_pretty",
+            "columnName": "s_time_p",
             "affinity": "TEXT"
           },
           {
             "fieldPath": "endTime",
-            "columnName": "end_time",
-            "affinity": "INTEGER"
+            "columnName": "e_time",
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "endTimePretty",
-            "columnName": "end_time_pretty",
+            "columnName": "e_time_p",
             "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "name",
-            "columnName": "name",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "description",
-            "columnName": "description",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "url",
-            "columnName": "url",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "contact",
-            "columnName": "contact",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "playaAddress",
-            "columnName": "playa_address",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "playaId",
-            "columnName": "playa_id",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "isFavorite",
-            "columnName": "favorite",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "location.latitude",
-            "columnName": "latitude",
-            "affinity": "REAL"
-          },
-          {
-            "fieldPath": "location.longitude",
-            "columnName": "longitude",
-            "affinity": "REAL"
           }
         ],
         "primaryKey": {
           "columnNames": [
-            "id"
+            "_id"
           ],
-          "autoGenerate": false
+          "autoGenerate": true
         },
         "indices": [],
         "foreignKeys": []
@@ -264,7 +264,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"09af8e322ee8c9af494da991fa515816\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"c4cc0ca8f13a5d87a22863f69adc4365\")"
     ]
   }
 }

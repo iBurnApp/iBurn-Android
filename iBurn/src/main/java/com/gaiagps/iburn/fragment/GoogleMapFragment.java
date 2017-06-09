@@ -48,6 +48,8 @@ import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
 import com.squareup.sqlbrite.SqlBrite;
 
+import org.reactivestreams.Subscription;
+
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,9 +58,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import rx.Observable;
-import rx.Subscription;
-import rx.subjects.PublishSubject;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.subjects.PublishSubject;
 import timber.log.Timber;
 
 /**
@@ -404,13 +406,13 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         // Cancel subscription created by setupReverseGeocoder()
         if (locationSubscription != null) {
             Timber.d("unsubscribing from location");
-            locationSubscription.unsubscribe();
+            locationSubscription.cancel();
             locationSubscription = null;
         }
         // Cancel subscription created by setupMapTiles
         if (mapSubscription != null) {
             Timber.d("unsubscribing from map");
-            mapSubscription.unsubscribe();
+            mapSubscription.cancel();
             mapSubscription = null;
         }
     }
@@ -623,7 +625,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         mapMarkerAndFitEntireCity(showcaseMarker);
         if (locationSubscription != null) {
             Timber.d("unsubscribing from location");
-            locationSubscription.unsubscribe();
+            locationSubscription.cancel();
             locationSubscription = null;
         }
         if (addressLabel != null) addressLabel.setVisibility(View.INVISIBLE);
@@ -794,7 +796,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
      *
      */
     private String generateDataIdForItem(PlayaItem item) {
-        return String.format("%s-%d", item.getClass().getSimpleName(), item.getId());
+        return String.format("%s-%d", item.getClass().getSimpleName(), item.id);
     }
 
     /**

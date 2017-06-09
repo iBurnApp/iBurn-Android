@@ -42,6 +42,19 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import timber.log.Timber;
 
 import static com.gaiagps.iburn.SECRETSKt.IBURN_API_URL;
+import static com.gaiagps.iburn.database.Art.ARTIST;
+import static com.gaiagps.iburn.database.Art.ARTIST_LOCATION;
+import static com.gaiagps.iburn.database.Art.AUDIO_TOUR_URL;
+import static com.gaiagps.iburn.database.Camp.HOMETOWN;
+import static com.gaiagps.iburn.database.Event.ALL_DAY;
+import static com.gaiagps.iburn.database.Event.CAMP_PLAYA_ID;
+import static com.gaiagps.iburn.database.Event.CHECK_LOC;
+import static com.gaiagps.iburn.database.Event.START_TIME;
+import static com.gaiagps.iburn.database.Event.START_TIME_PRETTY;
+import static com.gaiagps.iburn.database.Event.TYPE;
+import static com.gaiagps.iburn.database.PlayaItem.FAVORITE;
+import static com.gaiagps.iburn.database.PlayaItem.NAME;
+import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ID;
 
 /**
  * A monolithic iBurn data updater. Handles fetching IBurn update data and update the database while
@@ -109,7 +122,7 @@ public class IBurnService {
                     .map(favorites -> {
                         Timber.d("Found %d favorites", favorites.size());
                         for (com.gaiagps.iburn.database.PlayaItem fav : favorites) {
-                            favoritePlayaIds.add(fav.getPlayaId());
+                            favoritePlayaIds.add(fav.playaId);
                         }
                         return true;
                     })
@@ -124,7 +137,7 @@ public class IBurnService {
 
     private static class EventLifeboat implements UpgradeLifeboat {
 
-        private HashMap<String, HashSet<Long>> favoriteIds = new HashMap<>();
+        private HashMap<String, HashSet<String>> favoriteIds = new HashMap<>();
 
         @Override
         public Observable<Boolean> saveData(DataProvider provider) {
@@ -134,10 +147,10 @@ public class IBurnService {
                         Timber.d("Found %d event favorites", favorites.size());
                         String favoriteId;
                         for (com.gaiagps.iburn.database.Event favEvent : favorites) {
-                            favoriteId = favEvent.getPlayaId();
+                            favoriteId = favEvent.playaId;
                             if (!favoriteIds.containsKey(favoriteId))
                                 favoriteIds.put(favoriteId, new HashSet<>());
-                            favoriteIds.get(favoriteId).add(favEvent.getStartTime().getTime());
+                            favoriteIds.get(favoriteId).add(favEvent.startTime);
                         }
                         return true;
                     })
@@ -146,9 +159,9 @@ public class IBurnService {
 
         @Override
         public void restoreData(ContentValues row) {
-            String playaId = row.getAsString(ColPlayaId);
-            row.put(ColFavorite, favoriteIds.containsKey(playaId) &&
-                    favoriteIds.get(playaId).contains(row.getAsString(ColStartTime)));
+            String playaId = row.getAsString(PLAYA_ID);
+            row.put(FAVORITE, favoriteIds.containsKey(playaId) &&
+                    favoriteIds.get(playaId).contains(row.getAsString(START_TIME)));
         }
     }
 
@@ -180,7 +193,7 @@ public class IBurnService {
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(SECRETS.IBURN_API_URL)
+                .baseUrl(IBURN_API_URL)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
@@ -259,9 +272,9 @@ public class IBurnService {
         final String tableName = PlayaDatabase.ART;
         return updateTable(provider, service.getArt(), tableName, new SimpleLifeboat(SimpleLifeboat.Table.Art), (item, values, database) -> {
             Art art = (Art) item;
-            values.put(ColArtist, art.artist);
-            values.put(ColArtistLocation, art.artistLocation);
-            values.put(ColAudioTourUrl, art.audioTourUrl);
+            values.put(ARTIST, art.artist);
+            values.put(ARTIST_LOCATION, art.artistLocation);
+            values.put(AUDIO_TOUR_URL, art.audioTourUrl);
             database.insert(values);
         });
     }
@@ -271,7 +284,7 @@ public class IBurnService {
 
         final String tableName = PlayaDatabase.CAMPS;
         return updateTable(provider, service.getCamps(), tableName, new SimpleLifeboat(SimpleLifeboat.Table.Camp), (item, values, database) -> {
-            values.put(com.gaiagps.iburn.database.Camp.ColHometown, ((Camp) item).hometown);
+            values.put(HOMETOWN, ((Camp) item).hometown);
             database.insert(values);
         });
     }
@@ -298,19 +311,19 @@ public class IBurnService {
             }
 
             // Event uses title, not name
-            values.put(ColName, event.title);
+            values.put(NAME, event.title);
 
-            values.put(ColAllDay, event.allDay);
-            values.put(ColCheckLocation, event.checkLocation);
-            values.put(ColType, event.eventType.abbr);
+            values.put(ALL_DAY, event.allDay);
+            values.put(CHECK_LOC, event.checkLocation);
+            values.put(TYPE, event.eventType.abbr);
 
             if (event.hostedByCamp != null) {
-                values.put(ColCampPlayaId, event.hostedByCamp);
+                values.put(CAMP_PLAYA_ID, event.hostedByCamp);
             }
 
             for (EventOccurrence occurrence : event.occurrenceSet) {
-                values.put(ColStartTime, PlayaDateTypeAdapter.iso8601Format.format(occurrence.startTime));
-                values.put(ColStartTimePretty, (event.allDay == 1) ? dayFormatter.format(occurrence.startTime) :
+                values.put(START_TIME, PlayaDateTypeAdapter.iso8601Format.format(occurrence.startTime));
+                values.put(START_TIME_PRETTY, (event.allDay == 1) ? dayFormatter.format(occurrence.startTime) :
                         timeDayFormatter.format(occurrence.startTime));
 
                 values.put(EventTable.endTime, PlayaDateTypeAdapter.iso8601Format.format(occurrence.endTime));

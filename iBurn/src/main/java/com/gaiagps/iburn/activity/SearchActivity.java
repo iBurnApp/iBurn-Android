@@ -17,6 +17,8 @@ import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaItem;
 
+//import butterknife.BindView;
+//import butterknife.ButterKnife;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -39,6 +41,9 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         ButterKnife.bind(this);
+
+        resultList = (RecyclerView) findViewById(R.id.results);
+        searchEntry = (EditText) findViewById(R.id.search);
 
 //        adapter = new PlayaSearchResponseCursorAdapter(this, null, this);
 //

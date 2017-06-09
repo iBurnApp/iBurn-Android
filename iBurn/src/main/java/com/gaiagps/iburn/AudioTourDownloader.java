@@ -30,12 +30,11 @@ public class AudioTourDownloader {
                 .observeOn(Schedulers.io())
                 .flatMap(Observable::fromIterable)
                 .subscribe(art -> {
-                    String downloadUrl = art.getAudioTourUrl();
-                    String audioTourUrl = art.getAudioTourUrl();
+                    String audioTourUrl = art.audioTourUrl;
                     File audioTourCacheFile = AudioTourManager.getCachedFileForRemoteMediaPath(context, audioTourUrl);
                     if (!TextUtils.isEmpty(audioTourUrl) &&
                             !audioTourCacheFile.exists()) {
-                        boolean didCache = AudioTourManager.cacheRemoteMediaPath(context, http, downloadUrl);
+                        boolean didCache = AudioTourManager.cacheRemoteMediaPath(context, http, audioTourUrl);
                         Timber.d("Downloaded %s with success %b", audioTourUrl, didCache);
                     }
                 }, throwable -> Timber.e(throwable, "Failed to download audio tours"));

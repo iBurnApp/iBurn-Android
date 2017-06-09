@@ -86,9 +86,9 @@ open class PlayaItemAdapter(val context: Context, val listener: AdapterListener)
             holder.descView.text = item.description
 
             AdapterUtils.setDistanceText(deviceLocation, holder.walkTimeView, holder.bikeTimeView,
-                    item.location.latitude, item.location.longitude)
+                    item.latitude, item.longitude)
 
-            if (item.location.latitude == 0f && item.playaAddress == null) {
+            if (item.latitude == 0f && item.playaAddress == null) {
                 // No location present, hide address views
                 holder.addressView.visibility = View.GONE
             } else if (item.playaAddress != null) {

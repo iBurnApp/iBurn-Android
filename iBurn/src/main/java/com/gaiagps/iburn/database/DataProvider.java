@@ -119,7 +119,7 @@ public class DataProvider {
     }
 
     public int deleteCamps() {
-        return db.getOpenHelper().getWritableDatabase().delete(Camp.TableName, "*", null);
+        return db.getOpenHelper().getWritableDatabase().delete(Camp.TABLE_NAME, "*", null);
 //        Cursor result = db.query("DELETE FROM camp; VACUUM", null);
 //        if (result != null) result.close();
     }
@@ -192,11 +192,11 @@ public class DataProvider {
 
     public int delete(@NonNull String table) {
         switch (table) {
-            case Camp.TableName:
+            case Camp.TABLE_NAME:
                 return deleteCamps();
-            case Art.TableName:
+            case Art.TABLE_NAME:
                 return deleteArt();
-            case Event.TableName:
+            case Event.TABLE_NAME:
                 return deleteEvents();
             default:
                 Timber.w("Cannot clear unknown table name '%s'", table);
@@ -237,7 +237,7 @@ public class DataProvider {
 //    }
 
     public int deleteEvents() {
-        return db.getOpenHelper().getWritableDatabase().delete(Event.TableName, "*", null);
+        return db.getOpenHelper().getWritableDatabase().delete(Event.TABLE_NAME, "*", null);
 //        Cursor result = db.query("DELETE FROM event; VACUUM", null);
 //        if (result != null) result.close();
     }
@@ -261,7 +261,7 @@ public class DataProvider {
     }
 
     public int deleteArt() {
-        return db.getOpenHelper().getWritableDatabase().delete(Art.TableName, "*", null);
+        return db.getOpenHelper().getWritableDatabase().delete(Art.TABLE_NAME, "*", null);
 //        Cursor result = db.query("DELETE FROM art; VACUUM", null);
 //        if (result != null) result.close();
     }
@@ -346,9 +346,9 @@ public class DataProvider {
     }
 
     public void toggleFavorite(@NonNull PlayaItem item) {
-        String newFavoriteVal = item.isFavorite() ? "0" : "1";
+        String newFavoriteVal = item.isFavorite ? "0" : "1";
         String tableName = item.getClass().getSimpleName().toLowerCase();
-        Cursor cursor = db.query("UPDATE " + tableName + " SET favorite = ? WHERE id = " + item.getId(), new String[]{newFavoriteVal});
+        Cursor cursor = db.query("UPDATE " + tableName + " SET favorite = ? WHERE id = " + item.id, new String[]{newFavoriteVal});
         if (cursor != null) cursor.close();
     }
 

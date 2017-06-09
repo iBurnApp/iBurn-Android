@@ -61,7 +61,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
 
             case CAMPS:
                 playaItems = dataProvider
-                        .flatMap(dataProvider1 -> dataProvider1.observeCamps().toObservable()); // TODO : rm toObservable
+                        .flatMap(provider -> provider.observeCamps().toObservable()); // TODO : rm toObservable
 
                 break;
 

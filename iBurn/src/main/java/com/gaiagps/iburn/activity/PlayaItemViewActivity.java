@@ -6,6 +6,9 @@ import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
@@ -14,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -50,6 +54,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
 
     public static final String EXTRA_MODEL_ID = "model-id";
     public static final String EXTRA_MODEL_TYPE = "model-type";
+    public static final String EXTRA_PLAYA_ITEM = "playa-item";
 
     DataProvider provider;
 
