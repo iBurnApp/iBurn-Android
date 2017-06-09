@@ -23,6 +23,7 @@ import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.ResponseBody;
 import retrofit2.Response;
 
 
@@ -113,7 +114,7 @@ public class MockIBurnApi implements IBurnApi {
     }
 
     @Override
-    public Observable<Response> getTiles() {
+    public Observable<ResponseBody> getTiles() {
         // currently unused
         return null;
     }

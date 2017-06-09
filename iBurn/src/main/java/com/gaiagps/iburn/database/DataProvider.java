@@ -48,7 +48,7 @@ public class DataProvider {
     /**
      * Version of database data and mbtiles. This is basically the unix time at which bundled data was provided to this build.
      */
-    public static final long RESOURCES_VERSION = 1472093065000L; // Unix time of creation
+    public static final long RESOURCES_VERSION = 0; //1472093065000L; // Unix time of creation
 
     /**
      * If true, use a bundled pre-populated database (see {@link DBWrapper}. Else start with a fresh database.
@@ -119,9 +119,14 @@ public class DataProvider {
     }
 
     public int deleteCamps() {
-        return db.getOpenHelper().getWritableDatabase().delete(Camp.TABLE_NAME, "*", null);
+        return clearTable(Camp.TABLE_NAME);
+//        return db.getOpenHelper().getWritableDatabase().delete(Camp.TABLE_NAME, "*", null);
 //        Cursor result = db.query("DELETE FROM camp; VACUUM", null);
 //        if (result != null) result.close();
+    }
+
+    private int clearTable(String tablename) {
+        return db.getOpenHelper().getWritableDatabase().delete(tablename, null, null);
     }
 
     public Flowable<List<Camp>> observeCamps() {
@@ -237,7 +242,9 @@ public class DataProvider {
 //    }
 
     public int deleteEvents() {
-        return db.getOpenHelper().getWritableDatabase().delete(Event.TABLE_NAME, "*", null);
+        return clearTable(Event.TABLE_NAME);
+
+//        return db.getOpenHelper().getWritableDatabase().delete(Event.TABLE_NAME, "*", null);
 //        Cursor result = db.query("DELETE FROM event; VACUUM", null);
 //        if (result != null) result.close();
     }
@@ -246,12 +253,11 @@ public class DataProvider {
                                                              @Nullable ArrayList<String> types) {
 
         // TODO : Honor upgradeLock?
-//        if (types == null) {
-//            return db.eventDao().findByDay(day);
-//        } else {
-//            return db.eventDao().findByDayAndType(day, types);
-//        }
-        return Flowable.empty();
+        if (types == null) {
+            return db.eventDao().findByDay(day);
+        } else {
+            return db.eventDao().findByDayAndType(day, types);
+        }
     }
 
     public Flowable<List<Event>> observeEventFavorites() {
@@ -261,7 +267,8 @@ public class DataProvider {
     }
 
     public int deleteArt() {
-        return db.getOpenHelper().getWritableDatabase().delete(Art.TABLE_NAME, "*", null);
+        return clearTable(Art.TABLE_NAME);
+//        return db.getOpenHelper().getWritableDatabase().delete(Art.TABLE_NAME, null, null);
 //        Cursor result = db.query("DELETE FROM art; VACUUM", null);
 //        if (result != null) result.close();
     }

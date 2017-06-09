@@ -36,6 +36,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.functions.Function;
+import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -192,8 +196,13 @@ public class IBurnService {
                 .registerTypeAdapter(Date.class, new PlayaDateTypeAdapter())
                 .create();
 
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(IBURN_API_URL)
+                .client(client)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
@@ -254,22 +263,22 @@ public class IBurnService {
 
     private Single<Long> updateTiles(ResourceManifest resourceManifest, MapProvider provider) {
         return service.getTiles()
-                .firstOrError()
-                .map(response -> {
+                .map(responseBody -> {
                     try {
-                        provider.offerMapUpgrade(response.raw().body().byteStream(), resourceManifest.updated.getTime());
+                        provider.offerMapUpgrade(responseBody.byteStream(), resourceManifest.updated.getTime());
                         return 1l;
                     } catch (IOException | NullPointerException e) {
                         Timber.e(e, "Error copying mbtiles!");
                         return 0l;
                     }
-                });
+                })
+                .firstOrError();
     }
 
     private Single<Long> updateArt(DataProvider provider) {
         Timber.d("Updating art");
 
-        final String tableName = PlayaDatabase.ART;
+        final String tableName = com.gaiagps.iburn.database.Art.TABLE_NAME;
         return updateTable(provider, service.getArt(), tableName, new SimpleLifeboat(SimpleLifeboat.Table.Art), (item, values, database) -> {
             Art art = (Art) item;
             values.put(ARTIST, art.artist);
@@ -282,7 +291,7 @@ public class IBurnService {
     private Single<Long> updateCamps(DataProvider provider) {
         Timber.d("Updating Camps");
 
-        final String tableName = PlayaDatabase.CAMPS;
+        final String tableName = com.gaiagps.iburn.database.Camp.TABLE_NAME;
         return updateTable(provider, service.getCamps(), tableName, new SimpleLifeboat(SimpleLifeboat.Table.Camp), (item, values, database) -> {
             values.put(HOMETOWN, ((Camp) item).hometown);
             database.insert(values);
@@ -299,7 +308,7 @@ public class IBurnService {
         // Date format for human-readable all-day
         final SimpleDateFormat dayFormatter = new SimpleDateFormat("EE M/d", Locale.US);
 
-        final String tableName = PlayaDatabase.EVENTS;
+        final String tableName = com.gaiagps.iburn.database.Event.TABLE_NAME;
         return updateTable(provider, service.getEvents(), tableName, new EventLifeboat(), (item, values, database) -> {
 
             Event event = (Event) item;
@@ -380,7 +389,7 @@ public class IBurnService {
 
                 .count()
 
-//                .doOnNext(count -> Timber.d("Inserted %d %s", count, tableName))
+                .doOnSuccess(count -> Timber.d("Inserted %d %s", count, tableName))
 
                 .doOnError(throwable -> {
                     Timber.e(throwable, "Error. Rolling back %s transacton ", tableName);

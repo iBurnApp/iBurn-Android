@@ -63,17 +63,17 @@ import java.util.*
 //    @Query("SELECT * FROM $TableName")
 //    fun getFavorites(): Flowable<List<Event>>
 //
-////    @Query("SELECT * FROM $TableName WHERE $ColCampPlayaId = :p0 ORDER BY $ColStartTime")
-////    fun findByCampPlayaId(campPlayaId: Int): Flowable<List<Event>>
+//    @Query("SELECT * FROM $TableName WHERE $ColCampPlayaId = :p0 ORDER BY $ColStartTime")
+//    fun findByCampPlayaId(campPlayaId: Int): Flowable<List<Event>>
 //
-////    @Query("SELECT * FROM $TableName WHERE $ColStartTimePretty LIKE :p0 ORDER BY $ColStartTime")
-////    fun findByDay(day: String): Flowable<List<Event>>
+//    @Query("SELECT * FROM $TableName WHERE $ColStartTimePretty LIKE :p0 ORDER BY $ColStartTime")
+//    fun findByDay(day: String): Flowable<List<Event>>
 //
-////    @Query("SELECT * FROM $TableName WHERE ( start_time_pretty LIKE :day% AND $ColType IN (:types) )  ORDER BY $ColStartTime")
-////    fun findByDayAndType(day: String, types: List<String>): Flowable<List<Event>>
+//    @Query("SELECT * FROM $TableName WHERE ( start_time_pretty LIKE :day% AND $ColType IN (:types) )  ORDER BY $ColStartTime")
+//    fun findByDayAndType(day: String, types: List<String>): Flowable<List<Event>>
 //
-////    @Query("SELECT * FROM $TableName WHERE $ColName LIKE :p0 GROUP BY $ColName") // GROUP_BY name eliminates duplicate entries for separate occurrences
-////    fun findByName(name: String): Flowable<List<Event>>
+//    @Query("SELECT * FROM $TableName WHERE $ColName LIKE :p0 GROUP BY $ColName") // GROUP_BY name eliminates duplicate entries for separate occurrences
+//    fun findByName(name: String): Flowable<List<Event>>
 //
 //    @Insert
 //    fun insert(vararg event: Event)

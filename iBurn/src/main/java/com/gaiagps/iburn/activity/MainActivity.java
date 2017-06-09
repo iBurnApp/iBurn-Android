@@ -29,6 +29,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.Subscriber;
+import com.gaiagps.iburn.api.IBurnService;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
@@ -141,8 +142,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
 
 //        Mock update (Comment out DataService.scheduleAutoUpdate above)
-//        IBurnService service = new IBurnService(this, new MockIBurnApi(this));
-//        service.updateData().subscribe();
+//        Timber.d("Updating!");
+//        IBurnService service = new IBurnService(this);
+//        service.updateData()
+//                .subscribe((success) -> {
+//                    Timber.d("Updated iburn with success %b", success);
+//                });
 
         if (Embargo.isEmbargoActive(prefs)) {
             Flowable.timer(1, TimeUnit.SECONDS)
