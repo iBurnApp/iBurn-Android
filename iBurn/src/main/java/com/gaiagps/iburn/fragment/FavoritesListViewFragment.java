@@ -11,7 +11,6 @@ import android.widget.TextView;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.database.DataProvider;
-import com.tonicartos.superslim.LayoutManager;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;

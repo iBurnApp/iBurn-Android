@@ -5,7 +5,6 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
 import rx.subjects.PublishSubject;
-import timber.log.Timber;
 
 /**
  * Evaluates Javascript on a WebView, returning the result to a {@link PublishSubject}.

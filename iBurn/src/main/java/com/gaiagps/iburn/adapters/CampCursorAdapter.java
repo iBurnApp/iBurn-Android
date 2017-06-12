@@ -1,17 +1,5 @@
 package com.gaiagps.iburn.adapters;
 
-import android.content.Context;
-import android.database.Cursor;
-import android.text.TextUtils;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-
-import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.database.CampTable;
-
 /**
  * Bind a playa item (camp, art, event) database row to a view with a simple name & distance display,
  * using the device's location and date when the adapter was constructed.

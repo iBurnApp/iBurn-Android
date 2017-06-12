@@ -24,7 +24,6 @@ import java.util.List;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
-import retrofit2.Response;
 
 
 /**

@@ -1,15 +1,12 @@
 package com.gaiagps.iburn.database;
 
 import android.content.Context;
-import android.os.Environment;
 
 import com.gaiagps.iburn.Bytestreams;
-import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;

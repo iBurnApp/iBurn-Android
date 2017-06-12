@@ -1,10 +1,5 @@
 package com.gaiagps.iburn.database
 
-import android.arch.persistence.room.ColumnInfo
-import android.arch.persistence.room.Embedded
-import android.arch.persistence.room.PrimaryKey
-import java.io.Serializable
-
 /**
  * Created by dbro on 6/6/17.
  */

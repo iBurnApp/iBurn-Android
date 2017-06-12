@@ -1,15 +1,11 @@
 package com.gaiagps.iburn.database
 
-import android.arch.persistence.room.*
 //import com.gaiagps.iburn.database.Event.Companion.ColCampPlayaId
 //import com.gaiagps.iburn.database.Event.Companion.ColStartTime
 //import com.gaiagps.iburn.database.Event.Companion.ColStartTimePretty
 //import com.gaiagps.iburn.database.Event.Companion.ColType
 //import com.gaiagps.iburn.database.Event.Companion.TableName
 //import com.gaiagps.iburn.database.PlayaItem.Companion.ColName
-import io.reactivex.Flowable
-import io.reactivex.Observable
-import java.util.*
 
 /**
  * Created by dbro on 6/6/17.

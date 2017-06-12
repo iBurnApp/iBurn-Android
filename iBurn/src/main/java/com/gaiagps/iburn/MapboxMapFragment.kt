@@ -31,6 +31,14 @@ import io.reactivex.subjects.PublishSubject
 import timber.log.Timber
 import java.util.ArrayDeque
 import java.util.concurrent.TimeUnit
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
+import kotlin.collections.List
+import kotlin.collections.dropLastWhile
+import kotlin.collections.filter
+import kotlin.collections.forEach
+import kotlin.collections.set
+import kotlin.collections.toTypedArray
 
 
 class MapboxMapFragment : Fragment() {

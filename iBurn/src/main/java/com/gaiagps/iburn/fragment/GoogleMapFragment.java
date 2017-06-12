@@ -2,7 +2,6 @@ package com.gaiagps.iburn.fragment;
 
 import android.animation.ValueAnimator;
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -20,17 +19,12 @@ import android.widget.TextView;
 import com.cocoahero.android.gmaps.addons.mapbox.MapBoxOfflineTileProvider;
 import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Searchable;
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
-import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.database.EventTable;
-import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.database.PlayaItem;
 import com.gaiagps.iburn.database.PlayaItemTable;
 import com.gaiagps.iburn.database.UserPoiTable;
@@ -46,7 +40,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
-import com.squareup.sqlbrite.SqlBrite;
 
 import org.reactivestreams.Subscription;
 

@@ -3,14 +3,8 @@ package com.gaiagps.iburn.adapters;
 import android.database.MatrixCursor;
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Log;
 
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @SmallTest
 public class EventSectionedCursorAdapterTest extends AndroidTestCase {

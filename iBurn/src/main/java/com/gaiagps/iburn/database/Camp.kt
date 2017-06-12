@@ -1,12 +1,8 @@
 package com.gaiagps.iburn.database
 
-import android.arch.persistence.room.*
-import io.reactivex.Flowable
-import android.arch.persistence.room.Update
 //import com.gaiagps.iburn.database.Camp.Companion.TableName
 //import com.gaiagps.iburn.database.PlayaItem.Companion.ColFavorite
 //import com.gaiagps.iburn.database.PlayaItem.Companion.ColName
-import io.reactivex.Observable
 
 
 /**

@@ -1,20 +1,5 @@
 package com.gaiagps.iburn.adapters;
 
-import android.content.Context;
-import android.database.Cursor;
-import android.support.v7.widget.RecyclerView;
-import android.view.ViewGroup;
-
-import com.tonicartos.superslim.LayoutManager;
-import com.tonicartos.superslim.LinearSLM;
-
-import java.util.List;
-
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
-import timber.log.Timber;
-
 //public abstract class SectionedCursorAdapter<T extends PlayaItemCursorAdapter.ViewHolder> extends PlayaItemCursorAdapter<T> {
 //
 //    protected static final int VIEW_TYPE_HEADER = 0x01;

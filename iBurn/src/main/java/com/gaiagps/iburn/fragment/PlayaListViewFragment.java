@@ -25,7 +25,6 @@ import java.util.List;
 
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import rx.Subscription;
 import timber.log.Timber;
 
 /**

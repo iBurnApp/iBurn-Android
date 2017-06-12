@@ -11,12 +11,7 @@ import android.widget.TextView;
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.EventTable;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.squareup.sqlbrite.SqlBrite;
-import com.tonicartos.superslim.LayoutManager;
 
 import java.util.Calendar;
 import java.util.Date;

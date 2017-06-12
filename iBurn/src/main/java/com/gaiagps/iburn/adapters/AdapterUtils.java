@@ -6,18 +6,11 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.TextAppearanceSpan;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
-import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.gaiagps.iburn.database.PlayaItemTable;
-import com.squareup.sqlbrite.SqlBrite;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

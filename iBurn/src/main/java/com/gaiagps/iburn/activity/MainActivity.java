@@ -29,7 +29,6 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.Searchable;
 import com.gaiagps.iburn.Subscriber;
-import com.gaiagps.iburn.api.IBurnService;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;

@@ -17,13 +17,14 @@ import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaItem;
 
-//import butterknife.BindView;
-//import butterknife.ButterKnife;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
+
+//import butterknife.BindView;
+//import butterknife.ButterKnife;
 
 public class SearchActivity extends AppCompatActivity implements AdapterListener {
 

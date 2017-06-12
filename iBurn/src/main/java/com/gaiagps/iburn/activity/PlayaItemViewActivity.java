@@ -24,7 +24,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.AudioTourManager;
-import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.MapboxMapFragment;
@@ -40,7 +39,6 @@ import com.gaiagps.iburn.database.Event;
 import com.gaiagps.iburn.database.PlayaItem;
 import com.gaiagps.iburn.view.AnimatedFloatingActionButton;
 import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.squareup.sqlbrite.SqlBrite;
 
 import org.prx.playerhater.PlayerHaterListener;
 import org.prx.playerhater.Song;

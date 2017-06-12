@@ -1,31 +1,5 @@
 package com.gaiagps.iburn.adapters;
 
-import android.content.Context;
-import android.database.Cursor;
-import android.text.TextUtils;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-
-import com.gaiagps.iburn.Constants;
-import com.gaiagps.iburn.CurrentDateProvider;
-import com.gaiagps.iburn.DateUtil;
-import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
-import com.gaiagps.iburn.database.EventTable;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import timber.log.Timber;
-
 /**
  * Bind an event database row to a view with name, distance, and delta time display,
  * using the device's location and current time when the adapter was constructed.

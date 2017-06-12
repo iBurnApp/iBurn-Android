@@ -1,14 +1,8 @@
 package com.gaiagps.iburn.fragment
 
-import android.preference.PreferenceManager
-import com.gaiagps.iburn.CurrentDateProvider
-import com.gaiagps.iburn.PrefsHelper
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
-import com.gaiagps.iburn.database.*
-import com.mapbox.mapboxsdk.geometry.VisibleRegion
-import com.squareup.sqlbrite.SqlBrite
-import rx.Observable
-import timber.log.Timber
+import com.gaiagps.iburn.database.DataProvider
+import com.gaiagps.iburn.database.EventTable
+import com.gaiagps.iburn.database.PlayaItemTable
 
 /**
  * Created by dbro on 6/8/17.

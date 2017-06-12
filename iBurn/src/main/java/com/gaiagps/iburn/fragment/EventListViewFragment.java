@@ -10,17 +10,14 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterUtils;
-import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.view.EventListHeader;
-import com.squareup.sqlbrite.SqlBrite;
 
 import java.util.ArrayList;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import rx.Subscription;
 import timber.log.Timber;
 
 /**

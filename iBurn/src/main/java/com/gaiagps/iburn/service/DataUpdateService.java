@@ -1,7 +1,6 @@
 package com.gaiagps.iburn.service;
 
 import android.content.Context;
-import android.transition.Explode;
 
 import com.gaiagps.iburn.api.IBurnService;
 import com.google.android.gms.gcm.GcmNetworkManager;
