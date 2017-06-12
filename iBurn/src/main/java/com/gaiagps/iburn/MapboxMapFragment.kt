@@ -198,32 +198,32 @@ class MapboxMapFragment : Fragment() {
                 }
                 true
             }
-        }
 
-        val prefsHelper = PrefsHelper(activity.applicationContext)
-        Timber.d("Subscribing to camera updates")
-        cameraUpdateSubscription?.dispose()
-        cameraUpdateSubscription = cameraUpdate
-                .debounce(250, TimeUnit.MILLISECONDS)
-                .flatMap { visibleRegion ->
-                    DataProvider.getInstance(activity.applicationContext)
-                            .map { provider -> Pair(provider, visibleRegion) }
-                }
-                .flatMap { (provider, visibleRegion) ->
-
-                    val embargoActive = Embargo.isEmbargoActive(prefsHelper)
-                    val queryAllItems = (state != State.SHOWCASE) && (!embargoActive)
-
-                    if (queryAllItems) {
-                        provider.observeAllMapItemsInVisibleRegion(visibleRegion).toObservable()
-                    } else {
-                        (provider.observeUserAddedMapItemsOnly()).toObservable()
+            val prefsHelper = PrefsHelper(activity.applicationContext)
+            Timber.d("Subscribing to camera updates")
+            cameraUpdateSubscription?.dispose()
+            cameraUpdateSubscription = cameraUpdate
+                    .debounce(250, TimeUnit.MILLISECONDS)
+                    .flatMap { visibleRegion ->
+                        DataProvider.getInstance(activity.applicationContext)
+                                .map { provider -> Pair(provider, visibleRegion) }
                     }
-                }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { items: List<PlayaItem> ->
-                    processMapItemResult(items)
-                }
+                    .flatMap { (provider, visibleRegion) ->
+
+                        val embargoActive = Embargo.isEmbargoActive(prefsHelper)
+                        val queryAllItems = (state != State.SHOWCASE) && (!embargoActive) && map.cameraPosition.zoom >= poiVisibleZoom
+
+                        if (queryAllItems) {
+                            provider.observeAllMapItemsInVisibleRegion(visibleRegion).toObservable()
+                        } else {
+                            (provider.observeUserAddedMapItemsOnly()).toObservable()
+                        }
+                    }
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe { items: List<PlayaItem> ->
+                        processMapItemResult(items)
+                    }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

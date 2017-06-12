@@ -313,11 +313,23 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
     }
 
     /**
-     * Returns user-added markers only
+     * Returns favorites and user-added markers only
      */
-    fun observeUserAddedMapItemsOnly(): Flowable<List<UserPoi>> {
+    fun observeUserAddedMapItemsOnly(): Flowable<List<PlayaItem>> {
         // TODO : Honor upgradeLock
-        return db.userPoiDao().all
+        return Flowables.combineLatest(
+                db.artDao().favorites,
+                db.campDao().favorites,
+                db.eventDao().favorites,
+                db.userPoiDao().all)
+        { arts, camps, events, userpois ->
+            val all = ArrayList<PlayaItem>(arts.size + camps.size + events.size + userpois.size)
+            all.addAll(arts)
+            all.addAll(camps)
+            all.addAll(events)
+            all.addAll(userpois)
+            all
+        }
     }
 
 
