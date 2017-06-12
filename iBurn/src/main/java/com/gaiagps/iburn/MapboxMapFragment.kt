@@ -189,7 +189,7 @@ class MapboxMapFragment : Fragment() {
             map.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
             map.uiSettings.setAllGesturesEnabled(state != State.SHOWCASE)
             map.setOnCameraIdleListener {
-                if (map.cameraPosition.zoom < poiVisibleZoom && areMarkersVisible()) {
+                if (!shouldShowPoisAtZoom(map.cameraPosition.zoom) && areMarkersVisible()) {
                     clearMap(false)
                 } else {
                     cameraUpdate.onNext(map.projection.visibleRegion)
@@ -220,11 +220,13 @@ class MapboxMapFragment : Fragment() {
                     .flatMap { (provider, visibleRegion) ->
 
                         val embargoActive = Embargo.isEmbargoActive(prefsHelper)
-                        val queryAllItems = (state != State.SHOWCASE) && (!embargoActive) && map.cameraPosition.zoom >= poiVisibleZoom
+                        val queryAllItems = (state != State.SHOWCASE) && (!embargoActive) && shouldShowPoisAtZoom(map.cameraPosition.zoom)
 
                         if (queryAllItems) {
+                            Timber.d("Map query for all items at zoom %f", map.cameraPosition.zoom)
                             provider.observeAllMapItemsInVisibleRegion(visibleRegion).toObservable()
                         } else {
+                            Timber.d("Map query for user items at zoom %f", map.cameraPosition.zoom)
                             (provider.observeUserAddedMapItemsOnly()).toObservable()
                         }
                     }
@@ -334,7 +336,7 @@ class MapboxMapFragment : Fragment() {
                             markerIdToItem[marker.id] = item
                             mappedItems.add(item)
                             permanentMarkers.add(marker)
-                        } else if (currentZoom > poiVisibleZoom) {
+                        } else if (shouldShowPoisAtZoom(currentZoom)) {
                             // Other markers are only displayed at near zoom, and are kept in a pool
                             // of recyclable markers. mapRecyclableMarker handles adding to markerIdToItem
                             val marker = mapRecyclableMarker(map, item, mResultBounds)
@@ -355,6 +357,10 @@ class MapboxMapFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun shouldShowPoisAtZoom(currentZoom: Double): Boolean {
+        return currentZoom > poiVisibleZoom
     }
 
     private val iconFactory: IconFactory by lazy {
