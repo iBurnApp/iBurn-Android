@@ -176,7 +176,8 @@ class MapboxMapFragment : Fragment() {
             if (BuildConfig.MOCK) {
                 // TODO : Re-enable mock location after crash resolved
                 // https://github.com/mapbox/mapbox-gl-native/pull/9142
-                map.setLocationSource(LocationProvider.MapboxMockLocationSource())
+                val mockEngine = LocationProvider.MapboxMockLocationSource()
+                map.setLocationSource(mockEngine)
             }
             map.myLocationViewSettings.foregroundTintColor = context.resources.getColor(R.color.map_my_location)
             map.myLocationViewSettings.accuracyTintColor = context.resources.getColor(R.color.map_my_location)
