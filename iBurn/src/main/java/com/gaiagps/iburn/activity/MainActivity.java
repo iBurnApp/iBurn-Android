@@ -217,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             if (pwGuess.equals(UNLOCK_CODE)) {
                 prefs.setEnteredValidUnlockCode(true);
                 // Notify all observers that embargo is clear
-                DataProvider.getInstance(getApplicationContext()).subscribe(DataProvider::endUpgrade);
+                DataProvider.Companion.getInstance(getApplicationContext()).subscribe(DataProvider::endUpgrade);
                 new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
                         .setTitle(getString(R.string.victory))
                         .setMessage(getString(R.string.location_data_unlocked))

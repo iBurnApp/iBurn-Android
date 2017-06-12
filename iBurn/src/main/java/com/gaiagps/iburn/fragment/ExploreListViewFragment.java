@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.fragment;
 
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +19,7 @@ import com.squareup.sqlbrite.SqlBrite;
 import com.tonicartos.superslim.LayoutManager;
 
 import java.util.Calendar;
+import java.util.Date;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -37,18 +39,16 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
 
     @Override
     public Disposable createDisposable() {
-        Calendar modifiedDate = Calendar.getInstance();
-        modifiedDate.setTime(CurrentDateProvider.getCurrentDate());
-        String lowerBoundDateStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
-        modifiedDate.add(Calendar.HOUR, 7);
-        String upperBoundDateStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
+        Date now = CurrentDateProvider.getCurrentDate();
 
+        Calendar endCal = Calendar.getInstance();
+        endCal.setTime(now);
+        endCal.add(Calendar.HOUR, 7);
+        Date end = endCal.getTime();
 
-        // TODO : Expose ongoing events API
-        // Get Events that start now to the next several hours
-        return DataProvider.getInstance(getActivity().getApplicationContext())
+        return DataProvider.Companion.getInstance(getActivity().getApplicationContext())
                 .subscribeOn(Schedulers.computation())
-                .flatMap(dataProvider -> dataProvider.observeEventFavorites().toObservable()) // TODO : rm toObservabe //dataProvider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.startTime + " > '" + lowerBoundDateStr + "' AND " + EventTable.startTime + " < '" + upperBoundDateStr + "\' ORDER BY " + EventTable.startTime + " ASC LIMIT 100"))
+                .flatMap(dataProvider -> dataProvider.observeEventBetweenDates(now, end).toObservable())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(events -> {
                             Timber.d("Data onNext %d items", events.size());
@@ -63,7 +63,9 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
         View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
-        mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        // TODO : Implement sectioned adapter
+//        mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         return v;
     }

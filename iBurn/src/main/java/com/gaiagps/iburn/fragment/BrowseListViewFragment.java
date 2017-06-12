@@ -54,7 +54,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     @Override
     protected Disposable createDisposable() {
 
-        Observable<DataProvider> dataProvider = DataProvider.getInstance(getActivity().getApplicationContext());
+        Observable<DataProvider> dataProvider = DataProvider.Companion.getInstance(getActivity().getApplicationContext());
         Observable<List<? extends PlayaItem>> playaItems = null;
 
         switch (categorySelection) {

@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.fragment;
 
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,7 +32,9 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
         View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
-        mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        // TODO : Implement sectioned adapter
+//        mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));        mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         return v;
     }
@@ -39,7 +42,7 @@ public class FavoritesListViewFragment extends PlayaListViewFragment {
     @Override
     protected Disposable createDisposable() {
 
-        return DataProvider.getInstance(getActivity().getApplicationContext())
+        return DataProvider.Companion.getInstance(getActivity().getApplicationContext())
                 .flatMap(provider -> provider.observeFavorites().toObservable()) // TODO : rm toObservable
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::onDataChanged, throwable -> Timber.e(throwable, "Failed to load favorites"));

@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 
 import com.gaiagps.iburn.PrefsHelper;
+import com.gaiagps.iburn.SchedulersKt;
 import com.gaiagps.iburn.api.response.Art;
 import com.gaiagps.iburn.api.response.Camp;
 import com.gaiagps.iburn.api.response.DataManifest;
@@ -220,9 +221,10 @@ public class IBurnService {
         // Check local update dates for each endpoint, update those that are stale
         final PrefsHelper storage = new PrefsHelper(context);
 
-        return Observable.zip(DataProvider.getInstance(context),
+        return Observable.zip(DataProvider.Companion.getInstance(context),
                 Observable.just(MapProvider.getInstance(context)),
                 (dataProvider, mapProvider) -> new Pair<>(dataProvider, mapProvider))
+                .observeOn(SchedulersKt.getIoScheduler())
                 .flatMap(providerPair -> service.getDataManifest().map(dataManifest -> new Pair<>(providerPair, dataManifest)))
                 .flatMap(depBundle -> {
                     Timber.d("Got depBundle");

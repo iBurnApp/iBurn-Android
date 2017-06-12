@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                                             xmlns:app="http://schemas.android.com/apk/res-auto"
-                                             xmlns:tools="http://schemas.android.com/tools"
-                                             android:layout_width="match_parent"
-                                             android:layout_height="wrap_content"
-                                             android:padding="16dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:padding="16dp">
 
     <ImageView
         android:id="@+id/heart"
@@ -12,23 +13,20 @@
         android:layout_height="35dp"
         android:layout_marginEnd="18dp"
         android:layout_marginRight="18dp"
-        android:gravity="right"
         android:paddingBottom="8dp"
         android:paddingLeft="4dp"
         android:paddingRight="4dp"
         android:scaleType="fitEnd"
         android:src="@drawable/ic_heart_empty"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/title"
         style="@style/PlayaTextItem"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:ellipsize="marquee"
         android:gravity="center_vertical"
-        android:paddingTop="0dp"
         android:singleLine="true"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -36,7 +34,7 @@
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Dust Feast"/>
+        tools:text="Dust Feast really long title omg its gonna hit the heart" />
 
     <TextView
         android:id="@+id/artist"
@@ -49,7 +47,7 @@
         android:singleLine="true"
         android:textSize="20sp"
         app:layout_constraintTop_toBottomOf="@id/title"
-        tools:text="Joe Artist"/>
+        tools:text="Joe Artist" />
 
     <TextView
         android:id="@+id/description"
@@ -63,7 +61,7 @@
         android:singleLine="false"
         android:textSize="18sp"
         app:layout_constraintTop_toBottomOf="@id/artist"
-        tools:text="A very long description description. A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description."/>
+        tools:text="A very long description description. A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description." />
 
     <TextView
         android:id="@+id/type"
@@ -77,7 +75,7 @@
         android:textColor="@color/sub_text"
         android:textSize="18sp"
         app:layout_constraintTop_toBottomOf="@id/description"
-        tools:text="Celebration"/>
+        tools:text="Celebration" />
 
     <TextView
         android:id="@+id/walk_time"
@@ -94,7 +92,7 @@
         android:textColor="@color/sub_text"
         android:textSize="18sp"
         app:layout_constraintTop_toBottomOf="@id/type"
-        tools:text="6 min"/>
+        tools:text="6 min" />
 
     <TextView
         android:id="@+id/bike_time"
@@ -113,7 +111,7 @@
         android:textSize="18sp"
         app:layout_constraintStart_toEndOf="@id/walk_time"
         app:layout_constraintTop_toTopOf="@id/walk_time"
-        tools:text="3 min"/>
+        tools:text="3 min" />
 
     <TextView
         android:id="@+id/time"
@@ -132,7 +130,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1"
         app:layout_constraintStart_toEndOf="@id/type"
-        tools:text="All Sun 8/30"/>
+        tools:text="All Sun 8/30" />
 
     <TextView
         android:id="@+id/address"
@@ -150,6 +148,9 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1"
         app:layout_constraintStart_toEndOf="@id/bike_time"
-        tools:text="7:30 &amp; Esplanade"/>
+        tools:text="7:30 &amp; Esplanade" />
+
+    <!-- TODO: If an item has address but no lat/lon (we can't show bike / walk time),
+         the address constraints will break because bike/walk time are not shown -->
 
 </android.support.constraint.ConstraintLayout>

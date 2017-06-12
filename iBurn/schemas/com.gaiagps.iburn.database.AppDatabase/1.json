@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "c4cc0ca8f13a5d87a22863f69adc4365",
+    "identityHash": "4d42672c384b179a0aa8183f1bdfef99",
     "entities": [
       {
         "tableName": "arts",
@@ -159,7 +159,7 @@
       },
       {
         "tableName": "events",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT, `desc` TEXT, `url` TEXT, `contact` TEXT, `p_addr` TEXT, `p_id` TEXT, `lat` REAL, `lon` REAL, `fav` INTEGER, `artist` TEXT, `all_day` INTEGER, `check_loc` INTEGER, `c_id` INTEGER, `s_time` TEXT, `s_time_p` TEXT, `e_time` TEXT, `e_time_p` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT, `desc` TEXT, `url` TEXT, `contact` TEXT, `p_addr` TEXT, `p_id` TEXT, `lat` REAL, `lon` REAL, `fav` INTEGER, `artist` TEXT, `all_day` INTEGER, `check_loc` INTEGER, `c_id` TEXT, `s_time` TEXT, `s_time_p` TEXT, `e_time` TEXT, `e_time_p` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -229,7 +229,7 @@
           {
             "fieldPath": "campPlayaId",
             "columnName": "c_id",
-            "affinity": "INTEGER"
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "startTime",
@@ -260,11 +260,80 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "user_pois",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT, `desc` TEXT, `url` TEXT, `contact` TEXT, `p_addr` TEXT, `p_id` TEXT, `lat` REAL, `lon` REAL, `fav` INTEGER, `icon` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "_id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "desc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contact",
+            "columnName": "contact",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaAddress",
+            "columnName": "p_addr",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaId",
+            "columnName": "p_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "lat",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "lon",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "isFavorite",
+            "columnName": "fav",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "icon",
+            "columnName": "icon",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "_id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"c4cc0ca8f13a5d87a22863f69adc4365\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"4d42672c384b179a0aa8183f1bdfef99\")"
     ]
   }
 }

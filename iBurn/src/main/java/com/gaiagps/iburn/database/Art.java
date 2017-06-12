@@ -2,6 +2,7 @@ package com.gaiagps.iburn.database;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
+import android.text.TextUtils;
 
 import static com.gaiagps.iburn.database.Art.TABLE_NAME;
 
@@ -30,4 +31,8 @@ public class Art extends PlayaItem {
 
     @ColumnInfo(name = AUDIO_TOUR_URL)
     public String audioTourUrl;
+
+    public boolean hasAudioTour() {
+        return !TextUtils.isEmpty(audioTourUrl);
+    }
 }

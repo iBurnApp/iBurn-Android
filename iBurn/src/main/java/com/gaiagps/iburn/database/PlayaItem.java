@@ -3,6 +3,8 @@ package com.gaiagps.iburn.database;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.PrimaryKey;
 
+import com.mapbox.mapboxsdk.geometry.LatLng;
+
 import java.io.Serializable;
 
 /**
@@ -52,4 +54,30 @@ public class PlayaItem implements Serializable {
 
     @ColumnInfo(name = FAVORITE)
     public boolean isFavorite;
+
+    public boolean hasLocation() {
+        return latitude != 0 && longitude != 0;
+    }
+
+    public LatLng getLatLng() {
+        return new LatLng(latitude, longitude);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PlayaItem playaItem = (PlayaItem) o;
+
+        if (id != playaItem.id) return false;
+        return playaId != null ? playaId.equals(playaItem.playaId) : playaItem.playaId == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (playaId != null ? playaId.hashCode() : 0);
+        return result;
+    }
 }

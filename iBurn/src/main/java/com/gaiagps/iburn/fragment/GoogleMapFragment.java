@@ -187,7 +187,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 //                .flatMap(dataProvider ->
 //                        dataProvider.createQuery(PlayaDatabase.POIS,
 //                                "SELECT " + PlayaItemTable.id + ", " + UserPoiTable.drawableResId + " FROM " + PlayaDatabase.POIS + " WHERE " + PlayaItemTable.id + " = ?",
-//                                String.valueOf(getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId())))))
+//                                String.valueOf(getDatabaseIdFromGeneratedDataId(mappedCustomMarkerIds.get(marker.getId())))))
 //                .first()
 //                .map(SqlBrite.Query::run)
 //                .observeOn(AndroidSchedulers.mainThread())
@@ -451,7 +451,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 //                .observeOn(AndroidSchedulers.mainThread())
 //                .subscribe(this::processMapItemResult, throwable -> Timber.e(throwable, "Error querying"));
 //
-//        getMapAsync(googleMap -> {
+//        getMapAsync(googleMap -> {f
 //
 //            UiSettings settings = googleMap.getUiSettings();
 //            settings.setZoomControlsEnabled(false);
@@ -475,7 +475,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 //
 //                @Override
 //                public void onMarkerDragEnd(Marker marker) {
-//                    if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
+//                    if (mappedCustomMarkerIds.containsKey(marker.getId())) {
 //                        updateCustomPinWithMarker(marker, 0);
 //                    }
 //                }
@@ -531,8 +531,8 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 //            });
 //
 //            googleMap.setOnInfoWindowClickListener(marker -> {
-//                if (markerIdToMeta.containsKey(marker.getId())) {
-//                    String markerMeta = markerIdToMeta.get(marker.getId());
+//                if (markerIdToItem.containsKey(marker.getId())) {
+//                    String markerMeta = markerIdToItem.get(marker.getId());
 //                    int model_id = Integer.parseInt(markerMeta.split("-")[1]);
 //                    int model_type = Integer.parseInt(markerMeta.split("-")[0]);
 //                    Constants.PlayaItemType modelType = DataProvider.getTypeValue(model_type);
@@ -540,7 +540,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 //                    i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, model_id);
 //                    i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM, modelType);
 //                    getActivity().startActivity(i);
-//                } else if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
+//                } else if (mappedCustomMarkerIds.containsKey(marker.getId())) {
 //                    showEditPinDialog(marker);
 //                }
 //            });
@@ -648,7 +648,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
             PlayaItemTable.favorite
     };
 
-    static final String PROJECTION_STRING = DataProvider.makeProjectionString(PROJECTION);
+    static final String PROJECTION_STRING = DataProvider.Companion.makeProjectionString(PROJECTION);
 
     static String geoWhereClause = String.format("(%s < ? AND %s > ?) AND (%s < ? AND %s > ?)",
             PlayaItemTable.latitude, PlayaItemTable.latitude,
@@ -765,15 +765,15 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 //
 //                if (type == Constants.PlayaItemType.POI) {
 //                    // POIs are permanent markers that are editable when their info window is clicked
-//                    if (!mMappedCustomMarkerIds.containsValue(markerMapId)) {
+//                    if (!mappedCustomMarkerIds.containsValue(markerMapId)) {
 //                        Marker marker = addNewMarkerForCursorItem(googleMap, typeInt, cursor);
-//                        mMappedCustomMarkerIds.put(marker.getId(), markerMapId);
+//                        mappedCustomMarkerIds.put(marker.getId(), markerMapId);
 //                    }
 //                } else if (cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)) == 1) {
 //                    // Favorites are permanent markers, but are not editable
-//                    if (!markerIdToMeta.containsValue(markerMapId)) {
+//                    if (!markerIdToItem.containsValue(markerMapId)) {
 //                        Marker marker = addNewMarkerForCursorItem(googleMap, typeInt, cursor);
-//                        markerIdToMeta.put(marker.getId(), markerMapId);
+//                        markerIdToItem.put(marker.getId(), markerMapId);
 //                        permanentMarkers.add(marker);
 //                    }
 //                } else if (currentZoom > POI_ZOOM_LEVEL) {
@@ -815,7 +815,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
      *                       includes at least one point and will not throw an exception on its build()
      */
 //    private void mapRecyclableMarker(GoogleMap map, int itemType, String markerMapId, Cursor cursor, LatLngBounds.Builder boundsBuilder, boolean[] areBoundsValid) {
-//        if (!markerIdToMeta.containsValue(markerMapId)) {
+//        if (!markerIdToItem.containsValue(markerMapId)) {
 //            // This POI is not yet mapped
 //            LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)), cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.longitude)));
 //            if (itemType != DataProvider.getTypeValue(Constants.PlayaItemType.POI) && boundsBuilder != null && mState == STATE.SEARCH) {
@@ -824,9 +824,9 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 //                    areBoundsValid[0] = true;
 //                }
 //            }
-//            if (mMappedTransientMarkers.size() == MAX_POIS) {
+//            if (mappedTransientMarkers.size() == MAX_POIS) {
 //                // We should re-use the eldest Marker
-//                Marker marker = mMappedTransientMarkers.remove();
+//                Marker marker = mappedTransientMarkers.remove();
 //                marker.setPosition(pos);
 //                marker.setTitle(cursor.getString(cursor.getColumnIndex(ArtTable.name)));
 //
@@ -844,13 +844,13 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 //                }
 //
 //                marker.setAnchor(0.5f, 0.5f);
-//                mMappedTransientMarkers.add(marker);
-//                markerIdToMeta.put(marker.getId(), markerMapId);
+//                mappedTransientMarkers.add(marker);
+//                markerIdToItem.put(marker.getId(), markerMapId);
 //            } else {
 //                // We shall create a new Marker
 //                Marker marker = addNewMarkerForCursorItem(map, itemType, cursor);
-//                markerIdToMeta.put(marker.getId(), markerMapId);
-//                mMappedTransientMarkers.add(marker);
+//                markerIdToItem.put(marker.getId(), markerMapId);
+//                mappedTransientMarkers.add(marker);
 //            }
 //        }
 //    }
@@ -862,7 +862,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
         markerOptions = new MarkerOptions().position(pos)
                 .title(cursor.getString(cursor.getColumnIndex(PlayaItemTable.name)));
 
-        Constants.PlayaItemType modelType = DataProvider.getTypeValue(itemType);
+        Constants.PlayaItemType modelType = DataProvider.Companion.getTypeValue(itemType);
         switch (modelType) {
             case POI:
                 // Favorite column is mapped to user poi icon type: A hack to make the union query work
@@ -886,8 +886,8 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 
 //    private void removeCustomPin(Marker marker) {
 //        marker.remove();
-//        if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
-//            int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
+//        if (mappedCustomMarkerIds.containsKey(marker.getId())) {
+//            int itemId = getDatabaseIdFromGeneratedDataId(mappedCustomMarkerIds.get(marker.getId()));
 //            DataProvider.getInstance(getActivity().getApplicationContext())
 //                    .map(provider -> provider.delete(PlayaDatabase.POIS, PlayaItemTable.id + " = ?", String.valueOf(itemId)))
 //                    .subscribe(result -> Timber.d("Deleted marker with result " + result));
@@ -921,7 +921,7 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 //        try {
 //            DataProvider.getInstance(getActivity().getApplicationContext())
 //                    .map(dataProvider -> dataProvider.insert(PlayaDatabase.POIS, poiValues))
-//                    .subscribe(newId -> mMappedCustomMarkerIds.put(marker.getId(), generateDataIdForItem(Constants.PlayaItemType.POI, newId)));
+//                    .subscribe(newId -> mappedCustomMarkerIds.put(marker.getId(), generateDataIdForItem(Constants.PlayaItemType.POI, newId)));
 //        } catch (NumberFormatException e) {
 //            Timber.w("Unable to get id for new custom marker");
 //        }
@@ -961,14 +961,14 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
      * Note: If drawableResId is 0, it is ignored
      */
 //    private void updateCustomPinWithMarker(Marker marker, int drawableResId) {
-//        if (mMappedCustomMarkerIds.containsKey(marker.getId())) {
+//        if (mappedCustomMarkerIds.containsKey(marker.getId())) {
 //            ContentValues poiValues = new ContentValues();
 //            poiValues.put(UserPoiTable.name, marker.getTitle());
 //            poiValues.put(UserPoiTable.latitude, marker.getPosition().latitude);
 //            poiValues.put(UserPoiTable.longitude, marker.getPosition().longitude);
 //            if (drawableResId != 0)
 //                poiValues.put(UserPoiTable.drawableResId, drawableResId);
-//            int itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.getId()));
+//            int itemId = getDatabaseIdFromGeneratedDataId(mappedCustomMarkerIds.get(marker.getId()));
 //            DataProvider.getInstance(getActivity().getApplicationContext())
 //                    .map(dataProvider -> dataProvider.update(PlayaDatabase.POIS, poiValues, PlayaItemTable.id + " = ?", String.valueOf(itemId)))
 //                    .subscribe(numUpdated -> Timber.d("Updated marker with status " + numUpdated));

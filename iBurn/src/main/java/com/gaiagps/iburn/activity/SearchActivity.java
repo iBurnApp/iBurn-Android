@@ -85,7 +85,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
         if (searchSubscription != null && !searchSubscription.isDisposed())
             searchSubscription.dispose();
 
-        searchSubscription = DataProvider.getInstance(getApplicationContext())
+        searchSubscription = DataProvider.Companion.getInstance(getApplicationContext())
                 .flatMap(dataProvider -> dataProvider.observeNameQuery(query).toObservable()) // TODO : rm toObservable
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(playaItems -> {
@@ -101,7 +101,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
 
     @Override
     public void onItemFavoriteButtonSelected(PlayaItem item) {
-        DataProvider.getInstance(getApplicationContext())
+        DataProvider.Companion.getInstance(getApplicationContext())
                 .subscribe(dataProvider -> {
                     dataProvider.toggleFavorite(item);
                 }, throwable -> Timber.e(throwable, "failed to toggle favorite"));

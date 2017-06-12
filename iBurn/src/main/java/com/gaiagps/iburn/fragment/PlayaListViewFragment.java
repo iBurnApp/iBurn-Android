@@ -24,6 +24,7 @@ import com.tonicartos.superslim.LayoutManager;
 import java.util.List;
 
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import rx.Subscription;
 import timber.log.Timber;
 
@@ -96,6 +97,9 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
             Timber.w("Got null data onDataChanged");
             return;
         }
+
+        // Also save the scroll position here so updating a data list doesn't lose position
+        lastScrollPos = getScrollPosition();
 
         Timber.d("%s onDataChanged Had %d items. Now %d items", getClass().getSimpleName(),
                 adapter.getItemCount(), newData.size());
@@ -185,8 +189,9 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
 
     @Override
     public void onItemFavoriteButtonSelected(PlayaItem item) {
-
-        DataProvider.getInstance(getActivity().getApplicationContext())
+        Timber.d("onItemFavoriteButtonSelected for %s", item);
+        DataProvider.Companion.getInstance(getActivity().getApplicationContext())
+                .observeOn(Schedulers.io())
                 .subscribe(dataProvider -> {
                     dataProvider.toggleFavorite(item);
                 }, throwable -> Timber.e(throwable, "Failed to update favorite"));

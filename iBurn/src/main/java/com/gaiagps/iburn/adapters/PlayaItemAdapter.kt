@@ -73,7 +73,7 @@ open class PlayaItemAdapter(val context: Context, val listener: AdapterListener)
                 holder.eventTypeView.visibility = View.VISIBLE
                 holder.eventTimeView.visibility = View.VISIBLE
 
-                holder.eventTypeView.text = item.type
+                holder.eventTypeView.text = AdapterUtils.getStringForEventType(item.type)
                 holder.eventTimeView.text = item.startTimePretty
 
                 holder.artistView.visibility = View.GONE
@@ -126,14 +126,15 @@ open class PlayaItemAdapter(val context: Context, val listener: AdapterListener)
      */
     protected fun setupClickListeners(viewHolder: ViewHolder) {
         viewHolder.itemView.setOnClickListener({ view ->
-            if (view.tag != null) {
+            if (viewHolder.itemView.tag != null) {
                 listener.onItemSelected(view.tag as PlayaItem)
             }
         })
 
         viewHolder.favoriteView.setOnClickListener({ view ->
-            if (view.tag != null) {
-                listener.onItemFavoriteButtonSelected(view.tag as PlayaItem)
+            Timber.d("Favorite btn clicked")
+            if (viewHolder.itemView.tag != null) {
+                listener.onItemFavoriteButtonSelected(viewHolder.itemView.tag as PlayaItem)
             }
         })
     }

@@ -32,7 +32,7 @@ public class ArtListViewFragment extends PlayaListViewFragment implements ArtLis
 
     @Override
     public Disposable createDisposable() {
-        return DataProvider.getInstance(getActivity().getApplicationContext())
+        return DataProvider.Companion.getInstance(getActivity().getApplicationContext())
                 .flatMap(dataProvider -> {
                     if (showAudioTourOnly) {
                         return dataProvider.observeArtWithAudioTour().toObservable(); // TODO : Rm toObservable

@@ -6,6 +6,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
+import android.text.TextUtils;
 
 import java.util.List;
 
@@ -44,7 +45,7 @@ public class Event extends PlayaItem {
     public boolean checkLocation;
 
     @ColumnInfo(name = CAMP_PLAYA_ID)
-    public int campPlayaId;
+    public String campPlayaId;
 
     @ColumnInfo(name = START_TIME)
     public String startTime;
@@ -57,4 +58,8 @@ public class Event extends PlayaItem {
 
     @ColumnInfo(name = END_TIME_PRETTY)
     public String endTimePretty;
+
+    public boolean hasCampHost() {
+        return !TextUtils.isEmpty(campPlayaId);
+    }
 }

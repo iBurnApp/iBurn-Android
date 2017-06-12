@@ -13,12 +13,13 @@ import java.util.*
  */
 private const val DATABASE_V1 = 1
 
-@Database(entities = arrayOf(Art::class, Camp::class, Event::class), version = DATABASE_V1)
+@Database(entities = arrayOf(Art::class, Camp::class, Event::class, UserPoi::class), version = DATABASE_V1)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun artDao(): ArtDao
     abstract fun campDao(): CampDao
     abstract fun eventDao(): EventDao
+    abstract fun userPoiDao(): UserPoiDao
 }
 
 private var sharedDb: AppDatabase? = null
