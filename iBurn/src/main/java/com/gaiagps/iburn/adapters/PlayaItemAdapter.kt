@@ -141,17 +141,17 @@ open class PlayaItemAdapter(val context: Context, val listener: AdapterListener)
 
     open class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
 
-        val titleView = view.findViewById(R.id.title) as TextView
-        val artistView = view.findViewById(R.id.artist) as TextView
-        val descView = view.findViewById(R.id.description) as TextView
-        val eventTypeView = view.findViewById(R.id.type) as TextView
-        val eventTimeView = view.findViewById(R.id.time) as TextView
+        val titleView: TextView = view.findViewById(R.id.title)
+        val artistView: TextView = view.findViewById(R.id.artist)
+        val descView: TextView  = view.findViewById(R.id.description)
+        val eventTypeView: TextView = view.findViewById(R.id.type)
+        val eventTimeView: TextView = view.findViewById(R.id.time)
 
-        val favoriteView = view.findViewById(R.id.heart) as ImageView
-        val addressView = view.findViewById(R.id.address) as TextView
+        val favoriteView: ImageView = view.findViewById(R.id.heart)
+        val addressView: TextView = view.findViewById(R.id.address)
 
-        val walkTimeView = view.findViewById(R.id.walk_time) as TextView
-        val bikeTimeView = view.findViewById(R.id.bike_time) as TextView
+        val walkTimeView: TextView = view.findViewById(R.id.walk_time)
+        val bikeTimeView: TextView = view.findViewById(R.id.bike_time)
     }
 
 }

@@ -17,12 +17,12 @@ repositories {
 }
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.3"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.0"
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 21
         versionName "2017.0.0.0"
 
@@ -102,7 +102,7 @@ if (project.hasProperty('keyPassword')) {
     android.signingConfigs.release.keyPassword = keyPassword
 }
 
-def SUPPORT_LIB_VERSION = "25.3.1"
+def SUPPORT_LIB_VERSION = "26.0.0-beta2"
 def PLAY_SERVICES_VERSION = "11.0.0"
 
 dependencies {
