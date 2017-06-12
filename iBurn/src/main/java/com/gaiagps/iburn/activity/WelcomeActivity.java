@@ -20,9 +20,9 @@ import android.widget.ImageButton;
 import com.gaiagps.iburn.AudioTourDownloader;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.database.Camp;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.gaiagps.iburn.database.UserPoiTable;
+import com.gaiagps.iburn.database.UserPoi;
 import com.gaiagps.iburn.fragment.WelcomeFragment;
 
 import permissions.dispatcher.NeedsPermission;
@@ -34,7 +34,7 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
 
     private PrefsHelper prefs;
 
-    private CampSelection homeCampSelection;
+    private Camp homeCampSelection;
 
     private ViewPager pager;
     private PagerAdapter pagerAdapter;
@@ -121,13 +121,13 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
     public void endTutorial() {
 
         if (homeCampSelection != null) {
-            ContentValues poiValues = new ContentValues();
-            poiValues.put(UserPoiTable.name, homeCampSelection.name);
-            poiValues.put(UserPoiTable.latitude, homeCampSelection.lat);
-            poiValues.put(UserPoiTable.longitude, homeCampSelection.lon);
-            poiValues.put(UserPoiTable.drawableResId, UserPoiTable.HOME);
+            UserPoi poi = new UserPoi();
+            poi.name = homeCampSelection.name;
+            poi.latitude = homeCampSelection.latitude;
+            poi.longitude = homeCampSelection.longitude;
+            poi.icon = UserPoi.ICON_HOME;
             DataProvider.Companion.getInstance(getApplicationContext())
-                    .subscribe(dataProvider -> dataProvider.insert(PlayaDatabase.POIS, poiValues));
+                    .subscribe(dataProvider -> dataProvider.insertUserPoi(poi));
         }
 
         prefs.setDidShowWelcome(true);
@@ -147,11 +147,6 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         }
     }
 
-    @Override
-    public void onHomeCampSelected(CampSelection selection) {
-        homeCampSelection = selection;
-    }
-
     public void onAudioTourDownloadButtonClicked(View view) {
         Button downloadButton = (Button) view;
         downloadButton.setText("Consider it done!");
@@ -159,6 +154,11 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
 
         AudioTourDownloader atd = new AudioTourDownloader();
         atd.downloadAudioTours(this);
+    }
+
+    @Override
+    public void onHomeCampSelected(Camp homeCamp) {
+        homeCampSelection = homeCamp;
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {

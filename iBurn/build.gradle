@@ -116,7 +116,6 @@ dependencies {
 
     // Google Play Services
     compile "com.google.android.gms:play-services-gcm:$PLAY_SERVICES_VERSION"
-    compile "com.google.android.gms:play-services-maps:$PLAY_SERVICES_VERSION"
     compile "com.google.android.gms:play-services-location:$PLAY_SERVICES_VERSION"
 
     // 3rd Party libraries
@@ -144,10 +143,6 @@ dependencies {
         transitive = true
     }
 
-    // 3rd Party libraries with apt
-    compile 'net.simonvt.schematic:schematic:0.6.7'
-    kapt 'net.simonvt.schematic:schematic-compiler:0.6.7'
-
     compile 'com.github.hotchemi:permissionsdispatcher:2.4.0'
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'
 
@@ -156,9 +151,6 @@ dependencies {
 
     compile "android.arch.persistence.room:runtime:1.0.0-alpha2"
     kapt "android.arch.persistence.room:compiler:1.0.0-alpha2"
-
-    // Submodule dependencies
-    implementation project(':libraries:android-gmaps-addons')
 
     // Test dependencies
     testCompile 'junit:junit:4.12'

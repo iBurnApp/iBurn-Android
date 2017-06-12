@@ -10,7 +10,6 @@ import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PermissionManager;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.maps.LocationSource;
 import com.mapbox.services.android.telemetry.location.LocationEngine;
 
 import java.util.Date;
@@ -108,31 +107,6 @@ public class LocationProvider {
                         lastMockLocation = createMockLocation();
                         mockLocationSubject.onNext(lastMockLocation);
                     });
-        }
-    }
-
-    /**
-     * A Mock {@link LocationSource} for use with a GoogleMap
-     */
-    public static class MockLocationSource implements LocationSource {
-
-        private Subscription locationSubscription;
-
-        @Override
-        public void activate(final OnLocationChangedListener onLocationChangedListener) {
-            mockCurrentLocation();
-            locationSubscription = mockLocationSubject
-                    .startWith(lastMockLocation)
-                    .subscribe(onLocationChangedListener::onLocationChanged,
-                            throwable -> Timber.e(throwable, "Error sending mock location to map"));
-        }
-
-        @Override
-        public void deactivate() {
-            if (locationSubscription != null) {
-                locationSubscription.unsubscribe();
-                locationSubscription = null;
-            }
         }
     }
 

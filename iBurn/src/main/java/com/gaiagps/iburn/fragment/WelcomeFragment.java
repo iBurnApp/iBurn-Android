@@ -21,9 +21,7 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.Camp;
-import com.gaiagps.iburn.database.CampTable;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaItemTable;
 
 import java.io.IOException;
 import java.util.List;
@@ -64,18 +62,15 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
             campSearchView = (AutoCompleteTextView) rootView.findViewById(R.id.campNameSearch);
             campSearchView.setAdapter(new CampAutoCompleteAdapter(getActivity()));
             campSearchView.setOnItemClickListener((parent, view, position, id) -> {
-                Cursor campCursor = ((Cursor) campSearchView.getAdapter().getItem(position));
-                HomeCampSelectionListener.CampSelection selection = new HomeCampSelectionListener.CampSelection(campCursor.getDouble(campCursor.getColumnIndex(CampTable.latitude)),
-                        campCursor.getDouble(campCursor.getColumnIndex(CampTable.longitude)),
-                        campCursor.getString(campCursor.getColumnIndex(CampTable.name)));
-                campSearchView.setTag(selection);
+                Camp selectedCamp = ((Camp) campSearchView.getAdapter().getItem(position));
+                campSearchView.setTag(selectedCamp);
                 Timber.d("Item selected %s", campSearchView.getText().toString());
 
                 InputMethodManager inputManager = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputManager.hideSoftInputFromWindow(campSearchView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 
                 if (getActivity() instanceof HomeCampSelectionListener) {
-                    ((HomeCampSelectionListener) getActivity()).onHomeCampSelected(selection);
+                    ((HomeCampSelectionListener) getActivity()).onHomeCampSelected(selectedCamp);
                 }
             });
         }
@@ -163,7 +158,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
         }
 
         @Override
-        public Object getItem(int position) {
+        public Camp getItem(int position) {
             if (camps == null) return null;
             return camps.get(position);
         }
@@ -234,9 +229,8 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
             @Override
             public CharSequence convertResultToString(Object result) {
-                if (result instanceof Cursor) {
-                    Cursor cursorResult = (Cursor) result;
-                    return cursorResult.getString(cursorResult.getColumnIndex(PlayaItemTable.name));
+                if (result instanceof Camp) {
+                    return ((Camp) result).name;
                 }
                 return super.convertResultToString(result);
             }
@@ -244,19 +238,6 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
     }
 
     public interface HomeCampSelectionListener {
-        void onHomeCampSelected(CampSelection selection);
-
-        class CampSelection {
-
-            public final String name;
-            public final double lat;
-            public final double lon;
-
-            public CampSelection(double lat, double lon, String name) {
-                this.lat = lat;
-                this.lon = lon;
-                this.name = name;
-            }
-        }
+        void onHomeCampSelected(Camp homeCamp);
     }
 }

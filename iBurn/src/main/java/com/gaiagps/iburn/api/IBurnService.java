@@ -16,10 +16,6 @@ import com.gaiagps.iburn.api.response.PlayaItem;
 import com.gaiagps.iburn.api.response.ResourceManifest;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.EventTable;
-import com.gaiagps.iburn.database.MapProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.gaiagps.iburn.database.PlayaItemTable;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -52,12 +48,20 @@ import static com.gaiagps.iburn.database.Camp.HOMETOWN;
 import static com.gaiagps.iburn.database.Event.ALL_DAY;
 import static com.gaiagps.iburn.database.Event.CAMP_PLAYA_ID;
 import static com.gaiagps.iburn.database.Event.CHECK_LOC;
+import static com.gaiagps.iburn.database.Event.END_TIME;
+import static com.gaiagps.iburn.database.Event.END_TIME_PRETTY;
 import static com.gaiagps.iburn.database.Event.START_TIME;
 import static com.gaiagps.iburn.database.Event.START_TIME_PRETTY;
 import static com.gaiagps.iburn.database.Event.TYPE;
+import static com.gaiagps.iburn.database.PlayaItem.CONTACT;
+import static com.gaiagps.iburn.database.PlayaItem.DESC;
 import static com.gaiagps.iburn.database.PlayaItem.FAVORITE;
+import static com.gaiagps.iburn.database.PlayaItem.LATITUDE;
+import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE;
 import static com.gaiagps.iburn.database.PlayaItem.NAME;
+import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ADDR;
 import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ID;
+import static com.gaiagps.iburn.database.PlayaItem.URL;
 
 /**
  * A monolithic iBurn data updater. Handles fetching IBurn update data and update the database while
@@ -90,10 +94,10 @@ public class IBurnService {
     }
 
     /**
-     * Persist user-defined favorites based on {@link PlayaItemTable#playaId}.
-     * This is suitable for {@link PlayaDatabase#ART} and {@link PlayaDatabase#CAMPS} collections.
+     * Persist user-defined favorites based on {@link PlayaItem.PLAYA_ID}.
+     * This is suitable for {@link com.gaiagps.iburn.database.Art} and {@link com.gaiagps.iburn.database.Camp} collections.
      * <p>
-     * It *cannot* be used with {@link PlayaDatabase#EVENTS} because there may be multiple Event entries
+     * It *cannot* be used with {@link com.gaiagps.iburn.database.Event} because there may be multiple Event entries
      * sharing the same playaId but having differing start and end times
      */
     private static class SimpleLifeboat implements UpgradeLifeboat {
@@ -134,7 +138,7 @@ public class IBurnService {
 
         @Override
         public void restoreData(ContentValues row) {
-            row.put(PlayaItemTable.favorite, favoritePlayaIds.contains(row.getAsString(PlayaItemTable.playaId)));
+            row.put(FAVORITE, favoritePlayaIds.contains(row.getAsString(PLAYA_ID)));
         }
     }
 
@@ -174,13 +178,11 @@ public class IBurnService {
     private class UpdateDataDependencies {
 
         DataProvider dataProvider;
-        MapProvider mapProvider;
         DataManifest dataManifest;
         ResourceManifest resourceManifest;
 
-        public UpdateDataDependencies(DataProvider dataProvider, MapProvider mapProvider, DataManifest dataManifest, ResourceManifest resourceManifest) {
+        public UpdateDataDependencies(DataProvider dataProvider, DataManifest dataManifest, ResourceManifest resourceManifest) {
             this.dataProvider = dataProvider;
-            this.mapProvider = mapProvider;
             this.resourceManifest = resourceManifest;
             this.dataManifest = dataManifest;
         }
@@ -219,14 +221,12 @@ public class IBurnService {
         // Check local update dates for each endpoint, update those that are stale
         final PrefsHelper storage = new PrefsHelper(context);
 
-        return Observable.zip(DataProvider.Companion.getInstance(context),
-                Observable.just(MapProvider.getInstance(context)),
-                (dataProvider, mapProvider) -> new Pair<>(dataProvider, mapProvider))
+        return DataProvider.Companion.getInstance(context)
                 .observeOn(SchedulersKt.getIoScheduler())
-                .flatMap(providerPair -> service.getDataManifest().map(dataManifest -> new Pair<>(providerPair, dataManifest)))
+                .flatMap(dataProvider -> service.getDataManifest().map(dataManifest -> new Pair<>(dataProvider, dataManifest)))
                 .flatMap(depBundle -> {
                     Timber.d("Got depBundle");
-                    Pair providerPair = depBundle.first;
+                    DataProvider dataProvider = depBundle.first;
                     DataManifest dataManifest = depBundle.second;
 
                     Timber.d("Got Data Manifest. art : %s, camps : %s, events : %s",
@@ -236,7 +236,7 @@ public class IBurnService {
                             {dataManifest.art, dataManifest.camps, dataManifest.events, dataManifest.tiles};
 
                     return Observable.fromArray(resources).map(resource ->
-                            new UpdateDataDependencies((DataProvider) providerPair.first, (MapProvider) providerPair.second, dataManifest, resource));
+                            new UpdateDataDependencies((DataProvider) dataProvider, dataManifest, resource));
                 })
                 .filter(dependencies -> shouldUpdateResource(storage, dependencies.resourceManifest))
                 .doOnNext(dependencies -> dependencies.dataProvider.beginUpgrade()) // We really should only do this the first time
@@ -259,20 +259,6 @@ public class IBurnService {
                 })
                 .map(dependencies -> true); // TODO : More granular success / failure?
 //                .subscribe(totalUpdated -> Timber.d("Update complete"), throwable -> Timber.e(throwable, "Update error"));
-    }
-
-    private Single<Long> updateTiles(ResourceManifest resourceManifest, MapProvider provider) {
-        return service.getTiles()
-                .map(responseBody -> {
-                    try {
-                        provider.offerMapUpgrade(responseBody.byteStream(), resourceManifest.updated.getTime());
-                        return 1l;
-                    } catch (IOException | NullPointerException e) {
-                        Timber.e(e, "Error copying mbtiles!");
-                        return 0l;
-                    }
-                })
-                .firstOrError();
     }
 
     private Single<Long> updateArt(DataProvider provider) {
@@ -335,8 +321,8 @@ public class IBurnService {
                 values.put(START_TIME_PRETTY, (event.allDay == 1) ? dayFormatter.format(occurrence.startTime) :
                         timeDayFormatter.format(occurrence.startTime));
 
-                values.put(EventTable.endTime, PlayaDateTypeAdapter.iso8601Format.format(occurrence.endTime));
-                values.put(EventTable.endTimePrint, (event.allDay == 1) ? dayFormatter.format(occurrence.endTime) :
+                values.put(END_TIME, PlayaDateTypeAdapter.iso8601Format.format(occurrence.endTime));
+                values.put(END_TIME_PRETTY, (event.allDay == 1) ? dayFormatter.format(occurrence.endTime) :
                         timeDayFormatter.format(occurrence.endTime));
 
                 database.insert(values);
@@ -413,23 +399,23 @@ public class IBurnService {
     }
 
     /**
-     * Bind {@link PlayaItemTable} values described by the iBurn API. This does not include
-     * internal data columns like {@link PlayaItemTable#favorite}
+     * Bind {@link com.gaiagps.iburn.database.PlayaItem} values described by the iBurn API. This does not include
+     * internal data columns like {@link PlayaItem.FAVORITE}
      */
     private void bindBaseValues(PlayaItem item, android.content.ContentValues values) {
 
         // Name is a required column
-        values.put(PlayaItemTable.name, item.name != null ? item.name : "?");
+        values.put(NAME, item.name != null ? item.name : "?");
 
-        values.put(PlayaItemTable.contact, item.contactEmail);
-        values.put(PlayaItemTable.description, item.description);
-        values.put(PlayaItemTable.playaId, item.uid);
+        values.put(CONTACT, item.contactEmail);
+        values.put(DESC, item.description);
+        values.put(PLAYA_ID, item.uid);
         if (item.location != null) {
-            values.put(PlayaItemTable.latitude, item.location.gps_latitude);
-            values.put(PlayaItemTable.longitude, item.location.gps_longitude);
-            values.put(PlayaItemTable.playaAddress, item.location.string);
+            values.put(LATITUDE, item.location.gps_latitude);
+            values.put(LONGITUDE, item.location.gps_longitude);
+            values.put(PLAYA_ADDR, item.location.string);
         }
-        values.put(PlayaItemTable.url, item.url);
+        values.put(URL, item.url);
     }
 
     private Single<Long> updateResource(UpdateDataDependencies dependencies) {
@@ -444,8 +430,7 @@ public class IBurnService {
         else if (resourceName.equals(dependencies.dataManifest.events.file))
             return updateEvents(dependencies.dataProvider);
 
-        else if (resourceName.equals(dependencies.dataManifest.tiles.file))
-            return updateTiles(dependencies.resourceManifest, dependencies.mapProvider);
+        // Tiles no longer updated via this service
 
         // Unknown or Unimplemented situation
         Timber.w("Unknown resource name %s. Cannot perform update", resourceName);

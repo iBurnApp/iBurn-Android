@@ -278,7 +278,9 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
         }
     }
 
-
+    fun insertUserPoi(poi: UserPoi) {
+        db.userPoiDao().insert(poi)
+    }
     private fun update(item: PlayaItem) {
         if (item is Art) {
             db.artDao().update(item)
