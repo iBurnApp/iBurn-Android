@@ -848,35 +848,6 @@ public class GoogleMapFragment extends SupportMapFragment implements Searchable 
 //        }
 //    }
 
-    private Marker addNewMarkerForCursorItem(GoogleMap map, int itemType, Cursor cursor) {
-        LatLng pos = new LatLng(cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)),
-                cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.longitude)));
-        MarkerOptions markerOptions;
-        markerOptions = new MarkerOptions().position(pos)
-                .title(cursor.getString(cursor.getColumnIndex(PlayaItemTable.name)));
-
-        Constants.PlayaItemType modelType = DataProvider.Companion.getTypeValue(itemType);
-        switch (modelType) {
-            case POI:
-                // Favorite column is mapped to user poi icon type: A hack to make the union query work
-                styleCustomMarkerOption(markerOptions, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)));
-                break;
-            case ART:
-                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.art_pin));
-                break;
-            case CAMP:
-                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camp_pin));
-                break;
-            case EVENT:
-                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.event_pin));
-                break;
-        }
-
-        markerOptions.anchor(0.5f, 0.5f);
-        Marker marker = map.addMarker(markerOptions);
-        return marker;
-    }
-
 //    private void removeCustomPin(Marker marker) {
 //        marker.remove();
 //        if (mappedCustomMarkerIds.containsKey(marker.getId())) {

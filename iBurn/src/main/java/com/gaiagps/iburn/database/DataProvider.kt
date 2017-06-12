@@ -2,7 +2,6 @@ package com.gaiagps.iburn.database
 
 import android.content.ContentValues
 import android.content.Context
-import com.gaiagps.iburn.Constants
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.mapbox.mapboxsdk.geometry.VisibleRegion
@@ -78,27 +77,6 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
         return db.campDao().findByPlayaId(playaId)
     }
 
-    // TODO : Replace with Table-specific queries
-    //    public Observable<SqlBrite.Query> createEmbargoExemptQuery(@NonNull final String table, @NonNull String sql, @NonNull String... args) {
-    //        return db.createQuery(table, sql, args);
-    //    }
-    //
-    //    public Observable<SqlBrite.Query> createQuery(@NonNull final String table, @NonNull String sql, @NonNull String... args) {
-    //        return db.createQuery(table, interceptQuery(sql, table), args);
-    //    }
-    //
-    //    public Observable<SqlBrite.Query> createQuery(@NonNull final Iterable<String> tables, @NonNull String sql, @NonNull String... args) {
-    //        return db.createQuery(tables, interceptQuery(sql, tables), args);
-    //    }
-    //
-    //    public int delete(@NonNull String table, @Nullable String whereClause, @Nullable String... whereArgs) {
-    //        return db.delete(table, whereClause, whereArgs);
-    //    }
-    //
-    //    public int update(@NonNull String table, @NonNull ContentValues values, @Nullable String whereClause, @Nullable String... whereArgs) {
-    //        return db.update(table, values, whereClause, whereArgs);
-    //    }
-
     fun beginTransaction() {
         db.beginTransaction()
         //        BriteDatabase.Transaction t = db.newTransaction();
@@ -135,38 +113,6 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
         }
         return 0
     }
-    //
-    //    public long insert(@NonNull String table, @NonNull ContentValues values) {
-    //        return db.insert(table, values);
-    //    }
-
-    //    public Observable<SqlBrite.Query> observeTable(@NonNull String table,
-    //                                                   @Nullable String[] projection) {
-    //
-    //        return observeTable(table, projection, null);
-    //    }
-    //
-    //    public Observable<SqlBrite.Query> observeTable(@NonNull String table,
-    //                                                   @Nullable String[] projection,
-    //                                                   @Nullable String whereClause) {
-    //
-    //        String sql = interceptQuery("SELECT " + (projection == null ? "*" : makeProjectionString(projection)) + " FROM " + table, table);
-    //
-    //        if (whereClause != null) {
-    //            sql += " WHERE " + whereClause;
-    //        }
-    //
-    //        if (table.equals(PlayaDatabase.EVENTS)) {
-    //            sql += " ORDER BY " + EventTable.startTime + " ASC";
-    //        } else {
-    //            sql += " ORDER BY " + PlayaItemTable.name + " ASC";
-    //        }
-    //
-    //        return db.createQuery(table, sql)
-    //                .subscribeOn(Schedulers.computation())
-    //                .skipWhile(query -> upgradeLock.get());
-    //
-    //    }
 
     fun deleteEvents(): Int {
         return clearTable(Event.TABLE_NAME)
@@ -365,11 +311,6 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
     companion object {
 
         /**
-         * Computed column indicating type for queries that union results across tables
-         */
-        val VirtualType = "vtype"
-
-        /**
          * Version of database schema
          */
         const val BUNDLED_DATABASE_VERSION: Long = 1
@@ -418,62 +359,6 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
             }
             // Remove the last comma
             return builder.substring(0, builder.length - 1)
-        }
-
-        private fun getTableNameForItem(item: PlayaItem): String {
-            if (item is Event) {
-                return Event.TABLE_NAME
-            } else if (item is Art) {
-                return Art.TABLE_NAME
-            } else if (item is Camp) {
-                return Camp.TABLE_NAME
-            } else {
-                throw IllegalStateException("Unknown table for class " + item.javaClass.simpleName)
-            }
-            // TODO : Need POI table
-        }
-        //    public void toggleFavorite(@NonNull final String table, int id) {
-        //        db.createQuery(table, "SELECT " + PlayaItemTable.favorite + " FROM " + table + " WHERE " + PlayaItemTable.id + " =?", String.valueOf(id))
-        //                .first()
-        //                .map(SqlBrite.Query::run)
-        //                .map(cursor -> {
-        //                    if (cursor != null && cursor.moveToFirst()) {
-        //                        boolean isFavorite = cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)) == 1;
-        //                        cursor.close();
-        //                        return isFavorite;
-        //                    }
-        //                    throw new IllegalStateException(String.format("No row in %s with id %d exists", table, id));
-        //                })
-        //                .subscribe(isFavorite -> updateFavorite(table, id, !isFavorite),
-        //                        throwable -> Timber.e(throwable, throwable.getMessage()));
-        //    }
-
-        //    /**
-        //     * @return the int value used in virtual columns to represent a {@link com.gaiagps.iburn.Constants.PlayaItemType}
-        //     */
-        //    public static int getTypeValue(Constants.PlayaItemType type) {
-        //        switch (type) {
-        //            case CAMP:
-        //                return 1;
-        //            case ART:
-        //                return 2;
-        //            case EVENT:
-        //                return 3;
-        //            case POI:
-        //                return 4;
-        //        }
-        //        Timber.w("Unknown PlayaItemType");
-        //        return -1;
-        //    }
-
-        fun getTypeValue(type: Int): Constants.PlayaItemType {
-            when (type) {
-                1 -> return Constants.PlayaItemType.CAMP
-                2 -> return Constants.PlayaItemType.ART
-                3 -> return Constants.PlayaItemType.EVENT
-                4 -> return Constants.PlayaItemType.POI
-            }
-            throw IllegalArgumentException("Invalid type value")
         }
 
         /**
