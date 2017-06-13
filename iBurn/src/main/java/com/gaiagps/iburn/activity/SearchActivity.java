@@ -16,7 +16,7 @@ import com.gaiagps.iburn.IntentUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
-import com.gaiagps.iburn.adapters.PlayaSearchItemAdapter;
+import com.gaiagps.iburn.adapters.MultiTypePlayaItemAdapter;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaItem;
 import com.tonicartos.superslim.LayoutManager;
@@ -31,7 +31,7 @@ import timber.log.Timber;
 
 public class SearchActivity extends AppCompatActivity implements AdapterListener {
 
-    private PlayaSearchItemAdapter adapter;
+    private MultiTypePlayaItemAdapter adapter;
     private Disposable searchSubscription;
 
     @BindView(R.id.results)
@@ -49,7 +49,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
         setContentView(R.layout.activity_search);
         ButterKnife.bind(this);
 
-        adapter = new PlayaSearchItemAdapter(this, this);
+        adapter = new MultiTypePlayaItemAdapter(this, this);
 
         resultList.setLayoutManager(new LayoutManager(this));
         resultList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));

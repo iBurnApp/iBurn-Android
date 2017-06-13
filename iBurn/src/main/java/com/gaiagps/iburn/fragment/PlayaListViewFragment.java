@@ -16,6 +16,7 @@ import com.gaiagps.iburn.Subscriber;
 import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
+import com.gaiagps.iburn.adapters.MultiTypePlayaItemAdapter;
 import com.gaiagps.iburn.adapters.PlayaItemAdapter;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaItem;
@@ -97,6 +98,33 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
             return;
         }
 
+        prepareForNewData(newData);
+
+        // Important to use changeCursor bc, unlike swapCursor, it can be executed asynchronously
+        adapter.setItems(newData);
+
+        restoreScrollPosition();
+    }
+
+    protected void onDataChanged(DataProvider.SectionedPlayaItems newData) {
+        if (newData == null) {
+            Timber.w("Got null data onDataChanged");
+            return;
+        }
+
+        prepareForNewData(newData.getData());
+
+        // Important to use changeCursor bc, unlike swapCursor, it can be executed asynchronously
+        if (adapter instanceof MultiTypePlayaItemAdapter) {
+            ((MultiTypePlayaItemAdapter) adapter).setSectionedItems(newData);
+        } else {
+            Timber.w("Sectioned data provided but adapter does not seem to support sections");
+            adapter.setItems(newData.getData());
+        }
+        restoreScrollPosition();
+    }
+
+    private void prepareForNewData(List<? extends PlayaItem> newData) {
         // Also save the scroll position here so updating a data list doesn't lose position
         lastScrollPos = getScrollPosition();
 
@@ -120,10 +148,9 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
         } else {
             setListShown(true);
         }
+    }
 
-        // Important to use changeCursor bc, unlike swapCursor, it can be executed asynchronously
-        adapter.setItems(newData);
-
+    private void restoreScrollPosition() {
         Timber.d("%s Scrolling to prior scroll position %d", getClass().getSimpleName(), lastScrollPos);
         mRecyclerView.scrollToPosition(lastScrollPos);
     }

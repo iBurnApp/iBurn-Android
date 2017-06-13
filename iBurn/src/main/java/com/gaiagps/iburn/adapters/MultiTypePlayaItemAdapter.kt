@@ -9,7 +9,7 @@ import com.gaiagps.iburn.database.*
 /**
  * Created by dbro on 6/13/17.
  */
-class PlayaSearchItemAdapter(context: Context, listener: AdapterListener) :
+class MultiTypePlayaItemAdapter(context: Context, listener: AdapterListener) :
         SectionedPlayaItemAdapter(context, listener) {
 
     var sectionedItems: DataProvider.SectionedPlayaItems? = null

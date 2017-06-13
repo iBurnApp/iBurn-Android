@@ -10,7 +10,10 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
+import com.gaiagps.iburn.adapters.PlayaItemAdapter;
+import com.gaiagps.iburn.adapters.MultiTypePlayaItemAdapter;
 import com.gaiagps.iburn.database.DataProvider;
+import com.tonicartos.superslim.LayoutManager;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -22,18 +25,18 @@ import timber.log.Timber;
  */
 public class FavoritesListViewFragment extends PlayaListViewFragment {
 
-    public static FavoritesListViewFragment newInstance() {
-        return new FavoritesListViewFragment();
+    @Override
+    protected PlayaItemAdapter getAdapter() {
+        return new MultiTypePlayaItemAdapter(getContext().getApplicationContext(), this);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);
-        mEmptyText = (TextView) v.findViewById(android.R.id.empty);
-        mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
+        mEmptyText = v.findViewById(android.R.id.empty);
+        mRecyclerView = v.findViewById(android.R.id.list);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        // TODO : Implement sectioned adapter
-//        mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));        mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
+        mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         return v;
     }

@@ -189,7 +189,7 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
      * Note: This query automatically adds in Event.startTime (and 0 values for all non-events),
      * since we always want to show this data for an event.
      */
-    fun observeFavorites(): Flowable<List<PlayaItem>> {
+    fun observeFavorites(): Flowable<SectionedPlayaItems> {
 
         // TODO : Honor upgradeLock
         // TODO : Return structure with metadata on how many art, camps, events etc?
@@ -198,11 +198,34 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
                 db.campDao().favorites,
                 db.eventDao().favorites)
         { arts, camps, events ->
-            val all = ArrayList<PlayaItem>(arts.size + camps.size + events.size)
-            all.addAll(arts)
-            all.addAll(camps)
-            all.addAll(events)
-            all
+
+            val sections = ArrayList<IntRange>(3)
+            val items = ArrayList<PlayaItem>(arts.size + camps.size + events.size)
+
+            var lastRangeEnd = 0
+
+            if (camps.size > 0) {
+                items.addAll(camps)
+                val campRangeEnd = items.size
+                sections.add(IntRange(lastRangeEnd, campRangeEnd))
+                lastRangeEnd = campRangeEnd
+            }
+
+            if (arts.size > 0) {
+                items.addAll(arts)
+                val artRangeEnd = items.size
+                sections.add(IntRange(lastRangeEnd, artRangeEnd))
+                lastRangeEnd = artRangeEnd
+            }
+
+            if (events.size > 0) {
+                items.addAll(events)
+                val eventsRangeEnd = items.size
+                sections.add(IntRange(lastRangeEnd, eventsRangeEnd))
+                lastRangeEnd = eventsRangeEnd
+            }
+
+            SectionedPlayaItems(data = items, ranges = sections)
         }
     }
 

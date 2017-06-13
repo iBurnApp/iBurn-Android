@@ -35,14 +35,14 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
     /**
      * content position -> header position
      */
-    var positionToHeaderPosition = HashMap<Int, Int>()
+    private var positionToHeaderPosition = HashMap<Int, Int>()
 
     /**
      * content position -> header position
      */
-    var positionToDataPosition = HashMap<Int, Int>()
+    private var positionToDataPosition = HashMap<Int, Int>()
 
-    var headerPositions: Set<Int>? = null
+    private var headerPositions: Set<Int>? = null
         set(value) {
             field = value
 
