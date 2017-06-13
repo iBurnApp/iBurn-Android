@@ -177,7 +177,7 @@ class MapboxMapFragment : Fragment() {
             val addressLabel = inflater.inflate(R.layout.current_playa_address, container, false) as TextView
             addressLabel.visibility = View.INVISIBLE
             mapView.addView(addressLabel)
-            setMargins(addressLabel, 0, margin + 2, margin * 5, 0, Gravity.TOP.or(Gravity.RIGHT))
+            setMargins(addressLabel, 0, margin, margin, 0, Gravity.TOP.or(Gravity.RIGHT))
             this.addressLabel = addressLabel
             return this.mapView
         }
