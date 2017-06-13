@@ -213,7 +213,7 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
      * Note: This query automatically adds in Event.startTime (and 0 values for all non-events),
      * since we always want to show this data for an event.
      */
-    fun observeNameQuery(query: String): Flowable<List<PlayaItem>> {
+    fun observeNameQuery(query: String): Flowable<SectionedPlayaItems> {
 
         // TODO : Honor upgradeLock
         // TODO : Return structure with metadata on how many art, camps, events etc?
@@ -221,13 +221,43 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
         return Flowables.combineLatest(
                 db.artDao().findByName(wildQuery),
                 db.campDao().findByName(wildQuery),
-                db.eventDao().findByName(wildQuery))
-        { arts, camps, events ->
-            val all = ArrayList<PlayaItem>(arts.size + camps.size + events.size)
-            all.addAll(arts)
-            all.addAll(camps)
-            all.addAll(events)
-            all
+                db.eventDao().findByName(wildQuery),
+                db.userPoiDao().findByName(wildQuery))
+        { arts, camps, events, userpois ->
+            val sections = ArrayList<IntRange>(4)
+            val items = ArrayList<PlayaItem>(arts.size + camps.size + events.size)
+
+            var lastRangeEnd = 0
+
+            if (camps.size > 0) {
+                items.addAll(camps)
+                val campRangeEnd = items.size
+                sections.add(IntRange(lastRangeEnd, campRangeEnd))
+                lastRangeEnd = campRangeEnd
+            }
+
+            if (arts.size > 0) {
+                items.addAll(arts)
+                val artRangeEnd = items.size
+                sections.add(IntRange(lastRangeEnd, artRangeEnd))
+                lastRangeEnd = artRangeEnd
+            }
+
+            if (events.size > 0) {
+                items.addAll(events)
+                val eventsRangeEnd = items.size
+                sections.add(IntRange(lastRangeEnd, eventsRangeEnd))
+                lastRangeEnd = eventsRangeEnd
+            }
+
+            if (userpois.size > 0) {
+                items.addAll(userpois)
+                val userPoiRangeEnd = items.size
+                sections.add(IntRange(lastRangeEnd, userPoiRangeEnd))
+                lastRangeEnd = userPoiRangeEnd
+            }
+
+            SectionedPlayaItems(data = items, ranges = sections)
         }
     }
 
@@ -281,6 +311,7 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
     fun insertUserPoi(poi: UserPoi) {
         db.userPoiDao().insert(poi)
     }
+
     private fun update(item: PlayaItem) {
         if (item is Art) {
             db.artDao().update(item)
@@ -372,4 +403,7 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
             return "%$query%"
         }
     }
+
+    data class SectionedPlayaItems(val data: List<PlayaItem>,
+                                   val ranges: List<IntRange>)
 }

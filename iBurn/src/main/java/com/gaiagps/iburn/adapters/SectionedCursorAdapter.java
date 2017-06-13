@@ -1,6 +1,12 @@
 package com.gaiagps.iburn.adapters;
 
-//public abstract class SectionedCursorAdapter<T extends PlayaItemCursorAdapter.ViewHolder> extends PlayaItemCursorAdapter<T> {
+import android.content.Context;
+
+import java.util.List;
+
+import timber.log.Timber;
+
+//public abstract class SectionedCursorAdapter<T extends PlayaItemAdapter.ViewHolder> extends PlayaItemAdapter {
 //
 //    protected static final int VIEW_TYPE_HEADER = 0x01;
 //
@@ -8,9 +14,8 @@ package com.gaiagps.iburn.adapters;
 //
 //    List<Integer> headerPositions;
 //
-//    public SectionedCursorAdapter(Context context, Cursor c, AdapterListener listener) {
-//        super(context, c, listener);
-//        initializeWithNewCursor(c);
+//    public SectionedCursorAdapter(Context context, AdapterListener listener) {
+//        super(context, listener);
 //    }
 //
 //    @Override
@@ -50,7 +55,7 @@ package com.gaiagps.iburn.adapters;
 //        final LayoutManager.LayoutParams params = (LayoutManager.LayoutParams) viewHolder.itemView.getLayoutParams();
 //        params.setSlm(LinearSLM.ID);
 //        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-//        params.setFirstPosition(getHeaderPositionForPosition(position));
+//        params.setFirstPosition(getPositionToHeaderPosition(position));
 //
 //        viewHolder.itemView.setLayoutParams(params);
 //    }
@@ -124,7 +129,7 @@ package com.gaiagps.iburn.adapters;
 //     * @return the position of the header for the corresponding item position.
 //     * The value will be less than or equal to position.
 //     */
-//    int getHeaderPositionForPosition(int position) {
+//    int getPositionToHeaderPosition(int position) {
 //        // TODO : Do a binary search? IF -1 return last header index?
 //        int headerIdx = getHeaderIndexForPosition(position);
 //        return headerIdx == -1 ? position : headerPositions.get(headerIdx);

@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.reactivex.Flowable;
 
+import static com.gaiagps.iburn.database.PlayaItem.NAME;
 import static com.gaiagps.iburn.database.UserPoi.TABLE_NAME;
 
 /**
@@ -20,6 +21,9 @@ public interface UserPoiDao {
 
     @Query("SELECT * FROM " + TABLE_NAME)
     Flowable<List<UserPoi>> getAll();
+
+    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + NAME + " LIKE :name")
+    Flowable<List<UserPoi>> findByName(String name);
 
     @Insert
     void insert(UserPoi... poi);

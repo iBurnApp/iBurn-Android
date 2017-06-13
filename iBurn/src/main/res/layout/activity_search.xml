@@ -2,8 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.gaiagps.iburn.activity.SearchActivity"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context="com.gaiagps.iburn.activity.SearchActivity">
 
     <RelativeLayout
         android:id="@+id/search_container"
@@ -19,11 +19,24 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:paddingLeft="16dp"
-            android:paddingStart="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:onClick="onBackButtonClick"
+            android:paddingLeft="16dp"
+            android:paddingStart="16dp"
             android:src="@drawable/ic_arrow_back_grey600_36dp" />
+
+        <TextView
+            android:id="@+id/results_summary"
+            style="@style/PlayaTextItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/search"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:paddingEnd="8dp"
+            android:paddingRight="8dp"
+            android:textColor="@color/sub_text"
+            tools:text="420 results" />
 
         <EditText
             android:id="@+id/search"
@@ -33,13 +46,16 @@
             android:layout_alignParentTop="true"
             android:layout_toEndOf="@id/search_cancel"
             android:layout_toRightOf="@id/search_cancel"
+            android:layout_toStartOf="@id/results_summary"
             android:background="@null"
             android:gravity="center_vertical"
+            android:hint="Search"
             android:imeOptions="actionSearch"
             android:paddingLeft="18dp"
             android:paddingRight="18dp"
-            android:singleLine="true"
-            android:hint="Search" />
+            android:singleLine="true" />
+
+
 
     </RelativeLayout>
 
@@ -47,6 +63,7 @@
         android:id="@+id/results"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="@android:color/transparent" />
+        android:divider="@android:color/transparent"
+        tools:listitem="@layout/listview_playaitem" />
 
 </LinearLayout>

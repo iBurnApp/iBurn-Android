@@ -315,7 +315,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
                     adapter.setItems(events);
 
                     for (int idx = 0; idx < events.size(); idx++) {
-                        PlayaItemAdapter.ViewHolder holder = adapter.createViewHolder(overflowContainer, 0);
+                        PlayaItemAdapter.ViewHolder holder = (PlayaItemAdapter.ViewHolder) adapter.createViewHolder(overflowContainer, 0);
                         adapter.bindViewHolder(holder, idx);
                         overflowContainer.addView(holder.itemView);
                     }

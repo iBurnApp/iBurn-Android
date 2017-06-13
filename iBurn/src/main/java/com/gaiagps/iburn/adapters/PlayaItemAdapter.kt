@@ -20,9 +20,9 @@ import timber.log.Timber
 /**
  * Created by dbro on 6/7/17.
  */
-open class PlayaItemAdapter(val context: Context, val listener: AdapterListener) : RecyclerView.Adapter<PlayaItemAdapter.ViewHolder>() {
+open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, val listener: AdapterListener) : RecyclerView.Adapter<T>() {
 
-    var items: List<PlayaItem>? = null
+    open var items: List<PlayaItem>? = null
         set(value) {
             field = value
             notifyDataSetChanged()
@@ -40,23 +40,23 @@ open class PlayaItemAdapter(val context: Context, val listener: AdapterListener)
         lastItemPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, context.resources.displayMetrics).toInt()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): T {
         val view = LayoutInflater.from(parent!!.context).inflate(R.layout.listview_playaitem, parent, false)
 
         val viewHolder = ViewHolder(view)
         setupClickListeners(viewHolder)
-        return viewHolder
+        return viewHolder as T
     }
 
     override fun getItemCount(): Int {
         return items?.size ?: 0
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(viewHolder: T, position: Int) {
         val item = items?.get(position)
 
         item?.let { item ->
-
+            val holder = (viewHolder as ViewHolder)
             if (item is Art) {
                 holder.artistView.visibility = View.VISIBLE
                 holder.artistView.text = item.artist
