@@ -62,6 +62,9 @@ object Geocoder {
 
     fun close() {
         Timber.d("Closing")
-        v8?.release()
+        jsScheduler.scheduleDirect {
+            v8?.release()
+            v8 = null
+        }
     }
 }
