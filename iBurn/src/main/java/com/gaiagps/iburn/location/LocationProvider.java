@@ -70,11 +70,7 @@ public class LocationProvider {
                 return Observable.empty();
             }
 
-            LocationRequest locationRequest = LocationRequest.create()
-                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                    .setInterval(5000);
-
-            return locationProvider.location().updates(locationRequest);
+            return locationProvider.location().updates(request);
         }
     }
 

@@ -4,7 +4,7 @@
     android:id="@+id/mapPoiBtn"
     android:layout_width="wrap_content"
     android:layout_height="40dp"
-    android:layout_gravity="left|top"
+    android:layout_gravity="end|top"
     android:gravity="center_vertical"
     android:background="@drawable/map_btn_bg"
     android:textColor="@color/off_blk_2"

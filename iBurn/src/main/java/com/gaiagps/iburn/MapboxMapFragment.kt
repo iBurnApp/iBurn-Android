@@ -4,12 +4,17 @@ package com.gaiagps.iburn
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.TextView
 import com.gaiagps.iburn.activity.PlayaItemViewActivity
 import com.gaiagps.iburn.database.*
+import com.gaiagps.iburn.js.JsEvaluator
 import com.gaiagps.iburn.location.LocationProvider
+import com.google.android.gms.location.LocationRequest
 import com.mapbox.mapboxsdk.annotations.Icon
 import com.mapbox.mapboxsdk.annotations.IconFactory
 import com.mapbox.mapboxsdk.annotations.Marker
@@ -79,6 +84,7 @@ class MapboxMapFragment : Fragment() {
     private val markerShowcaseZoom = 14.5
     private val poiVisibleZoom = 14.0
 
+    private var addressLabel: TextView? = null
     private var mapView: MapView? = null
     private var onMapReadyCallback: OnMapReadyCallback? = null
 
@@ -86,6 +92,8 @@ class MapboxMapFragment : Fragment() {
 
     private val cameraUpdate = PublishSubject.create<VisibleRegion>()
     private var cameraUpdateSubscription: Disposable? = null
+
+    private var locationSubscription: Disposable? = null
 
     /**
      * Showcase a point on the map using a generic pin
@@ -104,6 +112,7 @@ class MapboxMapFragment : Fragment() {
         if (isResumed) {
             _showcaseMarker(marker)
         }
+        locationSubscription?.dispose()
     }
 
     private fun _showcaseMarker(marker: MarkerOptions) {
@@ -114,7 +123,7 @@ class MapboxMapFragment : Fragment() {
 //            locationSubscription.unsubscribe()
 //            locationSubscription = null
 //        }
-//        if (addressLabel != null) addressLabel.setVisibility(View.INVISIBLE)
+        addressLabel?.visibility = View.INVISIBLE
 //        val poiBtn = activity.findViewById(R.id.mapPoiBtn) as ImageButton
 //        if (poiBtn != null) {
 //            poiBtn.visibility = View.GONE
@@ -160,6 +169,16 @@ class MapboxMapFragment : Fragment() {
             val options = MapFragmentUtils.resolveArgs(context, this.arguments)
             val mapView = MapView(context, options)
             this.mapView = mapView
+
+            val dpValue = 10 // margin in dips
+            val d = activity.resources.displayMetrics.density
+            val margin = (dpValue * d).toInt() // margin in pixels
+
+            val addressLabel = inflater.inflate(R.layout.current_playa_address, container, false) as TextView
+            addressLabel.visibility = View.INVISIBLE
+            mapView.addView(addressLabel)
+            setMargins(addressLabel, 0, margin + 2, margin * 5, 0, Gravity.TOP.or(Gravity.RIGHT))
+            this.addressLabel = addressLabel
             return this.mapView
         }
         return null
@@ -207,34 +226,56 @@ class MapboxMapFragment : Fragment() {
                 }
                 true
             }
-
-            val prefsHelper = PrefsHelper(activity.applicationContext)
-            Timber.d("Subscribing to camera updates")
-            cameraUpdateSubscription?.dispose()
-            cameraUpdateSubscription = cameraUpdate
-                    .debounce(250, TimeUnit.MILLISECONDS)
-                    .flatMap { visibleRegion ->
-                        DataProvider.getInstance(activity.applicationContext)
-                                .map { provider -> Pair(provider, visibleRegion) }
-                    }
-                    .flatMap { (provider, visibleRegion) ->
-
-                        val embargoActive = Embargo.isEmbargoActive(prefsHelper)
-                        val queryAllItems = (state != State.SHOWCASE) && (!embargoActive) && shouldShowPoisAtZoom(map.cameraPosition.zoom)
-
-                        if (queryAllItems) {
-                            Timber.d("Map query for all items at zoom %f", map.cameraPosition.zoom)
-                            provider.observeAllMapItemsInVisibleRegion(visibleRegion).toObservable()
-                        } else {
-                            Timber.d("Map query for user items at zoom %f", map.cameraPosition.zoom)
-                            (provider.observeUserAddedMapItemsOnly()).toObservable()
-                        }
-                    }
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { items: List<PlayaItem> ->
-                        processMapItemResult(items)
-                    }
         }
+    }
+
+    private fun setupLocationSub() {
+        val locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_NO_POWER)
+                .setInterval(5000)
+
+        val context = activity.applicationContext
+        locationSubscription?.dispose()
+        locationSubscription = LocationProvider.observeCurrentLocation(context, locationRequest)
+                .observeOn(ioScheduler)
+                .flatMap { location ->
+                    JsEvaluator.reverseGeocode(context, location.latitude.toFloat(), location.longitude.toFloat())
+                            .toObservable()
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { address ->
+                    addressLabel?.visibility = View.VISIBLE
+                    addressLabel?.text = address
+                }
+    }
+
+    private fun setupCameraUpdateSub(map: MapboxMap) {
+        val prefsHelper = PrefsHelper(activity.applicationContext)
+        Timber.d("Subscribing to camera updates")
+        cameraUpdateSubscription?.dispose()
+        cameraUpdateSubscription = cameraUpdate
+                .debounce(250, TimeUnit.MILLISECONDS)
+                .flatMap { visibleRegion ->
+                    DataProvider.getInstance(activity.applicationContext)
+                            .map { provider -> Pair(provider, visibleRegion) }
+                }
+                .flatMap { (provider, visibleRegion) ->
+
+                    val embargoActive = Embargo.isEmbargoActive(prefsHelper)
+                    val queryAllItems = (state != State.SHOWCASE) && (!embargoActive) && shouldShowPoisAtZoom(map.cameraPosition.zoom)
+
+                    if (queryAllItems) {
+                        Timber.d("Map query for all items at zoom %f", map.cameraPosition.zoom)
+                        provider.observeAllMapItemsInVisibleRegion(visibleRegion).toObservable()
+                    } else {
+                        Timber.d("Map query for user items at zoom %f", map.cameraPosition.zoom)
+                        (provider.observeUserAddedMapItemsOnly()).toObservable()
+                    }
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { items: List<PlayaItem> ->
+                    processMapItemResult(items)
+                }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -245,7 +286,13 @@ class MapboxMapFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         mapView?.onStart()
-        mapView?.getMapAsync(this.onMapReadyCallback)
+        mapView?.getMapAsync { map ->
+            onMapReadyCallback?.onMapReady(map)
+            setupCameraUpdateSub(map)
+        }
+        if (state != State.SHOWCASE) {
+            setupLocationSub()
+        }
     }
 
     override fun onResume() {
@@ -266,6 +313,9 @@ class MapboxMapFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         mapView?.onStop()
+        locationSubscription?.dispose()
+        cameraUpdateSubscription?.dispose()
+        JsEvaluator.close()
     }
 
     override fun onLowMemory() {
@@ -277,7 +327,6 @@ class MapboxMapFragment : Fragment() {
         super.onDestroyView()
         mapView?.onDestroy()
 
-        Timber.d("Unsubscribing from camera updates")
         cameraUpdateSubscription?.dispose()
     }
 
@@ -646,4 +695,19 @@ class MapboxMapFragment : Fragment() {
 //            Timber.w("Unable to find custom marker in map for updating")
     }
 
-}// Required empty public constructor
+    /**
+     * Thanks to SO:
+     * http://stackoverflow.com/questions/4472429/change-the-right-margin-of-a-view-programmatically
+     */
+    private fun setMargins(v: View, l: Int, r: Int, t: Int, b: Int, gravity: Int) {
+        if (v.layoutParams is ViewGroup.MarginLayoutParams) {
+            val params = v.layoutParams as ViewGroup.MarginLayoutParams
+            params.setMargins(l, t, r, b)
+            if (params is FrameLayout.LayoutParams) {
+                params.gravity = gravity
+            }
+            v.requestLayout()
+        }
+    }
+
+}
