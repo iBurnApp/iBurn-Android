@@ -11,7 +11,10 @@ import android.widget.TextView;
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
+import com.gaiagps.iburn.adapters.PlayaItemAdapter;
+import com.gaiagps.iburn.adapters.UpcomingEventsAdapter;
 import com.gaiagps.iburn.database.DataProvider;
+import com.tonicartos.superslim.LayoutManager;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -30,6 +33,11 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
 
     public static ExploreListViewFragment newInstance() {
         return new ExploreListViewFragment();
+    }
+
+    @Override
+    protected PlayaItemAdapter getAdapter() {
+        return new UpcomingEventsAdapter(getContext().getApplicationContext(), this);
     }
 
     @Override
@@ -60,7 +68,7 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         // TODO : Implement sectioned adapter
-//        mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));
+        mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         return v;
     }
