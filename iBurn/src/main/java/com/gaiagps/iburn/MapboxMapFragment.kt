@@ -12,7 +12,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import com.gaiagps.iburn.activity.PlayaItemViewActivity
 import com.gaiagps.iburn.database.*
-import com.gaiagps.iburn.js.JsEvaluator
+import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
 import com.google.android.gms.location.LocationRequest
 import com.mapbox.mapboxsdk.annotations.Icon
@@ -239,7 +239,7 @@ class MapboxMapFragment : Fragment() {
         locationSubscription = LocationProvider.observeCurrentLocation(context, locationRequest)
                 .observeOn(ioScheduler)
                 .flatMap { location ->
-                    JsEvaluator.reverseGeocode(context, location.latitude.toFloat(), location.longitude.toFloat())
+                    Geocoder.reverseGeocode(context, location.latitude.toFloat(), location.longitude.toFloat())
                             .toObservable()
                 }
                 .observeOn(AndroidSchedulers.mainThread())
@@ -315,7 +315,7 @@ class MapboxMapFragment : Fragment() {
         mapView?.onStop()
         locationSubscription?.dispose()
         cameraUpdateSubscription?.dispose()
-        JsEvaluator.close()
+        Geocoder.close()
     }
 
     override fun onLowMemory() {
