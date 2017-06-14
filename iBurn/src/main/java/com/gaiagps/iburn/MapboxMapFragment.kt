@@ -266,10 +266,10 @@ class MapboxMapFragment : Fragment() {
 
                     if (queryAllItems) {
                         Timber.d("Map query for all items at zoom %f", map.cameraPosition.zoom)
-                        provider.observeAllMapItemsInVisibleRegion(visibleRegion).toObservable()
+                        provider.observeUserAddedMapItemsOnly().toObservable()
                     } else {
                         Timber.d("Map query for user items at zoom %f", map.cameraPosition.zoom)
-                        (provider.observeUserAddedMapItemsOnly()).toObservable()
+                        (provider.getUserPoi()).toObservable()
                     }
                 }
                 .observeOn(AndroidSchedulers.mainThread())

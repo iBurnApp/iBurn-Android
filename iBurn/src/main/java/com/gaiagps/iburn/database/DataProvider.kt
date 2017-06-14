@@ -331,6 +331,10 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
         }
     }
 
+    fun getUserPoi() : Flowable<List<UserPoi>> {
+        return db.userPoiDao().all
+    }
+
     fun insertUserPoi(poi: UserPoi) {
         db.userPoiDao().insert(poi)
     }
