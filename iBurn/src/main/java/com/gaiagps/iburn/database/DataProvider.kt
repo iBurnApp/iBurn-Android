@@ -331,21 +331,31 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
         }
     }
 
-    fun getUserPoi() : Flowable<List<UserPoi>> {
+    fun getUserPoi(): Flowable<List<UserPoi>> {
         return db.userPoiDao().all
+    }
+
+    fun getUserPoiByPlayaId(playaId: String): Flowable<UserPoi> {
+        return db.userPoiDao().findByPlayaId(playaId)
     }
 
     fun insertUserPoi(poi: UserPoi) {
         db.userPoiDao().insert(poi)
     }
 
-    private fun update(item: PlayaItem) {
+    fun deleteUserPoi(poi: UserPoi) {
+        db.userPoiDao().delete(poi)
+    }
+
+    fun update(item: PlayaItem) {
         if (item is Art) {
             db.artDao().update(item)
         } else if (item is Event) {
             db.eventDao().update(item)
         } else if (item is Camp) {
             db.campDao().update(item)
+        } else if (item is UserPoi) {
+            db.userPoiDao().update(item)
         } else {
             Timber.e("Cannot update item of unknown type")
         }
