@@ -6,13 +6,14 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Subscriber;
 import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.AdapterUtils;
+import com.gaiagps.iburn.adapters.AlphabeticalSectionIndexer;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
+import com.gaiagps.iburn.adapters.EventStartTimeSectionIndexer;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaItem;
 import com.gaiagps.iburn.view.ArtListHeader;
@@ -62,7 +63,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
             case CAMPS:
                 playaItems = dataProvider
                         .flatMap(provider -> provider.observeCamps().toObservable()); // TODO : rm toObservable
-
+                adapter.setSectionIndexer(new AlphabeticalSectionIndexer());
                 break;
 
             case ART:
@@ -74,13 +75,14 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
                                 return dp.observeArt().toObservable();
                             }
                         });
+                adapter.setSectionIndexer(new AlphabeticalSectionIndexer());
 
                 break;
 
             case EVENT:
                 playaItems = dataProvider
                         .flatMap(dp -> dp.observeEventsOnDayOfTypes(selectedDay, selectedTypes).toObservable());
-
+                adapter.setSectionIndexer(new EventStartTimeSectionIndexer());
                 break;
         }
 
@@ -104,10 +106,10 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_browse_list_view, container, false);
-        eventListHeader = (ViewGroup) v.findViewById(R.id.eventHeader);
-        artListHeader = (ViewGroup) v.findViewById(R.id.artHeader);
-        mEmptyText = (TextView) v.findViewById(android.R.id.empty);
-        mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
+        eventListHeader = v.findViewById(R.id.eventHeader);
+        artListHeader = v.findViewById(R.id.artHeader);
+        mEmptyText = v.findViewById(android.R.id.empty);
+        mRecyclerView = v.findViewById(android.R.id.list);
 
         VerticalRecyclerViewFastScroller fastScroller = (VerticalRecyclerViewFastScroller) v.findViewById(R.id.fastScroller);
         SectionTitleIndicator sectionTitleIndicator =

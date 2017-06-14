@@ -23,7 +23,7 @@ import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ID;
 @Dao
 public interface CampDao {
 
-    @Query("SELECT * FROM " + TABLE_NAME)
+    @Query("SELECT * FROM " + TABLE_NAME + " ORDER BY " + NAME)
     Flowable<List<Camp>> getAll();
 
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1")

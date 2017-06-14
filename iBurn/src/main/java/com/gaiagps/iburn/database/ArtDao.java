@@ -23,7 +23,7 @@ import static com.gaiagps.iburn.database.PlayaItem.NAME;
 @Dao
 public interface ArtDao {
 
-    @Query("SELECT * FROM " + TABLE_NAME)
+    @Query("SELECT * FROM " + TABLE_NAME + " ORDER BY " + NAME)
     Flowable<List<Art>> getAll();
 
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1")

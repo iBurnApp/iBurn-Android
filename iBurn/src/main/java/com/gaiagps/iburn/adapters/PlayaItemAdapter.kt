@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.SectionIndexer
 import android.widget.TextView
 import com.gaiagps.iburn.R
 import com.gaiagps.iburn.database.Art
@@ -20,11 +21,14 @@ import timber.log.Timber
 /**
  * Created by dbro on 6/7/17.
  */
-open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, val listener: AdapterListener) : RecyclerView.Adapter<T>() {
+open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, val listener: AdapterListener) : RecyclerView.Adapter<T>(), SectionIndexer {
+
+    var sectionIndexer: PlayaItemSectionIndxer? = null
 
     open var items: List<PlayaItem>? = null
         set(value) {
             field = value
+            sectionIndexer?.items = value
             notifyDataSetChanged()
         }
 
@@ -138,6 +142,32 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
             }
         })
     }
+
+    // <editor-fold desc="SectionIndexer">
+
+    override fun getSections(): Array<Any> {
+        return sectionIndexer?.sections ?: emptyArray()
+//        return AZSectionalizer.sections
+    }
+
+    override fun getSectionForPosition(position: Int): Int {
+        return sectionIndexer?.getSectionForPosition(position) ?: 0
+//
+//        if (position == items?.size ?: 0) return AZSectionalizer.sections.lastIndex
+//
+//        val name = items?.get(position)?.name
+//        if (name != null) {
+//            return AZSectionalizer.getSectionIndexForName(name)
+//        } else {
+//            return AZSectionalizer.sections.lastIndex
+//        }
+    }
+
+    override fun getPositionForSection(position: Int): Int {
+        return sectionIndexer?.getPositionForSection(position) ?: 0
+    }
+
+    // </editor-fold desc="SectionIndexer">
 
     open class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
 

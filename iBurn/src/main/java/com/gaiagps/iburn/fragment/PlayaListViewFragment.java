@@ -81,8 +81,8 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
         Timber.d("%s onCreateView", getClass().getSimpleName());
         View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);
         //super.onCreateView(inflater, container, savedInstanceState);
-        mEmptyText = (TextView) v.findViewById(android.R.id.empty);
-        mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
+        mEmptyText = v.findViewById(android.R.id.empty);
+        mRecyclerView = v.findViewById(android.R.id.list);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         return v;
