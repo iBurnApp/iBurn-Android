@@ -1,6 +1,7 @@
 package com.gaiagps.iburn
 
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -98,8 +99,12 @@ class MapboxMapFragment : Fragment() {
     /**
      * Showcase a point on the map using a generic pin
      */
-    fun showcaseLatLng(latLng: LatLng) {
-        val marker = MarkerOptions().icon(iconGeneric).position(latLng)
+    fun showcaseLatLng(context: Context, latLng: LatLng) {
+        // We ask for an external context because we want this method to be callable
+        // before this fragment is resumed (e.g: shortly after construction)
+        // TODO : Refactor to include showcase marker in Bundle on construction
+        val icon = IconFactory.getInstance(context).fromResource(R.drawable.pin)
+        val marker = MarkerOptions().icon(icon).position(latLng)
         showcaseMarker(marker)
     }
 

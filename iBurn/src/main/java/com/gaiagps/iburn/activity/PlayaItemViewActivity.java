@@ -213,7 +213,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
             Timber.d("adding / centering marker on %f, %f", latLng.getLatitude(), latLng.getLongitude());
 
             MapboxMapFragment mapFragment = new MapboxMapFragment();
-            mapFragment.showcaseLatLng(latLng);
+            mapFragment.showcaseLatLng(getApplicationContext(), latLng);
             getSupportFragmentManager().beginTransaction().add(R.id.map_container, mapFragment).commit();
             //favoriteMenuItem.setVisible(false);
             //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
