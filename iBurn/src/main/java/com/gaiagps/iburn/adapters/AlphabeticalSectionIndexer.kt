@@ -15,7 +15,7 @@ class AlphabeticalSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSect
     }
 
     override fun getSectionForPosition(position: Int): Int {
-        if (position == sections.size) return sections.lastIndex
+        if (position == items?.size) return sections.lastIndex
 
         val name = items?.get(position)?.name
         if (name == null) {
