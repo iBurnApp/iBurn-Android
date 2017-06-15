@@ -19,6 +19,7 @@ import com.gaiagps.iburn.location.LocationProvider
 import timber.log.Timber
 
 /**
+ * Facilities the display of a collection of [PlayaItem]s in a [RecyclerView]
  * Created by dbro on 6/7/17.
  */
 open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, val listener: AdapterListener) : RecyclerView.Adapter<T>(), SectionIndexer {
@@ -147,20 +148,10 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
 
     override fun getSections(): Array<Any> {
         return sectionIndexer?.sections ?: emptyArray()
-//        return AZSectionalizer.sections
     }
 
     override fun getSectionForPosition(position: Int): Int {
         return sectionIndexer?.getSectionForPosition(position) ?: 0
-//
-//        if (position == items?.size ?: 0) return AZSectionalizer.sections.lastIndex
-//
-//        val name = items?.get(position)?.name
-//        if (name != null) {
-//            return AZSectionalizer.getSectionIndexForName(name)
-//        } else {
-//            return AZSectionalizer.sections.lastIndex
-//        }
     }
 
     override fun getPositionForSection(position: Int): Int {
