@@ -77,6 +77,12 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        subscribeToData();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Timber.d("%s onCreateView", getClass().getSimpleName());
         View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);

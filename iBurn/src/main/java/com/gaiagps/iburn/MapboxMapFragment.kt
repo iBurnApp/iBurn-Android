@@ -1,6 +1,7 @@
 package com.gaiagps.iburn
 
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -77,7 +78,7 @@ class MapboxMapFragment : Fragment() {
     private val markerShowcaseZoom = 14.5
     private val poiVisibleZoom = 14.0
 
-    private var userPoiButton: TextView? = null
+    private var userPoiButton: ImageView? = null
     private var addressLabel: TextView? = null
     private var mapView: MapView? = null
     private var onMapReadyCallback: OnMapReadyCallback? = null
@@ -122,6 +123,7 @@ class MapboxMapFragment : Fragment() {
 //            locationSubscription = null
 //        }
         addressLabel?.visibility = View.INVISIBLE
+        userPoiButton?.visibility = View.INVISIBLE
 //        val poiBtn = activity.findViewById(R.id.mapPoiBtn) as ImageButton
 //        if (poiBtn != null) {
 //            poiBtn.visibility = View.GONE
@@ -180,9 +182,9 @@ class MapboxMapFragment : Fragment() {
             this.addressLabel = addressLabel
 
             // Add User POI add button
-            val userPoiButton = inflater.inflate(R.layout.current_playa_address, container, false) as TextView
-            userPoiButton.text = "+POI"
-            userPoiButton.visibility = View.VISIBLE
+            val userPoiButton = inflater.inflate(R.layout.map_poi_btn, container, false) as ImageView
+            userPoiButton.visibility = if (state != State.SHOWCASE) View.VISIBLE else View.GONE
+            userPoiButton.setImageResource(R.drawable.ic_pin_drop_black_24dp)
             mapView.addView(userPoiButton)
             setMargins(userPoiButton, 0, margin, margin * 10, 0, Gravity.TOP.or(Gravity.RIGHT))
             userPoiButton.setOnClickListener {

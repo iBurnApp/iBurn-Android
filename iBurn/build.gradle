@@ -146,6 +146,7 @@ dependencies {
     compile('com.mapbox.mapboxsdk:mapbox-android-sdk:5.1.0-SNAPSHOT@aar') {
         transitive = true
     }
+    compile 'com.roughike:bottom-bar:2.3.1'
 
     compile 'com.github.hotchemi:permissionsdispatcher:2.4.0'
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'
