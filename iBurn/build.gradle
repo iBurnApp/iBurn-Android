@@ -109,7 +109,7 @@ if (project.hasProperty('keyPassword')) {
 }
 
 def SUPPORT_LIB_VERSION = "26.0.0-beta2"
-def PLAY_SERVICES_VERSION = "11.0.0"
+def PLAY_SERVICES_VERSION = "11.0.1"
 
 dependencies {
 
