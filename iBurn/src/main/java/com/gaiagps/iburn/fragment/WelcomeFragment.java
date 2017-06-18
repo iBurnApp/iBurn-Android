@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.fragment;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.SurfaceTexture;
@@ -41,6 +42,8 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
     // Welcome 3 - Set Home
     private AutoCompleteTextView campSearchView;
+
+    private boolean performedEntranceAnimation;
 
     public static WelcomeFragment newInstance(int layoutId) {
         WelcomeFragment pane = new WelcomeFragment();
@@ -94,7 +97,33 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
     }
 
     @Override
-    public void onDestroyView () {
+    public void onResume() {
+        super.onResume();
+
+        boolean isWelcome1 = getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment1;
+        if (isWelcome1 && !performedEntranceAnimation) {
+            final View heading = getView().findViewById(R.id.heading);
+            heading.setAlpha(0);
+            ValueAnimator fadeIn = ValueAnimator.ofFloat(0, 1);
+            fadeIn.addUpdateListener(animation -> heading.setAlpha((Float) animation.getAnimatedValue()));
+            fadeIn.setStartDelay(1000);
+            fadeIn.setDuration(1 * 1000);
+            fadeIn.start();
+
+            final View subHeading = getView().findViewById(R.id.sub_heading);
+            subHeading.setAlpha(0);
+            heading.setAlpha(0);
+            ValueAnimator subFadeIn = ValueAnimator.ofFloat(0, 1);
+            subFadeIn.addUpdateListener(animation -> subHeading.setAlpha((Float) animation.getAnimatedValue()));
+            subFadeIn.setStartDelay(2000);
+            subFadeIn.setDuration(1 * 1000);
+            subFadeIn.start();
+            performedEntranceAnimation = true;
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
         super.onDestroyView();
 
         if (mediaPlayer != null) {
