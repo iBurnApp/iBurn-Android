@@ -11,7 +11,6 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
@@ -22,9 +21,12 @@ import android.widget.TextView;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.Camp;
 import com.gaiagps.iburn.database.DataProvider;
+import com.gaiagps.iburn.database.Embargo;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 import timber.log.Timber;
 
@@ -57,7 +59,13 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
             textureView = rootView.findViewById(R.id.video);
             textureView.setSurfaceTextureListener(this);
 
-        } else if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment3) {
+        } else if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment2) { {
+
+            final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE MMMM d", Locale.US);
+            String embargoDate = dayFormatter.format(Embargo.EMBARGO_DATE);
+            ((TextView) rootView.findViewById(R.id.content)).setText(getString(R.string.location_data_notice, embargoDate));
+
+        }} if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment3) {
             // Set Home location
             campSearchView = rootView.findViewById(R.id.campNameSearch);
             campSearchView.setAdapter(new CampAutoCompleteAdapter(getActivity()));
