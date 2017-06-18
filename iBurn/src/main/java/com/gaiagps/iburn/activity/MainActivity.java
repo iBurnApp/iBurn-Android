@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -66,6 +67,9 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
     @BindView(R.id.parent)
     ViewGroup mParent;
+
+    @BindView(R.id.fab)
+    FloatingActionButton fab;
 
     private PrefsHelper prefs;
     private String searchQuery;
@@ -400,7 +404,10 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         // Fade in banner
         Flowable.timer(1, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(counter -> alphaAnimator.start());
+                .subscribe(counter -> {
+                    fab.hide();
+                    alphaAnimator.start();
+                });
 
         // Auto-dismiss banner
         Flowable.timer(11, TimeUnit.SECONDS)
@@ -409,6 +416,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     alphaAnimator.addUpdateListener(valueAnimator -> {
                         if (valueAnimator.getAnimatedFraction() == 0f) {
                             parent.removeView(embargoBanner);
+                            fab.show();
                         }
                     });
                     alphaAnimator.reverse();
