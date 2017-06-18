@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 //                    Timber.d("Updated iburn with success %b", success);
 //                });
 
-        if (true) { //Embargo.isEmbargoActive(prefs)) {
+        if (Embargo.isEmbargoActive(prefs)) {
             showEmbargoBanner();
         }
         handleIntent(getIntent());
