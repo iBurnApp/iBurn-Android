@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private boolean awaitingLocationPermission = false;
 
     @BindView(R.id.parent)
-    ViewGroup mParent;
+    ViewGroup parent;
 
     @BindView(R.id.fab)
     FloatingActionButton fab;
@@ -387,6 +387,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         TextView embargoText = embargoBanner.findViewById(R.id.embargo_text);
         embargoText.setText(getString(R.string.embargo_msg, dayFormatter.format(Embargo.EMBARGO_DATE)));
 
+        embargoBanner.setOnClickListener(view -> hideEmbargoBanner());
         embargoBanner.setAlpha(0);
 
         Button enterUnlockCodeBtn = embargoBanner.findViewById(R.id.enter_unlock_code_btn);
@@ -413,13 +414,23 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         Flowable.timer(11, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(counter -> {
-                    alphaAnimator.addUpdateListener(valueAnimator -> {
-                        if (valueAnimator.getAnimatedFraction() == 0f) {
-                            parent.removeView(embargoBanner);
-                            fab.show();
-                        }
-                    });
-                    alphaAnimator.reverse();
+                    hideEmbargoBanner();
                 });
+    }
+
+    private void hideEmbargoBanner() {
+        final View embargoBanner = findViewById(R.id.embargo_banner);
+        if (embargoBanner != null) {
+            ValueAnimator fadeOutAnim = ValueAnimator.ofFloat(1, 0);
+            fadeOutAnim.setDuration(1000);
+            fadeOutAnim.addUpdateListener(valueAnimator -> {
+                embargoBanner.setAlpha((Float) valueAnimator.getAnimatedValue());
+                if (valueAnimator.getAnimatedFraction() == 0f) {
+                    parent.removeView(embargoBanner);
+                    fab.show();
+                }
+            });
+            fadeOutAnim.start();
+        }
     }
 }
