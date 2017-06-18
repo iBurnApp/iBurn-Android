@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/iburn_color"
+    android:padding="8dp">
+
+    <Button
+        style="?android:attr/borderlessButtonStyle"
+        android:id="@+id/enter_unlock_code_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:textColor="@color/white"
+        android:text="@string/enter_unlock_code" />
+
+    <TextView
+        android:id="@+id/embargo_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@id/enter_unlock_code_btn"
+        android:gravity="start"
+        android:paddingLeft="8dp"
+        android:paddingRight="16dp"
+        android:textColor="@color/white"
+        android:layout_centerVertical="true"
+        tools:text="@string/embargo_msg" />
+
+</RelativeLayout>

@@ -1,20 +1,24 @@
 package com.gaiagps.iburn.activity;
 
 import android.Manifest;
+import android.animation.ValueAnimator;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.gaiagps.iburn.MapboxMapFragment;
@@ -65,7 +69,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
     private PrefsHelper prefs;
     private String searchQuery;
-    private Snackbar embargoSnackbar;
     private BottomBar bottomBar;
 
     @Override
@@ -130,17 +133,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 //                    Timber.d("Updated iburn with success %b", success);
 //                });
 
-        if (Embargo.isEmbargoActive(prefs)) {
-            Flowable.timer(1, TimeUnit.SECONDS)
-                    .subscribeOn(AndroidSchedulers.mainThread())
-                    .subscribe(counter -> {
-                        // TODO: Need to fix layout with bottombar, or replace with our own view
-                        final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE M/d", Locale.US);
-                        FrameLayout frame = findViewById(R.id.content);
-                        embargoSnackbar = Snackbar.make(frame, getString(R.string.embargo_snackbar_msg, dayFormatter.format(Embargo.EMBARGO_DATE)), Snackbar.LENGTH_INDEFINITE)
-                                .setAction(R.string.enter_unlock_code, view -> showUnlockDialog());
-                        embargoSnackbar.show();
-                    });
+        if (true) { //Embargo.isEmbargoActive(prefs)) {
+            showEmbargoBanner();
         }
         handleIntent(getIntent());
         //checkForUpdates();
@@ -231,39 +225,52 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     public void showUnlockDialog() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this, R.style.Theme_Iburn_Dialog);
 
-        alert.setTitle(getString(R.string.enter_unlock_password));
-        // Set an EditText view to get user input
-        final EditText input = new EditText(this);
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View view = inflater.inflate(R.layout.dialog_unlock, findViewById(R.id.parent), false);
+        final EditText input = view.findViewById(R.id.unlock_input);
         input.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        alert.setView(input);
+
+        alert.setTitle(getString(R.string.enter_unlock_code));
+        alert.setView(view);
         alert.setPositiveButton(getString(R.string.ok), (dialog, whichButton) -> {
-            String pwGuess = input.getText().toString();
-            if (pwGuess.equals(UNLOCK_CODE)) {
-                prefs.setEnteredValidUnlockCode(true);
-                // Notify all observers that embargo is clear
-                DataProvider.Companion.getInstance(getApplicationContext()).subscribe(DataProvider::endUpgrade);
-                new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
-                        .setTitle(getString(R.string.victory))
-                        .setMessage(getString(R.string.location_data_unlocked))
-                        .setPositiveButton(R.string.ok, (dialog1, which) -> {
-                        })
-                        .show();
-            } else {
-                dialog.cancel();
-                new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
-                        .setTitle(getString(R.string.invalid_password))
-                        .setMessage("Bummer.")
-                        .show();
+            handleUnlockCodeGuess(input.getText().toString());
+        });
+        alert.setNegativeButton(getString(R.string.cancel), null);
+
+        final AlertDialog dialog = alert.create();
+        dialog.getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+        input.setOnEditorActionListener((textView, i, keyEvent) -> {
+            if (handleUnlockCodeGuess(input.getText().toString())) {
+                dialog.dismiss();
             }
+            return true;
         });
 
-        alert.setNegativeButton(getString(R.string.cancel), (dialog, whichButton) -> {
-        });
+        input.requestFocus();
+        dialog.show();
+    }
 
-        alert.show();
-//        No effect :(
-//        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-//        imm.showSoftInput(input, InputMethodManager.SHOW_FORCED);
+    private boolean handleUnlockCodeGuess(String guess) {
+        if (guess.equals(UNLOCK_CODE)) {
+            prefs.setEnteredValidUnlockCode(true);
+            // Notify all observers that embargo is clear
+            DataProvider.Companion.getInstance(getApplicationContext()).subscribe(DataProvider::endUpgrade);
+            new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
+                    .setTitle(getString(R.string.embargo_disabled))
+                    .setMessage(getString(R.string.location_data_unlocked))
+                    .setPositiveButton(R.string.ok, (dialog1, which) -> {
+                    })
+                    .show();
+            return true;
+        } else {
+            new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
+                    .setTitle(getString(R.string.invalid_password))
+                    .setMessage("Bummer.")
+                    .show();
+            return false;
+        }
     }
 
     @Override
@@ -348,13 +355,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         UpdateManager.register(this, HOCKEY_ID);
     }
 
-    public void clearEmbargoSnackbar() {
-        if (embargoSnackbar != null) {
-            embargoSnackbar.dismiss();
-            embargoSnackbar = null;
-        }
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
@@ -362,5 +362,56 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+    }
+
+    /**
+     * Show a banner above the bottom navigation bar describing the banner and allowing
+     * the user to enter the embargo unlock code. Dismissed by touch anywhere but the
+     * unlock button, or after a fixed interval set within.
+     */
+    private void showEmbargoBanner() {
+        ViewGroup parent = findViewById(R.id.parent);
+        LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+        ViewGroup embargoBanner = (ViewGroup) inflater.inflate(R.layout.activity_main_embargo_banner, parent, false);
+        RelativeLayout.LayoutParams embargoParams = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
+        embargoParams.addRule(RelativeLayout.ABOVE, R.id.bottomBar);
+        embargoBanner.setLayoutParams(embargoParams);
+
+        final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE M/d", Locale.US);
+        TextView embargoText = embargoBanner.findViewById(R.id.embargo_text);
+        embargoText.setText(getString(R.string.embargo_msg, dayFormatter.format(Embargo.EMBARGO_DATE)));
+
+        embargoBanner.setAlpha(0);
+
+        Button enterUnlockCodeBtn = embargoBanner.findViewById(R.id.enter_unlock_code_btn);
+        enterUnlockCodeBtn.setOnClickListener(view -> {
+            parent.removeView(embargoBanner);
+            showUnlockDialog();
+        });
+
+        parent.addView(embargoBanner);
+
+        ValueAnimator alphaAnimator = ValueAnimator.ofFloat(0, 1);
+        alphaAnimator.setDuration(1000);
+        alphaAnimator.addUpdateListener(valueAnimator -> embargoBanner.setAlpha((Float) valueAnimator.getAnimatedValue()));
+
+        // Fade in banner
+        Flowable.timer(1, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(counter -> alphaAnimator.start());
+
+        // Auto-dismiss banner
+        Flowable.timer(11, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(counter -> {
+                    alphaAnimator.addUpdateListener(valueAnimator -> {
+                        if (valueAnimator.getAnimatedFraction() == 0f) {
+                            parent.removeView(embargoBanner);
+                        }
+                    });
+                    alphaAnimator.reverse();
+                });
     }
 }

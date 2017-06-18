@@ -18,7 +18,7 @@
     <string name="action_home">Set Home Camp</string>
     <string name="action_nav_home">Navigate to Home Camp</string>
     <string name="unlock">Unlock</string>
-    <string name="victory">Victory!</string>
+    <string name="embargo_disabled">Embargo Disabled</string>
     <string name="location_data_unlocked">Camp, Art, and Event location data unlocked!</string>
     <string name="invalid_password">Invalid Password</string>
     <string name="cancel">Cancel</string>
@@ -48,11 +48,10 @@
     <string name="dialog_edit_marker_title">Edit Marker</string>
     <string name="enter_unlock_code">Enter Unlock Code</string>
     <string name="unlock_description">Location info is hidden until gates open.</string>
-    <string name="enter_unlock_password">Enter Unlock Password</string>
     <string name="title_activity_search">SearchActivity</string>
 
     <string name="action_settings">Settings</string>
-    <string name="embargo_snackbar_msg">Art, Camp, and Event Location Data is embargoed until %s. Swipe to dismiss.</string>
+    <string name="embargo_msg">Art, Camp, and Event locations will be available %s.</string>
     <string name="also_at">Other Occurrences</string>
     <string name="hosted_events">Hosted Events</string>
     <string name="send_feedback">Send Feedback</string>
