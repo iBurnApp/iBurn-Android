@@ -20,6 +20,7 @@ import android.widget.ImageButton;
 import com.gaiagps.iburn.AudioTourDownloader;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.SchedulersKt;
 import com.gaiagps.iburn.database.Camp;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.UserPoi;
@@ -127,6 +128,7 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
             poi.longitude = homeCampSelection.longitude;
             poi.icon = UserPoi.ICON_HOME;
             DataProvider.Companion.getInstance(getApplicationContext())
+                    .observeOn(SchedulersKt.getIoScheduler())
                     .subscribe(dataProvider -> dataProvider.insertUserPoi(poi));
         }
 
@@ -203,11 +205,12 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         public void transformPage(View page, float position) {
             int pageWidth = page.getWidth();
 
-            View brcOutline = page.findViewById(R.id.a000);
+            View parallax0 = page.findViewById(R.id.parallax0);
+            View parallax1 = page.findViewById(R.id.parallax1);
+
             View welcomeHeader = page.findViewById(R.id.welcomeHeader);
             View video = page.findViewById(R.id.video);
             View welcome2 = page.findViewById(R.id.welcome_fragment2);
-            View yurt = page.findViewById(R.id.yurt);
 
             if (position <= -1.0f || position >= 1.0f) {
                 // do nothing
@@ -227,14 +230,15 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
                 if (welcome2 != null) {
                     welcome2.setAlpha(1.0f - Math.abs(position));
                 }
-                if (yurt != null) {
-                    yurt.setTranslationX(pageWidth * 1.5f * position);
-                    yurt.setAlpha(1.0f - Math.abs(position));
+
+                if (parallax0 != null) {
+                    parallax0.setTranslationX(pageWidth * position);
+                    parallax0.setAlpha(1.0f - Math.abs(position));
                 }
 
-                if (brcOutline != null) {
-                    brcOutline.setTranslationX(pageWidth * position);
-                    brcOutline.setAlpha(1.0f - Math.abs(position));
+                if (parallax1 != null) {
+                    parallax1.setTranslationX(.75f * pageWidth * position);
+                    parallax1.setAlpha(1.0f - Math.abs(position));
                 }
             }
         }

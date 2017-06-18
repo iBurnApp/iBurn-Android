@@ -69,8 +69,8 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
     fun observeCampsByName(query: String): Flowable<List<Camp>> {
 
         // TODO : Honor upgradeLock
-        // TODO : Return structure with metadata on how many art, camps, events etc?
-        return db.campDao().findByName(query)
+        val wildQuery = addWildcardsToQuery(query)
+        return db.campDao().findByName(wildQuery)
     }
 
     fun observeCampByPlayaId(playaId: String): Flowable<Camp> {

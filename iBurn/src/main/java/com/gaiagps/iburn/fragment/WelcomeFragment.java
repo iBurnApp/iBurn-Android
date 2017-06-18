@@ -2,7 +2,6 @@ package com.gaiagps.iburn.fragment;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
-import android.database.Cursor;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -12,6 +11,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
@@ -54,15 +54,23 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
         if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment1) {
             // Intro video
-            textureView = ((TextureView) rootView.findViewById(R.id.video));
+            textureView = rootView.findViewById(R.id.video);
             textureView.setSurfaceTextureListener(this);
 
         } else if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment3) {
             // Set Home location
-            campSearchView = (AutoCompleteTextView) rootView.findViewById(R.id.campNameSearch);
+            campSearchView = rootView.findViewById(R.id.campNameSearch);
             campSearchView.setAdapter(new CampAutoCompleteAdapter(getActivity()));
             campSearchView.setOnItemClickListener((parent, view, position, id) -> {
                 Camp selectedCamp = ((Camp) campSearchView.getAdapter().getItem(position));
+
+                if (!selectedCamp.hasLocation()) {
+                    rootView.findViewById(R.id.error).setVisibility(View.VISIBLE);
+                    return;
+                } else {
+                    rootView.findViewById(R.id.error).setVisibility(View.GONE);
+                }
+
                 campSearchView.setTag(selectedCamp);
                 Timber.d("Item selected %s", campSearchView.getText().toString());
 

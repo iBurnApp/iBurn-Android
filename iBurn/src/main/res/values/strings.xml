@@ -61,8 +61,8 @@
 
     <!-- WelcomeActivity -->
     <string name="title_activity_welcome">WelcomeActivity</string>
-    <string name="place_custom_markers_tip">You can place custom markers at any time from the map.</string>
-    <string name="home_camp_hint">Home Camp Name</string>
+    <string name="place_custom_markers_tip">You can also add custom map markers later. Look for this icon on the app\'s map view.</string>
+    <string name="home_camp_hint">Enter Home Camp Name</string>
     <string name="mark_home_camp">Mark Home Camp?</string>
     <string name="location_data_notice">Burning Man policy requires that iBurn not display Camp, Event, and Art locations until gates open or you arrive on the Playa.</string>
     <string name="location_notice_title">A Word on Location</string>
@@ -71,5 +71,6 @@
     <string name="all_art">ALL</string>
     <string name="play_audio_tour">Play Audio Tour</string>
     <string name="pause_audio_tour">Pause Audio Tour</string>
+    <string name="camp_location_unknown">Sorry, we don\'t have location data for that camp. You can add a marker later from the app\'s map view.</string>
 
 </resources>
