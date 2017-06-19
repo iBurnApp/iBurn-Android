@@ -77,6 +77,9 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
                 if (!selectedCamp.hasLocation()) {
                     rootView.findViewById(R.id.error).setVisibility(View.VISIBLE);
+                    if (getActivity() instanceof HomeCampSelectionListener) {
+                        ((HomeCampSelectionListener) getActivity()).onHomeCampSelected(null);
+                    }
                     return;
                 } else {
                     rootView.findViewById(R.id.error).setVisibility(View.GONE);
