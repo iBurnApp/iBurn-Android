@@ -70,11 +70,18 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
                 holder.artistView.visibility = View.VISIBLE
                 holder.artistView.text = item.artist
 
+                if (item.hasAudioTour()) {
+                    holder.audioTourView.visibility = View.VISIBLE
+                } else {
+                    holder.audioTourView.visibility = View.GONE
+                }
+
                 holder.eventTypeView.visibility = View.GONE
                 holder.eventTimeView.visibility = View.GONE
 
             } else if (item is Camp) {
                 holder.artistView.visibility = View.GONE
+                holder.audioTourView.visibility = View.GONE
                 holder.eventTypeView.visibility = View.GONE
                 holder.eventTimeView.visibility = View.GONE
 
@@ -87,6 +94,7 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
                         getDateString(context, now, item.startTime, item.startTimePretty, item.endTime, item.endTimePretty)
 
                 holder.artistView.visibility = View.GONE
+                holder.audioTourView.visibility = View.GONE
 
             } else {
                 Timber.e("Unknown Item type! Display behavior will be unexpected")
@@ -176,6 +184,7 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
 
         val titleView: TextView = view.findViewById(R.id.title)
         val artistView: TextView = view.findViewById(R.id.artist)
+        val audioTourView: TextView = view.findViewById(R.id.audioTourLabel)
         val descView: TextView  = view.findViewById(R.id.description)
         val eventTypeView: TextView = view.findViewById(R.id.type)
         val eventTimeView: TextView = view.findViewById(R.id.time)
