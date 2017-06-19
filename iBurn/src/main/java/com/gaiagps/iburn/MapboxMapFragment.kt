@@ -182,11 +182,11 @@ class MapboxMapFragment : Fragment() {
             this.addressLabel = addressLabel
 
             // Add User POI add button
-            val userPoiButton = inflater.inflate(R.layout.map_poi_btn, container, false) as ImageView
+            val userPoiButton = inflater.inflate(R.layout.map_image_btn, container, false) as ImageView
             userPoiButton.visibility = if (state != State.SHOWCASE) View.VISIBLE else View.GONE
             userPoiButton.setImageResource(R.drawable.ic_pin_drop_black_24dp)
             mapView.addView(userPoiButton)
-            setMargins(userPoiButton, 0, margin, margin * 10, 0, Gravity.TOP.or(Gravity.RIGHT))
+            setMargins(userPoiButton, 0, margin, (margin * 9.5).toInt(), 0, Gravity.TOP.or(Gravity.RIGHT))
             userPoiButton.setOnClickListener {
                 mapView.getMapAsync { map ->
                     val marker = addCustomPin(map, null, "Some dumb title", UserPoi.ICON_STAR)
