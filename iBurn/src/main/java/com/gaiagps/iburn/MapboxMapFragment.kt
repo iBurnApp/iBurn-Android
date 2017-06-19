@@ -1,12 +1,14 @@
 package com.gaiagps.iburn
 
 
-import android.animation.ValueAnimator
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -179,6 +181,15 @@ class MapboxMapFragment : Fragment() {
             addressLabel.visibility = View.INVISIBLE
             mapView.addView(addressLabel)
             setMargins(addressLabel, 0, margin, margin * 5, 0, Gravity.TOP.or(Gravity.RIGHT))
+            addressLabel.setOnClickListener {
+                val address = addressLabel.text.toString()
+                if (!TextUtils.isEmpty(address)) {
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("Current Playa Address", address)
+                    clipboard.primaryClip = clip
+                    Toast.makeText(activity.applicationContext, "Copied address to clipboard", Toast.LENGTH_LONG).show()
+                }
+            }
             this.addressLabel = addressLabel
 
             // Add User POI add button
