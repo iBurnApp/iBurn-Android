@@ -171,7 +171,10 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
             // TODO : Catch and attempt recover from IllegalStateException
             mediaPlayer.prepareAsync()
             mediaPlayer.setOnCompletionListener {
-                Timber.d("Playback complete. Stopping service")
+                Timber.d("Playback complete. Stopping foreground service2")
+                stopPlayback()
+                stopForeground(true)
+                cancelNotification()
                 stopSelf()
                 mediaSession.setMetadata(null)
             }
@@ -299,5 +302,11 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
                 stopForeground(false)
             }
         }
+    }
+
+    private fun cancelNotification() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(NotificationId)
+
     }
 }
