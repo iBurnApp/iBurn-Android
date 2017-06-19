@@ -1,6 +1,7 @@
 package com.gaiagps.iburn
 
 
+import android.animation.ValueAnimator
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -200,8 +201,12 @@ class MapboxMapFragment : Fragment() {
             setMargins(userPoiButton, 0, margin, (margin * 9.5).toInt(), 0, Gravity.TOP.or(Gravity.RIGHT))
             userPoiButton.setOnClickListener {
                 mapView.getMapAsync { map ->
-                    val marker = addCustomPin(map, null, "Some dumb title", UserPoi.ICON_STAR)
-                    showEditPinDialog(marker)
+                    val marker = addCustomPin(map, null, "Custom Marker", UserPoi.ICON_STAR)
+                    Observable.timer(1, TimeUnit.SECONDS)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe {
+                                showEditPinDialog(marker)
+                            }
                 }
             }
             this.userPoiButton = userPoiButton
@@ -300,10 +305,10 @@ class MapboxMapFragment : Fragment() {
 
                     if (queryAllItems) {
                         Timber.d("Map query for all items at zoom %f", map.cameraPosition.zoom)
-                        provider.observeUserAddedMapItemsOnly().toObservable()
+                        provider.observeUserAddedMapItemsOnly().firstElement().toObservable()
                     } else {
                         Timber.d("Map query for user items at zoom %f", map.cameraPosition.zoom)
-                        (provider.getUserPoi()).toObservable()
+                        (provider.getUserPoi()).firstElement().toObservable()
                     }
                 }
                 .observeOn(AndroidSchedulers.mainThread())
@@ -724,6 +729,14 @@ class MapboxMapFragment : Fragment() {
         userPoi.longitude = markerLatLng.longitude.toFloat()
         userPoi.icon = poiIcon
         userPoi.playaId = userPoiPlayaId
+
+        marker.alpha = 0f
+        val fadeIn = ValueAnimator.ofFloat(0f, 1f)
+        fadeIn.duration = 800
+        fadeIn.addUpdateListener { anim ->
+            marker.alpha = anim.animatedValue as Float
+        }
+        fadeIn.start()
 
         try {
             DataProvider.getInstance(activity.applicationContext)
