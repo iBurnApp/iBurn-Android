@@ -1,12 +1,19 @@
 package com.gaiagps.iburn.activity;
 
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -37,11 +44,9 @@ import com.gaiagps.iburn.database.Camp;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Event;
 import com.gaiagps.iburn.database.PlayaItem;
+import com.gaiagps.iburn.service.AudioPlayerService;
 import com.gaiagps.iburn.view.AnimatedFloatingActionButton;
 import com.mapbox.mapboxsdk.geometry.LatLng;
-
-import org.prx.playerhater.PlayerHaterListener;
-import org.prx.playerhater.Song;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -53,11 +58,13 @@ import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
+import static com.gaiagps.iburn.service.AudioPlayerServiceKt.MediaMetadataKeyArtPlayaId;
+
 /**
  * Show the detail view for a Camp, Art installation, or Event
  * Created by davidbrodsky on 8/11/13.
  */
-public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHaterListener, AdapterListener {
+public class PlayaItemViewActivity extends AppCompatActivity implements AdapterListener {
 
     public static final String EXTRA_PLAYA_ITEM = "playa-item";
 
@@ -107,6 +114,9 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
     @BindView(R.id.collapsing_toolbar)
     CollapsingToolbarLayout collapsingToolbarLayout;
 
+    private MediaBrowserCompat mediaBrowser;
+    private MediaControllerCompat.Callback mediaControllerCallback;
+
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playa_item_view);
@@ -135,12 +145,174 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         mapContainer.startAnimation(fadeAnimation);
 
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        if (item instanceof Art && ((Art) item).hasAudioTour()) {
+            onCreateMediaController();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (item instanceof Art && ((Art) item).hasAudioTour()) {
+            onStartMediaController();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (item instanceof Art && ((Art) item).hasAudioTour()) {
+            onStopMediaController();
+        }
+    }
+
+    private void onCreateMediaController() {
+        mediaBrowser = new MediaBrowserCompat(this,
+                new ComponentName(this, AudioPlayerService.class),
+                new PlayaItemViewMediaConnectionCallback(),
+                null); // optional Bundle
+    }
+
+    private void onStartMediaController() {
+        mediaBrowser.connect();
+    }
+
+    private void onStopMediaController() {
+        if (MediaControllerCompat.getMediaController(PlayaItemViewActivity.this) != null) {
+            MediaControllerCompat.getMediaController(PlayaItemViewActivity.this).unregisterCallback(mediaControllerCallback);
+        }
+        mediaBrowser.disconnect();
+    }
+
+    private class PlayaItemViewMediaConnectionCallback extends MediaBrowserCompat.ConnectionCallback {
+
+        @Override
+        public void onConnected() {
+            Timber.d("Connected to media service");
+            try {
+                // Get the token for the MediaSession
+                MediaSessionCompat.Token token = mediaBrowser.getSessionToken();
+
+                // Create a MediaControllerCompat
+                MediaControllerCompat mediaController =
+                        new MediaControllerCompat(
+                                PlayaItemViewActivity.this,
+                                token);
+
+                // Save the controller
+                MediaControllerCompat.setMediaController(PlayaItemViewActivity.this, mediaController);
+
+                // Finish building the UI
+                setupMediaTransportControls();
+
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void onConnectionFailed() {
+            Timber.d("Connection to media service failed");
+            // This means no current media session is active
+            // Finish building the UI
+//            setupMediaTransportControls();
+        }
+    }
+
+    private class PlayaItemMediaControllerCallback extends MediaControllerCompat.Callback {
+        @Override
+        public void onPlaybackStateChanged(PlaybackStateCompat state) {
+            // Selected corresponds to the playing state
+            int playbackState = state.getState();
+            Timber.d("onPlaybackStateChanged to %d", playbackState);
+            MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(PlayaItemViewActivity.this);
+            setAudioTourToggleStateWithPlaybackState(mediaController, item);
+        }
+
+        @Override
+        public void onMetadataChanged(MediaMetadataCompat metadata) {
+            Timber.d("onMetadataChanged to %s", metadata);
+        }
+    }
+
+    private void setupMediaTransportControls() {
+        audioTourUrl = ((Art) item).audioTourUrl;
+
+        audioTourToggle = new TextView(this);
+        audioTourToggle.setTextColor(getResources().getColor(R.color.regular_text));
+        audioTourToggle.setTextSize(22);
+        audioTourToggle.setCompoundDrawablePadding(12);  // 8 dp
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.bottomMargin = 12; // 8 dp
+        audioTourToggle.setLayoutParams(params);
+        LinearLayout contentContainer = findViewById(R.id.content_container);
+        contentContainer.addView(audioTourToggle, 3);
+
+        // Get Media initial state
+        MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(PlayaItemViewActivity.this);
+        MediaMetadataCompat metadata = mediaController.getMetadata();
+        PlaybackStateCompat pbState = mediaController.getPlaybackState();
+
+        audioTourToggle.setOnClickListener(view -> {
+
+            // Since this is a play/pause button, you'll need to test the current state
+            // and choose the action accordingly
+
+            MediaMetadataCompat currentMetadata = mediaController.getMetadata();
+            int currentPbState = mediaController.getPlaybackState().getState();
+            Timber.d("Audio tour toggle hit in state %d with metadata %s", currentPbState, currentMetadata);
+
+            if (!isCurrentMediaSessionForItem(mediaController, item)) {
+                Timber.d("Starting audio tour playback anew for item %s", item.name);
+                // Need to start up the media service
+                audioTourManager.playAudioTourUrl((Art) item);
+
+            } else if (currentPbState == PlaybackStateCompat.STATE_PLAYING) {
+                Timber.d("Resuming audio tour playback for item %s", item.name);
+                MediaControllerCompat.getMediaController(PlayaItemViewActivity.this).getTransportControls().pause();
+            } else if (currentPbState == PlaybackStateCompat.STATE_PAUSED) {
+                Timber.d("Pausing audio tour playback for item %s", item.name);
+                MediaControllerCompat.getMediaController(PlayaItemViewActivity.this).getTransportControls().play();
+            } else {
+                Timber.e("Unable to handle audio tour playback toggle. MediaController in unknown state %d", pbState);
+            }
+            setAudioTourToggleStateWithPlaybackState(mediaController, item);
+        });
+
+        int playbackState = pbState.getState();
+        Timber.d("Initial MediaController state %d with metadata %s", playbackState, metadata);
+
+        // TODO: Figure out why the controller can report playback state "Playing" with no metadata
+        // when the media service has never been started
+        if (metadata == null) {
+            Timber.d("Playback state was %d but metadata is null. Interpreting as STATE_NONE for UI setup",
+                    playbackState);
+            playbackState = PlaybackStateCompat.STATE_NONE;
+        }
+
+        setAudioTourToggleStateWithPlaybackState(mediaController, item);
+
+        // Register a Callback to stay in sync
+        if (mediaControllerCallback == null) {
+            mediaControllerCallback = new PlayaItemMediaControllerCallback();
+        }
+        mediaController.registerCallback(mediaControllerCallback);
+    }
+
+    private void setAudioTourToggleStateWithPlaybackState(MediaControllerCompat mediaControllerCompat, PlayaItem item) {
+        if (item == null || mediaControllerCompat == null) return;
+
+        int playbackState = mediaControllerCompat.getPlaybackState().getState();
+        boolean audioTourToggleSelected = (playbackState == PlaybackStateCompat.STATE_PLAYING) &&
+                isCurrentMediaSessionForItem(mediaControllerCompat, item);
+        audioTourToggle.setSelected(audioTourToggleSelected);
+        onAudioTourToggleSelectedChanged();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        audioTourManager = new AudioTourManager(this, this);
+        audioTourManager = new AudioTourManager(this);
         // Re-populate views on resume to keep time-based views fresh
         if (!didPopulateViews && item != null) {
             populateViews(item);
@@ -148,17 +320,12 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         }
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        audioTourManager.release();
-    }
-
     /**
      * Set the text container within NestedScrollView to have height exactly equal to the
      * full height minus status bar and toolbar. This addresses an issue where the
      * collapsing toolbar pattern gets all screwed up.
      */
+
     private void setTextContainerMinHeight() {
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -255,40 +422,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         setTextOrHideIfEmpty(art.artist, subItem2TextView);
         setTextOrHideIfEmpty(art.artistLocation, subItem3TextView);
 
-        if (art.hasAudioTour()) {
-            audioTourUrl = art.audioTourUrl;
-
-            audioTourToggle = new TextView(this);
-            audioTourToggle.setTextColor(getResources().getColor(R.color.regular_text));
-            audioTourToggle.setTextSize(22);
-            audioTourToggle.setCompoundDrawablePadding(12);  // 8 dp
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            params.bottomMargin = 12; // 8 dp
-            audioTourToggle.setLayoutParams(params);
-            if (isAudioTourManagerPlayingThis()) {
-                audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_pause_circle_outline_light_24dp), null, null, null);
-                audioTourToggle.setText(R.string.pause_audio_tour);
-            } else {
-                audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_play_circle_outline_light_24dp), null, null, null);
-                audioTourToggle.setText(R.string.play_audio_tour);
-            }
-            audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_play_circle_outline_light_24dp), null, null, null);
-            LinearLayout contentContainer = (LinearLayout) findViewById(R.id.content_container);
-            contentContainer.addView(audioTourToggle, 3);
-
-            audioTourToggle.setOnClickListener(view -> {
-                view.setSelected(!view.isSelected());
-                onAudioTourToggleSelectedChanged();
-
-                if (view.isSelected()) {
-                    // Playing. Show Pause button
-                    audioTourManager.playAudioTourUrl(audioTourUrl, art.name);
-                } else {
-                    // Paused. Show Play button
-                    audioTourManager.pause();
-                }
-            });
-        }
+        // Note : Audio Tour views are populated separately when connection to the
+        // AudioPlaybackService is complete. See setupMediaTransportControls
     }
 
     private void populateCampViews(Camp camp, DataProvider provider) {
@@ -412,43 +547,16 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         }
     }
 
-    @Override
-    public void onStopped() {
-        if (isAudioTourManagerPlayingThis()) {
-            audioTourToggle.setSelected(false);
-            onAudioTourToggleSelectedChanged();
-        }
-    }
+    private boolean isCurrentMediaSessionForItem(MediaControllerCompat mediaControllerCompat,
+                                                 PlayaItem item) {
+        if (mediaControllerCompat == null) return false;
 
-    @Override
-    public void onPaused(Song song) {
-        if (isAudioTourManagerPlayingThis()) {
-            audioTourToggle.setSelected(false);
-            onAudioTourToggleSelectedChanged();
-        }
-    }
+        MediaMetadataCompat metadata = mediaControllerCompat.getMetadata();
+        if (metadata == null) return false;
 
-    @Override
-    public void onLoading(Song song) {
-        // unused
-    }
+        String currentlyPlayingArtPlayaId = metadata.getString(MediaMetadataKeyArtPlayaId);
 
-    @Override
-    public void onPlaying(Song song, int i) {
-        if (isAudioTourManagerPlayingThis()) {
-            audioTourToggle.setSelected(true);
-            onAudioTourToggleSelectedChanged();
-        }
-    }
-
-    @Override
-    public void onStreaming(Song song) {
-        // unused
-    }
-
-    private boolean isAudioTourManagerPlayingThis() {
-        return audioTourManager != null && audioTourManager.getCurrentAudioTourUrl() != null &&
-                audioTourManager.getCurrentAudioTourUrl().equals(audioTourUrl);
+        return (currentlyPlayingArtPlayaId != null && currentlyPlayingArtPlayaId.equals(item.playaId));
     }
 
     private void onAudioTourToggleSelectedChanged() {

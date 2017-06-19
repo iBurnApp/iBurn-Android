@@ -3,21 +3,16 @@ package com.gaiagps.iburn;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
 import android.widget.Toast;
 
-import org.prx.playerhater.PlayerHater;
-import org.prx.playerhater.PlayerHaterListener;
-import org.prx.playerhater.Song;
-import org.prx.playerhater.plugins.PlayerHaterListenerPlugin;
+import com.gaiagps.iburn.database.Art;
+import com.gaiagps.iburn.service.AudioPlayerService;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,7 +36,6 @@ public class AudioTourManager {
     private final OkHttpClient http = new OkHttpClient();
 
     private Context context;
-    private PlayerHater player;
     private Uri defaultAlbumArtUri;
     private File mediaArtDir;
     private File mediaDir;
@@ -64,10 +58,10 @@ public class AudioTourManager {
      *
      * @param context The Context to bind the player service to
      */
-    public AudioTourManager(@NonNull Context context, @Nullable PlayerHaterListener listener) {
+    public AudioTourManager(@NonNull Context context) {
         this.context = context;
-        player = PlayerHater.bind(context);
-        player.setLocalPlugin(new PlayerHaterListenerPlugin(listener));
+//        player = PlayerHater.bind(context);
+//        player.setLocalPlugin(new PlayerHaterListenerPlugin(listener));
         defaultAlbumArtUri = getResourceUri(context, R.drawable.iburn_logo);
         mediaArtDir = getAudioTourArtDirectory(context);
         mediaDir = getAudioTourDirectory(context);
@@ -77,77 +71,28 @@ public class AudioTourManager {
         }
     }
 
-    /**
-     * Unbind the player
-     */
-    public void release() {
-        player.release();
-    }
+    public void playAudioTourUrl(@NonNull Art art) {
 
-
-    public void playAudioTourUrl(@NonNull String audioTourUrl, @Nullable String title) {
-
-        File cachedFile = getCachedFileForRemoteMediaPath(audioTourUrl);
+        File cachedFile = getCachedFileForRemoteMediaPath(art.audioTourUrl);
         if (!cachedFile.exists()) {
-            Toast.makeText(context, "Downloading '" + title + "' Tour. Playback will start when ready", Toast.LENGTH_LONG).show();
-            cacheAndPlayRemoteMediaPath(audioTourUrl, title);
+            Toast.makeText(context, "Downloading '" + art.name + "' Tour. Playback will start when ready", Toast.LENGTH_LONG).show();
+            cacheAndPlayRemoteMediaPath(art);
         } else {
-            playLocalMediaUrl(Uri.fromFile(cachedFile), title);
+            playLocalMediaForArt(Uri.fromFile(cachedFile), art);
         }
     }
 
-    public Uri getCurrentAudioTourUrl() {
-        return player.nowPlaying() != null ? player.nowPlaying().getUri() : null;
+    public Art getCurrentlyPlayingAudioTourArt() {
+        return AudioPlayerService.Companion.getCurrentArt();
     }
 
-    public void pause() {
-        player.pause();
-    }
-
-    public Song songFromAudioTourUrl(@NonNull Uri audioTourUri,
-                                     @Nullable String title) {
-        return new Song() {
-            @Override
-            public String getTitle() {
-                return title;
-            }
-
-            @Override
-            public String getArtist() {
-                return "Jim Tierney";
-            }
-
-            @Override
-            public String getAlbumTitle() {
-                return "Art Discovery Audio Guide";
-            }
-
-            @Override
-            public Uri getAlbumArt() {
-                Uri artUri = getFileImage(audioTourUri);
-                context.grantUriPermission("com.android.systemui", artUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                Timber.d("Returning album art uri %s", artUri);
-                return artUri;
-            }
-
-            @Override
-            public Uri getUri() {
-                return audioTourUri;
-            }
-
-            @Override
-            public Bundle getExtra() {
-                return null;
-            }
-        };
-    }
-
-    private void playLocalMediaUrl(@NonNull Uri localMediaUri, @Nullable String title) {
-        Uri curTourUrl = getCurrentAudioTourUrl();
-        if (curTourUrl != null && curTourUrl.equals(localMediaUri)) {
-            player.play();
+    private void playLocalMediaForArt(@NonNull Uri localMediaUri, @NonNull Art art) {
+        Art currentlyPlayingArt = getCurrentlyPlayingAudioTourArt();
+        if (currentlyPlayingArt == null || !currentlyPlayingArt.equals(art)) {
+            Uri albumArtUri = getFileImage(localMediaUri);
+            AudioPlayerService.Companion.playAudioTour(context, localMediaUri, art, albumArtUri);
         } else {
-            player.play(songFromAudioTourUrl(localMediaUri, title));
+            Timber.e("AudioPlayerService is already playing. Bind to service to issue control commands");
         }
     }
 
@@ -207,18 +152,17 @@ public class AudioTourManager {
         return new File(getAudioTourDirectory(context), mediaPath.substring(mediaPath.lastIndexOf("/"), mediaPath.length()));
     }
 
-    private void cacheAndPlayRemoteMediaPath(@NonNull String remoteMediaPath, @Nullable String title) {
-        Observable.just(remoteMediaPath)
+    private void cacheAndPlayRemoteMediaPath(@NonNull Art art) {
+        Observable.just(art)
                 .observeOn(Schedulers.io())
-                .subscribe(path -> {
+                .subscribe(ignored -> {
 
-                    boolean didCache = cacheRemoteMediaPath(context, http, remoteMediaPath);
+                    boolean didCache = cacheRemoteMediaPath(context, http, art.audioTourUrl);
 
                     if (didCache) {
-                        File cachedFile = getCachedFileForRemoteMediaPath(remoteMediaPath);
-                        playLocalMediaUrl(Uri.fromFile(cachedFile), title);
+                        File cachedFile = getCachedFileForRemoteMediaPath(art.audioTourUrl);
+                        playLocalMediaForArt(Uri.fromFile(cachedFile), art);
                     }
-
                 });
     }
 
