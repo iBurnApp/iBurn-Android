@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             service.updateData()
                     .subscribe((success) -> {
                         Timber.d("Updated iburn with success %b", success);
-                    });
+                    }, throwable -> Timber.e(throwable, "Failed to update data"));
         }
 
         if (!prefs.didScheduleUpdate()) {
