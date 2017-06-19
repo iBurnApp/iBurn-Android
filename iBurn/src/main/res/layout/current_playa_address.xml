@@ -8,7 +8,7 @@
     android:layout_gravity="end|top"
     android:gravity="center_vertical"
     android:background="@drawable/map_btn_bg"
-    android:textColor="@color/off_blk_2"
+    android:textColor="@color/map_text_light"
     android:drawablePadding="4dp"
     tools:text="9:50 and A "
     android:drawableEnd="@drawable/ic_my_location_black_24dp"
