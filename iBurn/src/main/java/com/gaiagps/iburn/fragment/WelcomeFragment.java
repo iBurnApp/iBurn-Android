@@ -77,12 +77,14 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
                 if (!selectedCamp.hasLocation()) {
                     rootView.findViewById(R.id.error).setVisibility(View.VISIBLE);
+                    campSearchView.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
                     if (getActivity() instanceof HomeCampSelectionListener) {
                         ((HomeCampSelectionListener) getActivity()).onHomeCampSelected(null);
                     }
                     return;
                 } else {
                     rootView.findViewById(R.id.error).setVisibility(View.GONE);
+                    campSearchView.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_check_green_24dp, 0);
                 }
 
                 campSearchView.setTag(selectedCamp);
