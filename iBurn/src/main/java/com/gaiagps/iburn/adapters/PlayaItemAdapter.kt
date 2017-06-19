@@ -3,6 +3,7 @@ package com.gaiagps.iburn.adapters
 import android.content.Context
 import android.location.Location
 import android.support.v7.widget.RecyclerView
+import android.text.TextUtils
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.SectionIndexer
 import android.widget.TextView
+import com.gaiagps.iburn.CurrentDateProvider
+import com.gaiagps.iburn.DateUtil.getDateString
 import com.gaiagps.iburn.R
 import com.gaiagps.iburn.database.Art
 import com.gaiagps.iburn.database.Camp
@@ -36,6 +39,7 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
     private val normalPaddingBottom: Int
     private val lastItemPaddingBottom: Int
     private var deviceLocation: Location? = null
+    private val now = CurrentDateProvider.getCurrentDate()
 
     init {
         // TODO : Trigger re-draw when location available / changed?
@@ -79,7 +83,8 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
                 holder.eventTimeView.visibility = View.VISIBLE
 
                 holder.eventTypeView.text = AdapterUtils.getStringForEventType(item.type)
-                holder.eventTimeView.text = item.startTimePretty
+                holder.eventTimeView.text =
+                        getDateString(context, now, item.startTime, item.startTimePretty, item.endTime, item.endTimePretty)
 
                 holder.artistView.visibility = View.GONE
 
@@ -96,9 +101,16 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
             if (item.latitude == 0f && item.playaAddress == null) {
                 // No location present, hide address views
                 holder.addressView.visibility = View.GONE
-            } else if (item.playaAddress != null) {
+            } else if (!TextUtils.isEmpty(item.playaAddress)) {
                 holder.addressView.visibility = View.VISIBLE
                 holder.addressView.text = item.playaAddress
+
+                if (item.latitude == 0f) {
+                    // Layout constraints for address view require walk and bike time are in layout
+                    // So include them but invisibly
+                    holder.bikeTimeView.visibility = View.INVISIBLE
+                    holder.walkTimeView.visibility = View.INVISIBLE
+                }
             }
 
             if (item.isFavorite) {
