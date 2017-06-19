@@ -392,7 +392,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         Button enterUnlockCodeBtn = embargoBanner.findViewById(R.id.enter_unlock_code_btn);
         enterUnlockCodeBtn.setOnClickListener(view -> {
-            parent.removeView(embargoBanner);
+            hideEmbargoBanner();
             showUnlockDialog();
         });
 
@@ -413,9 +413,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         // Auto-dismiss banner
         Flowable.timer(11, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(counter -> {
-                    hideEmbargoBanner();
-                });
+                .subscribe(counter -> hideEmbargoBanner());
     }
 
     private void hideEmbargoBanner() {
