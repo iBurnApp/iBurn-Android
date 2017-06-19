@@ -113,11 +113,15 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         ButterKnife.bind(this);
         didPopulateViews = false;
 
+        Intent i = getIntent();
+        item = (PlayaItem) i.getSerializableExtra(EXTRA_PLAYA_ITEM);
+
         setSupportActionBar(toolbar);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("");
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_white_on_orange_24dp);
         }
 
         // Need to defer populating views until AudioTourManagerReady
@@ -137,8 +141,9 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
     public void onResume() {
         super.onResume();
         audioTourManager = new AudioTourManager(this, this);
-        if (!didPopulateViews) {
-            populateViews(getIntent());
+        // Re-populate views on resume to keep time-based views fresh
+        if (!didPopulateViews && item != null) {
+            populateViews(item);
             didPopulateViews = true;
         }
     }
@@ -198,9 +203,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         return super.onOptionsItemSelected(item);
     }
 
-    private void populateViews(Intent i) {
-        item = (PlayaItem) i.getSerializableExtra(EXTRA_PLAYA_ITEM);
-
+    private void populateViews(PlayaItem item) {
         showingLocation = item.hasLocation();
 
         if (showingLocation) {
@@ -229,7 +232,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         }
 
         titleTextView.setText(item.name);
-        isFavorite = item.isFavorite;
+        setFavorite(item.isFavorite, false);
         favoriteButton.setOnClickListener(favoriteButtonOnClickListener);
 
         setTextOrHideIfEmpty(item.description, bodyTextView);
@@ -301,16 +304,17 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
                 .subscribe(events -> {
                     int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
 
-                    ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
-
-                    TextView hostedEventsTitle = new TextView(wrapper);
-                    hostedEventsTitle.setText(R.string.hosted_events);
-                    hostedEventsTitle.setTextSize(32);
-                    hostedEventsTitle.setPadding(pad, pad, pad, pad);
 
                     overflowContainer.removeAllViews();
 
-                    overflowContainer.addView(hostedEventsTitle);
+                    if (events.size() > 0) {
+                        ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
+                        TextView hostedEventsTitle = new TextView(wrapper);
+                        hostedEventsTitle.setText(R.string.hosted_events);
+                        hostedEventsTitle.setTextSize(32);
+                        hostedEventsTitle.setPadding(pad, pad, pad, pad);
+                        overflowContainer.addView(hostedEventsTitle);
+                    }
 
                     adapter.setItems(events);
 
