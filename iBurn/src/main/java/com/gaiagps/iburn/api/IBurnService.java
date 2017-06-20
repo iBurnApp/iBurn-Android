@@ -44,6 +44,7 @@ import static com.gaiagps.iburn.SECRETSKt.IBURN_API_URL;
 import static com.gaiagps.iburn.database.Art.ARTIST;
 import static com.gaiagps.iburn.database.Art.ARTIST_LOCATION;
 import static com.gaiagps.iburn.database.Art.AUDIO_TOUR_URL;
+import static com.gaiagps.iburn.database.Art.IMAGE_URL;
 import static com.gaiagps.iburn.database.Camp.HOMETOWN;
 import static com.gaiagps.iburn.database.Event.ALL_DAY;
 import static com.gaiagps.iburn.database.Event.CAMP_PLAYA_ID;
@@ -270,6 +271,9 @@ public class IBurnService {
             values.put(ARTIST, art.artist);
             values.put(ARTIST_LOCATION, art.artistLocation);
             values.put(AUDIO_TOUR_URL, art.audioTourUrl);
+            if (art.images != null && art.images.size() > 0) {
+                values.put(IMAGE_URL, art.images.get(0).thumbnail_url);
+            }
             database.insert(values);
         });
     }
