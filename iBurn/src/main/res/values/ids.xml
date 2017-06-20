@@ -5,4 +5,7 @@
     <item name="favorite_button_state" type="id"/>
 
     <item name="autocomplete_item_holder" type="id"/>
+
+    <item name="audio_tour_toggle" type="id"/>
+
 </resources>

@@ -238,57 +238,62 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     private void setupMediaTransportControls() {
         audioTourUrl = ((Art) item).audioTourUrl;
 
-        audioTourToggle = new TextView(this);
-        audioTourToggle.setTextColor(getResources().getColor(R.color.regular_text));
-        audioTourToggle.setTextSize(22);
-        audioTourToggle.setCompoundDrawablePadding(12);  // 8 dp
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.bottomMargin = 12; // 8 dp
-        audioTourToggle.setLayoutParams(params);
-        LinearLayout contentContainer = findViewById(R.id.content_container);
-        contentContainer.addView(audioTourToggle, 3);
+        // Find or create Audio Tour Playback Toggle View
+        ViewGroup contentContainer = findViewById(R.id.content_container);
+        TextView audioTourToggle = contentContainer.findViewById(R.id.audio_tour_toggle);
 
-        // Get Media initial state
+        if (audioTourToggle == null) {
+            audioTourToggle = new TextView(this);
+            audioTourToggle.setId(R.id.audio_tour_toggle);
+            audioTourToggle.setTextColor(getResources().getColor(R.color.regular_text));
+            audioTourToggle.setTextSize(22);
+            audioTourToggle.setCompoundDrawablePadding(12);  // 8 dp
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.bottomMargin = 12; // 8 dp
+            audioTourToggle.setLayoutParams(params);
+
+            contentContainer.addView(audioTourToggle, 3);
+        }
+
+        this.audioTourToggle = audioTourToggle;
+
+        // Get initial media state
         MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(PlayaItemViewActivity.this);
         MediaMetadataCompat metadata = mediaController.getMetadata();
         PlaybackStateCompat pbState = mediaController.getPlaybackState();
 
         audioTourToggle.setOnClickListener(view -> {
 
-            // Since this is a play/pause button, you'll need to test the current state
-            // and choose the action accordingly
-
             MediaMetadataCompat currentMetadata = mediaController.getMetadata();
             int currentPbState = mediaController.getPlaybackState().getState();
             Timber.d("Audio tour toggle hit in state %d with metadata %s", currentPbState, currentMetadata);
 
             if (!isCurrentMediaSessionForItem(mediaController, item)) {
+
                 Timber.d("Starting audio tour playback anew for item %s", item.name);
                 // Need to start up the media service
                 audioTourManager.playAudioTourUrl((Art) item);
 
             } else if (currentPbState == PlaybackStateCompat.STATE_PLAYING) {
+
                 Timber.d("Resuming audio tour playback for item %s", item.name);
                 MediaControllerCompat.getMediaController(PlayaItemViewActivity.this).getTransportControls().pause();
+
             } else if (currentPbState == PlaybackStateCompat.STATE_PAUSED) {
+
                 Timber.d("Pausing audio tour playback for item %s", item.name);
                 MediaControllerCompat.getMediaController(PlayaItemViewActivity.this).getTransportControls().play();
+
             } else {
+
                 Timber.e("Unable to handle audio tour playback toggle. MediaController in unknown state %d", pbState);
+
             }
             setAudioTourToggleStateWithPlaybackState(mediaController, item);
         });
 
         int playbackState = pbState.getState();
         Timber.d("Initial MediaController state %d with metadata %s", playbackState, metadata);
-
-        // TODO: Figure out why the controller can report playback state "Playing" with no metadata
-        // when the media service has never been started
-        if (metadata == null) {
-            Timber.d("Playback state was %d but metadata is null. Interpreting as STATE_NONE for UI setup",
-                    playbackState);
-            playbackState = PlaybackStateCompat.STATE_NONE;
-        }
 
         setAudioTourToggleStateWithPlaybackState(mediaController, item);
 
