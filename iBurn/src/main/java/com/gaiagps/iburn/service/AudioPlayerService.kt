@@ -268,6 +268,7 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
     }
 
     private fun stopPlayback() {
+        currentArt = null
         mediaPlayer.stop()
         mediaPlayer.reset()
         updatePlaybackState(false)
