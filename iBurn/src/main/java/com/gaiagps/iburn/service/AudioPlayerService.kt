@@ -189,7 +189,7 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
     private fun createNotificationBuilder(art: Art, albumArtUri: Uri?, isPlaying: Boolean): android.support.v4.app.NotificationCompat.Builder {
 
         val notification = NotificationCompat.Builder(applicationContext)
-                .setSmallIcon(R.drawable.ic_brc)
+                .setSmallIcon(R.drawable.zzz_ph_ic_notification)
                 .setContentTitle(art.name)
                 .setContentText(art.artist)
                 .setSound(null)
