@@ -1,5 +1,8 @@
 package com.gaiagps.iburn.activity;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -8,6 +11,7 @@ import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -27,6 +31,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -47,15 +52,20 @@ import com.gaiagps.iburn.database.PlayaItem;
 import com.gaiagps.iburn.service.AudioPlayerService;
 import com.gaiagps.iburn.view.AnimatedFloatingActionButton;
 import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
 import static com.gaiagps.iburn.service.AudioPlayerServiceKt.MediaMetadataKeyArtPlayaId;
@@ -75,6 +85,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     boolean showingLocation;
 
     MenuItem favoriteMenuItem;
+    MenuItem imageMenuItem;
 
     private AudioTourManager audioTourManager;
     private boolean didPopulateViews;
@@ -114,6 +125,13 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     @BindView(R.id.collapsing_toolbar)
     CollapsingToolbarLayout collapsingToolbarLayout;
 
+    @BindView(R.id.appbar)
+    AppBarLayout appbarLayout;
+
+    Disposable autoShowArtDisposable;
+    boolean loadedArtImage;
+    ImageView artImageView;
+
     private MediaBrowserCompat mediaBrowser;
     private MediaControllerCompat.Callback mediaControllerCallback;
 
@@ -149,6 +167,25 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         if (item instanceof Art && ((Art) item).hasAudioTour()) {
             onCreateMediaController();
         }
+
+        appbarLayout.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
+
+            int collapsingTriggerHeight = collapsingToolbarLayout.getScrimVisibleHeightTrigger();
+            int collapsingOffsetTrigger = -(collapsingToolbarLayout.getHeight() - collapsingTriggerHeight);
+            if (verticalOffset <= collapsingOffsetTrigger) {
+                // Collapsed
+                if (imageMenuItem != null && imageMenuItem.isVisible() && loadedArtImage) {
+                    Timber.d("Setting imageMenu invisible on collapse");
+                    imageMenuItem.setVisible(false);
+                }
+            } else {
+                // Expanded
+                if (imageMenuItem != null && !imageMenuItem.isVisible() && loadedArtImage) {
+                    Timber.d("Setting imageMenu visible on expand");
+                    imageMenuItem.setVisible(true);
+                }
+            }
+        });
     }
 
     @Override
@@ -164,6 +201,10 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         super.onStop();
         if (item instanceof Art && ((Art) item).hasAudioTour()) {
             onStopMediaController();
+        }
+
+        if (autoShowArtDisposable != null) {
+            autoShowArtDisposable.dispose();
         }
     }
 
@@ -318,7 +359,6 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     public void onResume() {
         super.onResume();
         audioTourManager = new AudioTourManager(this);
-        // Re-populate views on resume to keep time-based views fresh
         if (!didPopulateViews && item != null) {
             populateViews(item);
             didPopulateViews = true;
@@ -357,6 +397,14 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         favoriteMenuItem = menu.findItem(R.id.favorite_menu);
         if (isFavorite) favoriteMenuItem.setIcon(R.drawable.ic_heart_full);
         if (showingLocation) favoriteMenuItem.setVisible(false);
+
+        imageMenuItem = menu.findItem(R.id.image_menu);
+        if (!loadedArtImage) {
+            imageMenuItem.setVisible(false);
+        } else {
+            boolean isShowingImage = artImageView.getAlpha() == 1f;
+            setImageMenuToggle(isShowingImage);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -369,6 +417,24 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                 return true;
             case R.id.favorite_menu:
                 setFavorite(!isFavorite, true);
+                return true;
+
+            case R.id.image_menu:
+                if (artImageView != null) {
+                    boolean isVisible = artImageView.getVisibility() == View.VISIBLE && (artImageView.getAlpha() == 1f);
+                    boolean willBeVisible = !isVisible;
+                    if (willBeVisible) {
+                        artImageView.bringToFront();
+                    }
+                    Timber.d("Fading %s art view", willBeVisible ? "in" : "out");
+                    fadeView(artImageView, willBeVisible, null);
+
+                    setImageMenuToggle(willBeVisible);
+
+                    if (autoShowArtDisposable != null) {
+                        autoShowArtDisposable.dispose();
+                    }
+                }
                 return true;
 
         }
@@ -426,6 +492,43 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
         setTextOrHideIfEmpty(art.artist, subItem2TextView);
         setTextOrHideIfEmpty(art.artistLocation, subItem3TextView);
+
+        if (art.hasImage()) {
+            artImageView = new ImageView(this);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+            artImageView.setLayoutParams(params);
+            artImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            artImageView.setAlpha(.99f); // Hack - Can't seem to properly add view if it's visibility is not VISIBLE or alpha 0. This lets us know that the view isn't technically visible (it's not at the front)
+            mapContainer.addView(artImageView);
+
+            Picasso.with(this).load(art.imageUrl).into(artImageView, new Callback() {
+                @Override
+                public void onSuccess() {
+                    loadedArtImage = true;
+                    invalidateOptionsMenu();
+                    Timber.d("Loaded image %s", art.imageUrl);
+                    autoShowArtDisposable = Observable.timer(7, TimeUnit.SECONDS)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(ignored -> {
+                                if (artImageView.getAlpha() == 1f) return;
+
+                                artImageView.bringToFront();
+                                fadeView(artImageView, true, new AnimatorListenerAdapter() {
+                                    @Override
+                                    public void onAnimationEnd(Animator animation) {
+                                        invalidateOptionsMenu();
+                                    }
+                                });
+                            });
+                }
+
+                @Override
+                public void onError() {
+                    // fuhgeddaboudit. Don't show image
+                }
+            });
+        }
 
         // Note : Audio Tour views are populated separately when connection to the
         // AudioPlaybackService is complete. See setupMediaTransportControls
@@ -622,7 +725,6 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
         favoriteButton.setSelectedState(isFavorite, save);
         if (favoriteMenuItem != null) favoriteMenuItem.setIcon(newMenuDrawableResId);
-
         if (save) {
             DataProvider.Companion.getInstance(getApplicationContext())
                     .observeOn(SchedulersKt.getIoScheduler())
@@ -630,5 +732,27 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                             throwable -> Timber.e(throwable, "Failed to save"));
             this.isFavorite = isFavorite;
         }
+    }
+
+    private void setImageMenuToggle(boolean isShowingImage) {
+        if (isShowingImage) {
+            imageMenuItem.setIcon(R.drawable.ic_map_white_on_orange_24dp);
+        } else {
+            imageMenuItem.setIcon(R.drawable.ic_image_white_on_orange_24dp);
+        }
+    }
+
+    private void fadeView(View view, boolean fadeIn, AnimatorListenerAdapter listener) {
+        float startAlpha = fadeIn ? 0 : 1;
+        float stopAlpha = 1 - startAlpha;
+
+        ValueAnimator fade = ValueAnimator.ofFloat(startAlpha, stopAlpha);
+        fade.addUpdateListener(valueAnimator ->
+                view.setAlpha((Float) valueAnimator.getAnimatedValue()));
+        fade.setDuration(1000);
+        if (listener != null) {
+            fade.addListener(listener);
+        }
+        fade.start();
     }
 }

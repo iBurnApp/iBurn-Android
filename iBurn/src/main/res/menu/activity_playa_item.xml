@@ -6,4 +6,10 @@
         android:icon="@drawable/ic_heart_empty"
         android:title="@string/fav_tab"
         app:showAsAction="always" />
+
+    <item
+        android:id="@+id/image_menu"
+        android:icon="@drawable/ic_image_white_on_orange_24dp"
+        android:title="@string/art_tab"
+        app:showAsAction="always" />
 </menu>

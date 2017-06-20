@@ -13,9 +13,8 @@
     </item>
     <item
         android:bottom="2dp"
-        android:drawable="@drawable/ic_arrow_back_white_24dp"
+        android:drawable="@drawable/ic_image_white_24dp"
         android:left="2dp"
         android:right="2dp"
-        android:top="2dp">
-    </item>
+        android:top="2dp" />
 </layer-list>

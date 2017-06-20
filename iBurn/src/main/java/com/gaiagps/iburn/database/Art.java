@@ -35,4 +35,9 @@ public class Art extends PlayaItem {
     public boolean hasAudioTour() {
         return !TextUtils.isEmpty(audioTourUrl);
     }
+
+    public boolean hasImage() {
+        return !TextUtils.isEmpty(imageUrl);
+    }
+
 }
