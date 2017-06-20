@@ -1,7 +1,6 @@
 package com.gaiagps.iburn
 
 
-import android.animation.ValueAnimator
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -10,6 +9,7 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
 import android.text.TextUtils
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -72,7 +72,12 @@ class MapboxMapFragment : Fragment() {
         /**
          * Show search results
          */
-        SEARCH
+        SEARCH,
+
+        /**
+         * Placing a User POI
+         */
+        PLACE_USER_POI
     }
 
     private var state = State.EXPLORE
@@ -127,15 +132,9 @@ class MapboxMapFragment : Fragment() {
 //        }
         addressLabel?.visibility = View.INVISIBLE
         userPoiButton?.visibility = View.INVISIBLE
-//        val poiBtn = activity.findViewById(R.id.mapPoiBtn) as ImageButton
-//        if (poiBtn != null) {
-//            poiBtn.visibility = View.GONE
-//        }
-//        showcaseMarker = null
     }
 
     private fun mapMarkerAndFitEntireCity(marker: MarkerOptions) {
-//        latLngToCenterOn = marker.position
         mapView?.getMapAsync { map ->
 
             map.addMarker(marker)
@@ -201,12 +200,30 @@ class MapboxMapFragment : Fragment() {
             setMargins(userPoiButton, 0, margin, (margin * 9.5).toInt(), 0, Gravity.TOP.or(Gravity.RIGHT))
             userPoiButton.setOnClickListener {
                 mapView.getMapAsync { map ->
-                    val marker = addCustomPin(map, null, "Custom Marker", UserPoi.ICON_STAR)
-                    Observable.timer(1, TimeUnit.SECONDS)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe {
-                                showEditPinDialog(marker)
-                            }
+
+                    Toast.makeText(context, getString(R.string.place_marker_toast), Toast.LENGTH_LONG).show()
+
+                    val prePlaceUserPoiState = state
+                    state = State.PLACE_USER_POI
+                    val markerPlaceView = ImageView(context)
+                    markerPlaceView.setImageResource(R.drawable.puck_star)
+                    mapView.addView(markerPlaceView)
+                    markerPlaceView.layoutParams = FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.WRAP_CONTENT,
+                            FrameLayout.LayoutParams.WRAP_CONTENT)
+
+                    // Express train to Jankville! The discrepancy between a view placed at screen center
+                    // and where Mapbox reports the camera target is might be due to marker anchors... or something else
+                    // TODO : Figure out how to remove this magic margin
+                    val px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics).toInt()
+                    setMargins(markerPlaceView, 0, 0, 0, px, Gravity.CENTER)
+
+                    markerPlaceView.setOnClickListener {
+                        state = prePlaceUserPoiState
+                        mapView.removeView(markerPlaceView)
+                        val marker = addCustomPin(map, null, "Custom Marker", UserPoi.ICON_STAR)
+                        showEditPinDialog(marker)
+                    }
                 }
             }
             this.userPoiButton = userPoiButton
@@ -729,14 +746,6 @@ class MapboxMapFragment : Fragment() {
         userPoi.longitude = markerLatLng.longitude.toFloat()
         userPoi.icon = poiIcon
         userPoi.playaId = userPoiPlayaId
-
-        marker.alpha = 0f
-        val fadeIn = ValueAnimator.ofFloat(0f, 1f)
-        fadeIn.duration = 800
-        fadeIn.addUpdateListener { anim ->
-            marker.alpha = anim.animatedValue as Float
-        }
-        fadeIn.start()
 
         try {
             DataProvider.getInstance(activity.applicationContext)
