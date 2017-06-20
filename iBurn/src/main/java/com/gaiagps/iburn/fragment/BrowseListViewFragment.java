@@ -181,6 +181,8 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         if (categorySelection != selection) {
             categorySelection = selection;
             unsubscribeFromData();
+            // Clear items show new data is treated as initial with fade-in animation
+            adapter.setItems(new ArrayList<>(0));
             subscribeToData();
         }
     }
@@ -189,6 +191,8 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     public void onSelectionChanged(boolean showAudioTourOnly) {
         this.showAudioTourOnly = showAudioTourOnly;
         unsubscribeFromData();
+        // Clear items show new data is treated as initial with fade-in animation
+        adapter.setItems(new ArrayList<>(0));
         subscribeToData();
     }
 }
