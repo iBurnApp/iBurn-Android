@@ -39,6 +39,7 @@ import com.gaiagps.iburn.AudioTourManager;
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.MapboxMapFragment;
+import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SchedulersKt;
 import com.gaiagps.iburn.adapters.AdapterListener;
@@ -47,6 +48,7 @@ import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.Art;
 import com.gaiagps.iburn.database.Camp;
 import com.gaiagps.iburn.database.DataProvider;
+import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.database.Event;
 import com.gaiagps.iburn.database.PlayaItem;
 import com.gaiagps.iburn.service.AudioPlayerService;
@@ -83,6 +85,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
     boolean isFavorite;
     boolean showingLocation;
+    boolean showingArt;
 
     MenuItem favoriteMenuItem;
     MenuItem imageMenuItem;
@@ -174,13 +177,13 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
             int collapsingOffsetTrigger = -(collapsingToolbarLayout.getHeight() - collapsingTriggerHeight);
             if (verticalOffset <= collapsingOffsetTrigger) {
                 // Collapsed
-                if (imageMenuItem != null && imageMenuItem.isVisible() && loadedArtImage) {
+                if (showingLocation && showingArt && imageMenuItem != null && imageMenuItem.isVisible() && loadedArtImage) {
                     Timber.d("Setting imageMenu invisible on collapse");
                     imageMenuItem.setVisible(false);
                 }
             } else {
                 // Expanded
-                if (imageMenuItem != null && !imageMenuItem.isVisible() && loadedArtImage) {
+                if (showingLocation && showingArt && imageMenuItem != null && !imageMenuItem.isVisible() && loadedArtImage) {
                     Timber.d("Setting imageMenu visible on expand");
                     imageMenuItem.setVisible(true);
                 }
@@ -396,15 +399,16 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
         favoriteMenuItem = menu.findItem(R.id.favorite_menu);
         if (isFavorite) favoriteMenuItem.setIcon(R.drawable.ic_heart_full);
-        if (showingLocation) favoriteMenuItem.setVisible(false);
+        if (showingLocation || showingArt) favoriteMenuItem.setVisible(false);
 
         imageMenuItem = menu.findItem(R.id.image_menu);
-        if (!loadedArtImage) {
+        if (!loadedArtImage || !showingLocation) {
             imageMenuItem.setVisible(false);
         } else {
             boolean isShowingImage = artImageView.getAlpha() == 1f;
             setImageMenuToggle(isShowingImage);
         }
+        Timber.d("onCreateOptionsMenu image visible %b", imageMenuItem.isVisible());
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -442,7 +446,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     }
 
     private void populateViews(PlayaItem item) {
-        showingLocation = item.hasLocation();
+        boolean embargoActive = Embargo.isEmbargoActive(new PrefsHelper(getApplicationContext()));
+        showingLocation = item.hasLocation() && !embargoActive;
 
         if (showingLocation) {
             favoriteButton.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
@@ -458,6 +463,9 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
             getSupportFragmentManager().beginTransaction().add(R.id.map_container, mapFragment).commit();
             //favoriteMenuItem.setVisible(false);
             //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
+        } else if (item instanceof Art && ((Art) item).hasImage()) {
+            // Art image will be added by populateArtViews
+            showingArt = true;
         } else {
             // Adjust the margin / padding show the heart icon doesn't
             // overlap title + descrition
@@ -474,7 +482,12 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         favoriteButton.setOnClickListener(favoriteButtonOnClickListener);
 
         setTextOrHideIfEmpty(item.description, bodyTextView);
-        setTextOrHideIfEmpty(item.playaAddress, subItem1TextView);
+
+        if (!embargoActive) {
+            setTextOrHideIfEmpty(item.playaAddress, subItem1TextView);
+        } else {
+            subItem1TextView.setVisibility(View.GONE);
+        }
 
         DataProvider.Companion.getInstance(getApplicationContext())
                 .subscribe(provider -> {
@@ -508,26 +521,33 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                     loadedArtImage = true;
                     invalidateOptionsMenu();
                     Timber.d("Loaded image %s", art.imageUrl);
-                    autoShowArtDisposable = Observable.timer(7, TimeUnit.SECONDS)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(ignored -> {
-                                if (artImageView.getAlpha() == 1f) return;
 
-                                artImageView.bringToFront();
-                                fadeView(artImageView, true, new AnimatorListenerAdapter() {
-                                    @Override
-                                    public void onAnimationEnd(Animator animation) {
-                                        invalidateOptionsMenu();
-                                    }
+                    // If we're showing location, image will be under map. After a delay
+                    // bring it to front and fade-in. Else, image will be visible here
+                    if (showingLocation) {
+                        autoShowArtDisposable = Observable.timer(7, TimeUnit.SECONDS)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(ignored -> {
+                                    if (artImageView.getAlpha() == 1f) return;
+
+                                    artImageView.bringToFront();
+                                    fadeView(artImageView, true, new AnimatorListenerAdapter() {
+                                        @Override
+                                        public void onAnimationEnd(Animator animation) {
+                                            invalidateOptionsMenu();
+                                        }
+                                    });
                                 });
-                            });
+                    }
                 }
 
                 @Override
                 public void onError() {
                     // fuhgeddaboudit. Don't show image
+                    Timber.e("Failed to load image");
                 }
             });
+            // TODO : Add Placeholder and error images
         }
 
         // Note : Audio Tour views are populated separately when connection to the

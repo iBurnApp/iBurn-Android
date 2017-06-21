@@ -13,11 +13,9 @@ import android.widget.SectionIndexer
 import android.widget.TextView
 import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.DateUtil.getDateString
+import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.R
-import com.gaiagps.iburn.database.Art
-import com.gaiagps.iburn.database.Camp
-import com.gaiagps.iburn.database.Event
-import com.gaiagps.iburn.database.PlayaItem
+import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.location.LocationProvider
 import timber.log.Timber
 
@@ -33,6 +31,7 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
         set(value) {
             field = value
             sectionIndexer?.items = value
+            isEmbargoActive = Embargo.isEmbargoActive(prefs)
             notifyDataSetChanged()
         }
 
@@ -40,6 +39,8 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
     private val lastItemPaddingBottom: Int
     private var deviceLocation: Location? = null
     private val now = CurrentDateProvider.getCurrentDate()
+    private val prefs = PrefsHelper(context)
+    private var isEmbargoActive = Embargo.isEmbargoActive(prefs)
 
     init {
         // TODO : Trigger re-draw when location available / changed?
@@ -103,21 +104,25 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
             holder.titleView.text = item.name
             holder.descView.text = item.description
 
-            AdapterUtils.setDistanceText(deviceLocation, holder.walkTimeView, holder.bikeTimeView,
-                    item.latitude, item.longitude)
+            if (isEmbargoActive) {
 
-            if (item.latitude == 0f && item.playaAddress == null) {
-                // No location present, hide address views
                 holder.addressView.visibility = View.GONE
-            } else if (!TextUtils.isEmpty(item.playaAddress)) {
-                holder.addressView.visibility = View.VISIBLE
-                holder.addressView.text = item.playaAddress
+                holder.bikeTimeView.visibility = View.GONE
+                holder.walkTimeView.visibility = View.GONE
 
-                if (item.latitude == 0f) {
-                    // Layout constraints for address view require walk and bike time are in layout
-                    // So include them but invisibly
-                    holder.bikeTimeView.visibility = View.INVISIBLE
-                    holder.walkTimeView.visibility = View.INVISIBLE
+            } else if (item.hasLocation() || !TextUtils.isEmpty(item.playaAddress)) {
+
+                // Sets Walk and Bike time, hiding views if item.latitude / longitude is 0
+                AdapterUtils.setDistanceText(deviceLocation, holder.walkTimeView, holder.bikeTimeView,
+                        item.latitude, item.longitude)
+
+                if (!TextUtils.isEmpty(item.playaAddress)) {
+                    holder.addressView.visibility = View.VISIBLE
+                    holder.addressView.text = item.playaAddress
+                } else {
+                    holder.addressView.visibility = View.GONE
+                    holder.bikeTimeView.visibility = View.GONE
+                    holder.walkTimeView.visibility = View.GONE
                 }
             }
 

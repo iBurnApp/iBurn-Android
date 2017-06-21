@@ -128,9 +128,9 @@ public class AdapterUtils {
             bikeTimeView.setVisibility(View.VISIBLE);
         } else {
             walkTimeView.setText("");
-            walkTimeView.setVisibility(View.GONE);
+            walkTimeView.setVisibility(View.INVISIBLE);
             bikeTimeView.setText("");
-            bikeTimeView.setVisibility(View.GONE);
+            bikeTimeView.setVisibility(View.INVISIBLE);
         }
     }
 
