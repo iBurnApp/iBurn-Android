@@ -646,6 +646,8 @@ class MapboxMapFragment : Fragment() {
     }
 
     private fun showEditPinDialog(marker: Marker) {
+        if (state == State.SHOWCASE) return
+
         val dialogBody = activity.layoutInflater.inflate(R.layout.dialog_poi, null)
         val iconGroup: RadioGroup = dialogBody.findViewById(R.id.iconGroup)
 
