@@ -6,6 +6,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.support.animation.DynamicAnimation
+import android.support.animation.SpringAnimation
+import android.support.animation.SpringForce.*
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
 import android.text.TextUtils
@@ -201,28 +204,34 @@ class MapboxMapFragment : Fragment() {
             userPoiButton.setOnClickListener {
                 mapView.getMapAsync { map ->
 
-                    Toast.makeText(context, getString(R.string.place_marker_toast), Toast.LENGTH_LONG).show()
+                    if (state != State.PLACE_USER_POI) {
+                        val prePlaceUserPoiState = state
 
-                    val prePlaceUserPoiState = state
-                    state = State.PLACE_USER_POI
-                    val markerPlaceView = ImageView(context)
-                    markerPlaceView.setImageResource(R.drawable.puck_star)
-                    mapView.addView(markerPlaceView)
-                    markerPlaceView.layoutParams = FrameLayout.LayoutParams(
-                            FrameLayout.LayoutParams.WRAP_CONTENT,
-                            FrameLayout.LayoutParams.WRAP_CONTENT)
+                        state = State.PLACE_USER_POI
+                        val markerPlaceView = inflater.inflate(R.layout.overlay_place_custom_marker, container, false)
+                        mapView.addView(markerPlaceView)
+                        val viewDimen = convertDpToPixel(200f, context).toInt()
+                        markerPlaceView.layoutParams = FrameLayout.LayoutParams(
+                                viewDimen,
+                                viewDimen * 2)
 
-                    // Express train to Jankville! The discrepancy between a view placed at screen center
-                    // and where Mapbox reports the camera target is might be due to marker anchors... or something else
-                    // TODO : Figure out how to remove this magic margin
-                    val px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics).toInt()
-                    setMargins(markerPlaceView, 0, 0, 0, px, Gravity.CENTER)
+                        animateDropView(markerPlaceView)
 
-                    markerPlaceView.setOnClickListener {
-                        state = prePlaceUserPoiState
-                        mapView.removeView(markerPlaceView)
-                        val marker = addCustomPin(map, null, "Custom Marker", UserPoi.ICON_STAR)
-                        showEditPinDialog(marker)
+                        // Express train to Jankville! The discrepancy between a view placed at screen center
+                        // and where Mapbox reports the camera target is might be due to marker anchors... or something else
+                        // TODO : Figure out how to remove this magic margin
+                        val px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics).toInt()
+                        setMargins(markerPlaceView, 0, 0, 0, px, Gravity.CENTER)
+
+                        markerPlaceView.findViewById<ImageView>(R.id.star).setOnClickListener {
+                            Timber.d("Placing marker")
+                            state = prePlaceUserPoiState
+                            mapView.removeView(markerPlaceView)
+                            addCustomPin(map, null, "Custom Marker", UserPoi.ICON_STAR, {
+                                marker ->
+                                showEditPinDialog(marker)
+                            })
+                        }
                     }
                 }
             }
@@ -231,13 +240,6 @@ class MapboxMapFragment : Fragment() {
             return this.mapView
         }
         return null
-    }
-
-    private fun dropPinAndShowEditDialog(markerOptions: MarkerOptions) {
-        mapView?.getMapAsync { map ->
-            val marker = map.addMarker(markerOptions)
-            showEditPinDialog(marker)
-        }
     }
 
     private fun setupMap(mapView: MapView) {
@@ -725,7 +727,7 @@ class MapboxMapFragment : Fragment() {
     /**
      * Adds a custom pin to the current map and database
      */
-    private fun addCustomPin(map: MapboxMap, latLng: LatLng?, title: String, @UserPoi.Icon poiIcon: String): Marker {
+    private fun addCustomPin(map: MapboxMap, latLng: LatLng?, title: String, @UserPoi.Icon poiIcon: String, callback: ((marker: Marker) -> Unit)?) {
         var markerLatLng = latLng
         if (markerLatLng == null) {
             val mapCenter = map.cameraPosition.target
@@ -757,18 +759,18 @@ class MapboxMapFragment : Fragment() {
                         dataProvider.getUserPoiByPlayaId(userPoiPlayaId).toObservable()
                     }
                     .firstElement() // Inserting can cause the get query to refresh
+                    .observeOn(AndroidSchedulers.mainThread())
                     .subscribe { userPoi ->
                         Timber.d("After inserting, userPoi has id ${userPoi.id}")
                         // Make sure UserPoi is added to mappedItems before being inserted as this will
                         // trigger a map items update
                         mappedItems.add(userPoi)
                         mappedCustomMarkerIds[marker.id] = userPoi
+                        callback?.invoke(marker)
                     }
         } catch (e: NumberFormatException) {
             Timber.w("Unable to get id for new custom marker");
         }
-
-        return marker
     }
 
     private fun removeCustomPin(marker: Marker) {
@@ -819,4 +821,18 @@ class MapboxMapFragment : Fragment() {
         }
     }
 
+    internal fun convertDpToPixel(dp: Float, context: Context): Float {
+        val metrics = context.resources.displayMetrics
+        return dp * (metrics.densityDpi / 160).toFloat()
+    }
+
+    private fun animateDropView(view: View) {
+        val heightPx = view.context.resources.displayMetrics.heightPixels / 2
+
+        view.translationY = -heightPx.toFloat()
+        val springAnim = SpringAnimation(view, DynamicAnimation.TRANSLATION_Y, 0f)
+        springAnim.spring.dampingRatio = .6f
+        springAnim.spring.stiffness = 720f
+        springAnim.start()
+    }
 }

@@ -72,6 +72,6 @@
     <string name="play_audio_tour">Play Audio Tour</string>
     <string name="pause_audio_tour">Pause Audio Tour</string>
     <string name="camp_location_unknown">Sorry, we don\'t have location data for that camp. You can add a marker later from the app\'s map view.</string>
-    <string name="place_marker_toast">Move the map, then tap marker to place it</string>
+    <string name="place_marker">Move the map, then tap marker to place it</string>
 
 </resources>
