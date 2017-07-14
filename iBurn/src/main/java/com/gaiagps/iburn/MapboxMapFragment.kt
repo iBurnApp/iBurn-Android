@@ -5,6 +5,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Point
+import android.graphics.PointF
 import android.os.Bundle
 import android.support.animation.DynamicAnimation
 import android.support.animation.SpringAnimation
@@ -208,30 +210,40 @@ class MapboxMapFragment : Fragment() {
                         val prePlaceUserPoiState = state
 
                         state = State.PLACE_USER_POI
-                        val markerPlaceView = inflater.inflate(R.layout.overlay_place_custom_marker, container, false)
-                        mapView.addView(markerPlaceView)
-                        val viewDimen = convertDpToPixel(200f, context).toInt()
-                        markerPlaceView.layoutParams = FrameLayout.LayoutParams(
-                                viewDimen,
-                                viewDimen * 2)
+                        val markerPlaceView = addMarkerPlaceOverlay(inflater) { markerPlaceView, markerLatLng ->
+                            Timber.d("Placing marker")
+                            state = prePlaceUserPoiState
+                            mapView.removeView(markerPlaceView)
+                            addCustomPin(map, markerLatLng, "Custom Marker", UserPoi.ICON_STAR, {
+                                marker ->
+                                showEditPinDialog(marker)
+                            })
+                        }
+//
+//                                inflater.inflate(R.layout.overlay_place_custom_marker, container, false)
+//                        mapView.addView(markerPlaceView)
+//                        val viewDimen = convertDpToPixel(200f, context).toInt()
+//                        markerPlaceView.layoutParams = FrameLayout.LayoutParams(
+//                                viewDimen,
+//                                viewDimen * 2)
 
                         animateDropView(markerPlaceView)
 
                         // Express train to Jankville! The discrepancy between a view placed at screen center
                         // and where Mapbox reports the camera target is might be due to marker anchors... or something else
                         // TODO : Figure out how to remove this magic margin
-                        val px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics).toInt()
-                        setMargins(markerPlaceView, 0, 0, 0, px, Gravity.CENTER)
+//                        val px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics).toInt()
+//                        setMargins(markerPlaceView, 0, 0, 0, px, Gravity.CENTER)
 
-                        markerPlaceView.findViewById<ImageView>(R.id.star).setOnClickListener {
-                            Timber.d("Placing marker")
-                            state = prePlaceUserPoiState
-                            mapView.removeView(markerPlaceView)
-                            addCustomPin(map, null, "Custom Marker", UserPoi.ICON_STAR, {
-                                marker ->
-                                showEditPinDialog(marker)
-                            })
-                        }
+//                        markerPlaceView.findViewById<ImageView>(R.id.star).setOnClickListener {
+//                            Timber.d("Placing marker")
+//                            state = prePlaceUserPoiState
+//                            mapView.removeView(markerPlaceView)
+//                            addCustomPin(map, null, "Custom Marker", UserPoi.ICON_STAR, {
+//                                marker ->
+//                                showEditPinDialog(marker)
+//                            })
+//                        }
                     }
                 }
             }
@@ -240,6 +252,43 @@ class MapboxMapFragment : Fragment() {
             return this.mapView
         }
         return null
+    }
+
+    private fun addMarkerPlaceOverlay(inflater: LayoutInflater,
+                                      iconResId: Int = R.drawable.puck_star,
+                                      markerClickListener: (View, LatLng) -> Unit): View {
+        val markerPlaceView = inflater.inflate(R.layout.overlay_place_custom_marker, mapView, false)
+        mapView?.addView(markerPlaceView)
+        val viewDimen = convertDpToPixel(200f, context).toInt()
+        markerPlaceView.layoutParams = FrameLayout.LayoutParams(
+                viewDimen,
+                viewDimen * 2)
+
+        // Express train to Jankville! The discrepancy between a view placed at screen center
+        // and where Mapbox reports the camera target is might be due to marker anchors... or something else
+        // TODO : Figure out how to remove this magic margin
+//        val px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics).toInt()
+        setMargins(markerPlaceView, 0, 0, 0, 0 /*px*/, Gravity.CENTER)
+
+        val markerIcon = markerPlaceView.findViewById<ImageView>(R.id.star)
+        markerIcon.setImageResource(iconResId)
+        markerIcon.setOnClickListener {
+            mapView?.getMapAsync { map ->
+
+                val parent = markerIcon.parent as View
+
+                val markerX = parent.left + (parent.width / 2f)
+                val markerY = parent.top + (markerIcon.top + (markerIcon.height / 2)) \ // / 2f moves marker up a lil, / 1f moves down a little
+
+                val onScreenPoint = PointF(markerX, markerY)
+                val markerLatLng = map.projection.fromScreenLocation(onScreenPoint)
+                Timber.d("Marker is at position ${markerIcon.x} / $markerX, ${markerIcon.y} / $markerY translated to LatLng ${markerLatLng.latitude}, ${markerLatLng.longitude}")
+
+                markerClickListener.invoke(markerPlaceView, markerLatLng)
+            }
+        }
+
+        return markerPlaceView
     }
 
     private fun setupMap(mapView: MapView) {
@@ -689,7 +738,7 @@ class MapboxMapFragment : Fragment() {
 
             AlertDialog.Builder(activity, R.style.Theme_Iburn_Dialog)
                     .setView(dialogBody)
-                    .setPositiveButton("Done") { dialog, which ->
+                    .setPositiveButton("Save") { dialog, which ->
                         // Save the title
                         if (markerTitle?.text?.isNotBlank() ?: false)
                             marker.title = markerTitle?.text.toString()
@@ -716,6 +765,35 @@ class MapboxMapFragment : Fragment() {
                             }
                         }
                         updateCustomPinWithMarker(marker, icon)
+                    }
+                    .setNeutralButton("Move") { dialog, which ->
+                        if (state != State.PLACE_USER_POI) {
+                            val prePlaceUserPoiState = state
+
+                            state = State.PLACE_USER_POI
+
+                            mapView?.getMapAsync { map ->
+
+                                // Deselect markers to close InfoWindows
+                                map.deselectMarkers()
+
+                                val layoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+                                addMarkerPlaceOverlay(layoutInflater) { markerPlaceView, markerLatLng ->
+                                    state = prePlaceUserPoiState
+                                    mapView?.let { mapView ->
+                                        mapView.removeView(markerPlaceView)
+                                        marker.position = markerLatLng
+                                        DataProvider.getInstance(activity.applicationContext)
+                                                .observeOn(ioScheduler)
+                                                .subscribe { provider ->
+                                                    userPoi.latitude = markerLatLng.latitude.toFloat()
+                                                    userPoi.longitude = markerLatLng.longitude.toFloat()
+                                                    provider.update(userPoi)
+                                                }
+                                    }
+                                }
+                            }
+                        }
                     }
                     .setNegativeButton("Delete") { dialog, which ->
                         // Delete Pin
