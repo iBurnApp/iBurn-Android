@@ -278,7 +278,7 @@ class MapboxMapFragment : Fragment() {
                 val parent = markerIcon.parent as View
 
                 val markerX = parent.left + (parent.width / 2f)
-                val markerY = parent.top + (markerIcon.top + (markerIcon.height / 2)) \ // / 2f moves marker up a lil, / 1f moves down a little
+                val markerY = parent.top + (markerIcon.top + (markerIcon.height / 2f)) // / 2f moves marker up a lil, / 1f moves down a little
 
                 val onScreenPoint = PointF(markerX, markerY)
                 val markerLatLng = map.projection.fromScreenLocation(onScreenPoint)

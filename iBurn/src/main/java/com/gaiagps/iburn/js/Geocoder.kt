@@ -55,7 +55,8 @@ object Geocoder {
                     // Call into the JavaScript object to decode a string.
                     val playaAddress = v8?.executeStringScript("coder.reverse($lat, $lon)")
                     Timber.d("Geocode result %s", playaAddress)
-                    playaAddress
+
+                    playaAddress ?: "?"
                 }
 
     }
