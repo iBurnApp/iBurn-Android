@@ -17,11 +17,11 @@ class PrefsHelper(context: Context) {
         editor = sharedPrefs.edit()
     }
 
-    fun getBtModuleMac(): String {
-        return sharedPrefs.getString(BT_MAC, "?")
+    fun getPrimaryCarBtMac(): String? {
+        return sharedPrefs.getString(BT_MAC, null)
     }
 
-    fun setBtModuleMac(macAddress: String) {
+    fun setPrimaryCarBtMac(macAddress: String) {
         editor.putString(BT_MAC, macAddress).apply()
     }
 

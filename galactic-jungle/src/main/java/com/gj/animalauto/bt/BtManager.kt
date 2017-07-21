@@ -51,6 +51,10 @@ public class BtManager(val context: Context) {
         }
     }
 
+    fun getDeviceWithMac(macAddress: String): BluetoothDevice {
+        return btAdapter.getRemoteDevice(macAddress)
+    }
+
     private inner class BtDiscoveryReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
 

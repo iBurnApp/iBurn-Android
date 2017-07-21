@@ -86,6 +86,12 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
+
+        <!-- Galactic Jungle Car Service -->
+        <service
+            android:name=".service.iBurnCarService"
+            android:enabled="true">
+        </service>
     </application>
 
 </manifest>

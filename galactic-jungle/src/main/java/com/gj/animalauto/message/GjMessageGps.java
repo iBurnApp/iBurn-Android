@@ -29,6 +29,15 @@ public class GjMessageGps extends GjMessage {
         head = ByteBuffer.wrap(data, 12, 4).order(ByteOrder.LITTLE_ENDIAN).getInt()*0.01;
     }
 
+    public static ByteBuffer createData(int time, double lat, double lng, double head) {
+        ByteBuffer data = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
+        data.putInt(time);
+        data.putInt((int) (lat * 10000000));
+        data.putInt((int) (lng * 10000000));
+        data.putInt((int) (head * 100));
+        return data;
+    }
+
     public double getHead() {
         return head;
     }

@@ -219,7 +219,7 @@ public class GjMessage {
         // verify checksum
         int messageLength = preamble.length + TYPE_LENGTH + NUMBER_LENGTH + VEHICLE_LENGTH + DATA_LENGTH + data.length;
         ByteBuffer tmp = ByteBuffer.allocate(messageLength);
-        tmp.put(preamble).put(packetNumber).put(vehicle).put(typeByte).put((byte)dataLength).put(data);
+        tmp.put(preamble).put(packetNumber).put(vehicle).put(typeByte).put((byte) dataLength).put(data);
         byte actualChecksum = checksum(tmp);
         if (actualChecksum != expectedChecksum) {
             bb.position(savePosition); // rewind until right after the preamble

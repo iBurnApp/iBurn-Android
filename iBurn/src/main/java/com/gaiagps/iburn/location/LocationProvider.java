@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.PublishSubject;
 import timber.log.Timber;
 
@@ -30,13 +31,11 @@ import timber.log.Timber;
  */
 public class LocationProvider {
 
-    private static RxLocation locationProvider;
-
     // Location Mocking
     private static AtomicBoolean isMockingLocation = new AtomicBoolean(false);
     private static Disposable mockLocationSubscription;
-    private static Location lastMockLocation;
-    private static PublishSubject<Location> mockLocationSubject = PublishSubject.create();
+    private static Location lastLocation;
+    private static BehaviorSubject<Location> locationSubject = BehaviorSubject.create();
 
     private static final double MAX_MOCK_LAT = 40.8037;
     private static final double MIN_MOCK_LAT = 40.7727;
@@ -47,39 +46,27 @@ public class LocationProvider {
     public static Observable<Location> getLastLocation(Context context) {
         init(context);
 
-        if (BuildConfig.MOCK) {
-            return Observable.just(lastMockLocation);
-        } else {
-            if (!PermissionManager.hasLocationPermissions(context)) {
-                // TODO: stall location result until permission ready
-                return Observable.empty();
-            }
-            return locationProvider.location().lastLocation().toObservable();
-        }
+        return locationSubject.firstElement().toObservable();
     }
 
     @SuppressLint("MissingPermission")
     public static Observable<Location> observeCurrentLocation(Context context, LocationRequest request) {
         init(context);
 
-        if (BuildConfig.MOCK) {
-            return mockLocationSubject.startWith(lastMockLocation);
-        } else {
-            if (!PermissionManager.hasLocationPermissions(context)) {
-                // TODO: stall location result until permission ready
-                return Observable.empty();
-            }
-
-            return locationProvider.location().updates(request);
-        }
+        return locationSubject.hide();
     }
 
     private static void init(Context context) {
-        if (locationProvider == null) {
-            locationProvider = new RxLocation(context);
 
-            if (BuildConfig.MOCK) mockCurrentLocation();
-        }
+        if (BuildConfig.MOCK) mockCurrentLocation();
+    }
+
+    /**
+     * Provide a location to clients of this component
+     */
+    public static void submitLocation(Location location) {
+        lastLocation = location;
+        locationSubject.onNext(location);
     }
 
     /**
@@ -93,7 +80,7 @@ public class LocationProvider {
         mockLocation.setLatitude(mockLat);
         mockLocation.setLongitude(mockLon);
         mockLocation.setAccuracy(1.0f);
-        mockLocation.setBearing(.4f);
+        mockLocation.setBearing((float) (Math.random() * 360));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             mockLocation.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
         }
@@ -103,14 +90,13 @@ public class LocationProvider {
 
     private static void mockCurrentLocation() {
         if (!isMockingLocation.get()) {
-            lastMockLocation = createMockLocation();
+            lastLocation = createMockLocation();
             isMockingLocation.set(true);
 
             mockLocationSubscription = Observable.interval(15, 15, TimeUnit.SECONDS)
                     .startWith(-1l)
                     .subscribe(time -> {
-                        lastMockLocation = createMockLocation();
-                        mockLocationSubject.onNext(lastMockLocation);
+                        submitLocation(createMockLocation());
                     });
         }
     }
@@ -132,11 +118,14 @@ public class LocationProvider {
 
             deactivate();
 
-            mockLocationSub = mockLocationSubject
+            areUpdatesRequested = true;
+
+            mockLocationSub = locationSubject
                     .takeWhile(ignored -> areUpdatesRequested)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(location -> {
                         lastLocation = location;
+                        Timber.d("Delivering mock location");
                         for (LocationEngineListener listener : locationListeners) {
                             listener.onLocationChanged(location);
                         }
@@ -150,6 +139,8 @@ public class LocationProvider {
 
         @Override
         public void deactivate() {
+            Timber.d("Deactivate");
+            areUpdatesRequested = false;
             if (mockLocationSub != null) {
                 mockLocationSub.dispose();
                 mockLocationSub = null;
@@ -184,6 +175,7 @@ public class LocationProvider {
 
         @Override
         public void removeLocationUpdates() {
+            Timber.d("removeLocationUpdates");
             areUpdatesRequested = false;
         }
     }

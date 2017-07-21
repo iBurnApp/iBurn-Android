@@ -1,6 +1,7 @@
 package com.gaiagps.iburn
 
 
+import android.content.*
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -21,6 +22,11 @@ import com.gaiagps.iburn.activity.PlayaItemViewActivity
 import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
+import com.gaiagps.iburn.fragment.GjCarFragment
+import com.gj.animalauto.getVehicleIconResId
+import com.gj.animalauto.message.GjMessage
+import com.gj.animalauto.message.GjMessageGps
+import com.gj.animalauto.message.GjMessageStatusResponse
 import com.google.android.gms.location.LocationRequest
 import com.mapbox.mapboxsdk.annotations.*
 import com.mapbox.mapboxsdk.camera.CameraPosition
@@ -47,7 +53,7 @@ import kotlin.collections.HashSet
 import kotlin.collections.set
 
 
-class MapboxMapFragment : Fragment() {
+class MapboxMapFragment : GjCarFragment(), ServiceConnection {
 
     /**
      * Geographic Bounds of Black Rock City
@@ -256,7 +262,7 @@ class MapboxMapFragment : Fragment() {
                                       markerClickListener: (View, LatLng) -> Unit): View {
         val markerPlaceView = inflater.inflate(R.layout.overlay_place_custom_marker, mapView, false)
         mapView?.addView(markerPlaceView)
-        val viewDimen = convertDpToPixel(200f, context).toInt()
+        val viewDimen = convertDpToPixel(200f, activity.applicationContext).toInt()
         markerPlaceView.layoutParams = FrameLayout.LayoutParams(
                 viewDimen,
                 viewDimen * 2)
@@ -302,8 +308,10 @@ class MapboxMapFragment : Fragment() {
                 val mockEngine = LocationProvider.MapboxMockLocationSource()
                 map.setLocationSource(mockEngine)
             }
-            map.myLocationViewSettings.foregroundTintColor = context.resources.getColor(R.color.map_my_location)
-            map.myLocationViewSettings.accuracyTintColor = context.resources.getColor(R.color.map_my_location)
+
+            // TODO : Might want to hide blue dot since animal car icon will be superimposed
+            map.myLocationViewSettings.foregroundTintColor = activity.resources.getColor(R.color.map_my_location)
+            map.myLocationViewSettings.accuracyTintColor = activity.resources.getColor(R.color.map_my_location)
             // TODO : Re-enable location after crash resolved
             // https://github.com/mapbox/mapbox-gl-native/pull/9142
             map.isMyLocationEnabled = true
@@ -521,8 +529,8 @@ class MapboxMapFragment : Fragment() {
         IconFactory.getInstance(context)
     }
 
-    // TODO : Loading many Icons breaks the entire marker rendering system somehow, so we cache 'em:
-    // https://github.com/mapbox/mapbox-gl-native/issues/9026
+// TODO : Loading many Icons breaks the entire marker rendering system somehow, so we cache 'em:
+// https://github.com/mapbox/mapbox-gl-native/issues/9026
 
     private val iconGeneric: Icon by lazy {
         iconFactory.fromResource(R.drawable.pin)
@@ -814,7 +822,7 @@ class MapboxMapFragment : Fragment() {
                                 // Deselect markers to close InfoWindows
                                 map.deselectMarkers()
 
-                                val layoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+                                val layoutInflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
                                 addMarkerPlaceOverlay(layoutInflater) { markerPlaceView, markerLatLng ->
                                     state = prePlaceUserPoiState
                                     mapView?.let { mapView ->
@@ -950,4 +958,49 @@ class MapboxMapFragment : Fragment() {
         springAnim.spring.stiffness = 720f
         springAnim.start()
     }
+
+    /**
+     * Vehicle Id -> Marker
+     */
+    private var gjMarkers = HashMap<Int, MarkerView>()
+    private var localVehicleId = 0
+
+    override fun onMessage(message: GjMessage) {
+
+        if (message is GjMessageGps) {
+
+            val vehicleId = message.vehicle.toInt()
+
+            Timber.d("Got gps message from vehicle id $vehicleId!")
+            val vehicleLatLng = LatLng(message.lat, message.long)
+
+            val marker = gjMarkers[vehicleId]
+            if (marker != null) {
+                marker.position = vehicleLatLng
+                marker.rotation = message.head.toFloat()
+                Timber.d("Moving marker for vehicle $vehicleId at ${message.lat}, ${message.long}")
+
+            } else {
+                // Create a new marker
+                mapView?.getMapAsync { map ->
+                    val markerOptions = MarkerViewOptions()
+                            .position(vehicleLatLng)
+                            .rotation(message.head.toFloat())
+                            .anchor(0.5f, 0.5f)
+                            .icon(iconFactory.fromResource(getVehicleIconResId(vehicleId = vehicleId)))
+                            .flat(true)
+
+                    val marker = map.addMarker(markerOptions)
+                    Timber.d("Adding marker for vehicle $vehicleId at ${message.lat}, ${message.long}")
+                    gjMarkers[vehicleId] = marker
+                }
+            }
+
+        } else if (message is GjMessageStatusResponse) {
+
+            // Identifies which vehicle is paired with the current device
+            localVehicleId = message.getVehicle().toInt()
+        }
+    }
+
 }

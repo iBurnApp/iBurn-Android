@@ -25,6 +25,15 @@ public class GjMessageStatusResponse extends GjMessage {
     public boolean getErrorGps() { return (getByte() & BITMASK_GPS) != 0; }
     public boolean isCriticalError() { return getErrorCompass() | getErrorGps() | getErrorRadio() | getErrorTemp() | getErrorVoltage(); }
 
+    public static byte createData(boolean radio, boolean voltage, boolean temp, boolean compass, boolean gps) {
+        byte data = 0x00;
+        if (radio) data &= BITMASK_RADIO;
+        if (voltage) data &= BITMASK_VOLTAGE;
+        if (temp) data &= BITMASK_TEMP;
+        if (compass) data &= BITMASK_COMPASS;
+        if (gps) data &= BITMASK_GPS;
+        return data;
+    }
     @Override
     public String toString() {
         StringBuffer sb = new StringBuffer();

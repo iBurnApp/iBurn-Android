@@ -19,10 +19,10 @@ public class BtCar(val device: BluetoothDevice) {
 
     private var socket: BluetoothSocket? = null
     private var connectRequested = false
-    private var messageCallback : ((List<GjMessage>) -> Unit)? = null
+    private var callback: Callback? = null
 
-    fun connect(messageCallback: (List<GjMessage>) -> Unit) {
-        this.messageCallback = messageCallback
+    fun connect(callback: Callback) {
+        this.callback = this.callback
         connectRequested = true
         val socket = device.createRfcommSocketToServiceRecord(sppUuid)
         this.socket = socket
@@ -30,7 +30,7 @@ public class BtCar(val device: BluetoothDevice) {
     }
 
     fun disconnect() {
-        messageCallback = null
+        callback = null
         connectRequested = false
         socket?.close()
         socket = null
@@ -49,6 +49,7 @@ public class BtCar(val device: BluetoothDevice) {
                         Timber.d("Connecting to $devName...")
                         socket.connect()
                         Timber.d("Connected to $devName!")
+                        callback?.onConnected()
 
                         val inStream = socket.inputStream
 
@@ -58,13 +59,16 @@ public class BtCar(val device: BluetoothDevice) {
                             Timber.d("Read $bytesRead bytes from $devName")
                             val messages = GjMessageFactory.parseAll(buffer)
                             Timber.d("Parsed ${messages.size} messages from $devName")
-                            this.messageCallback?.invoke(messages)
+                            messages.forEach {
+                                this.callback?.onMessageReceived(it)
+                            }
                         }
                         Timber.d("Closing socket with $devName")
                         socket.close()
 
                     } catch (e: IOException) {
                         Timber.e(e, "Failed to connect to $devName")
+                        callback?.onConnectionFailed(e)
                     }
 
                 }
@@ -74,5 +78,10 @@ public class BtCar(val device: BluetoothDevice) {
         return "BtCar(device=${device.name})"
     }
 
+    interface Callback {
+        fun onConnected()
+        fun onConnectionFailed(exception: Exception)
+        fun onMessageReceived(message: GjMessage)
+    }
 
 }

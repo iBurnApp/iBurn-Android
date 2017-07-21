@@ -32,6 +32,10 @@ import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.MapPlaceHolderFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
+import com.gaiagps.iburn.service.iBurnCarService;
+import com.gj.animalauto.CarManager;
+import com.gj.animalauto.service.CarService;
+import com.gj.animalauto.bt.BtCar;
 import com.gaiagps.iburn.view.BottomTickerView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -48,6 +52,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import kotlin.Unit;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
@@ -129,7 +134,26 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     });
         }
         handleIntent(getIntent());
-        //checkForUpdates();
+
+        connectToGalacticJungleCar();
+    }
+
+    private void connectToGalacticJungleCar() {
+        final CarManager cm = new CarManager(getApplicationContext());
+        final BtCar primaryCar = cm.getPrimaryBtCar();
+        if (primaryCar == null) {
+
+            cm.startDiscovery(this, btCar -> {
+                Timber.d("User selected car %s. Saving as primary and connecting...", btCar);
+                cm.setPrimaryBtCar(btCar);
+
+                iBurnCarService.Companion.start(getApplicationContext());
+
+                return Unit.INSTANCE;
+            });
+        } else {
+            iBurnCarService.Companion.start(getApplicationContext());
+        }
     }
 
     private void setAwaitingLocationPermission(boolean awaitingPermission) {

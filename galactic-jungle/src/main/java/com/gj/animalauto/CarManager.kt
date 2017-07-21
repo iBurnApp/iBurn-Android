@@ -4,10 +4,15 @@ import android.app.Activity
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.support.v7.app.AlertDialog
+import android.text.TextUtils
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import com.gj.animalauto.bt.BtCar
 import com.gj.animalauto.bt.BtManager
 import timber.log.Timber
+import android.view.LayoutInflater
+import android.widget.TextView
 
 
 /**
@@ -18,7 +23,7 @@ public class CarManager(val context: Context) {
     val btManager = BtManager(context)
 
     private val discoveredCars = ArrayList<BluetoothDevice>()
-    private val discoveredCarsAdapter = ArrayAdapter<BluetoothDevice>(context, android.R.layout.simple_list_item_1, discoveredCars)
+    private val discoveredCarsAdapter = CarBluetoothDeviceAdapter(context, discoveredCars)
 
     private var discoveryCallback: ((BtCar) -> Unit)? = null
 
@@ -46,11 +51,26 @@ public class CarManager(val context: Context) {
         btManager.stopDiscovery()
     }
 
+    fun getPrimaryBtCar(): BtCar? {
+        val prefs = PrefsHelper(context.applicationContext)
+        val primaryBtleMac = prefs.getPrimaryCarBtMac()
+        if (primaryBtleMac != null) {
+            val device = btManager.getDeviceWithMac(primaryBtleMac)
+            return BtCar(device)
+        }
+        return null
+    }
+
+    fun setPrimaryBtCar(car: BtCar) {
+        val prefs = PrefsHelper(context.applicationContext)
+        prefs.setPrimaryCarBtMac(car.device.address)
+    }
+
     private fun createDialog(hostActivity: Activity): AlertDialog {
         val builder = AlertDialog.Builder(hostActivity)
-        builder.setTitle("Select Car")
+        builder.setTitle("Select Car's Bluetooth Adapter")
                 .setAdapter(discoveredCarsAdapter, {
-                    dialogInterface, position ->
+                    _, position ->
                     val selectedDevice = discoveredCars[position]
                     Timber.d("User selected car ${selectedDevice.name}")
                     discoveryCallback?.invoke(BtCar(selectedDevice))
@@ -65,5 +85,20 @@ public class CarManager(val context: Context) {
         }
 
         return builder.create()
+    }
+
+    class CarBluetoothDeviceAdapter(ctx: Context, cars: List<BluetoothDevice>): ArrayAdapter<BluetoothDevice>(ctx, android.R.layout.simple_list_item_1, cars) {
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            val device = getItem(position)
+            // Check if an existing view is being reused, otherwise inflate the view
+            var view = convertView
+            if (view == null) {
+                view = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false)
+            }
+            val label = if (TextUtils.isEmpty(device.name)) device.address else "${device.name} - ${device.address}"
+            (view as TextView).text = label
+            return view
+        }
     }
 }
