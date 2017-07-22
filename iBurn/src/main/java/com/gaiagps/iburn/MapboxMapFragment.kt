@@ -12,7 +12,6 @@ import android.support.animation.DynamicAnimation
 import android.support.animation.SpringAnimation
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
-import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -22,7 +21,7 @@ import com.gaiagps.iburn.activity.PlayaItemViewActivity
 import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
-import com.gaiagps.iburn.fragment.GjCarFragment
+import com.gaiagps.iburn.fragment.GjFragment
 import com.gj.animalauto.getVehicleIconResId
 import com.gj.animalauto.message.GjMessage
 import com.gj.animalauto.message.GjMessageGps
@@ -53,7 +52,7 @@ import kotlin.collections.HashSet
 import kotlin.collections.set
 
 
-class MapboxMapFragment : GjCarFragment(), ServiceConnection {
+class MapboxMapFragment : GjFragment(), ServiceConnection {
 
     /**
      * Geographic Bounds of Black Rock City

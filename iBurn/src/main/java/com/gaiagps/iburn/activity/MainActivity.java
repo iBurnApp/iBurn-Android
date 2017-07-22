@@ -30,6 +30,7 @@ import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
+import com.gaiagps.iburn.fragment.GjLightingFragment;
 import com.gaiagps.iburn.fragment.MapPlaceHolderFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.gaiagps.iburn.service.iBurnCarService;
@@ -45,6 +46,7 @@ import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -192,6 +194,10 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
                 case R.id.tab_favorites:
                     frag = new FavoritesListViewFragment();
+                    break;
+
+                case R.id.tab_lighting:
+                    frag = new GjLightingFragment();
                     break;
             }
 

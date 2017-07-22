@@ -30,4 +30,12 @@
         id="@+id/tab_favorites"
         inActiveColor="@color/white"
         title="Favorites" />
+
+    <tab
+        activeColor="@color/iburn_color"
+        barColorWhenSelected="@color/off_blk"
+        icon="@drawable/ic_lightbulb_outline_black_24dp"
+        id="@+id/tab_lighting"
+        inActiveColor="@color/white"
+        title="Lighting" />
 </tabs>

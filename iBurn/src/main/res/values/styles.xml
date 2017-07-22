@@ -91,4 +91,163 @@
         <item name="android:textColor">@android:color/white</item>
     </style>
 
+    // GJ
+
+    <style name="Theme.GJ" parent="Theme.Iburn">
+        <!-- For the resting Spinner style -->
+        <item name="android:spinnerItemStyle">
+            @style/spinnerItemStyle
+        </item>
+
+        <!-- For each individual Spinner list item once clicked on -->
+        <item name="android:spinnerDropDownItemStyle">
+            @style/spinnerDropDownItemStyle
+        </item>
+    </style>
+
+    // Spinner styles
+
+    <style name="spinnerItemStyle">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/sub_tab_text</item>
+        <item name="android:background">#ff666666</item>
+    </style>
+
+    <style name="spinnerDropDownItemStyle">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/sub_tab_text</item>
+        <item name="android:background">#ff666666</item>
+    </style>
+
+    // Settings text
+
+    <color name="dark_text">#FF444444</color>
+    <color name="light_back">#FFDDDDDD</color>
+
+    <style name="GjBack">
+        <item name="android:background">@color/light_back</item>
+    </style>
+
+    <dimen name="GjMarginSide">2dp</dimen>
+
+    <style name="GjItem">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginRight">@dimen/GjMarginSide</item>
+        <item name="android:layout_marginLeft">@dimen/GjMarginSide</item>
+    </style>
+
+    <style name="GjText" parent="GjItem">
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="android:textColor">@color/sub_tab_text</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="GjButton" parent="GjText">
+        <item name="android:layout_width">100dp</item>
+    </style>
+
+    <style name="GjText.title">
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="GjStatus">
+        <item name="android:textSize">20sp</item>
+        <item name="android:layout_margin">2dip</item>
+        <item name="android:padding">14dip</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#FF000000</item>
+        <item name="android:background">#FFFF0000</item>
+    </style>
+
+    <style name="GjStatusWrapper">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">2dip</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">#FFFF0000</item>
+    </style>
+
+    <style name="GjStatusText">
+        <item name="android:layout_width">200dip</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#FF000000</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:padding">10dip</item>
+        <item name="android:background">#00000000</item>
+    </style>
+
+    <style name="GjErrorRow">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center</item>
+        <item name="android:layout_marginBottom">4dip</item>
+    </style>
+
+    <style name="GjErrorText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">0.9</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">#FFFFFFFF</item>
+        <item name="android:text">No Connection</item>
+        <item name="android:layout_marginLeft">6dip</item>
+        <item name="android:paddingLeft">6dip</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:background">@drawable/status_background_error</item>
+    </style>
+
+    <style name="GjSoundSwitch">
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <!-- light -->
+    <style name="GjLightTableRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+    </style>
+
+    <style name="GjLightText">
+        <item name="android:textColor">@color/sub_tab_text</item>
+        <item name="android:textSize">22sp</item>
+    </style>
+
+    <style name="GjLightButton" parent="GjLightText">
+        <item name="android:background">@drawable/light_button</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:layout_width">140dp</item>
+        <item name="android:layout_height">80dp</item>
+    </style>
+
+    <style name="GjLightSliderLabel">
+        <item name="android:layout_margin">8dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">28sp</item>
+    </style>
+
+    <style name="GjLightSlider">
+        <item name="android:background">@drawable/light_slider_background</item>
+        <item name="android:layout_marginLeft">20dp</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:layout_width">420dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingLeft">20dp</item>
+        <item name="android:paddingRight">20dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:paddingTop">8dp</item>
+    </style>
+
+    <style name="GjPaletteColor">
+        <item name="android:layout_width">36dip</item>
+        <item name="android:layout_height">41dip</item>
+    </style>
+
 </resources>

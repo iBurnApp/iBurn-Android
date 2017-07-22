@@ -5,6 +5,7 @@ import android.content.Context
 import com.gaiagps.iburn.AudioTourManager
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
+import com.gaiagps.iburn.ioScheduler
 import com.mapbox.mapboxsdk.geometry.VisibleRegion
 import io.reactivex.Flowable
 import io.reactivex.Observable
@@ -406,7 +407,7 @@ class DataProvider private constructor(private val context: Context, private val
             val prefs = PrefsHelper(context)
 
             return Observable.just(getSharedDb(context))
-                    .subscribeOn(Schedulers.io())
+                    .subscribeOn(ioScheduler)
                     .doOnNext { database ->
                         prefs.databaseVersion = BUNDLED_DATABASE_VERSION
                         prefs.setBaseResourcesVersion(RESOURCES_VERSION)

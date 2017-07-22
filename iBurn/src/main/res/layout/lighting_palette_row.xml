@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/lightPaletteRowContainer"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="10dip">
+
+    <View
+        android:id="@+id/lightPaletteColor0"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor1"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor2"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor3"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor4"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor5"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor6"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor7"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor8"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor9"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor10"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor11"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor12"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor13"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor14"
+        style="@style/GjPaletteColor"/>
+
+    <View
+        android:id="@+id/lightPaletteColor15"
+        style="@style/GjPaletteColor"/>
+
+</LinearLayout>
