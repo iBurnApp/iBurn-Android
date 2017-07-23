@@ -10,7 +10,7 @@ import android.widget.SeekBar;
 
 import com.gaiagps.iburn.R;
 import com.gj.animalauto.OscClient;
-import com.gj.animalauto.OscHostDiscoveryDialog;
+import com.gj.animalauto.OscHostManager;
 import com.gj.animalauto.OscMdnsManager;
 import com.gj.animalauto.PrefsHelper;
 import com.gj.animalauto.wifi.WifiManager;
@@ -38,7 +38,7 @@ Color Palette - drop down menu with bitmap for every palette
 Effect parameter 1 - slider
 Effect parameter 2 - slider
  */
-public class GjLightingFragment extends Fragment implements OscMdnsManager.Callback, Function1<OscHostDiscoveryDialog.OscHost, Unit> {
+public class GjLightingFragment extends Fragment implements Function1<OscHostManager.OscHost, Unit> {
     private static final String TAG = "GjLightingFragment";
     private static final int LIGHTING_MESSAGE_REFRESH_RATE = 5; // seconds
     private static SeekBar[] seekBar;
@@ -110,10 +110,11 @@ public class GjLightingFragment extends Fragment implements OscMdnsManager.Callb
     }
 
     private PrefsHelper gjPrefs;
-    private OscMdnsManager oscMdnsManager;
+    private OscHostManager oscHostManager;
+//    private OscMdnsManager oscMdnsManager;
     private OscClient oscClient;
     private WifiManager wifiManager;
-    private OscHostDiscoveryDialog dialogHelper;
+    private OscHostManager dialogHelper;
     private Disposable wifiConnectDisposable;
 
     public static GjLightingFragment newInstance() {
@@ -125,7 +126,7 @@ public class GjLightingFragment extends Fragment implements OscMdnsManager.Callb
 
         Context appCtx = getActivity().getApplicationContext();
         gjPrefs = new PrefsHelper(appCtx);
-        dialogHelper = new OscHostDiscoveryDialog(appCtx);
+        dialogHelper = new OscHostManager(appCtx);
     }
 
     @Override
@@ -183,14 +184,13 @@ public class GjLightingFragment extends Fragment implements OscMdnsManager.Callb
 
 
                             if (wiFiConnection.connected && wiFiConnection.ssid.equals(wifiSsid)) {
-                                if (oscMdnsManager == null) {
-                                    oscMdnsManager = new OscMdnsManager(getActivity().getApplicationContext(), oscClient.Companion.getDefaultLocalPort());
+                                if (oscHostManager == null) {
+                                    oscHostManager = new OscHostManager(getActivity().getApplicationContext());
+//                                    oscHostManager = new OscMdnsManager(getActivity().getApplicationContext(), oscClient.Companion.getDefaultLocalPort());
                                 }
 
-                                oscMdnsManager.setCallback(this);
-
-                                oscMdnsManager.registerService();
-                                oscMdnsManager.discoverPeers();
+                                // If no primary host set, will show host selection dialog
+                                oscHostManager.startDiscovery(getActivity(), this);
                             }
                         }
 
@@ -207,9 +207,9 @@ public class GjLightingFragment extends Fragment implements OscMdnsManager.Callb
             // wifiManager handles gracefully re-creating released resources
         }
 
-        if (oscMdnsManager != null) {
-            oscMdnsManager.release();
-            oscMdnsManager = null;
+        if (oscHostManager != null) {
+            oscHostManager.stopDiscovery();
+            oscHostManager = null;
         }
 
         if (oscClient != null) {
@@ -231,45 +231,12 @@ public class GjLightingFragment extends Fragment implements OscMdnsManager.Callb
         return false;
     }
 
-    // Mdns Callback
+    // OSC Host selection callback
 
     @Override
-    public void onPeerDiscovered(@NotNull String hostName, @NotNull InetAddress hostAddress, int hostPort) {
-        Timber.d("Discovered OSC peer at %s %s:%d", hostName, hostAddress, hostPort);
-
-        // TODO : Save Persisted OSC Host
-        String primaryOscHostName = gjPrefs.getPrimaryOscHost();
-        if (primaryOscHostName == null) {
-
-            if (!dialogHelper.isShowingDialog()) {
-                dialogHelper.showDiscoveryDialog(getActivity(), this);
-            }
-
-            OscHostDiscoveryDialog.OscHost host = new OscHostDiscoveryDialog.OscHost(hostName, hostAddress, hostPort);
-            dialogHelper.onHostDiscovered(host);
-
-            return;
-        }
-
-        if (oscClient == null) {
-
-            if (hostName.equals(primaryOscHostName)) {
-                connectToOscHost(hostName, hostAddress, hostPort);
-            } else {
-                Timber.d("Discovered host %s does not match primary host %s", hostName, primaryOscHostName);
-            }
-
-        } else {
-            Timber.d("Already connected to an OSC client");
-        }
-    }
-
-    // OSC Host selection dialog callback
-
-    @Override
-    public Unit invoke(OscHostDiscoveryDialog.OscHost oscHost) {
+    public Unit invoke(OscHostManager.OscHost oscHost) {
         Timber.d("Setting primary OSC Host %s", oscHost.getHostname());
-        gjPrefs.setPrimaryOscHost(oscHost.getHostname());
+        oscHostManager.setPrimaryOscHost(oscHost.getHostname());
         connectToOscHost(oscHost.getHostname(), oscHost.getAddress(), oscHost.getPort());
         return Unit.INSTANCE;
     }

@@ -38,4 +38,12 @@
         id="@+id/tab_lighting"
         inActiveColor="@color/white"
         title="Lighting" />
+
+    <tab
+        activeColor="@color/iburn_color"
+        barColorWhenSelected="@color/off_blk"
+        icon="@drawable/ic_settings_black_24dp"
+        id="@+id/tab_settings"
+        inActiveColor="@color/white"
+        title="Settings" />
 </tabs>

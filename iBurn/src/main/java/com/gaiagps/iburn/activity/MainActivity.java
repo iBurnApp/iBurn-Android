@@ -31,6 +31,7 @@ import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.GjLightingFragment;
+import com.gaiagps.iburn.fragment.GjSettingsFragment;
 import com.gaiagps.iburn.fragment.MapPlaceHolderFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.gaiagps.iburn.service.iBurnCarService;
@@ -198,6 +199,10 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
                 case R.id.tab_lighting:
                     frag = new GjLightingFragment();
+                    break;
+
+                case R.id.tab_settings:
+                    frag = new GjSettingsFragment();
                     break;
             }
 

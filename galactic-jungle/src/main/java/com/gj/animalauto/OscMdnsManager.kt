@@ -52,8 +52,17 @@ public class OscMdnsManager(val context: Context, val localPort: Int) {
     fun release() {
         Timber.d("Unregistering service and stopping discovery")
 
-        nsdManager.unregisterService(registrationListener)
-        nsdManager.stopServiceDiscovery(discoveryListener)
+        try {
+            nsdManager.unregisterService(registrationListener)
+        } catch (e: IllegalArgumentException) {
+            // registrationListener not registered
+        }
+
+        try {
+            nsdManager.stopServiceDiscovery(discoveryListener)
+        } catch (e: IllegalArgumentException) {
+            // discoveryListener not registered
+        }
     }
 
     // NSD Service Registration Callbacks:

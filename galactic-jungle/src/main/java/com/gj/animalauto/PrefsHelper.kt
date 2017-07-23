@@ -2,12 +2,15 @@ package com.gj.animalauto
 
 import android.content.Context
 import android.content.SharedPreferences
+import java.net.InetAddress
 
 /**
  * Created by dbro on 7/17/17.
  */
 
 class PrefsHelper(context: Context) {
+
+    data class OscHost(val hostname: String, val address: InetAddress, val port: Int)
 
     private val sharedPrefs: SharedPreferences
     private val editor: SharedPreferences.Editor
@@ -25,11 +28,11 @@ class PrefsHelper(context: Context) {
         editor.putString(BT_MAC, macAddress).apply()
     }
 
-    fun getPrimaryOscHost(): String? {
+    fun getPrimaryOscHostname(): String? {
         return sharedPrefs.getString(OSC_HOST, null)
     }
 
-    fun setPrimaryOscHost(hostname: String) {
+    fun setPrimaryOscHostname(hostname: String) {
         editor.putString(OSC_HOST, hostname).apply()
     }
 
