@@ -16,6 +16,7 @@ import android.widget.TextView
 
 
 /**
+ * Manages discovering and associating with Gj main board over BT
  * Created by dbro on 7/14/17.
  */
 public class CarManager(val context: Context) {
@@ -94,7 +95,7 @@ public class CarManager(val context: Context) {
             // Check if an existing view is being reused, otherwise inflate the view
             var view = convertView
             if (view == null) {
-                view = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false)
+                view = LayoutInflater.from(context).inflate(R.layout.simple_list_item, parent, false)
             }
             val label = if (TextUtils.isEmpty(device.name)) device.address else "${device.name} - ${device.address}"
             (view as TextView).text = label

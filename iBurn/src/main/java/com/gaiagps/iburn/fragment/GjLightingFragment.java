@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -9,7 +10,9 @@ import android.widget.SeekBar;
 
 import com.gaiagps.iburn.R;
 import com.gj.animalauto.OscClient;
+import com.gj.animalauto.OscHostDiscoveryDialog;
 import com.gj.animalauto.OscMdnsManager;
+import com.gj.animalauto.PrefsHelper;
 import com.gj.animalauto.wifi.WifiManager;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import java.net.InetAddress;
 
 import io.reactivex.disposables.Disposable;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import timber.log.Timber;
 
 /**
@@ -33,7 +38,7 @@ Color Palette - drop down menu with bitmap for every palette
 Effect parameter 1 - slider
 Effect parameter 2 - slider
  */
-public class GjLightingFragment extends Fragment implements OscMdnsManager.Callback {
+public class GjLightingFragment extends Fragment implements OscMdnsManager.Callback, Function1<OscHostDiscoveryDialog.OscHost, Unit> {
     private static final String TAG = "GjLightingFragment";
     private static final int LIGHTING_MESSAGE_REFRESH_RATE = 5; // seconds
     private static SeekBar[] seekBar;
@@ -45,7 +50,7 @@ public class GjLightingFragment extends Fragment implements OscMdnsManager.Callb
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             // throttle the sliders to 30 messages per second
             if (oscClient == null) {
-                Timber.w("Cannot send command from fragment %d, OSC client not ready", GjLightingFragment.this.hashCode());
+                Timber.w("Cannot send command, OSC client not ready");
                 return;
             }
 
@@ -94,7 +99,7 @@ public class GjLightingFragment extends Fragment implements OscMdnsManager.Callb
         @Override
         public void onClick(View view) {
             if (oscClient == null) {
-                Timber.w("Cannot send command from fragment %d, OSC client not ready", GjLightingFragment.this.hashCode());
+                Timber.w("Cannot send command, OSC client not ready");
                 return;
             }
 
@@ -104,9 +109,11 @@ public class GjLightingFragment extends Fragment implements OscMdnsManager.Callb
         }
     }
 
+    private PrefsHelper gjPrefs;
     private OscMdnsManager oscMdnsManager;
     private OscClient oscClient;
     private WifiManager wifiManager;
+    private OscHostDiscoveryDialog dialogHelper;
     private Disposable wifiConnectDisposable;
 
     public static GjLightingFragment newInstance() {
@@ -115,6 +122,10 @@ public class GjLightingFragment extends Fragment implements OscMdnsManager.Callb
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Context appCtx = getActivity().getApplicationContext();
+        gjPrefs = new PrefsHelper(appCtx);
+        dialogHelper = new OscHostDiscoveryDialog(appCtx);
     }
 
     @Override
@@ -226,12 +237,50 @@ public class GjLightingFragment extends Fragment implements OscMdnsManager.Callb
     public void onPeerDiscovered(@NotNull String hostName, @NotNull InetAddress hostAddress, int hostPort) {
         Timber.d("Discovered OSC peer at %s %s:%d", hostName, hostAddress, hostPort);
 
+        // TODO : Save Persisted OSC Host
+        String primaryOscHostName = gjPrefs.getPrimaryOscHost();
+        if (primaryOscHostName == null) {
+
+            if (!dialogHelper.isShowingDialog()) {
+                dialogHelper.showDiscoveryDialog(getActivity(), this);
+            }
+
+            OscHostDiscoveryDialog.OscHost host = new OscHostDiscoveryDialog.OscHost(hostName, hostAddress, hostPort);
+            dialogHelper.onHostDiscovered(host);
+
+            return;
+        }
+
         if (oscClient == null) {
-            Timber.d("Connecting to OSC client %s from fragment %d", hostName, hashCode());
+
+            if (hostName.equals(primaryOscHostName)) {
+                connectToOscHost(hostName, hostAddress, hostPort);
+            } else {
+                Timber.d("Discovered host %s does not match primary host %s", hostName, primaryOscHostName);
+            }
+
+        } else {
+            Timber.d("Already connected to an OSC client");
+        }
+    }
+
+    // OSC Host selection dialog callback
+
+    @Override
+    public Unit invoke(OscHostDiscoveryDialog.OscHost oscHost) {
+        Timber.d("Setting primary OSC Host %s", oscHost.getHostname());
+        gjPrefs.setPrimaryOscHost(oscHost.getHostname());
+        connectToOscHost(oscHost.getHostname(), oscHost.getAddress(), oscHost.getPort());
+        return Unit.INSTANCE;
+    }
+
+    private void connectToOscHost(@NotNull String hostName, @NotNull InetAddress hostAddress, int hostPort) {
+        if (oscClient == null) {
+            Timber.d("Connecting to OSC client %s", hostName);
             oscClient = new OscClient(hostAddress, hostPort);
             oscClient.listen();
         } else {
-            Timber.d("Already connected to an OSC client");
+            Timber.w("Already connected to an OSC Host, ignoring request");
         }
     }
 }

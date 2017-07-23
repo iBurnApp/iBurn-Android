@@ -25,9 +25,18 @@ class PrefsHelper(context: Context) {
         editor.putString(BT_MAC, macAddress).apply()
     }
 
+    fun getPrimaryOscHost(): String? {
+        return sharedPrefs.getString(OSC_HOST, null)
+    }
+
+    fun setPrimaryOscHost(hostname: String) {
+        editor.putString(OSC_HOST, hostname).apply()
+    }
+
     companion object {
 
         private val BT_MAC = "bt-mac"   // string
+        private val OSC_HOST = "osc-host-name"   // string
 
         private val SHARED_PREFS_NAME = "galactic-prefs"
     }
