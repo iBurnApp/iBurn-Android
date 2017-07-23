@@ -3,15 +3,19 @@ package com.gaiagps.iburn.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.WifiCredentialCallback;
+import com.gaiagps.iburn.WifiUtilKt;
 import com.gj.animalauto.OscClient;
 import com.gj.animalauto.OscHostManager;
-import com.gj.animalauto.OscMdnsManager;
 import com.gj.animalauto.PrefsHelper;
 import com.gj.animalauto.wifi.WifiManager;
 
@@ -23,6 +27,8 @@ import io.reactivex.disposables.Disposable;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import timber.log.Timber;
+
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
 /**
  * Created by liorsaar on 4/19/15
@@ -109,12 +115,9 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
         }
     }
 
-    private PrefsHelper gjPrefs;
     private OscHostManager oscHostManager;
-//    private OscMdnsManager oscMdnsManager;
     private OscClient oscClient;
     private WifiManager wifiManager;
-    private OscHostManager dialogHelper;
     private Disposable wifiConnectDisposable;
 
     public static GjLightingFragment newInstance() {
@@ -125,8 +128,6 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
         super.onCreate(savedInstanceState);
 
         Context appCtx = getActivity().getApplicationContext();
-        gjPrefs = new PrefsHelper(appCtx);
-        dialogHelper = new OscHostManager(appCtx);
     }
 
     @Override
@@ -172,10 +173,25 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
 
         wifiManager.start();
 
-        String wifiSsid = "fluxFi";
-        String wifiPass = "activate";
+        PrefsHelper gjPrefs = new PrefsHelper(getActivity().getApplicationContext());
 
-        wifiConnectDisposable =  wifiManager.connectToWpaSsid(wifiSsid, wifiPass)
+        if (TextUtils.isEmpty(gjPrefs.getOscWifiSsid()) ||
+                TextUtils.isEmpty(gjPrefs.getOscWifiPass())) {
+
+            WifiUtilKt.showWifiCredentialsDialog(getActivity(), (ssid, password) -> {
+                gjPrefs.setOscWifiSsid(ssid);
+                gjPrefs.setOscWifiPass(password);
+
+                beginOscWifiConnection(ssid, password);
+            });
+
+        } else {
+            beginOscWifiConnection(gjPrefs.getOscWifiSsid(), gjPrefs.getOscWifiPass());
+        }
+    }
+
+    private void beginOscWifiConnection(String wifiSsid, String wifiPass) {
+        wifiConnectDisposable = wifiManager.connectToWpaSsid(wifiSsid, wifiPass)
                 .filter(connection -> connection.connected && connection.ssid.equals(wifiSsid))
                 .firstElement()
                 .subscribe(wiFiConnection -> {
@@ -195,7 +211,6 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
                         }
 
                 );
-
     }
 
     @Override

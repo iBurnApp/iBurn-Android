@@ -36,10 +36,28 @@ class PrefsHelper(context: Context) {
         editor.putString(OSC_HOST, hostname).apply()
     }
 
+    fun getOscWifiSsid(): String? {
+        return sharedPrefs.getString(OSC_WIFI_SSID, null)
+    }
+
+    fun setOscWifiSsid(wifiSsid: String) {
+        editor.putString(OSC_WIFI_SSID, wifiSsid).apply()
+    }
+
+    fun getOscWifiPass(): String? {
+        return sharedPrefs.getString(OSC_WIFI_PASS, null)
+    }
+
+    fun setOscWifiPass(wifiPass: String) {
+        editor.putString(OSC_WIFI_PASS, wifiPass).apply()
+    }
+
     companion object {
 
         private val BT_MAC = "bt-mac"   // string
         private val OSC_HOST = "osc-host-name"   // string
+        private val OSC_WIFI_SSID = "osc-wifi-ap"   // string
+        private val OSC_WIFI_PASS = "osc-wifi-pass"   // string
 
         private val SHARED_PREFS_NAME = "galactic-prefs"
     }

@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.gaiagps.iburn.R
+import com.gaiagps.iburn.WifiCredentialCallback
+import com.gaiagps.iburn.showWifiCredentialsDialog
 import com.gj.animalauto.CarManager
 import com.gj.animalauto.OscHostManager
 import com.gj.animalauto.PrefsHelper
@@ -34,6 +36,16 @@ public class GjSettingsFragment : Fragment() {
 
     val btItemValue: TextView by lazy {
         val view: TextView = view!!.findViewById(R.id.primary_bt_mac_addr)
+        view
+    }
+
+    val oscItem: View by lazy {
+        val view: View = view!!.findViewById(R.id.osc_wifi_item)
+        view
+    }
+
+    val oscItemValue: TextView by lazy {
+        val view: TextView = view!!.findViewById(R.id.osc_wifi_credentials)
         view
     }
 
@@ -72,6 +84,16 @@ public class GjSettingsFragment : Fragment() {
         btItem.setOnClickListener {
             discoverBtDevices()
         }
+
+        oscItem.setOnClickListener {
+            showWifiCredentialsDialog(activity, object: WifiCredentialCallback {
+                override fun onCredentialsEntered(ssid: String, password: String) {
+                    gjPrefs.setOscWifiSsid(ssid)
+                    gjPrefs.setOscWifiPass(password)
+                }
+
+            })
+        }
     }
 
     override fun onStop() {
@@ -84,6 +106,7 @@ public class GjSettingsFragment : Fragment() {
     private fun updateItemValueViews() {
         oscHostItemValue.text = gjPrefs.getPrimaryOscHostname()
         btItemValue.text = gjPrefs.getPrimaryCarBtMac()
+        oscItemValue.text = "SSID: " + gjPrefs.getOscWifiSsid() + " WPA2 Password: " + gjPrefs.getOscWifiPass()
     }
 
     private fun discoverBtDevices() {

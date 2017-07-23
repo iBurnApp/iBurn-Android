@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -22,7 +23,7 @@
             style="@style/GjSettingItemValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="F0:00:BA:R0" />
+            tools:text="F0:00:BA:R0" />
 
     </LinearLayout>
 
@@ -37,7 +38,7 @@
         android:id="@+id/paired_osc_host_item"
         style="@style/GjSettingItem"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <TextView
@@ -51,7 +52,36 @@
             style="@style/GjSettingItemValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="esp8266_600194827dc4" />
+            tools:text="esp8266_600194827dc4" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="@color/off_blk_3"/>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/osc_wifi_item"
+        style="@style/GjSettingItem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/GjSettingItemTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OSC WiFi Credentials" />
+
+        <TextView
+            android:id="@+id/osc_wifi_credentials"
+            style="@style/GjSettingItemValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="fluxFi - somePassword" />
 
     </LinearLayout>
 
