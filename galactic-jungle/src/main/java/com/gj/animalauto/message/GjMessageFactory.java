@@ -274,17 +274,17 @@ public class GjMessageFactory {
                 // rewind to pre-eof position
                 bb.position(savePosition);
                 list.add(new GjMessageConsole("EOF reached. Remaining " + bb.remaining()));
-                Timber.e("EOF reached");
+                Timber.w("EOF reached");
                 break;
             } catch (GjMessage.ChecksumException e) {
                 // output an error
                 list.add(new GjMessageError(e.getMessage()));
                 // skip this message, try to recover the next one
-                Timber.e("ChecksumException");
+                Timber.w("ChecksumException");
                 continue;
             } catch (GjMessage.PreambleNotFoundException e) {
                 // bb.position(savePosition);   TODO make sure this is not needed
-                Timber.e( "PreambleNotFoundException");
+                Timber.w( "PreambleNotFoundException");
                 list.add(new GjMessageError(e.getMessage()));
                 break;
             } catch (GjMessage.ParserException e) {

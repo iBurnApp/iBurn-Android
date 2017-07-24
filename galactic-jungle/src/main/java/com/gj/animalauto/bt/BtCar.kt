@@ -40,7 +40,6 @@ public class BtCar(val device: BluetoothDevice) {
     private fun manageSocket(socket: BluetoothSocket) {
 
         val buffer = ByteArray(1024)
-        val tmpBuffer = ByteArray(1024)
 
         var bytesRead = 0
         var readOffset = 0
@@ -85,11 +84,6 @@ public class BtCar(val device: BluetoothDevice) {
                                 // Copy bytes of next message into tmp buffer
                                 System.arraycopy(buffer, firstByteOfNextMessage, buffer, 0, numBytesOfNextMessage)
                                 readOffset = numBytesOfNextMessage
-//                                Timber.d("Copying $firstByteOfNextMessage : ${numBytesOfNextMessage + firstByteOfNextMessage} buffer->tmpBuffer")
-//                                System.arraycopy(buffer, firstByteOfNextMessage, tmpBuffer, 0, numBytesOfNextMessage)
-//                                // Copy bytes of next message from tmp buffer to head of buffer
-//                                Timber.d("Copying 0 : $numBytesOfNextMessage tmpBuffer->buffer")
-//                                System.arraycopy(tmpBuffer, 0, buffer, 0, numBytesOfNextMessage)
                             } else {
                                 readOffset += bytesRead
                                 Timber.d("Incrementing readOffset by $bytesRead. now $readOffset")

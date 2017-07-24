@@ -6,19 +6,29 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ListView
 import android.widget.TextView
 import com.gaiagps.iburn.R
 import com.gaiagps.iburn.WifiCredentialCallback
+import com.gaiagps.iburn.ioScheduler
 import com.gaiagps.iburn.showWifiCredentialsDialog
 import com.gj.animalauto.CarManager
 import com.gj.animalauto.OscHostManager
 import com.gj.animalauto.PrefsHelper
+import com.gj.animalauto.message.GjMessage
+import com.gj.animalauto.message.MessageAdapter
+import com.gj.animalauto.message.MessageLog
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import timber.log.Timber
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Created by dbro on 7/23/17.
  */
-public class GjSettingsFragment : Fragment() {
+public class GjSettingsFragment : GjFragment() {
 
     val oscHostItem: View  by lazy {
         val view: View = view!!.findViewById(R.id.paired_osc_host_item)
@@ -50,6 +60,11 @@ public class GjSettingsFragment : Fragment() {
         view
     }
 
+    val messageConsoleValue: ListView by lazy {
+        val view: ListView = view!!.findViewById(R.id.console_item_value)
+        view
+    }
+
     val carManager by lazy {
         CarManager(context.applicationContext)
     }
@@ -61,7 +76,6 @@ public class GjSettingsFragment : Fragment() {
     val gjPrefs by lazy {
         PrefsHelper(context.applicationContext)
     }
-
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -87,13 +101,37 @@ public class GjSettingsFragment : Fragment() {
         }
 
         oscItem.setOnClickListener {
-            showWifiCredentialsDialog(activity, object: WifiCredentialCallback {
+            showWifiCredentialsDialog(activity, object : WifiCredentialCallback {
                 override fun onCredentialsEntered(ssid: String, password: String) {
                     gjPrefs.setOscWifiSsid(ssid)
                     gjPrefs.setOscWifiPass(password)
                 }
 
             })
+        }
+
+        messageConsoleValue.adapter = messageAdapter
+
+    }
+
+    private val maxMessageAdapterSize = 1000
+    private val messageAdapter by lazy {
+        MessageAdapter(context, ArrayList())
+    }
+
+    override fun onMessage(message: GjMessage) {
+
+        if (messageAdapter.count == maxMessageAdapterSize) {
+            messageAdapter.clear()
+        }
+
+        // If the listView was scrolled to the bottom, keep it there
+        val wasAtLastPosition = messageConsoleValue.lastVisiblePosition == messageAdapter.count - 1
+        Timber.d("ListView is at position ${messageConsoleValue.lastVisiblePosition}. ${messageAdapter.count} total items. ")
+        messageAdapter.add(MessageLog(message = message, time = System.currentTimeMillis()))
+
+        if (wasAtLastPosition) {
+            messageConsoleValue.setSelection(messageAdapter.count)
         }
     }
 
