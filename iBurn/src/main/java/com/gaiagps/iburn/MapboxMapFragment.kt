@@ -294,14 +294,16 @@ class MapboxMapFragment : GjFragment(), ServiceConnection {
     }
 
     private fun setupMap(mapView: MapView) {
-        mapView.setStyleUrl("mapbox://styles/dchiles/cj3nxjqli000u2soyeb947f7s")
+//        mapView.setStyleUrl("mapbox://styles/dchiles/cj3nxjqli000u2soyeb947f7s")
         val pos = CameraPosition.Builder()
                 .target(LatLng(Geo.MAN_LAT, Geo.MAN_LON))
                 .zoom(defaultZoom)
                 .build()
 
         mapView.getMapAsync { map ->
-            if (BuildConfig.MOCK) {
+            // In this build we always use the mock location provider
+            // to provide location via the external GPS
+            if (true) { //BuildConfig.MOCK) {
                 // TODO : Re-enable mock location after crash resolved
                 // https://github.com/mapbox/mapbox-gl-native/pull/9142
                 val mockEngine = LocationProvider.MapboxMockLocationSource()
@@ -315,7 +317,7 @@ class MapboxMapFragment : GjFragment(), ServiceConnection {
             // https://github.com/mapbox/mapbox-gl-native/pull/9142
             map.isMyLocationEnabled = true
             map.setMinZoomPreference(defaultZoom)
-            map.setLatLngBoundsForCameraTarget(cameraBounds)
+//            map.setLatLngBoundsForCameraTarget(cameraBounds)
             map.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
             map.uiSettings.setAllGesturesEnabled(state != State.SHOWCASE)
             map.setOnCameraIdleListener {

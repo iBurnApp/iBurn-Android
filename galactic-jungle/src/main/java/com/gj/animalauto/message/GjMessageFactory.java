@@ -10,6 +10,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import timber.log.Timber;
+
 /**
  * Created by liorsaar on 2015-04-21
  */
@@ -66,7 +68,7 @@ public class GjMessageFactory {
 
     public static void testParser4() {
         ByteBuffer bb = create4();
-        List<GjMessage> list = parseAll(bb);
+        List<GjMessage> list = parseAll(bb).messages;
         for (GjMessage message : list) {
             Log.e(TAG, message.toString());
         }
@@ -204,7 +206,7 @@ public class GjMessageFactory {
             }
             cc.limit(cc.position());
             cc.rewind();
-            List<GjMessage> list = parseAll(cc);
+            List<GjMessage> list = parseAll(cc).messages;
             cc.compact();
             for (GjMessage message : list) {
                 Log.e(TAG, message.toString());
@@ -214,7 +216,7 @@ public class GjMessageFactory {
 
     public static void testChecksumError() {
         ByteBuffer bb = createBadChecksum();
-        List<GjMessage> list = parseAll(bb);
+        List<GjMessage> list = parseAll(bb).messages;
         return;
     }
 
@@ -228,7 +230,7 @@ public class GjMessageFactory {
         bb.put(new GjMessageText(sb.toString()).toByteArray());
         bb.rewind(); // IMPORTANT !!!
 
-        List<GjMessage> list = parseAll(bb);
+        List<GjMessage> list = parseAll(bb).messages;
     }
 
     public static void testStream2() {
@@ -247,51 +249,57 @@ public class GjMessageFactory {
         bb.limit(bb.position() - 5);  // IMPORTANT !!!
         bb.rewind(); // IMPORTANT !!!
 
-        List<GjMessage> list = parseAll(bb);
+        List<GjMessage> list = parseAll(bb).messages;
         for (GjMessage message : list) {
             Log.e(TAG, message.toString());
         }
 
         bb.limit(bb.limit() + 5);
-        list = parseAll(bb);
+        list = parseAll(bb).messages;
         for (GjMessage m : list) {
             Log.e(TAG, m.toString());
         }
     }
 
-    public static List<GjMessage> parseAll(ByteBuffer bb) {
+    public static GjMessageParseResponse parseAll(ByteBuffer bb) {
         List<GjMessage> list = new ArrayList<>();
+        int lastParsedByteIndex = 0;
         while (bb.remaining() > 0) {
             int savePosition = bb.position();
             try {
                 GjMessage message = GjMessage.create(bb);
+                lastParsedByteIndex = bb.position() - 1;
                 list.add(message);
             } catch (EOFException e) {
                 // rewind to pre-eof position
                 bb.position(savePosition);
                 list.add(new GjMessageConsole("EOF reached. Remaining " + bb.remaining()));
+                Timber.e("EOF reached");
                 break;
             } catch (GjMessage.ChecksumException e) {
                 // output an error
                 list.add(new GjMessageError(e.getMessage()));
                 // skip this message, try to recover the next one
+                Timber.e("ChecksumException");
                 continue;
             } catch (GjMessage.PreambleNotFoundException e) {
                 // bb.position(savePosition);   TODO make sure this is not needed
+                Timber.e( "PreambleNotFoundException");
                 list.add(new GjMessageError(e.getMessage()));
                 break;
             } catch (GjMessage.ParserException e) {
                 // some parameter value is off, continue
+                Timber.e( "ParserException");
                 list.add(new GjMessageError(e.getMessage()));
                 continue;
             }
         }
-        return list;
+        return new GjMessageParseResponse(list, bb, lastParsedByteIndex);
     }
 
-    public static List<GjMessage> parseAll(byte[] bytes) {
-        ByteBuffer bb = ByteBuffer.allocate(bytes.length);
-        bb.put(bytes);
+    public static GjMessageParseResponse parseAll(byte[] bytes, int len) {
+        ByteBuffer bb = ByteBuffer.allocate(len);
+        bb.put(bytes, 0, len);
         bb.rewind();
         return parseAll(bb);
     }
@@ -305,5 +313,17 @@ public class GjMessageFactory {
         }
         bb.rewind();
         return bb;
+    }
+
+    public static class GjMessageParseResponse {
+        public final List<GjMessage> messages;
+        public final ByteBuffer rawData;
+        public final int lastParsedRawDataIndex;
+
+        public GjMessageParseResponse(List<GjMessage> messages, ByteBuffer rawData, int lastParsedRawDataIndex) {
+            this.messages = messages;
+            this.rawData = rawData;
+            this.lastParsedRawDataIndex = lastParsedRawDataIndex;
+        }
     }
 }

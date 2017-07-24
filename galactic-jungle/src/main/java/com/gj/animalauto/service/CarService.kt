@@ -94,7 +94,7 @@ public open class CarService : Service(), BtCar.Callback {
     }
 
     override fun onMessageReceived(message: GjMessage) {
-
+        Timber.d("CarService got message $message")
         if (message is GjMessageStatusResponse) {
 
             // Identifies which vehicle id represents us

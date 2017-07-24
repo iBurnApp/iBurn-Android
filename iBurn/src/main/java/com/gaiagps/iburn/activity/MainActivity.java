@@ -33,10 +33,8 @@ import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.GjLightingFragment;
 import com.gaiagps.iburn.fragment.GjSettingsFragment;
 import com.gaiagps.iburn.fragment.MapPlaceHolderFragment;
-import com.gaiagps.iburn.service.DataUpdateService;
 import com.gaiagps.iburn.service.iBurnCarService;
 import com.gj.animalauto.CarManager;
-import com.gj.animalauto.service.CarService;
 import com.gj.animalauto.bt.BtCar;
 import com.gaiagps.iburn.view.BottomTickerView;
 import com.google.android.gms.common.ConnectionResult;
@@ -47,7 +45,6 @@ import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.UpdateManager;
 
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -104,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         prefs = new PrefsHelper(this);
 
-        if (checkPlayServices()) {
+//        if (checkPlayServices()) {
             boolean haveLocationPermission = PermissionManager.hasLocationPermissions(getApplicationContext());
 
             if (prefs.didShowWelcome() && !haveLocationPermission) {
@@ -113,10 +110,10 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                 // Request location permission and notify onAcquiredLocationPermission on success
                 MainActivityPermissionsDispatcher.onAcquiredLocationPermissionWithCheck(MainActivity.this);
             }
-        }
-        if (!checkPlayServices()) {
-            googlePlayServicesMissing = true;
-        }
+//        }
+//        if (!checkPlayServices()) {
+//            googlePlayServicesMissing = true;
+//        }
 
         Timber.d("onCreate");
         if (!prefs.didShowWelcome()) {
@@ -125,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
 
         if (!prefs.didScheduleUpdate()) {
-            DataUpdateService.scheduleAutoUpdate(this);
+//            DataUpdateService.scheduleAutoUpdate(this);
             prefs.setDidScheduleUpdate(true);
         }
 
@@ -227,9 +224,9 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     protected void onResume() {
         super.onResume();
         checkForCrashes();
-        if (googlePlayServicesMissing && checkPlayServices()) {
-            googlePlayServicesMissing = false;
-        }
+//        if (googlePlayServicesMissing && checkPlayServices()) {
+//            googlePlayServicesMissing = false;
+//        }
     }
 
     public void onStart() {
@@ -338,21 +335,21 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     }
 
 
-    private boolean checkPlayServices() {
-        int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if (status != ConnectionResult.SUCCESS) {
-            if (GooglePlayServicesUtil.isUserRecoverableError(status)) {
-                showErrorDialog(status);
-            } else {
-                Toast.makeText(this, getString(R.string.requres_play_services),
-                        Toast.LENGTH_LONG).show();
-                finish();
-            }
-
-            return false;
-        }
-        return true;
-    }
+//    private boolean checkPlayServices() {
+//        int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+//        if (status != ConnectionResult.SUCCESS) {
+//            if (GooglePlayServicesUtil.isUserRecoverableError(status)) {
+//                showErrorDialog(status);
+//            } else {
+//                Toast.makeText(this, getString(R.string.requres_play_services),
+//                        Toast.LENGTH_LONG).show();
+//                finish();
+//            }
+//
+//            return false;
+//        }
+//        return true;
+//    }
 
     void showErrorDialog(int code) {
         GooglePlayServicesUtil.getErrorDialog(code, this,

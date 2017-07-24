@@ -2,6 +2,7 @@ package com.gaiagps.iburn.fragment
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -104,9 +105,14 @@ public class GjSettingsFragment : Fragment() {
     }
 
     private fun updateItemValueViews() {
-        oscHostItemValue.text = gjPrefs.getPrimaryOscHostname()
-        btItemValue.text = gjPrefs.getPrimaryCarBtMac()
-        oscItemValue.text = "SSID: " + gjPrefs.getOscWifiSsid() + " WPA2 Password: " + gjPrefs.getOscWifiPass()
+        oscHostItemValue.text = gjPrefs.getPrimaryOscHostname() ?: "None"
+        btItemValue.text = gjPrefs.getPrimaryCarBtMac() ?: "None"
+
+        if (!TextUtils.isEmpty(gjPrefs.getOscWifiSsid())) {
+            oscItemValue.text = "SSID: " + gjPrefs.getOscWifiSsid() + " WPA2 Password: " + gjPrefs.getOscWifiPass()
+        } else {
+            oscItemValue.text = "None"
+        }
     }
 
     private fun discoverBtDevices() {

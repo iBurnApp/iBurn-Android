@@ -58,7 +58,7 @@ public class LocationProvider {
 
     private static void init(Context context) {
 
-        if (BuildConfig.MOCK) mockCurrentLocation();
+//        if (BuildConfig.MOCK) mockCurrentLocation();
     }
 
     /**
@@ -114,7 +114,7 @@ public class LocationProvider {
         @Override
         public void activate() {
             Timber.d("activate mock location provider");
-            mockCurrentLocation();
+//            mockCurrentLocation();
 
             deactivate();
 

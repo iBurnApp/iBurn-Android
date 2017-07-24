@@ -146,8 +146,8 @@ dependencies {
     compile "com.android.support:support-dynamic-animation:$SUPPORT_LIB_VERSION"
 
     // Google Play Services
-    compile "com.google.android.gms:play-services-gcm:$PLAY_SERVICES_VERSION"
-    compile "com.google.android.gms:play-services-location:$PLAY_SERVICES_VERSION"
+//    compile "com.google.android.gms:play-services-gcm:$PLAY_SERVICES_VERSION"
+//    compile "com.google.android.gms:play-services-location:$PLAY_SERVICES_VERSION"
 
     // 3rd Party libraries
     compile 'com.google.code.gson:gson:2.8.1'

@@ -19,7 +19,10 @@ import java.util.concurrent.TimeUnit
 /**
  * Created by dbro on 7/19/17.
  */
+const val MOCK_BT_CAR_CONNECTION = false
+
 public class iBurnCarService : CarService() {
+
 
     private var mockMessageDisposable: Disposable? = null
 
@@ -43,7 +46,7 @@ public class iBurnCarService : CarService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (BuildConfig.MOCK) {
+        if (MOCK_BT_CAR_CONNECTION) {
             // Don't actually issue any BT connection
             mockGjMessages()
             return START_STICKY

@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import com.gj.animalauto.message.GjMessage
 import com.gj.animalauto.message.GjMessageFactory
+import com.gj.animalauto.message.internal.GjMessageError
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -22,7 +23,7 @@ public class BtCar(val device: BluetoothDevice) {
     private var callback: Callback? = null
 
     fun connect(callback: Callback) {
-        this.callback = this.callback
+        this.callback = callback
         connectRequested = true
         val socket = device.createRfcommSocketToServiceRecord(sppUuid)
         this.socket = socket
@@ -39,6 +40,10 @@ public class BtCar(val device: BluetoothDevice) {
     private fun manageSocket(socket: BluetoothSocket) {
 
         val buffer = ByteArray(1024)
+        val tmpBuffer = ByteArray(1024)
+
+        var bytesRead = 0
+        var readOffset = 0
 
         Observable.just(socket)
                 .observeOn(Schedulers.io())
@@ -55,13 +60,45 @@ public class BtCar(val device: BluetoothDevice) {
 
                         while (connectRequested) {
                             Timber.d("Reading from $devName")
-                            val bytesRead = inStream.read(buffer)
-                            Timber.d("Read $bytesRead bytes from $devName")
-                            val messages = GjMessageFactory.parseAll(buffer)
-                            Timber.d("Parsed ${messages.size} messages from $devName")
-                            messages.forEach {
-                                this.callback?.onMessageReceived(it)
+                            bytesRead = inStream.read(buffer, readOffset, buffer.size - readOffset)
+                            Timber.d("Read $bytesRead bytes from $devName starting at $readOffset")
+
+                            val parserResponse = GjMessageFactory.parseAll(buffer, bytesRead)
+                            val parsedMessages = parserResponse.messages
+                            Timber.d("Parsed ${parsedMessages.size} messages up to byte ${parserResponse.lastParsedRawDataIndex}")
+                            parsedMessages
+                                    .filter { it !is GjMessageError }
+                                    .forEach {
+                                        Timber.d("Parsed message $it from $devName. Callback null: ${this.callback == null}")
+
+                                        this.callback?.onMessageReceived(it)
+                                    }
+
+                            // Copy data from last parsedByte to bytesRead to head of buffer, then read after
+                            val lastParsedByte = parserResponse.lastParsedRawDataIndex
+                            val firstByteOfNextMessage = if (lastParsedByte == 0) 0 else lastParsedByte + 1
+                            val numBytesOfNextMessage = (readOffset + bytesRead) - lastParsedByte
+
+                            if (numBytesOfNextMessage > 0 && lastParsedByte > 0) {
+                                // We have unparsed bytes that need to be prepended to buffer
+                                Timber.d("Read $bytesRead bytes, parsed ${parserResponse.lastParsedRawDataIndex}. #bytes of next message (and readOffset):  $numBytesOfNextMessage. firstByteOfNextMessage $firstByteOfNextMessage")
+                                // Copy bytes of next message into tmp buffer
+                                System.arraycopy(buffer, firstByteOfNextMessage, buffer, 0, numBytesOfNextMessage)
+                                readOffset = numBytesOfNextMessage
+//                                Timber.d("Copying $firstByteOfNextMessage : ${numBytesOfNextMessage + firstByteOfNextMessage} buffer->tmpBuffer")
+//                                System.arraycopy(buffer, firstByteOfNextMessage, tmpBuffer, 0, numBytesOfNextMessage)
+//                                // Copy bytes of next message from tmp buffer to head of buffer
+//                                Timber.d("Copying 0 : $numBytesOfNextMessage tmpBuffer->buffer")
+//                                System.arraycopy(tmpBuffer, 0, buffer, 0, numBytesOfNextMessage)
+                            } else {
+                                readOffset += bytesRead
+                                Timber.d("Incrementing readOffset by $bytesRead. now $readOffset")
+                                if (readOffset > buffer.size / 2) {
+                                    Timber.d("Resetting read offset")
+                                    readOffset = 0
+                                }
                             }
+
                         }
                         Timber.d("Closing socket with $devName")
                         socket.close()
@@ -83,5 +120,19 @@ public class BtCar(val device: BluetoothDevice) {
         fun onConnectionFailed(exception: Exception)
         fun onMessageReceived(message: GjMessage)
     }
+
+    // Read 20 bytes
+
+    // Messages occupied 15 bytes
+
+    // response.lastParsedRawDataIndex = 14
+
+    // firstByteOfNextMessage = 15
+
+    // numBytesOfNextMessage = readOffset (0) + bytesRead (20) - firstByteOfNextMessage (15) = 5
+
+    // Copy buffer [15...] -> tmpBuffer [0, 5]
+    // Copy tmpBuffer [0...] -> buffer [5]
+    // readOffset = 5
 
 }
