@@ -31,6 +31,7 @@ public class BtCar(val device: BluetoothDevice) {
     }
 
     fun disconnect() {
+        Timber.d("Disconnecting from ${device.name}")
         callback = null
         connectRequested = false
         socket?.close()

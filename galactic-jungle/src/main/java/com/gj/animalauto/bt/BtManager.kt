@@ -6,7 +6,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import io.reactivex.Observable
 import timber.log.Timber
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 /**
@@ -76,5 +79,20 @@ public class BtManager(val context: Context) {
                 }
             }
         }
+    }
+
+    /**
+     * Toggle BT power, returning an observable with the result of the subsequent power-up
+     * true : success, false : error
+     */
+    fun reset() : Observable<Boolean> {
+        Timber.d("Reset BT: Disabling...")
+        btAdapter.disable()
+        return Observable.timer(2, TimeUnit.SECONDS)
+                .map {
+                    btAdapter.enable()
+                }
+                .doOnNext { Timber.d("Reset BT: Re-Enabled with result $it") }
+                .delay(2, TimeUnit.SECONDS)
     }
 }

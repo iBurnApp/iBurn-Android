@@ -13,6 +13,7 @@ import com.gj.animalauto.bt.BtManager
 import timber.log.Timber
 import android.view.LayoutInflater
 import android.widget.TextView
+import io.reactivex.Observable
 
 
 /**
@@ -50,6 +51,13 @@ public class CarManager(val context: Context) {
     fun stopDiscovery() {
         discoveryCallback = null
         btManager.stopDiscovery()
+    }
+
+    /**
+     * We all love BT
+     */
+    fun resetBluetooth() : Observable<Boolean> {
+        return btManager.reset()
     }
 
     fun getPrimaryBtCar(): BtCar? {
