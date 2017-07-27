@@ -30,6 +30,8 @@ public class BtManager(val context: Context) {
             return
         }
 
+        if (!btAdapter.isEnabled) btAdapter.enable()
+
         discoveryCallback = callback
 
         btAdapter.startDiscovery()
