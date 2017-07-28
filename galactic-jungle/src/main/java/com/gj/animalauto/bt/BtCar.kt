@@ -2,6 +2,7 @@ package com.gj.animalauto.bt
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
+import com.gj.animalauto.ParsingByteBuffer
 import com.gj.animalauto.message.GjMessage
 import com.gj.animalauto.message.GjMessageFactory
 import com.gj.animalauto.message.internal.GjMessageError
@@ -46,10 +47,10 @@ public class BtCar(val device: BluetoothDevice) {
 
     private fun manageSocket(socket: BluetoothSocket) {
 
-        val buffer = ByteArray(1024)
+        val readBuffer = ByteArray(1024)
+        val parsingBuffer = ParsingByteBuffer(readBuffer.size * 2)
 
         var bytesRead = 0
-        var readOffset = 0
 
         Observable.just(socket)
                 .observeOn(socketScheduler)
@@ -66,10 +67,12 @@ public class BtCar(val device: BluetoothDevice) {
 
                         while (connectRequested) {
                             Timber.d("Reading from $devName")
-                            bytesRead = inStream.read(buffer, readOffset, buffer.size - readOffset)
-                            Timber.d("Read $bytesRead bytes from $devName starting at $readOffset")  // Don't change this log without updating reference in LogAnalyzer
+                            bytesRead = inStream.read(readBuffer, 0, readBuffer.size)
+                            Timber.d("Read $bytesRead bytes from $devName")  // Don't change this log without updating reference in LogAnalyzer
 
-                            val parserResponse = GjMessageFactory.parseAll(buffer, bytesRead)
+                            parsingBuffer.appendData(readBuffer, 0, bytesRead)
+                            val bytesToParse = parsingBuffer.getUndiscardedBytes()
+                            val parserResponse = GjMessageFactory.parseAll(bytesToParse, bytesToParse.size)
                             val parsedMessages = parserResponse.messages
                             Timber.d("Parsed ${parsedMessages.size} messages up to byte ${parserResponse.lastParsedRawDataIndex}")  // Don't change this log without updating reference in LogAnalyzer
                             parsedMessages
@@ -86,24 +89,7 @@ public class BtCar(val device: BluetoothDevice) {
 
                             // Copy data from last parsedByte to bytesRead to head of buffer, then read after
                             val lastParsedByte = parserResponse.lastParsedRawDataIndex
-                            val firstByteOfNextMessage = if (lastParsedByte == 0) 0 else lastParsedByte + 1
-                            val numBytesOfNextMessage = (readOffset + bytesRead) - lastParsedByte
-
-                            if (numBytesOfNextMessage > 0 && lastParsedByte > 0) {
-                                // We have unparsed bytes that need to be prepended to buffer
-                                Timber.d("Read $bytesRead bytes, parsed ${parserResponse.lastParsedRawDataIndex}. #bytes of next message (and readOffset):  $numBytesOfNextMessage. firstByteOfNextMessage $firstByteOfNextMessage")
-                                // Copy bytes of next message into tmp buffer
-                                System.arraycopy(buffer, firstByteOfNextMessage, buffer, 0, numBytesOfNextMessage)
-                                readOffset = numBytesOfNextMessage
-                            } else {
-                                readOffset += bytesRead
-                                Timber.d("Incrementing readOffset by $bytesRead. now $readOffset")
-                                if (readOffset > buffer.size / 2) {
-                                    Timber.d("Resetting read offset")
-                                    readOffset = 0
-                                }
-                            }
-
+                            parsingBuffer.discardEarliestBytes(lastParsedByte + 1)
                         }
                         Timber.d("Closing socket with $devName")
                         socket.close()

@@ -14,7 +14,7 @@ const val numVehicleIds = 5 // This number is constant enough
 // Per stream-attempt benchmarks
 val BtConnectionIssued = "BtCar : Connecting to"
 val BtConnectionCompleted = "BtCar : Connected to"
-val BtDataReceivedPattern = Pattern.compile("BtCar : Read ([0-9]+) bytes from ([a-zA-Z]+) starting at")
+val BtDataReceivedPattern = Pattern.compile("BtCar : Read ([0-9]+) bytes from ([a-zA-Z]+)")
 val BtDataParsedPattern = Pattern.compile("BtCar : Parsed ([0-9]+) messages up to byte")
 
 val GotGpsMessagePattern = Pattern.compile("MapboxMapFragment : Got gps message from vehicle id ([0-9]+)")
