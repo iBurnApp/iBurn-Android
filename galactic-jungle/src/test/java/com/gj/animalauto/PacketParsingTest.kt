@@ -42,6 +42,29 @@ class PacketParsingTest {
 
         val parsingBuffer = ParsingByteBuffer(packet1Buffer.size + packet2Buffer.size)
 
+        // Parse packet 1 and packet 2 as delivered in perfect chunks:
+        parsingBuffer.appendData(packet1Buffer, 0, packet1Buffer.size)
+        val allPacket1 = parsingBuffer.getUndiscardedBytes()
+        val pkt1Resp = GjMessageFactory.parseAll(allPacket1, allPacket1.size)
+
+        assertEquals(pkt1Resp.lastParsedRawDataIndex, allPacket1.size - 1)
+        assertEquals(pkt1Resp.messages.size, 1) // One Status message
+        assertTrue(pkt1Resp.messages.first() is GjMessageStatusResponse) // The status message
+
+        parsingBuffer.discardEarliestBytes(parsingBuffer.capacity)
+
+        parsingBuffer.appendData(packet2Buffer, 0, packet2Buffer.size)
+        val allPacket2 = parsingBuffer.getUndiscardedBytes()
+        val pkt2Resp = GjMessageFactory.parseAll(allPacket2, allPacket2.size)
+
+        assertEquals(pkt2Resp.lastParsedRawDataIndex, allPacket2.size - 1)
+        assertEquals(pkt2Resp.messages.size, 1) // One Status message
+        assertTrue(pkt2Resp.messages.first() is GjMessageGps) // The status message
+
+        parsingBuffer.discardEarliestBytes(parsingBuffer.capacity)
+
+        // Reset - now some parsing of messages split across appends
+
         // Add all but one-byte of packet1, thte parser should return no results and should not advance index
         parsingBuffer.appendData(packet1Buffer, 0, packet1Buffer.size - 1)
 

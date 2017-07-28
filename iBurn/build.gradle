@@ -29,7 +29,7 @@ android {
         applicationId "com.iburnapp.iburn"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        archivesBaseName = "iburn-$versionName-$versionCode"
+        archivesBaseName = "iburn-gj-$versionName-$versionCode"
 
         javaCompileOptions {
             annotationProcessorOptions {

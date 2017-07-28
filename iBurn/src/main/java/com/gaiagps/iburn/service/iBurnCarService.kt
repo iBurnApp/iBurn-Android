@@ -6,6 +6,8 @@ import android.content.ServiceConnection
 import android.location.Location
 import com.gaiagps.iburn.BuildConfig
 import com.gaiagps.iburn.location.LocationProvider
+import com.gj.animalauto.bt.BtCar
+import com.gj.animalauto.bt.MockBtCar
 import com.gj.animalauto.message.GjMessage
 import com.gj.animalauto.message.GjMessageGps
 import com.gj.animalauto.message.GjMessageStatusResponse
@@ -21,6 +23,7 @@ import java.util.concurrent.TimeUnit
  * Created by dbro on 7/19/17.
  */
 const val MOCK_BT_CAR_CONNECTION = false
+const val MOCK_BT_CAR_RAW_DATA = true // Note: Only has effect if MOCK_BT_CAR_CONNECTION is true. If true, deliver contrived bytes (Tests parsing and message handling). If false, deliver contrived GjMessages (Just tests message handling)
 
 public class iBurnCarService : CarService() {
 
@@ -47,12 +50,23 @@ public class iBurnCarService : CarService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (MOCK_BT_CAR_CONNECTION) {
+        if (MOCK_BT_CAR_CONNECTION && !MOCK_BT_CAR_RAW_DATA) {
             // Don't actually issue any BT connection
             mockGjMessages()
             return START_STICKY
         } else {
             return super.onStartCommand(intent, flags, startId)
+        }
+    }
+
+    override fun connectToCar(car: BtCar) {
+        if (MOCK_BT_CAR_CONNECTION && MOCK_BT_CAR_RAW_DATA) {
+            val mockCar = MockBtCar(car.device)
+            Timber.d("Redirecting connectToCar to mockBtCar")
+            super.connectToCar(mockCar)
+        } else {
+            Timber.d("Calling regular connetToCar")
+            super.connectToCar(car)
         }
     }
 
@@ -79,7 +93,6 @@ public class iBurnCarService : CarService() {
                     val vehicleId = tickVehicleIdPair.second.toByte()
 
                     if (vehicleId == localVehicleId) {
-                        // TODO : Send status
                         val data = GjMessageStatusResponse.createData(false, false, false, false, false)
                         val statusMessage = GjMessageStatusResponse(tick, localVehicleId, byteArrayOf(data))
                         onMessageReceived(statusMessage)

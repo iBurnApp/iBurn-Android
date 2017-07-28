@@ -2,6 +2,7 @@ package com.gj.animalauto.bt
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
+import com.gj.animalauto.BuildConfig
 import com.gj.animalauto.ParsingByteBuffer
 import com.gj.animalauto.message.GjMessage
 import com.gj.animalauto.message.GjMessageFactory
@@ -17,19 +18,26 @@ import java.util.concurrent.Executors
 /**
  * Created by dbro on 7/17/17.
  */
-public class BtCar(val device: BluetoothDevice) {
+const val readBufferSize = 1024
 
-    private val socketScheduler by lazy {
-        Schedulers.from(Executors.newSingleThreadExecutor())
-    }
+open class BtCar(val device: BluetoothDevice) {
 
     private val sppUuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 
+    protected val socketScheduler by lazy {
+        Schedulers.from(Executors.newSingleThreadExecutor())
+    }
+
+    val deviceName: String = device.name // This is a somewhat expensive lookup, so we cache it
     private var socket: BluetoothSocket? = null
     private var connectRequested = false
-    private var callback: Callback? = null
+    protected var callback: Callback? = null
 
-    fun connect(callback: Callback) {
+    protected val parsingBuffer by lazy {
+        ParsingByteBuffer(readBufferSize * 2)
+    }
+
+    open fun connect(callback: Callback) {
         this.callback = callback
         connectRequested = true
         val socket = device.createRfcommSocketToServiceRecord(sppUuid)
@@ -37,7 +45,7 @@ public class BtCar(val device: BluetoothDevice) {
         manageSocket(socket)
     }
 
-    fun disconnect() {
+    open fun disconnect() {
         Timber.d("Disconnecting from ${device.name}")
         callback = null
         connectRequested = false
@@ -47,8 +55,7 @@ public class BtCar(val device: BluetoothDevice) {
 
     private fun manageSocket(socket: BluetoothSocket) {
 
-        val readBuffer = ByteArray(1024)
-        val parsingBuffer = ParsingByteBuffer(readBuffer.size * 2)
+        val readBuffer = ByteArray(readBufferSize)
 
         var bytesRead = 0
 
@@ -56,49 +63,54 @@ public class BtCar(val device: BluetoothDevice) {
                 .observeOn(socketScheduler)
                 .subscribe {
 
-                    val devName = device.name
                     try {
-                        Timber.d("Connecting to $devName...") // Don't change this log without updating reference in LogAnalyzer
+                        Timber.d("Connecting to $deviceName...") // Don't change this log without updating reference in LogAnalyzer
                         socket.connect()
-                        Timber.d("Connected to $devName!")  // Don't change this log without updating reference in LogAnalyzer
+                        Timber.d("Connected to $deviceName!")  // Don't change this log without updating reference in LogAnalyzer
                         callback?.onConnected()
 
                         val inStream = socket.inputStream
 
                         while (connectRequested) {
-                            Timber.d("Reading from $devName")
+                            Timber.d("Reading from $deviceName")
                             bytesRead = inStream.read(readBuffer, 0, readBuffer.size)
-                            Timber.d("Read $bytesRead bytes from $devName")  // Don't change this log without updating reference in LogAnalyzer
+                            Timber.d("Read $bytesRead bytes from $deviceName")  // Don't change this log without updating reference in LogAnalyzer
 
-                            parsingBuffer.appendData(readBuffer, 0, bytesRead)
-                            val bytesToParse = parsingBuffer.getUndiscardedBytes()
-                            val parserResponse = GjMessageFactory.parseAll(bytesToParse, bytesToParse.size)
-                            val parsedMessages = parserResponse.messages
-                            Timber.d("Parsed ${parsedMessages.size} messages up to byte ${parserResponse.lastParsedRawDataIndex}")  // Don't change this log without updating reference in LogAnalyzer
-                            parsedMessages
-                                    .filter { it !is GjMessageError }
-                                    .forEach {
-                                        Timber.d("Parsed message $it from $devName. Callback null: ${this.callback == null}")
-
-                                        this.callback?.let { callback ->
-                                            AndroidSchedulers.mainThread().scheduleDirect {
-                                                callback.onMessageReceived(it)
-                                            }
-                                        }
-                                    }
-
-                            val lastParsedByte = parserResponse.lastParsedRawDataIndex
-                            parsingBuffer.discardEarliestBytes(lastParsedByte + 1)
+                            onDataReceived(readBuffer, 0, bytesRead)
                         }
-                        Timber.d("Closing socket with $devName")
+                        Timber.d("Closing socket with $deviceName")
                         socket.close()
 
                     } catch (e: IOException) {
-                        Timber.e(e, "Failed to connect to $devName")
+                        Timber.e(e, "Failed to connect to $deviceName")
                         callback?.onConnectionFailed(e)
                     }
 
                 }
+    }
+
+    protected fun onDataReceived(data: ByteArray, offset: Int, len: Int) {
+        parsingBuffer.appendData(data, offset, len)
+        val bytesToParse = parsingBuffer.getUndiscardedBytes()
+        val parserResponse = GjMessageFactory.parseAll(bytesToParse, bytesToParse.size)
+        val parsedMessages = parserResponse.messages
+        Timber.d("Parsed ${parsedMessages.size} messages up to byte ${parserResponse.lastParsedRawDataIndex}")  // Don't change this log without updating reference in LogAnalyzer
+        parsedMessages
+                .filter { it !is GjMessageError }
+                .forEach {
+                    Timber.d("Parsed message $it from $deviceName. Callback null: ${this.callback == null}")
+
+                    this.callback?.let { callback ->
+                        AndroidSchedulers.mainThread().scheduleDirect {
+                            callback.onMessageReceived(it)
+                        }
+                    }
+                }
+
+        val lastParsedByte = parserResponse.lastParsedRawDataIndex
+        if (lastParsedByte > 0) {
+            parsingBuffer.discardEarliestBytes(lastParsedByte + 1)
+        }
     }
 
     override fun toString(): String {
@@ -110,19 +122,4 @@ public class BtCar(val device: BluetoothDevice) {
         fun onConnectionFailed(exception: Exception)
         fun onMessageReceived(message: GjMessage)
     }
-
-    // Read 20 bytes
-
-    // Messages occupied 15 bytes
-
-    // response.lastParsedRawDataIndex = 14
-
-    // firstByteOfNextMessage = 15
-
-    // numBytesOfNextMessage = readOffset (0) + bytesRead (20) - firstByteOfNextMessage (15) = 5
-
-    // Copy buffer [15...] -> tmpBuffer [0, 5]
-    // Copy tmpBuffer [0...] -> buffer [5]
-    // readOffset = 5
-
 }

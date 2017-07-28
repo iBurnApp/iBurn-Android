@@ -95,7 +95,7 @@ public open class CarService : Service(), BtCar.Callback {
         }
     }
 
-    private fun connectToCar(car: BtCar) {
+    open fun connectToCar(car: BtCar) {
         this.car = car
         connectingOrConnectedToCar = true
         car.connect(this)
