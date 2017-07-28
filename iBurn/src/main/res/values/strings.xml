@@ -82,6 +82,13 @@
     <string name="pause_audio_tour">Pause Audio Tour</string>
     <string name="camp_location_unknown">Sorry, we don\'t have location data for that camp. You can add a marker later from the app\'s map view.</string>
     <string name="place_marker">Move the map, then tap marker to place it</string>
+    <string name="current_session">Current Session</string>
+    <string name="in_progress">In Progress...</string>
+    <string name="loading_summary">Loading Summary</string>
+    <string name="app_crashed">App Crashed</string>
+    <string name="feedback">Feedback</string>
+    <string name="feedback_notes_hint">What happened?</string>
+    <string name="send">Send</string>
     <string name="current_year">2017</string>
 
 </resources>

@@ -972,7 +972,7 @@ class MapboxMapFragment : GjFragment(), ServiceConnection {
 
             val vehicleId = message.vehicle.toInt()
 
-            Timber.d("Got gps message from vehicle id $vehicleId!")
+            Timber.d("Got gps message from vehicle id $vehicleId!")  // Don't change this log without updating reference in LogAnalyzer
             val vehicleLatLng = LatLng(message.lat, message.long)
 
             val marker = gjMarkers[vehicleId]

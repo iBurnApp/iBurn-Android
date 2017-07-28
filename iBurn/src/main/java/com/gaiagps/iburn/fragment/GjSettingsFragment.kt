@@ -65,6 +65,11 @@ public class GjSettingsFragment : GjFragment() {
         view
     }
 
+    val appLogsItem: View by lazy {
+        val view: View = view!!.findViewById(R.id.app_logs_item)
+        view
+    }
+
     val carManager by lazy {
         CarManager(context.applicationContext)
     }
@@ -110,8 +115,18 @@ public class GjSettingsFragment : GjFragment() {
             })
         }
 
+        appLogsItem.setOnClickListener {
+            showAppLogDialog()
+        }
+
         messageConsoleValue.adapter = messageAdapter
 
+    }
+
+    private fun showAppLogDialog() {
+        val dialogFrag = FeedbackDialogFragment()
+        val fm = activity.supportFragmentManager
+        dialogFrag.show(fm, "Send Feedback")
     }
 
     private val maxMessageAdapterSize = 1000

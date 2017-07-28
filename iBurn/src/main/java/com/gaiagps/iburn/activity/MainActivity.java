@@ -62,7 +62,7 @@ import static com.gaiagps.iburn.SECRETSKt.HOCKEY_ID;
 import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
 
 @RuntimePermissions
-public class MainActivity extends AppCompatActivity implements SearchQueryProvider {
+public class MainActivity extends BaseActivity implements SearchQueryProvider {
 
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private boolean googlePlayServicesMissing = false;

@@ -1,5 +1,6 @@
 package com.gaiagps.iburn;
 
+import com.gaiagps.iburn.log.DiskLogger;
 import com.mapbox.mapboxsdk.Mapbox;
 
 import timber.log.Timber;
@@ -15,9 +16,7 @@ public class iBurnApp extends android.app.Application {
     public void onCreate() {
         super.onCreate();
 
-        if (BuildConfig.DEBUG) {
-            Timber.plant(new Timber.DebugTree());
-        }
+        Timber.plant(DiskLogger.getSharedInstance(getApplicationContext()));
 
         Mapbox.getInstance(getApplicationContext(), MAPBOX_API_KEY);
 

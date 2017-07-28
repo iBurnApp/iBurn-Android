@@ -8,4 +8,5 @@
 
     <item name="audio_tour_toggle" type="id"/>
 
+    <item name="view_tag_file" type="id"/>
 </resources>

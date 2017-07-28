@@ -51,6 +51,7 @@
             android:name=".activity.SearchActivity"
             android:label="@string/title_activity_search"
             android:screenOrientation="landscape"></activity>
+        <activity android:name=".activity.BaseActivity" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"

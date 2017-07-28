@@ -51,9 +51,9 @@ public class BtCar(val device: BluetoothDevice) {
 
                     val devName = device.name
                     try {
-                        Timber.d("Connecting to $devName...")
+                        Timber.d("Connecting to $devName...") // Don't change this log without updating reference in LogAnalyzer
                         socket.connect()
-                        Timber.d("Connected to $devName!")
+                        Timber.d("Connected to $devName!")  // Don't change this log without updating reference in LogAnalyzer
                         callback?.onConnected()
 
                         val inStream = socket.inputStream
@@ -61,11 +61,11 @@ public class BtCar(val device: BluetoothDevice) {
                         while (connectRequested) {
                             Timber.d("Reading from $devName")
                             bytesRead = inStream.read(buffer, readOffset, buffer.size - readOffset)
-                            Timber.d("Read $bytesRead bytes from $devName starting at $readOffset")
+                            Timber.d("Read $bytesRead bytes from $devName starting at $readOffset")  // Don't change this log without updating reference in LogAnalyzer
 
                             val parserResponse = GjMessageFactory.parseAll(buffer, bytesRead)
                             val parsedMessages = parserResponse.messages
-                            Timber.d("Parsed ${parsedMessages.size} messages up to byte ${parserResponse.lastParsedRawDataIndex}")
+                            Timber.d("Parsed ${parsedMessages.size} messages up to byte ${parserResponse.lastParsedRawDataIndex}")  // Don't change this log without updating reference in LogAnalyzer
                             parsedMessages
                                     .filter { it !is GjMessageError }
                                     .forEach {

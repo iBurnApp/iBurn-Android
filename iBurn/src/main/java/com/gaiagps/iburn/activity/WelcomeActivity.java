@@ -31,7 +31,7 @@ import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
 
 @RuntimePermissions
-public class WelcomeActivity extends AppCompatActivity implements WelcomeFragment.HomeCampSelectionListener {
+public class WelcomeActivity extends BaseActivity implements WelcomeFragment.HomeCampSelectionListener {
     static final int NUM_PAGES = 4;
 
     private PrefsHelper prefs;

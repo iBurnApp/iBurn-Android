@@ -29,7 +29,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
-public class SearchActivity extends AppCompatActivity implements AdapterListener {
+public class SearchActivity extends BaseActivity implements AdapterListener {
 
     private MultiTypePlayaItemAdapter adapter;
     private Disposable searchSubscription;

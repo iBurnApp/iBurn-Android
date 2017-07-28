@@ -76,7 +76,7 @@ import static com.gaiagps.iburn.service.AudioPlayerServiceKt.MediaMetadataKeyArt
  * Show the detail view for a Camp, Art installation, or Event
  * Created by davidbrodsky on 8/11/13.
  */
-public class PlayaItemViewActivity extends AppCompatActivity implements AdapterListener {
+public class PlayaItemViewActivity extends BaseActivity implements AdapterListener {
 
     public static final String EXTRA_PLAYA_ITEM = "playa-item";
 
