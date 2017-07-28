@@ -6,15 +6,21 @@ import com.gj.animalauto.message.GjMessage
 import com.gj.animalauto.message.GjMessageFactory
 import com.gj.animalauto.message.internal.GjMessageError
 import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import java.io.IOException
 import java.util.*
+import java.util.concurrent.Executors
 
 /**
  * Created by dbro on 7/17/17.
  */
 public class BtCar(val device: BluetoothDevice) {
+
+    private val socketScheduler by lazy {
+        Schedulers.from(Executors.newSingleThreadExecutor())
+    }
 
     private val sppUuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 
@@ -46,7 +52,7 @@ public class BtCar(val device: BluetoothDevice) {
         var readOffset = 0
 
         Observable.just(socket)
-                .observeOn(Schedulers.io())
+                .observeOn(socketScheduler)
                 .subscribe {
 
                     val devName = device.name
@@ -71,7 +77,11 @@ public class BtCar(val device: BluetoothDevice) {
                                     .forEach {
                                         Timber.d("Parsed message $it from $devName. Callback null: ${this.callback == null}")
 
-                                        this.callback?.onMessageReceived(it)
+                                        this.callback?.let { callback ->
+                                            AndroidSchedulers.mainThread().scheduleDirect {
+                                                callback.onMessageReceived(it)
+                                            }
+                                        }
                                     }
 
                             // Copy data from last parsedByte to bytesRead to head of buffer, then read after

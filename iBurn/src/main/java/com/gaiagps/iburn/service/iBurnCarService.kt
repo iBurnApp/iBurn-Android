@@ -11,6 +11,7 @@ import com.gj.animalauto.message.GjMessageGps
 import com.gj.animalauto.message.GjMessageStatusResponse
 import com.gj.animalauto.service.CarService
 import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import timber.log.Timber
 import java.util.*
@@ -72,6 +73,7 @@ public class iBurnCarService : CarService() {
                     val curVehicleId = (tick % numVehicles) + 1
                     Pair(tick, curVehicleId)
                 }
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { tickVehicleIdPair ->
                     val tick = tickVehicleIdPair.first.toByte()
                     val vehicleId = tickVehicleIdPair.second.toByte()
