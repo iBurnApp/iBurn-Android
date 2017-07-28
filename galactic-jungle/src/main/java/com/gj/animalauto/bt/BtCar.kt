@@ -87,7 +87,6 @@ public class BtCar(val device: BluetoothDevice) {
                                         }
                                     }
 
-                            // Copy data from last parsedByte to bytesRead to head of buffer, then read after
                             val lastParsedByte = parserResponse.lastParsedRawDataIndex
                             parsingBuffer.discardEarliestBytes(lastParsedByte + 1)
                         }
