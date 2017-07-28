@@ -61,8 +61,17 @@ public open class CarService : Service(), BtCar.Callback {
             stopSelf(startId)
             return START_NOT_STICKY
 
-        } else if (!connectingOrConnectedToCar) {
-            connectToCar(primaryCar)
+        } else {
+
+            // If we're connected but to a car different from the new primary, disconnect
+            if (connectingOrConnectedToCar && car?.device?.address != primaryCar.device.address) {
+                car?.disconnect()
+                connectingOrConnectedToCar = false
+            }
+
+            if (!connectingOrConnectedToCar) {
+                connectToCar(primaryCar)
+            }
         }
 
         return START_STICKY

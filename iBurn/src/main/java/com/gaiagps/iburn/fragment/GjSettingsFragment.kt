@@ -11,6 +11,7 @@ import android.widget.TextView
 import com.gaiagps.iburn.R
 import com.gaiagps.iburn.WifiCredentialCallback
 import com.gaiagps.iburn.ioScheduler
+import com.gaiagps.iburn.service.iBurnCarService
 import com.gaiagps.iburn.showWifiCredentialsDialog
 import com.gj.animalauto.CarManager
 import com.gj.animalauto.OscHostManager
@@ -173,6 +174,8 @@ public class GjSettingsFragment : GjFragment() {
 
             Timber.d("User selected car %s. Saving as primary and connecting...", selectedBtCar)
             carManager.setPrimaryBtCar(selectedBtCar)
+            // Send a new start command to iBurnCarService which should kick off another
+            iBurnCarService.start(activity)
             updateItemValueViews()
         })
     }
