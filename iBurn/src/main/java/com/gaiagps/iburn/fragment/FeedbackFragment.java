@@ -42,9 +42,9 @@ public class FeedbackFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_feedback, container, false);
         feedbackView = (EditText) root.findViewById(R.id.feedback);
 
-        String appInfo = String.format(Locale.US, "(Version: %s %s %s %d %s)\n\n",
+        String appInfo = String.format(Locale.US, "(Version: %s %s %s %d %s git %s)\n\n",
                 BuildConfig.APPLICATION_ID, BuildConfig.BUILD_TYPE, BuildConfig.FLAVOR,
-                BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME);
+                BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME, BuildConfig.COMMIT_HASH);
 
         root.findViewById(R.id.feedbackButton).setOnClickListener(v -> {
             Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(

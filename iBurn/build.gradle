@@ -16,6 +16,15 @@ repositories {
     maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
 }
 
+def getGitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
 android {
     compileSdkVersion 26
     buildToolsVersion "26.0.1"
@@ -43,6 +52,8 @@ android {
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
+
+        buildConfigField "String", "COMMIT_HASH", "\"${getGitHash()}\""
     }
 
     packagingOptions {
