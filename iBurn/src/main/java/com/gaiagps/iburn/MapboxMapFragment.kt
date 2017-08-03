@@ -5,16 +5,13 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Point
 import android.graphics.PointF
 import android.os.Bundle
 import android.support.animation.DynamicAnimation
 import android.support.animation.SpringAnimation
-import android.support.animation.SpringForce.*
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
 import android.text.TextUtils
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -27,7 +24,9 @@ import com.gaiagps.iburn.location.LocationProvider
 import com.google.android.gms.location.LocationRequest
 import com.mapbox.mapboxsdk.annotations.*
 import com.mapbox.mapboxsdk.camera.CameraPosition
+import com.mapbox.mapboxsdk.camera.CameraUpdate
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
+import com.mapbox.mapboxsdk.constants.MyLocationTracking
 import com.mapbox.mapboxsdk.exceptions.InvalidLatLngBoundsException
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.geometry.LatLngBounds
@@ -187,13 +186,11 @@ class MapboxMapFragment : Fragment() {
             mapView.addView(addressLabel)
             setMargins(addressLabel, 0, margin, margin * 5, 0, Gravity.TOP.or(Gravity.RIGHT))
             addressLabel.setOnClickListener {
-                val address = addressLabel.text.toString()
-                if (!TextUtils.isEmpty(address)) {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = ClipData.newPlainText("Current Playa Address", address)
-                    clipboard.primaryClip = clip
-                    Toast.makeText(activity.applicationContext, "Copied address to clipboard", Toast.LENGTH_LONG).show()
-                }
+                onUserAddressLabelClicked(longClick = false)
+            }
+            addressLabel.setOnLongClickListener {
+                onUserAddressLabelClicked(longClick = true)
+                true
             }
             this.addressLabel = addressLabel
 
@@ -558,6 +555,46 @@ class MapboxMapFragment : Fragment() {
     private val iconUserHeart: Icon by lazy {
         iconFactory.fromResource(R.drawable.puck_heart)
     }
+
+    private fun onUserAddressLabelClicked(longClick: Boolean) {
+
+        fun copyAddressToClipboard() {
+            val address = addressLabel?.text.toString()
+            if (!TextUtils.isEmpty(address)) {
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText("Current Playa Address", address)
+                clipboard.primaryClip = clip
+                Toast.makeText(activity.applicationContext, "Copied address to clipboard", Toast.LENGTH_LONG).show()
+            }
+        }
+
+        fun followCurrentLocaction() {
+            this.mapView?.getMapAsync { map ->
+                val location = map.myLocation
+                location?.let { location ->
+                    val camUpdate = CameraUpdate { _ ->
+                        CameraPosition.Builder().target(LatLng(location.latitude, location.longitude))
+                                .zoom(markerShowcaseZoom)
+                                .build()
+                    }
+
+                    map.animateCamera(camUpdate, object: MapboxMap.CancelableCallback {
+                        override fun onCancel() {
+                            // no-op
+                        }
+
+                        override fun onFinish() {
+                            map.trackingSettings.myLocationTrackingMode = MyLocationTracking.TRACKING_FOLLOW
+                        }
+
+                    })
+                }
+            }
+        }
+
+        if (longClick) copyAddressToClipboard() else followCurrentLocaction()
+    }
+
 
     private fun addNewMarkerForItem(map: MapboxMap, item: PlayaItem): Marker {
         val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
