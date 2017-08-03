@@ -28,7 +28,7 @@ open class BtCar(val device: BluetoothDevice) {
         Schedulers.from(Executors.newSingleThreadExecutor())
     }
 
-    val deviceName: String = device.name // This is a somewhat expensive lookup, so we cache it
+    val deviceName: String = device.name ?: "" // This is a somewhat expensive lookup, so we cache it
     private var socket: BluetoothSocket? = null
     private var connectRequested = false
     protected var callback: Callback? = null
