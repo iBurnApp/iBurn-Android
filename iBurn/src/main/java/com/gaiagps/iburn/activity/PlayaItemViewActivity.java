@@ -398,7 +398,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         inflater.inflate(R.menu.activity_playa_item, menu);
 
         favoriteMenuItem = menu.findItem(R.id.favorite_menu);
-        if (isFavorite) favoriteMenuItem.setIcon(R.drawable.ic_heart_full);
+        if (isFavorite) favoriteMenuItem.setIcon(R.drawable.ic_heart_full_white_24dp);
         if (showingLocation || showingArt) favoriteMenuItem.setVisible(false);
 
         imageMenuItem = menu.findItem(R.id.image_menu);
@@ -741,7 +741,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
             return;
         }
 
-        int newMenuDrawableResId = isFavorite ? R.drawable.ic_heart_full : R.drawable.ic_heart_empty;
+        int newMenuDrawableResId = isFavorite ? R.drawable.ic_heart_full_white_24dp : R.drawable.ic_heart_empty_white_24dp;
 
         favoriteButton.setSelectedState(isFavorite, save);
         if (favoriteMenuItem != null) favoriteMenuItem.setIcon(newMenuDrawableResId);
