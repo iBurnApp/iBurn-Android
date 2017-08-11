@@ -7,6 +7,7 @@ import android.support.v4.util.Pair;
 
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.SchedulersKt;
+import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.api.response.Art;
 import com.gaiagps.iburn.api.response.Camp;
 import com.gaiagps.iburn.api.response.DataManifest;
@@ -210,7 +211,7 @@ public class IBurnService {
                 .build();
 
         this.service = retrofit.create(IBurnApi.class);
-        this.context = context;
+        this.context = context.getApplicationContext();
     }
 
     public IBurnService(@NonNull Context context, IBurnApi service) {
@@ -314,7 +315,11 @@ public class IBurnService {
 
             values.put(ALL_DAY, event.allDay);
             values.put(CHECK_LOC, event.checkLocation);
-            values.put(TYPE, event.eventType.abbr);
+            if (event.eventType != null) {
+                values.put(TYPE, event.eventType.abbr);
+            } else {
+                values.put(TYPE, AdapterUtils.EVENT_TYPE_ABBREVIATION_UNKNOWN);
+            }
 
             if (event.hostedByCamp != null) {
                 values.put(CAMP_PLAYA_ID, event.hostedByCamp);

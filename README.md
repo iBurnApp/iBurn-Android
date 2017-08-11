@@ -49,7 +49,7 @@ Put bundled database in `./iBurn/main/assets/databases`, make sure DBWrapper fil
 ## Releasing
 Make sure you've:
 
-+ Set embargo date correctly in `Embargo.java`, and adjust dates in `AdapterUtils`
++ Set embargo date correctly in `Embargo.java`, and set `EVENT_START_DATE` and `EVENT_STOP_DATE` in `AdapterUtils`
 + Incremented the version code and name in ./iBurn/build.grade
 The final pre-signed store release should be built with:
 

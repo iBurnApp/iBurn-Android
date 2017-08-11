@@ -3,6 +3,7 @@ package com.gaiagps.iburn.activity;
 import android.Manifest;
 import android.animation.ValueAnimator;
 import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -22,12 +23,15 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.PermissionManager;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
+import com.gaiagps.iburn.api.IBurnApi;
 import com.gaiagps.iburn.api.IBurnService;
+import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
@@ -117,7 +121,11 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             showWelcome();
             // TODO : No bundled DB yet, so pull data from API during onboarding
             Timber.d("Updating!");
-            IBurnService service = new IBurnService(this);
+            Context appContext = getApplicationContext();
+            IBurnService service = BuildConfig.MOCK ?
+                    new IBurnService(appContext, new MockIBurnApi(appContext)) :
+                    new IBurnService(appContext);
+
             service.updateData()
                     .subscribe((success) -> {
                         Timber.d("Updated iburn with success %b", success);
@@ -128,14 +136,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             DataUpdateService.scheduleAutoUpdate(this);
             prefs.setDidScheduleUpdate(true);
         }
-
-//        Mock update (Comment out DataService.scheduleAutoUpdate above)
-//        Timber.d("Updating!");
-//        IBurnService service = new IBurnService(this);
-//        service.updateData()
-//                .subscribe((success) -> {
-//                    Timber.d("Updated iburn with success %b", success);
-//                });
 
         if (Embargo.isEmbargoActive(prefs)) {
             showEmbargoBanner();

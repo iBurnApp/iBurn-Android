@@ -14,7 +14,7 @@ import static com.gaiagps.iburn.database.Event.TABLE_NAME;
 public class Event extends PlayaItem {
     public static final String TABLE_NAME = "events";
 
-    public static final String TYPE = "artist";
+    public static final String TYPE = "e_type";
     public static final String ALL_DAY = "all_day";
     public static final String CHECK_LOC = "check_loc";
     public static final String CAMP_PLAYA_ID = "c_id";

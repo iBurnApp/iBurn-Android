@@ -60,7 +60,7 @@ public class MockIBurnApi implements IBurnApi {
 
     @Override
     public Observable<List<Camp>> getCamps() {
-        return Observable.just("json/camps.json")
+        return Observable.just("json/camps.json.js")
                 .observeOn(Schedulers.io())
                 .map(path -> {
                     try {
@@ -78,7 +78,7 @@ public class MockIBurnApi implements IBurnApi {
 
     @Override
     public Observable<List<Art>> getArt() {
-        return Observable.just("json/art.json")
+        return Observable.just("json/art.json.js")
                 .observeOn(Schedulers.io())
                 .map(path -> {
                     try {
@@ -96,7 +96,7 @@ public class MockIBurnApi implements IBurnApi {
 
     @Override
     public Observable<List<Event>> getEvents() {
-        return Observable.just("json/events.json")
+        return Observable.just("json/events.json.js")
                 .observeOn(Schedulers.io())
                 .map(path -> {
                     try {
