@@ -43,6 +43,9 @@ class EventStartTimeSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSe
     }
 
     override fun getSectionForPosition(position: Int): Int {
+        // Requesting the lastIndex of an empty array yields -1, which will produce ArrayIndexOutOfBoundsExceptions
+        if (sectionPositions?.isEmpty() ?: true) return 0
+
         sectionPositions?.forEachIndexed { index, sectionPosition ->
 
             if (sectionPosition > position) return index - 1

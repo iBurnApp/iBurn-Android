@@ -172,7 +172,12 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
     // <editor-fold desc="SectionIndexer">
 
     override fun getSections(): Array<Any> {
-        return sectionIndexer?.sections ?: emptyArray()
+        val sections = sectionIndexer?.sections
+
+        if (sections?.isEmpty() ?: false) {
+            return arrayOf(" ¯\\_(ツ)_/¯") as Array<Any>
+        }
+        return sections!!
     }
 
     override fun getSectionForPosition(position: Int): Int {

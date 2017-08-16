@@ -15,6 +15,9 @@ class AlphabeticalSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSect
     }
 
     override fun getSectionForPosition(position: Int): Int {
+        // Requesting the lastIndex of an empty array yields -1, which will produce ArrayIndexOutOfBoundsExceptions
+        if (items?.isEmpty() ?: true) return 0
+        
         if (position == items?.size) return sections.lastIndex
 
         val name = items?.get(position)?.name
