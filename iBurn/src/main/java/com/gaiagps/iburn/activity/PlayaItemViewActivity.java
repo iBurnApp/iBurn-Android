@@ -54,8 +54,6 @@ import com.gaiagps.iburn.database.PlayaItem;
 import com.gaiagps.iburn.service.AudioPlayerService;
 import com.gaiagps.iburn.view.AnimatedFloatingActionButton;
 import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -70,6 +68,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
+import static com.gaiagps.iburn.ArtImageManagerKt.loadArtImage;
 import static com.gaiagps.iburn.service.AudioPlayerServiceKt.MediaMetadataKeyArtPlayaId;
 
 /**
@@ -515,7 +514,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
             artImageView.setAlpha(.99f); // Hack - Can't seem to properly add view if it's visibility is not VISIBLE or alpha 0. This lets us know that the view isn't technically visible (it's not at the front)
             mapContainer.addView(artImageView);
 
-            Picasso.with(this).load(art.imageUrl).into(artImageView, new Callback() {
+            loadArtImage(art, artImageView, new com.gaiagps.iburn.Callback() {
+
                 @Override
                 public void onSuccess() {
                     loadedArtImage = true;
