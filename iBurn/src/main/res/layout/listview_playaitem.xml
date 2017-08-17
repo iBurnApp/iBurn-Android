@@ -21,7 +21,7 @@
     <ImageView
         android:id="@+id/imageMask"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="150dp"
         android:scaleType="centerCrop"
         android:src="@drawable/gradient"
         app:layout_constraintBottom_toBottomOf="@id/image"
@@ -41,7 +41,7 @@
         android:src="@drawable/ic_heart_empty"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/imageMask"
-        app:layout_constraintVertical_bias="1"
+        app:layout_constraintVertical_bias=".99"
         app:layout_constraintBottom_toBottomOf="@id/imageMask" />
 
     <TextView
@@ -58,7 +58,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/imageMask"
         app:layout_constraintBottom_toBottomOf="@id/imageMask"
-        app:layout_constraintVertical_bias=".9"
+        app:layout_constraintVertical_bias=".99"
         tools:text="Dust Feast really long title omg its gonna hit the heart" />
 
     <TextView
