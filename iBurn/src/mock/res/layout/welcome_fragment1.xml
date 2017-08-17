@@ -30,26 +30,48 @@
             android:layout_marginTop="32dp"
             android:fontFamily="sans-serif-condensed"
             android:gravity="center"
-            android:text="@string/welcome_iburn"
-            android:textColor="#ffffff"
             android:shadowColor="#000000"
             android:shadowDx="2"
             android:shadowDy="2"
+            android:text="@string/welcome_iburn"
+            android:textColor="#ffffff"
             android:textSize="38sp" />
 
-        <TextView
+        <LinearLayout
             android:id="@+id/sub_heading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:fontFamily="sans-serif-condensed"
             android:gravity="center"
-            android:text="@string/current_year"
-            android:textColor="#ffffff"
             android:shadowColor="#000000"
             android:shadowDx="2"
             android:shadowDy="2"
+            android:text="@string/current_year"
+            android:textColor="#ffffff"
             android:textSize="54sp" />
+
+            <TextView
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:fontFamily="sans-serif-condensed"
+                android:shadowColor="#000000"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:text="For testing purposes, this build simulates you being on playa during the burn. Don't Panic!"
+                android:textColor="#cccccc"
+                android:textSize="20sp" />
+
+        </LinearLayout>
+
+
     </LinearLayout>
 
 </RelativeLayout>

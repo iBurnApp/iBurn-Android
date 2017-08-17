@@ -4,7 +4,7 @@
     <string name="app_name">iBurn Mock</string>
 
     <!-- MainActivity Tabs -->
-    <string name="welcome_iburn">iBurn Mock</string>
+    <string name="welcome_iburn">Welcome to (Mock) iBurn</string>
     <string name="welcome">Thanks for helping us test things out!\n Camp, Event and Art location data is not available in this alpha.\n Your device location and the current date are mocked to simulate you being on the Playa during the Burn.</string>
 
 </resources>
