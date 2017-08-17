@@ -75,7 +75,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
             campSearchView.setOnItemClickListener((parent, view, position, id) -> {
                 Camp selectedCamp = ((Camp) campSearchView.getAdapter().getItem(position));
 
-                if (!selectedCamp.hasLocation()) {
+                if (!selectedCamp.hasLocation() && !selectedCamp.hasUnofficialLocation()) {
                     rootView.findViewById(R.id.error).setVisibility(View.VISIBLE);
                     campSearchView.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
                     if (getActivity() instanceof HomeCampSelectionListener) {

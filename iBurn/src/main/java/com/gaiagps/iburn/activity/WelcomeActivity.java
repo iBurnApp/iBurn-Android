@@ -143,8 +143,13 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         if (homeCampSelection != null) {
             UserPoi poi = new UserPoi();
             poi.name = homeCampSelection.name;
-            poi.latitude = homeCampSelection.latitude;
-            poi.longitude = homeCampSelection.longitude;
+            if (homeCampSelection.hasLocation()) {
+                poi.latitude = homeCampSelection.latitude;
+                poi.longitude = homeCampSelection.longitude;
+            } else {
+                poi.latitude = homeCampSelection.latitudeUnofficial;
+                poi.longitude = homeCampSelection.longitudeUnofficial;
+            }
             poi.icon = UserPoi.ICON_HOME;
             DataProvider.Companion.getInstance(getApplicationContext())
                     .observeOn(SchedulersKt.getIoScheduler())

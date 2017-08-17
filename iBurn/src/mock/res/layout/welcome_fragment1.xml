@@ -66,7 +66,7 @@
                 android:shadowDx="2"
                 android:shadowDy="2"
                 android:text="For testing purposes, this build simulates you being on playa during the burn. Don't Panic!"
-                android:textColor="#cccccc"
+                android:textColor="#ffffff"
                 android:textSize="20sp" />
 
         </LinearLayout>
