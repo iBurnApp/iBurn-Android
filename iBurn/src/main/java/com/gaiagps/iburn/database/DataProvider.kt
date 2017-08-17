@@ -391,11 +391,6 @@ class DataProvider private constructor(private val context: Context, private val
          */
         val RESOURCES_VERSION: Long = 0 //1472093065000L; // Unix time of creation
 
-        /**
-         * If true, use a bundled pre-populated database (see [DBWrapper]. Else start with a fresh database.
-         */
-        private val USE_BUNDLED_DB = true
-
         private var provider: DataProvider? = null
 
         //    private ArrayDeque<BriteDatabase.Transaction> transactionStack = new ArrayDeque<>();
@@ -407,10 +402,6 @@ class DataProvider private constructor(private val context: Context, private val
             if (provider != null) return Observable.just(provider!!)
 
             val prefs = PrefsHelper(context)
-
-            // TODO : How to use bundled DB?
-            //        SQLiteOpenHelper openHelper = USE_BUNDLED_DB ? new DBWrapper(context) : com.gaiagps.iburn.database.generated.PlayaDatabase.getInstance(context);
-
 
             return Observable.just(getSharedDb(context))
                     .subscribeOn(Schedulers.io())

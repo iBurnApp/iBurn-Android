@@ -14,6 +14,12 @@ import com.jaus.albertogiunta.justintrain_oraritreni.db.sqliteAsset.AssetSQLiteO
 /**
  * Created by dbro on 6/6/17.
  */
+
+/**
+ * If true, use a bundled pre-populated database. Else start with a fresh database.
+ */
+private const val USE_BUNDLED_DB = true
+
 private const val DATABASE_V1 = 1
 
 @Database(entities = arrayOf(Art::class, Camp::class, Event::class, UserPoi::class), version = DATABASE_V1)
@@ -34,9 +40,15 @@ fun getSharedDb(context: Context): AppDatabase {
         val builder = android.arch.persistence.room.Room.databaseBuilder(
                 context,
                 AppDatabase::class.java, "playaDatabase2017.db")
-                .openHelperFactory(AssetSQLiteOpenHelperFactory())
+
+
         // TODO : Possible to optionally use bundled db?
-        val newDb = builder.build()
+        val newDb = if (USE_BUNDLED_DB) {
+            builder.openHelperFactory(AssetSQLiteOpenHelperFactory()).build()
+        } else {
+            builder.build()
+        }
+
         sharedDb = newDb
         return newDb
     } else {
