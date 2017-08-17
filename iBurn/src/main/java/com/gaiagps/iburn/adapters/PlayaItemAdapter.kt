@@ -112,21 +112,31 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
             holder.titleView.text = item.name
             holder.descView.text = item.description
 
-            if (isEmbargoActive) {
+            if (isEmbargoActive && !item.hasUnofficialLocation()) {
 
                 holder.addressView.visibility = View.GONE
                 holder.bikeTimeView.visibility = View.GONE
                 holder.walkTimeView.visibility = View.GONE
 
-            } else if (item.hasLocation() || !TextUtils.isEmpty(item.playaAddress)) {
+            } else if (item.hasLocation() || item.hasUnofficialLocation() || !TextUtils.isEmpty(item.playaAddress)) {
+
+                val useOfficialLocation = item.hasLocation() && !isEmbargoActive
+
+                val lat = if (useOfficialLocation) item.latitude else item.latitudeUnofficial
+                val lon = if (useOfficialLocation) item.longitude else item.longitudeUnofficial
+                val address = if (useOfficialLocation) item.playaAddress else item.playaAddressUnofficial
 
                 // Sets Walk and Bike time, hiding views if item.latitude / longitude is 0
                 AdapterUtils.setDistanceText(deviceLocation, holder.walkTimeView, holder.bikeTimeView,
-                        item.latitude, item.longitude)
+                        lat, lon)
 
-                if (!TextUtils.isEmpty(item.playaAddress)) {
+                if (!TextUtils.isEmpty(address)) {
                     holder.addressView.visibility = View.VISIBLE
-                    holder.addressView.text = item.playaAddress
+                    if (!useOfficialLocation) {
+                        holder.addressView.text = "BurnerMap: " + address
+                    } else {
+                        holder.addressView.text = address
+                    }
                 } else {
                     holder.addressView.visibility = View.GONE
                     holder.bikeTimeView.visibility = View.GONE

@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             // TODO : No bundled DB yet, so pull data from API during onboarding
             Timber.d("Updating!");
             Context appContext = getApplicationContext();
-            IBurnService service = BuildConfig.MOCK ?
+            IBurnService service = false /*BuildConfig.MOCK */ ?
                     new IBurnService(appContext, new MockIBurnApi(appContext)) :
                     new IBurnService(appContext);
 

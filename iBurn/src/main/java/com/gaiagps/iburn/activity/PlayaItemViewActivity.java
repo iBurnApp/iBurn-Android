@@ -448,14 +448,18 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
     private void populateViews(PlayaItem item) {
         boolean embargoActive = Embargo.isEmbargoActive(new PrefsHelper(getApplicationContext()));
-        showingLocation = item.hasLocation() && !embargoActive;
+        showingLocation = (item.hasLocation() && !embargoActive) || item.hasUnofficialLocation();
 
         if (showingLocation) {
             favoriteButton.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
                 if (favoriteMenuItem != null)
                     favoriteMenuItem.setVisible(v.getVisibility() == View.GONE);
             });
-            latLng = item.getLatLng();
+            if (item.hasLocation() && !embargoActive) {
+                latLng = item.getLatLng();
+            } else {
+                latLng = item.getUnofficialLatLng();
+            }
             //TextView locationView = ((TextView) findViewById(R.id.location));
             Timber.d("adding / centering marker on %f, %f", latLng.getLatitude(), latLng.getLongitude());
 
@@ -486,6 +490,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
         if (!embargoActive) {
             setTextOrHideIfEmpty(item.playaAddress, subItem1TextView);
+        } else if (item.hasUnofficialLocation()) {
+            setTextOrHideIfEmpty("BurnerMap: " + item.playaAddressUnofficial, subItem1TextView);
         } else {
             subItem1TextView.setVisibility(View.GONE);
         }

@@ -71,8 +71,16 @@ public class PlayaItem implements Serializable {
         return latitude != 0 && longitude != 0;
     }
 
+    public boolean hasUnofficialLocation() {
+        return latitudeUnofficial != 0 && longitudeUnofficial != 0;
+    }
+
     public LatLng getLatLng() {
         return new LatLng(latitude, longitude);
+    }
+
+    public LatLng getUnofficialLatLng() {
+        return new LatLng(latitudeUnofficial, longitudeUnofficial);
     }
 
     @Override
