@@ -6,6 +6,9 @@ import android.arch.persistence.room.TypeConverter
 import android.arch.persistence.room.TypeConverters
 import android.content.Context
 import java.util.*
+import com.mapbox.mapboxsdk.Mapbox.getApplicationContext
+import android.arch.persistence.room.Room
+import com.jaus.albertogiunta.justintrain_oraritreni.db.sqliteAsset.AssetSQLiteOpenHelperFactory
 
 
 /**
@@ -31,6 +34,7 @@ fun getSharedDb(context: Context): AppDatabase {
         val builder = android.arch.persistence.room.Room.databaseBuilder(
                 context,
                 AppDatabase::class.java, "playaDatabase2017.db")
+                .openHelperFactory(AssetSQLiteOpenHelperFactory())
         // TODO : Possible to optionally use bundled db?
         val newDb = builder.build()
         sharedDb = newDb

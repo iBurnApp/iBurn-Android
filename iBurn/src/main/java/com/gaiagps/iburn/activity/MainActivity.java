@@ -119,17 +119,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         Timber.d("onCreate");
         if (!prefs.didShowWelcome()) {
             showWelcome();
-            // TODO : No bundled DB yet, so pull data from API during onboarding
-            Timber.d("Updating!");
-            Context appContext = getApplicationContext();
-            IBurnService service = false /*BuildConfig.MOCK */ ?
-                    new IBurnService(appContext, new MockIBurnApi(appContext)) :
-                    new IBurnService(appContext);
-
-            service.updateData()
-                    .subscribe((success) -> {
-                        Timber.d("Updated iburn with success %b", success);
-                    }, throwable -> Timber.e(throwable, "Failed to update data"));
         }
 
         if (!prefs.didScheduleUpdate()) {

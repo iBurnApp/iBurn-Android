@@ -19,10 +19,12 @@ import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
  */
 public class DBWrapper extends SQLiteAssetHelper {
 
-    private static final String DATABASE_NAME = "playaDatabase2016.db";
+    private static final String DATABASE_NAME = "playaDatabase2017.db";
     //private static final int DATABASE_VERSION = 1;
     //private static final int DATABASE_VERSION = 2;  // Corrects timezone issue
-    private static final int DATABASE_VERSION = 3;    // 2016 initial
+//    private static final int DATABASE_VERSION = 3;    // 2016 initial
+    private static final int DATABASE_VERSION = 4;    // 2017 initial
+
 
     public DBWrapper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
