@@ -13,6 +13,7 @@ import com.gaiagps.iburn.api.response.Camp;
 import com.gaiagps.iburn.api.response.DataManifest;
 import com.gaiagps.iburn.api.response.Event;
 import com.gaiagps.iburn.api.response.EventOccurrence;
+import com.gaiagps.iburn.api.response.Location;
 import com.gaiagps.iburn.api.response.PlayaItem;
 import com.gaiagps.iburn.api.response.ResourceManifest;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
@@ -29,11 +30,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.reactivex.Scheduler;
 import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -192,8 +196,18 @@ public class IBurnService {
         }
     }
 
+    Scheduler upgradeScheduler =
+            Schedulers.from(
+                    Executors.newSingleThreadExecutor()
+            );
+
     Context context;
     IBurnApi service;
+    /*
+    Store camp and art locations before processing events so we can relate them
+     */
+    HashMap<String, Location> cachedLocations = new HashMap<>();
+    HashMap<String, Location> cachedUnofficialLocations = new HashMap<>();
 
     public IBurnService(@NonNull Context context) {
         Gson gson = new GsonBuilder()
@@ -226,9 +240,13 @@ public class IBurnService {
         final PrefsHelper storage = new PrefsHelper(context);
 
         return DataProvider.Companion.getInstance(context)
-                .observeOn(SchedulersKt.getIoScheduler())
+                .observeOn(upgradeScheduler)
                 .flatMap(dataProvider -> service.getDataManifest().map(dataManifest -> new Pair<>(dataProvider, dataManifest)))
                 .flatMap(depBundle -> {
+
+                    cachedLocations.clear();
+                    cachedUnofficialLocations.clear();
+
                     Timber.d("Got depBundle");
                     DataProvider dataProvider = depBundle.first;
                     DataManifest dataManifest = depBundle.second;
@@ -259,6 +277,8 @@ public class IBurnService {
                     Timber.d("updateData Complete");
                     if (updateDataDependencies.size() > 0) {
                         updateDataDependencies.get(0).dataProvider.endUpgrade();
+                        cachedLocations.clear();
+                        cachedUnofficialLocations.clear();
                     }
                 })
                 .map(dependencies -> true); // TODO : More granular success / failure?
@@ -421,6 +441,43 @@ public class IBurnService {
         values.put(CONTACT, item.contactEmail);
         values.put(DESC, item.description);
         values.put(PLAYA_ID, item.uid);
+
+        if (item instanceof Event) {
+            // Retrieve locations cached by earlier camps / arts
+
+            Event event = (Event) item;
+
+            String locationPlayaId = (event.hostedByCamp != null) ? event.hostedByCamp : event.locatedAtArt;
+
+            if (locationPlayaId != null) {
+                if (cachedLocations.containsKey(locationPlayaId)) {
+                    item.location = cachedLocations.get(locationPlayaId);
+                } else if (cachedUnofficialLocations.containsKey(locationPlayaId)) {
+                    item.burnermap_location = cachedUnofficialLocations.get(locationPlayaId);
+                }
+            }
+
+        } else {
+            // Set and cache location for later use by events
+
+            if (item.location != null) {
+
+                Location location = new Location();
+                location.gps_latitude = item.location.gps_latitude;
+                location.gps_longitude = item.location.gps_longitude;
+                location.string = item.location.string;
+                cachedLocations.put(item.uid, location);
+
+            } else if (item.burnermap_location != null) {
+
+                Location location = new Location();
+                location.gps_latitude =  item.burnermap_location.gps_latitude;
+                location.gps_longitude = item.burnermap_location.gps_longitude;
+                location.string = item.burnermap_location.string;
+                cachedUnofficialLocations.put(item.uid, location);
+            }
+        }
+
         if (item.location != null) {
             values.put(LATITUDE, item.location.gps_latitude);
             values.put(LONGITUDE, item.location.gps_longitude);

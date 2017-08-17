@@ -16,6 +16,7 @@ public class Event extends PlayaItem {
     public EventType eventType;
 
     public String hostedByCamp; // playaId
+    public String locatedAtArt; // playaId
 
     public List<EventOccurrence> occurrenceSet;
 
