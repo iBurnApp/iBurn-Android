@@ -183,7 +183,7 @@ public class AudioTourManager {
     private Uri getContentUriForFile(@NonNull File file) {
         return FileProvider.getUriForFile(
                 context,
-                "com.gaiagps.iburn.fileprovider",
+                BuildConfig.APPLICATION_ID + ".fileprovider",
                 file);
     }
 

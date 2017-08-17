@@ -26,6 +26,8 @@ android {
         versionCode 21
         versionName "2017.0.0.0"
 
+        applicationId "com.iburnapp.iburn"
+
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         archivesBaseName = "iburn-$versionName-$versionCode"
 
