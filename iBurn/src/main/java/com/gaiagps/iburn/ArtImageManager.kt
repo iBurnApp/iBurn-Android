@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.ImageView
 import com.gaiagps.iburn.database.Art
 import com.squareup.picasso.Picasso
+import com.squareup.picasso.Target
 import io.reactivex.android.schedulers.AndroidSchedulers
 import okhttp3.Call
 import okhttp3.OkHttpClient
@@ -21,6 +22,17 @@ import java.io.IOException
 private val httpClient by lazy { OkHttpClient() }
 
 private const val useBundledArtImages = true
+
+fun getArtImageLocalPath(context: Context, art: Art): String? {
+    if (useBundledArtImages) {
+        return getArtImageAssetPath(art)
+    } else {
+        val cachedArt = getCachedArtImageFile(context, art.imageUrl)
+        if (!cachedArt.exists()) return null
+
+        return cachedArt.absolutePath
+    }
+}
 
 fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
 

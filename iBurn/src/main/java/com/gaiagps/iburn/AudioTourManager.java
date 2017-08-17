@@ -117,6 +117,13 @@ public class AudioTourManager {
         Art currentlyPlayingArt = getCurrentlyPlayingAudioTourArt();
         if (currentlyPlayingArt == null || !currentlyPlayingArt.equals(art)) {
             Uri albumArtUri = getFileImage(localMediaUri);
+            if (albumArtUri.equals(defaultAlbumArtUri)) {
+                String localArtImage = ArtImageManagerKt.getArtImageLocalPath(context, art);
+                if (localArtImage != null) {
+                    albumArtUri = Uri.parse(localArtImage);
+                    Timber.d("Using local art image because no image in mp3 metadata: %s", albumArtUri);
+                }
+            }
             AudioPlayerService.Companion.playAudioTour(context, localMediaUri, art, albumArtUri);
         } else {
             Timber.e("AudioPlayerService is already playing. Bind to service to issue control commands");

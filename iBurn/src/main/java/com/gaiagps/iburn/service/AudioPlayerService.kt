@@ -231,7 +231,14 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
 
 
         if (albumArtUri != null) {
-            val imageStream = contentResolver.openInputStream(albumArtUri)
+
+            val imageStream =
+                    if (isAssetUri(albumArtUri)) {
+                        applicationContext.assets.open(getAssetPathFromAssetUri(albumArtUri))
+                    } else {
+                        contentResolver.openInputStream(albumArtUri)
+                    }
+
             val bitmap = BitmapFactory.decodeStream(imageStream)
             notification.setLargeIcon(bitmap)
         }
