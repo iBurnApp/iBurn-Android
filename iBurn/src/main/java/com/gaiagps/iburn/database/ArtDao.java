@@ -9,7 +9,6 @@ import java.util.List;
 
 import io.reactivex.Flowable;
 
-import static com.gaiagps.iburn.database.Art.AUDIO_TOUR_URL;
 import static com.gaiagps.iburn.database.Art.TABLE_NAME;
 import static com.gaiagps.iburn.database.PlayaItem.FAVORITE;
 import static com.gaiagps.iburn.database.PlayaItem.LATITUDE;
@@ -38,8 +37,8 @@ public interface ArtDao {
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1 OR ((" + LATITUDE + " BETWEEN :minLat AND :maxLat) AND (" + LONGITUDE + " BETWEEN :minLon AND :maxLon))")
     Flowable<List<Art>> findInRegionOrFavorite(float maxLat, float minLat, float maxLon, float minLon);
 
-    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + AUDIO_TOUR_URL + " IS NOT NULL")
-    Flowable<List<Art>> getAllWithAudioTour();
+//    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + AUDIO_TOUR_URL + " IS NOT NULL")
+//    Flowable<List<Art>> getAllWithAudioTour();
 
     @Insert
     void insert(Art... arts);

@@ -2,6 +2,7 @@ package com.gaiagps.iburn.database
 
 import android.content.ContentValues
 import android.content.Context
+import com.gaiagps.iburn.AudioTourManager
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.mapbox.mapboxsdk.geometry.VisibleRegion
@@ -22,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Created by davidbrodsky on 6/22/15.
  */
-class DataProvider private constructor(private val db: AppDatabase, private val interceptor: DataProvider.QueryInterceptor?) {
+class DataProvider private constructor(private val context: Context, private val db: AppDatabase, private val interceptor: DataProvider.QueryInterceptor?) {
 
     interface QueryInterceptor {
         fun onQueryIntercepted(query: String, tables: Iterable<String>): String
@@ -179,7 +180,7 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
     fun observeArtWithAudioTour(): Flowable<List<Art>> {
 
         // TODO : Honor upgradeLock?
-        return db.artDao().allWithAudioTour
+        return db.artDao().all.map { it.filter { AudioTourManager.hasAudioTour(context, it.playaId) } }
     }
 
     /**
@@ -417,7 +418,7 @@ class DataProvider private constructor(private val db: AppDatabase, private val 
                         prefs.databaseVersion = BUNDLED_DATABASE_VERSION
                         prefs.setBaseResourcesVersion(RESOURCES_VERSION)
                     }
-                    .map { sqlBrite -> DataProvider(sqlBrite, Embargo(prefs)) }
+                    .map { sqlBrite -> DataProvider(context, sqlBrite, Embargo(prefs)) }
                     .doOnNext { dataProvider -> provider = dataProvider }
         }
 

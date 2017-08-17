@@ -4,8 +4,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
-    android:padding="16dp">
+    android:foreground="?attr/selectableItemBackground"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp">
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/ic_image_white_24dp" />
+
+    <ImageView
+        android:id="@+id/imageMask"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/gradient"
+        app:layout_constraintBottom_toBottomOf="@id/image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/heart"
@@ -19,7 +40,9 @@
         android:scaleType="fitEnd"
         android:src="@drawable/ic_heart_empty"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@id/imageMask"
+        app:layout_constraintVertical_bias="1"
+        app:layout_constraintBottom_toBottomOf="@id/imageMask" />
 
     <TextView
         android:id="@+id/title"
@@ -33,7 +56,9 @@
         app:layout_constraintEnd_toStartOf="@id/heart"
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/imageMask"
+        app:layout_constraintBottom_toBottomOf="@id/imageMask"
+        app:layout_constraintVertical_bias=".9"
         tools:text="Dust Feast really long title omg its gonna hit the heart" />
 
     <TextView
@@ -54,16 +79,16 @@
         style="@style/PlayaTextItem"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/artist"
+        android:drawableLeft="@drawable/ic_headset_light_24dp"
+        android:drawablePadding="2dp"
         android:ellipsize="end"
         android:gravity="center_vertical"
         android:paddingTop="0dp"
         android:singleLine="true"
         android:text="Audio Tour Available"
-        android:drawableLeft="@drawable/ic_headset_light_24dp"
+        android:textSize="18sp"
         android:visibility="gone"
-        android:drawablePadding="2dp"
-        android:textSize="18sp" />
+        app:layout_constraintTop_toBottomOf="@id/artist" />
 
     <TextView
         android:id="@+id/description"
@@ -76,6 +101,7 @@
         android:paddingTop="0dp"
         android:singleLine="false"
         android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@id/title"
         app:layout_constraintTop_toBottomOf="@id/audioTourLabel"
         tools:text="A very long description description. A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description.A very long description description." />
 
@@ -90,6 +116,7 @@
         android:singleLine="true"
         android:textColor="@color/sub_text"
         android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@id/title"
         app:layout_constraintTop_toBottomOf="@id/description"
         tools:text="Celebration" />
 
@@ -107,6 +134,7 @@
         android:singleLine="true"
         android:textColor="@color/sub_text"
         android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@id/title"
         app:layout_constraintTop_toBottomOf="@id/type"
         tools:text="6 min" />
 

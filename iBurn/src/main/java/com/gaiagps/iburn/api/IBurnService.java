@@ -44,7 +44,6 @@ import timber.log.Timber;
 import static com.gaiagps.iburn.SECRETSKt.IBURN_API_URL;
 import static com.gaiagps.iburn.database.Art.ARTIST;
 import static com.gaiagps.iburn.database.Art.ARTIST_LOCATION;
-import static com.gaiagps.iburn.database.Art.AUDIO_TOUR_URL;
 import static com.gaiagps.iburn.database.Art.IMAGE_URL;
 import static com.gaiagps.iburn.database.Camp.HOMETOWN;
 import static com.gaiagps.iburn.database.Event.ALL_DAY;
@@ -59,9 +58,12 @@ import static com.gaiagps.iburn.database.PlayaItem.CONTACT;
 import static com.gaiagps.iburn.database.PlayaItem.DESC;
 import static com.gaiagps.iburn.database.PlayaItem.FAVORITE;
 import static com.gaiagps.iburn.database.PlayaItem.LATITUDE;
+import static com.gaiagps.iburn.database.PlayaItem.LATITUDE_UNOFFICIAL;
 import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE;
+import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE_UNOFFICIAL;
 import static com.gaiagps.iburn.database.PlayaItem.NAME;
 import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ADDR;
+import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ADDR_UNOFFICIAL;
 import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ID;
 import static com.gaiagps.iburn.database.PlayaItem.URL;
 
@@ -235,7 +237,7 @@ public class IBurnService {
                             dataManifest.art.updated, dataManifest.camps.updated, dataManifest.events.updated);
 
                     ResourceManifest[] resources = new ResourceManifest[]
-                            {dataManifest.art, dataManifest.camps, dataManifest.events, dataManifest.tiles};
+                            {dataManifest.art, dataManifest.camps, dataManifest.events, dataManifest.points};
 
                     return Observable.fromArray(resources).map(resource ->
                             new UpdateDataDependencies((DataProvider) dataProvider, dataManifest, resource));
@@ -271,7 +273,7 @@ public class IBurnService {
             Art art = (Art) item;
             values.put(ARTIST, art.artist);
             values.put(ARTIST_LOCATION, art.artistLocation);
-            values.put(AUDIO_TOUR_URL, art.audioTourUrl);
+//            values.put(AUDIO_TOUR_URL, art.audioTourUrl);
             if (art.images != null && art.images.size() > 0) {
                 values.put(IMAGE_URL, art.images.get(0).thumbnail_url);
             }
@@ -423,6 +425,18 @@ public class IBurnService {
             values.put(LATITUDE, item.location.gps_latitude);
             values.put(LONGITUDE, item.location.gps_longitude);
             values.put(PLAYA_ADDR, item.location.string);
+        } else {
+            values.put(LATITUDE, 0);
+            values.put(LONGITUDE, 0);
+        }
+
+        if (item.burnermap_location != null) {
+            values.put(LATITUDE_UNOFFICIAL, item.burnermap_location.gps_latitude);
+            values.put(LONGITUDE_UNOFFICIAL, item.burnermap_location.gps_longitude);
+            values.put(PLAYA_ADDR_UNOFFICIAL, item.burnermap_location.string);
+        } else {
+            values.put(LATITUDE_UNOFFICIAL, 0);
+            values.put(LONGITUDE_UNOFFICIAL, 0);
         }
         values.put(URL, item.url);
     }
@@ -440,6 +454,7 @@ public class IBurnService {
             return updateEvents(dependencies.dataProvider);
 
         // Tiles no longer updated via this service
+        // TODO: Capture points
 
         // Unknown or Unimplemented situation
         Timber.w("Unknown resource name %s. Cannot perform update", resourceName);

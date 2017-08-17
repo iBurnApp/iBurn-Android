@@ -22,7 +22,10 @@ import com.gaiagps.iburn.database.Art
 import timber.log.Timber
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.res.AssetFileDescriptor
 import android.support.v4.media.MediaMetadataCompat
+import com.gaiagps.iburn.getAssetPathFromAssetUri
+import com.gaiagps.iburn.isAssetUri
 
 
 const val ExtraArtItem = "ArtItem"
@@ -130,6 +133,10 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         intent?.extras?.getSerializable(ExtraArtItem)?.let { art ->
+
+            // Always stop playback to ensure MediaPlayer is in correct state
+            stopPlayback()
+
             val extras = intent.extras
             val art = art as Art
             val albumArtUri = Uri.parse(extras.getString(ExtraAlbumArtUri))
@@ -151,10 +158,6 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
                     albumArtUri = albumArtUri,
                     isPlaying = true)
 
-            if (isPlaying) {
-                stopPlayback()
-            }
-
             mediaPlayer.setOnPreparedListener(this)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 Timber.d("Using Android O AudioAttributes")
@@ -167,7 +170,16 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
             } else {
                 mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
             }
-            mediaPlayer.setDataSource(applicationContext, mediaUri)
+
+            if (isAssetUri(mediaUri)) {
+                val assetPath = getAssetPathFromAssetUri(mediaUri)
+                val assetDescriptor = assets.openFd(assetPath)
+                Timber.d("Playing audio from asset $assetPath")
+                mediaPlayer.setDataSource(assetDescriptor.fileDescriptor, assetDescriptor.startOffset, assetDescriptor.length)
+                assetDescriptor.close()
+            } else {
+                mediaPlayer.setDataSource(applicationContext, mediaUri)
+            }
             // TODO : Catch and attempt recover from IllegalStateException
             mediaPlayer.prepareAsync()
             mediaPlayer.setOnCompletionListener {
@@ -256,18 +268,21 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
     }
 
     private fun resumePlayback() {
+        Timber.d("ResumePlayback")
         mediaPlayer.start()
         updatePlaybackState(true)
         updateNotification()
     }
 
     private fun pausePlayback() {
+        Timber.d("PausePlayback")
         mediaPlayer.pause()
         updatePlaybackState(false)
         updateNotification()
     }
 
     private fun stopPlayback() {
+        Timber.d("StopPlayback")
         currentArt = null
         mediaPlayer.stop()
         mediaPlayer.reset()

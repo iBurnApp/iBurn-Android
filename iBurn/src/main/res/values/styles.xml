@@ -8,6 +8,7 @@
         <item name="colorPrimary">@color/iburn_color</item>
         <item name="colorPrimaryDark">@color/off_blk</item>
         <item name="colorAccent">@color/iburn_color</item>
+        <item name="android:windowBackground">@color/window_background</item>
 
     </style>
 

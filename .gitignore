@@ -12,6 +12,10 @@ SECRETS.kt
 *.class
 data/
 
+#Bundled media
+iBurn/src/main/assets/audio_tour/
+iBurn/src/main/assets/art_images/
+
 # Android Studio
 .idea/
 .gradle/

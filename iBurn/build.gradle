@@ -108,7 +108,7 @@ if (project.hasProperty('keyPassword')) {
     android.signingConfigs.release.keyPassword = keyPassword
 }
 
-def SUPPORT_LIB_VERSION = "26.0.0"
+def SUPPORT_LIB_VERSION = "26.0.1"
 def PLAY_SERVICES_VERSION = "11.0.4"
 
 dependencies {
@@ -120,6 +120,7 @@ dependencies {
     compile "com.android.support:recyclerview-v7:$SUPPORT_LIB_VERSION"
     compile "com.android.support:support-annotations:$SUPPORT_LIB_VERSION"
     compile "com.android.support:support-dynamic-animation:$SUPPORT_LIB_VERSION"
+    compile "com.android.support:palette-v7:$SUPPORT_LIB_VERSION"
 
     // Google Play Services
     compile "com.google.android.gms:play-services-gcm:$PLAY_SERVICES_VERSION"
@@ -155,9 +156,9 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.6.0'
     kapt 'com.jakewharton:butterknife-compiler:8.6.0'
 
-    compile "android.arch.persistence.room:rxjava2:1.0.0-alpha7"
-    compile "android.arch.persistence.room:runtime:1.0.0-alpha7"
-    kapt "android.arch.persistence.room:compiler:1.0.0-alpha7"
+    compile "android.arch.persistence.room:rxjava2:1.0.0-alpha9"
+    compile "android.arch.persistence.room:runtime:1.0.0-alpha9"
+    kapt "android.arch.persistence.room:compiler:1.0.0-alpha9"
 
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 

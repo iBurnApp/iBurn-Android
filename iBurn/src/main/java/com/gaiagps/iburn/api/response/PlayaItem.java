@@ -10,6 +10,7 @@ public class PlayaItem {
     public String description;
     public String uid;
     public Location location;
+    public Location burnermap_location;
     public String name;
     public String url;
     public int year;

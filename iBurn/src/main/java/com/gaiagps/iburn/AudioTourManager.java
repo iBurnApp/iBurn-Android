@@ -3,6 +3,7 @@ package com.gaiagps.iburn;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
@@ -19,6 +20,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
@@ -33,12 +37,32 @@ import timber.log.Timber;
  */
 public class AudioTourManager {
 
-    private final OkHttpClient http = new OkHttpClient();
+    private static final boolean USE_BUNDLED_AUDIO_TOUR = true; // Before returning to false must re-enable audiotour attribute of Art database entry
+    private static final String AUDIO_TOUR_ASSET_DIR = "audio_tour";
+    private static Set<String> assetTours;
+
+//    private final OkHttpClient http = new OkHttpClient();
 
     private Context context;
     private Uri defaultAlbumArtUri;
     private File mediaArtDir;
     private File mediaDir;
+
+    public static boolean hasAudioTour(@NonNull Context context, @NonNull String artPlayaId) {
+        if (assetTours != null) {
+            return assetTours.contains(artPlayaId + ".mp3");
+        }
+
+        try {
+            String[] tours = context.getAssets().list(AUDIO_TOUR_ASSET_DIR);
+            Timber.d("%d bundled audio tour assets", tours.length);
+            assetTours = new HashSet<>(Arrays.asList(tours));
+            return hasAudioTour(context, artPlayaId);
+        } catch (IOException e) {
+            Timber.e(e, "Failed to retrieve audio tours");
+        }
+        return false;
+    }
 
     public static File getAudioTourDirectory(@NonNull Context context) {
         File audioTourDir = new File(context.getFilesDir(), "audio_tour");
@@ -60,25 +84,28 @@ public class AudioTourManager {
      */
     public AudioTourManager(@NonNull Context context) {
         this.context = context;
-//        player = PlayerHater.bind(context);
-//        player.setLocalPlugin(new PlayerHaterListenerPlugin(listener));
         defaultAlbumArtUri = getResourceUri(context, R.drawable.iburn_logo);
         mediaArtDir = getAudioTourArtDirectory(context);
         mediaDir = getAudioTourDirectory(context);
 
-        if (!mediaDir.exists() && !mediaArtDir.exists()) {
+        if (!USE_BUNDLED_AUDIO_TOUR && !mediaDir.exists() && !mediaArtDir.exists()) {
             Timber.e("Failed to create audio tour directories!");
         }
     }
 
     public void playAudioTourUrl(@NonNull Art art) {
 
-        File cachedFile = getCachedFileForRemoteMediaPath(art.audioTourUrl);
-        if (!cachedFile.exists()) {
-            Toast.makeText(context, "Downloading '" + art.name + "' Tour. Playback will start when ready", Toast.LENGTH_LONG).show();
-            cacheAndPlayRemoteMediaPath(art);
+        if (USE_BUNDLED_AUDIO_TOUR) {
+            String assetUrl = getTourAssetFileForArt(art);
+            playLocalMediaForArt(Uri.parse(assetUrl), art);
         } else {
-            playLocalMediaForArt(Uri.fromFile(cachedFile), art);
+//            File cachedFile = getCachedFileForRemoteMediaPath(art.audioTourUrl);
+//            if (!cachedFile.exists()) {
+//                Toast.makeText(context, "Downloading '" + art.name + "' Tour. Playback will start when ready", Toast.LENGTH_LONG).show();
+//                cacheAndPlayRemoteMediaPath(art);
+//            } else {
+//                playLocalMediaForArt(Uri.fromFile(cachedFile), art);
+//            }
         }
     }
 
@@ -112,7 +139,21 @@ public class AudioTourManager {
             Timber.d("Parsing image for audio %s into %s", remoteMediaPath, artFile.getAbsolutePath());
 
             MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
-            metadataRetriever.setDataSource(context, remoteMediaPath);
+
+            if (UriUtilKt.isAssetUri(remoteMediaPath)) {
+                final String assetPath = UriUtilKt.getAssetPathFromAssetUri(remoteMediaPath);
+
+                try {
+                    final AssetFileDescriptor afd = context.getAssets().openFd(assetPath);
+                    metadataRetriever.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                } catch (IOException e) {
+                    Timber.e(e, "Failed to reach asset at path " + assetPath);
+                    return defaultAlbumArtUri;
+                }
+
+            } else {
+                metadataRetriever.setDataSource(context, remoteMediaPath);
+            }
 
             byte[] data = metadataRetriever.getEmbeddedPicture();
             if (data != null) {
@@ -139,6 +180,10 @@ public class AudioTourManager {
                 file);
     }
 
+    private String getTourAssetFileForArt(@NonNull Art art) {
+        return "file:///android_asset/audio_tour/" + art.playaId + ".mp3";
+    }
+
     private File getMediaArtFileForMediaPath(@NonNull Uri mediaPath) {
         String strPath = mediaPath.toString();
         return new File(mediaArtDir, strPath.substring(strPath.lastIndexOf("/"), strPath.lastIndexOf(".")) + ".jpg");
@@ -152,19 +197,19 @@ public class AudioTourManager {
         return new File(getAudioTourDirectory(context), mediaPath.substring(mediaPath.lastIndexOf("/"), mediaPath.length()));
     }
 
-    private void cacheAndPlayRemoteMediaPath(@NonNull Art art) {
-        Observable.just(art)
-                .observeOn(Schedulers.io())
-                .subscribe(ignored -> {
-
-                    boolean didCache = cacheRemoteMediaPath(context, http, art.audioTourUrl);
-
-                    if (didCache) {
-                        File cachedFile = getCachedFileForRemoteMediaPath(art.audioTourUrl);
-                        playLocalMediaForArt(Uri.fromFile(cachedFile), art);
-                    }
-                });
-    }
+//    private void cacheAndPlayRemoteMediaPath(@NonNull Art art) {
+//        Observable.just(art)
+//                .observeOn(Schedulers.io())
+//                .subscribe(ignored -> {
+//
+//                    boolean didCache = cacheRemoteMediaPath(context, http, art.audioTourUrl);
+//
+//                    if (didCache) {
+//                        File cachedFile = getCachedFileForRemoteMediaPath(art.audioTourUrl);
+//                        playLocalMediaForArt(Uri.fromFile(cachedFile), art);
+//                    }
+//                });
+//    }
 
     static boolean cacheRemoteMediaPath(@NonNull Context context, @NonNull OkHttpClient http, @NonNull String remoteMediaPath) {
         try {

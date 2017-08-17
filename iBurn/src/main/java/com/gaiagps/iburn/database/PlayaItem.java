@@ -18,9 +18,12 @@ public class PlayaItem implements Serializable {
     public static final String URL = "url";
     public static final String CONTACT = "contact";
     public static final String PLAYA_ADDR = "p_addr";
+    public static final String PLAYA_ADDR_UNOFFICIAL = "p_addr_unof";
     public static final String PLAYA_ID = "p_id";
     public static final String LATITUDE = "lat";
     public static final String LONGITUDE = "lon";
+    public static final String LATITUDE_UNOFFICIAL = "lat_unof";
+    public static final String LONGITUDE_UNOFFICIAL = "lon_unof";
     public static final String FAVORITE = "fav";
 
 
@@ -43,6 +46,9 @@ public class PlayaItem implements Serializable {
     @ColumnInfo(name = PLAYA_ADDR)
     public String playaAddress;
 
+    @ColumnInfo(name = PLAYA_ADDR_UNOFFICIAL)
+    public String playaAddressUnofficial;
+
     @ColumnInfo(name = PLAYA_ID)
     public String playaId;
 
@@ -51,6 +57,12 @@ public class PlayaItem implements Serializable {
 
     @ColumnInfo(name = LONGITUDE)
     public float longitude;
+
+    @ColumnInfo(name = LATITUDE_UNOFFICIAL)
+    public float latitudeUnofficial;
+
+    @ColumnInfo(name = LONGITUDE_UNOFFICIAL)
+    public float longitudeUnofficial;
 
     @ColumnInfo(name = FAVORITE)
     public boolean isFavorite;

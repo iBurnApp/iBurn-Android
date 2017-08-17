@@ -32,7 +32,7 @@ import permissions.dispatcher.RuntimePermissions;
 
 @RuntimePermissions
 public class WelcomeActivity extends AppCompatActivity implements WelcomeFragment.HomeCampSelectionListener {
-    static final int NUM_PAGES = 5;
+    static final int NUM_PAGES = 4;
 
     private PrefsHelper prefs;
 
@@ -168,14 +168,14 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         }
     }
 
-    public void onAudioTourDownloadButtonClicked(View view) {
-        Button downloadButton = (Button) view;
-        downloadButton.setText("Consider it done!");
-        downloadButton.setEnabled(false);
-
-        AudioTourDownloader atd = new AudioTourDownloader();
-        atd.downloadAudioTours(this);
-    }
+//    public void onAudioTourDownloadButtonClicked(View view) {
+//        Button downloadButton = (Button) view;
+//        downloadButton.setText("Consider it done!");
+//        downloadButton.setEnabled(false);
+//
+//        AudioTourDownloader atd = new AudioTourDownloader();
+//        atd.downloadAudioTours(this);
+//    }
 
     @Override
     public void onHomeCampSelected(Camp homeCamp) {
@@ -202,9 +202,9 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
                     tp = WelcomeFragment.newInstance(R.layout.welcome_fragment3);
                     break;
                 case 3:
-                    tp = WelcomeFragment.newInstance(R.layout.welcome_fragment4);
-                    break;
-                case 4:
+//                    tp = WelcomeFragment.newInstance(R.layout.welcome_fragment4);
+//                    break;
+//                case 4:
                     tp = WelcomeFragment.newInstance(R.layout.welcome_fragment5);
                     break;
             }

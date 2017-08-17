@@ -7,8 +7,11 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.design.widget.AppBarLayout;
@@ -19,6 +22,7 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -92,7 +96,6 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     private AudioTourManager audioTourManager;
     private boolean didPopulateViews;
     private TextView audioTourToggle;
-    private String audioTourUrl;
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -166,7 +169,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
-        if (item instanceof Art && ((Art) item).hasAudioTour()) {
+        if (item instanceof Art && ((Art) item).hasAudioTour(getApplicationContext())) {
             onCreateMediaController();
         }
 
@@ -193,7 +196,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     @Override
     protected void onStart() {
         super.onStart();
-        if (item instanceof Art && ((Art) item).hasAudioTour()) {
+        if (item instanceof Art && ((Art) item).hasAudioTour(getApplicationContext())) {
             onStartMediaController();
         }
     }
@@ -201,7 +204,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     @Override
     protected void onStop() {
         super.onStop();
-        if (item instanceof Art && ((Art) item).hasAudioTour()) {
+        if (item instanceof Art && ((Art) item).hasAudioTour(getApplicationContext())) {
             onStopMediaController();
         }
 
@@ -279,7 +282,6 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     }
 
     private void setupMediaTransportControls() {
-        audioTourUrl = ((Art) item).audioTourUrl;
 
         // Find or create Audio Tour Playback Toggle View
         ViewGroup contentContainer = findViewById(R.id.content_container);
@@ -539,6 +541,20 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                                     });
                                 });
                     }
+
+                    // TODO : Cleanup
+                    SchedulersKt.getIoScheduler().scheduleDirect(() -> {
+                        Bitmap bitmap = ((BitmapDrawable)artImageView.getDrawable()).getBitmap();
+
+                        Palette.from(bitmap).generate(palette -> {
+                            // Use generated instance
+                            int defaultColor = getResources().getColor(R.color.iburn_color);
+                            int genColor = palette.getDominantColor(defaultColor);
+                            collapsingToolbarLayout.setBackgroundColor(genColor);
+                            collapsingToolbarLayout.setContentScrimColor(genColor);
+                            collapsingToolbarLayout.setStatusBarScrimColor(genColor);
+                        });
+                    });
                 }
 
                 @Override

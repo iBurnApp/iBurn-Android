@@ -16,6 +16,7 @@ import com.gaiagps.iburn.DateUtil.getDateString
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.R
 import com.gaiagps.iburn.database.*
+import com.gaiagps.iburn.loadArtImage
 import com.gaiagps.iburn.location.LocationProvider
 import timber.log.Timber
 
@@ -71,7 +72,7 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
                 holder.artistView.visibility = View.VISIBLE
                 holder.artistView.text = item.artist
 
-                if (item.hasAudioTour()) {
+                if (item.hasAudioTour(context)) {
                     holder.audioTourView.visibility = View.VISIBLE
                 } else {
                     holder.audioTourView.visibility = View.GONE
@@ -79,12 +80,17 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
 
                 holder.eventTypeView.visibility = View.GONE
                 holder.eventTimeView.visibility = View.GONE
+                holder.imageMaskView.visibility = View.VISIBLE
+                holder.imageView.visibility = View.VISIBLE
+                loadArtImage(item, holder.imageView)
 
             } else if (item is Camp) {
                 holder.artistView.visibility = View.GONE
                 holder.audioTourView.visibility = View.GONE
                 holder.eventTypeView.visibility = View.GONE
                 holder.eventTimeView.visibility = View.GONE
+                holder.imageView.visibility = View.GONE
+                holder.imageMaskView.visibility = View.GONE
 
             } else if (item is Event) {
                 holder.eventTypeView.visibility = View.VISIBLE
@@ -96,6 +102,8 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
 
                 holder.artistView.visibility = View.GONE
                 holder.audioTourView.visibility = View.GONE
+                holder.imageView.visibility = View.GONE
+                holder.imageMaskView.visibility = View.GONE
 
             } else {
                 Timber.e("Unknown Item type! Display behavior will be unexpected")
@@ -192,6 +200,8 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
 
     open class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
 
+        val imageView: ImageView = view.findViewById(R.id.image)
+        val imageMaskView: ImageView = view.findViewById(R.id.imageMask)
         val titleView: TextView = view.findViewById(R.id.title)
         val artistView: TextView = view.findViewById(R.id.artist)
         val audioTourView: TextView = view.findViewById(R.id.audioTourLabel)

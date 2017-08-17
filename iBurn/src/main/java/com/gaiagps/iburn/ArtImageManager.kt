@@ -20,39 +20,63 @@ import java.io.IOException
 
 private val httpClient by lazy { OkHttpClient() }
 
+private const val useBundledArtImages = true
 
-fun loadArtImage(art: Art, view: ImageView, callback: Callback) {
+fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
+
+    if (!art.hasImage()) {
+        callback?.onError()
+        return
+    }
+
     val context = view.context.applicationContext
 
-    val cachedFile = getCachedArtImageFile(context, art.imageUrl)
+    if (useBundledArtImages) {
+        val assetPath = getArtImageAssetPath(art)
 
-    val picasso = Picasso.with(context)
-
-    if (cachedFile.exists()) {
-        Timber.d("Cache hit for ${art.name} image")
+        val picasso = Picasso.with(context)
         picasso
-                .load(cachedFile)
+                .load(assetPath)
                 .into(view, object : com.squareup.picasso.Callback {
                     override fun onSuccess() {
-                        callback.onSuccess()
+                        callback?.onSuccess()
                     }
 
                     override fun onError() {
-                        callback.onError()
+                        callback?.onError()
                     }
                 })
     } else {
-        Timber.d("Cache miss for ${art.name} image")
-        cacheArtImageFile(context, art, object : Callback {
-            override fun onSuccess() {
-                loadArtImage(art, view, callback)
-            }
+        // Load and cache art images from Internet
+        val cachedFile = getCachedArtImageFile(context, art.imageUrl)
 
-            override fun onError() {
-                callback.onError()
-            }
+        val picasso = Picasso.with(context)
+        if (cachedFile.exists()) {
+            Timber.d("Cache hit for ${art.name} image")
+            picasso
+                    .load(cachedFile)
+                    .into(view, object : com.squareup.picasso.Callback {
+                        override fun onSuccess() {
+                            callback?.onSuccess()
+                        }
 
-        })
+                        override fun onError() {
+                            callback?.onError()
+                        }
+                    })
+        } else {
+            Timber.d("Cache miss for ${art.name} image")
+            cacheArtImageFile(context, art, object : Callback {
+                override fun onSuccess() {
+                    loadArtImage(art, view, callback)
+                }
+
+                override fun onError() {
+                    callback?.onError()
+                }
+
+            })
+        }
     }
 }
 
@@ -65,7 +89,7 @@ private fun cacheArtImageFile(context: Context, art: Art, callback: Callback) {
     Timber.d("Downloading image for ${art.name}")
     httpClient.newCall(request).enqueue(object : okhttp3.Callback {
         override fun onResponse(call: Call?, response: Response?) {
-            if (response?.isSuccessful ?: false) {
+            if (response?.isSuccessful == true) {
                 Timber.d("Downloaded image for ${art.name}")
                 val destFile = getCachedArtImageFile(context, imageUrl)
                 val outStream = FileOutputStream(destFile)
@@ -96,8 +120,20 @@ private fun postResult(callback: Callback, succcess: Boolean = true) {
     }
 }
 
+/**
+ * If caching art images from remote url serving
+ */
 private fun getCachedArtImageFile(context: Context, mediaPath: String): File {
+    Timber.d("Getting cached art for $mediaPath")
     return File(getArtImagesDirectory(context), mediaPath.substring(mediaPath.lastIndexOf(File.separator), mediaPath.length))
+}
+
+/**
+ * If pulling art images directly from bundled app assets
+ */
+private fun getArtImageAssetPath(art: Art): String {
+    Timber.d("Getting bundled art for ${art.name}")
+    return "file:///android_asset/art_images/${art.playaId}.jpg"
 }
 
 private fun getArtImagesDirectory(context: Context): File {
