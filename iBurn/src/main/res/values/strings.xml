@@ -51,7 +51,16 @@
     <string name="title_activity_search">SearchActivity</string>
 
     <string name="action_settings">Settings</string>
-    <string name="embargo_msg">Art, Camp, and Event locations will be available %s.</string>
+    <string name="embargo_msg_1">ART, CAMP, AND EVENT LOCATIONS</string>
+    <string name="embargo_msg_2">WILL BE AVAILABLE %s</string>
+    <string name="embargo_msg_3">OR WITH STAFF UNLOCK CODE ->️</string>
+    <string-array name="news_ticker">
+        <item>DAFT PUNK CONCERT AT TRASH FENCE</item>
+        <item>CENSUS: LAST YEARS BURN BEST YET</item>
+        <item>POLL: IT WAS BETTER NEXT YEAR</item>
+        <item>2018 THEME: TURNKEY CAMPS</item>
+    </string-array>
+
     <string name="also_at">Other Occurrences</string>
     <string name="hosted_events">Hosted Events</string>
     <string name="send_feedback">Send Feedback</string>

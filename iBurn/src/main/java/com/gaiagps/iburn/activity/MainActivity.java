@@ -1,9 +1,7 @@
 package com.gaiagps.iburn.activity;
 
 import android.Manifest;
-import android.animation.ValueAnimator;
 import android.app.SearchManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -17,21 +15,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.PermissionManager;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
-import com.gaiagps.iburn.api.IBurnApi;
-import com.gaiagps.iburn.api.IBurnService;
-import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
@@ -39,6 +31,7 @@ import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.MapPlaceHolderFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
+import com.gaiagps.iburn.view.BottomTickerView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.roughike.bottombar.BottomBar;
@@ -127,7 +120,11 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
 
         if (Embargo.isEmbargoActive(prefs)) {
-            showEmbargoBanner();
+            Flowable.timer(1, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(tick -> {
+                        showEmbargoBanner();
+                    });
         }
         handleIntent(getIntent());
         //checkForUpdates();
@@ -364,60 +361,70 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
      */
     private void showEmbargoBanner() {
         ViewGroup parent = findViewById(R.id.parent);
-        LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-        ViewGroup embargoBanner = (ViewGroup) inflater.inflate(R.layout.activity_main_embargo_banner, parent, false);
-        RelativeLayout.LayoutParams embargoParams = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT);
-        embargoParams.addRule(RelativeLayout.ABOVE, R.id.bottomBar);
-        embargoBanner.setLayoutParams(embargoParams);
 
         final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE M/d", Locale.US);
-        TextView embargoText = embargoBanner.findViewById(R.id.embargo_text);
-        embargoText.setText(getString(R.string.embargo_msg, dayFormatter.format(Embargo.EMBARGO_DATE)));
 
-        embargoBanner.setOnClickListener(view -> hideEmbargoBanner());
-        embargoBanner.setAlpha(0);
+        String[] messages =
+                new String[]{
+                        getString(R.string.embargo_msg_1),
+                        getString(R.string.embargo_msg_2, dayFormatter.format(Embargo.EMBARGO_DATE)).toUpperCase(),
+                        getString(R.string.embargo_msg_3)
 
-        Button enterUnlockCodeBtn = embargoBanner.findViewById(R.id.enter_unlock_code_btn);
-        enterUnlockCodeBtn.setOnClickListener(view -> {
-            hideEmbargoBanner();
-            showUnlockDialog();
+                };
+
+        BottomTickerView ticker = new BottomTickerView(parent, getBottomBannerLayoutParams(), true, "DON'T PANIC", messages, 12, 4);
+        ticker.setCallback(new BottomTickerView.Callback() {
+            @Override
+            public void onShown() {
+                fab.hide();
+            }
+
+            @Override
+            public void onDismissed() {
+                fab.show();
+            }
+
+            @Override
+            public void onEnterUnlockCodeRequested() {
+                showUnlockDialog();
+            }
         });
-
-        parent.addView(embargoBanner);
-
-        ValueAnimator alphaAnimator = ValueAnimator.ofFloat(0, 1);
-        alphaAnimator.setDuration(1000);
-        alphaAnimator.addUpdateListener(valueAnimator -> embargoBanner.setAlpha((Float) valueAnimator.getAnimatedValue()));
-
-        // Fade in banner
-        Flowable.timer(1, TimeUnit.SECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(counter -> {
-                    fab.hide();
-                    alphaAnimator.start();
-                });
-
-        // Auto-dismiss banner
-        Flowable.timer(11, TimeUnit.SECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(counter -> hideEmbargoBanner());
+        ticker.show();
     }
 
-    private void hideEmbargoBanner() {
-        final View embargoBanner = findViewById(R.id.embargo_banner);
-        if (embargoBanner != null) {
-            ValueAnimator fadeOutAnim = ValueAnimator.ofFloat(1, 0);
-            fadeOutAnim.setDuration(1000);
-            fadeOutAnim.addUpdateListener(valueAnimator -> {
-                embargoBanner.setAlpha((Float) valueAnimator.getAnimatedValue());
-                if (valueAnimator.getAnimatedFraction() == 0f) {
-                    parent.removeView(embargoBanner);
-                    fab.show();
-                }
-            });
-            fadeOutAnim.start();
-        }
+    /**
+     * Like {@link #showEmbargoBanner()}, but not helpful
+     */
+    private void showBreakingNewsBanner() {
+        ViewGroup parent = findViewById(R.id.parent);
+
+        String[] messages = getResources().getStringArray(R.array.news_ticker);
+
+        BottomTickerView ticker = new BottomTickerView(parent, getBottomBannerLayoutParams(), false, "BREAKING NEWS", messages, 12, 4);
+        ticker.setCallback(new BottomTickerView.Callback() {
+            @Override
+            public void onShown() {
+                fab.hide();
+            }
+
+            @Override
+            public void onDismissed() {
+                fab.show();
+            }
+
+            @Override
+            public void onEnterUnlockCodeRequested() {
+                showUnlockDialog();
+            }
+        });
+        ticker.show();
+    }
+
+    private ViewGroup.LayoutParams getBottomBannerLayoutParams() {
+        RelativeLayout.LayoutParams bannerParams = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
+        bannerParams.addRule(RelativeLayout.ABOVE, R.id.bottomBar);
+        return bannerParams;
     }
 }
