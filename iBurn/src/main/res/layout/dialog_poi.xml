@@ -26,6 +26,7 @@
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         android:paddingTop="8dp"
+        android:textSize="18sp"
         android:text="Title" />
 
     <EditText
@@ -34,8 +35,8 @@
         android:layout_height="wrap_content"
         android:selectAllOnFocus="true"
         android:hint="Home, Bike, etc."
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:singleLine="true"
         android:textSize="18sp" />
 
@@ -45,7 +46,7 @@
         android:fontFamily="sans-serif-condensed"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
-        android:paddingTop="16dp"
+        android:paddingTop="8dp"
         android:text="Icon"
         android:textSize="18sp" />
 
@@ -55,7 +56,6 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:layout_marginTop="4dp"
-        android:layout_marginBottom="16dp"
         android:orientation="horizontal">
 
         <RadioButton
@@ -65,7 +65,7 @@
             android:background="@drawable/radio_btn_bg"
             android:button="@null"
             android:checked="true"
-            android:padding="8dp"
+            android:padding="4dp"
             android:drawableRight="@drawable/puck_star" />
 
         <RadioButton
@@ -74,7 +74,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/radio_btn_bg"
             android:button="@null"
-            android:padding="8dp"
+            android:padding="4dp"
             android:drawableRight="@drawable/puck_home" />
 
         <RadioButton
@@ -83,7 +83,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/radio_btn_bg"
             android:button="@null"
-            android:padding="8dp"
+            android:padding="4dp"
             android:drawableRight="@drawable/puck_bicycle" />
 
         <RadioButton
@@ -92,7 +92,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/radio_btn_bg"
             android:button="@null"
-            android:padding="8dp"
+            android:padding="4dp"
             android:drawableRight="@drawable/puck_heart" />
     </RadioGroup>
 

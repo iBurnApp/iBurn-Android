@@ -1,14 +1,30 @@
 package com.gaiagps.iburn.activity;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.RemoteException;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.Display;
@@ -19,76 +35,67 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.AudioTourManager;
-import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.DateUtil;
-import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.MapboxMapFragment;
+import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.SchedulersKt;
 import com.gaiagps.iburn.adapters.AdapterListener;
-import com.gaiagps.iburn.adapters.EventCursorAdapter;
+import com.gaiagps.iburn.adapters.PlayaItemAdapter;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
-import com.gaiagps.iburn.database.ArtTable;
-import com.gaiagps.iburn.database.CampTable;
+import com.gaiagps.iburn.database.Art;
+import com.gaiagps.iburn.database.Camp;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.EventTable;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.gaiagps.iburn.database.PlayaItemTable;
-import com.gaiagps.iburn.fragment.GoogleMapFragment;
+import com.gaiagps.iburn.database.Embargo;
+import com.gaiagps.iburn.database.Event;
+import com.gaiagps.iburn.database.PlayaItem;
+import com.gaiagps.iburn.service.AudioPlayerService;
 import com.gaiagps.iburn.view.AnimatedFloatingActionButton;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.UiSettings;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
-import com.squareup.sqlbrite.SqlBrite;
-
-import org.prx.playerhater.PlayerHaterListener;
-import org.prx.playerhater.Song;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
+
+import static com.gaiagps.iburn.ArtImageManagerKt.loadArtImage;
+import static com.gaiagps.iburn.service.AudioPlayerServiceKt.MediaMetadataKeyArtPlayaId;
 
 /**
  * Show the detail view for a Camp, Art installation, or Event
  * Created by davidbrodsky on 8/11/13.
  */
-public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHaterListener {
+public class PlayaItemViewActivity extends AppCompatActivity implements AdapterListener {
 
-    private static final boolean USE_MAPBOX_MAP = true;
+    public static final String EXTRA_PLAYA_ITEM = "playa-item";
 
-    public static final String EXTRA_MODEL_ID = "model-id";
-    public static final String EXTRA_MODEL_TYPE = "model-type";
-
-    DataProvider provider;
-
-    String modelTable;
-    int modelId;
+    PlayaItem item;
     LatLng latLng;
 
     boolean isFavorite;
     boolean showingLocation;
+    boolean showingArt;
 
     MenuItem favoriteMenuItem;
+    MenuItem imageMenuItem;
 
     private AudioTourManager audioTourManager;
     private boolean didPopulateViews;
     private TextView audioTourToggle;
-    private String audioTourUrl;
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -105,6 +112,9 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
     @BindView(R.id.title)
     TextView titleTextView;
 
+    @BindView(R.id.body)
+    TextView bodyTextView;
+
     @BindView(R.id.fab)
     AnimatedFloatingActionButton favoriteButton;
 
@@ -120,17 +130,31 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
     @BindView(R.id.collapsing_toolbar)
     CollapsingToolbarLayout collapsingToolbarLayout;
 
+    @BindView(R.id.appbar)
+    AppBarLayout appbarLayout;
+
+    Disposable autoShowArtDisposable;
+    boolean loadedArtImage;
+    ImageView artImageView;
+
+    private MediaBrowserCompat mediaBrowser;
+    private MediaControllerCompat.Callback mediaControllerCallback;
+
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playa_item_view);
         ButterKnife.bind(this);
         didPopulateViews = false;
 
+        Intent i = getIntent();
+        item = (PlayaItem) i.getSerializableExtra(EXTRA_PLAYA_ITEM);
+
         setSupportActionBar(toolbar);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("");
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_white_on_orange_24dp);
         }
 
         // Need to defer populating views until AudioTourManagerReady
@@ -144,22 +168,205 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         mapContainer.startAnimation(fadeAnimation);
 
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        if (item instanceof Art && ((Art) item).hasAudioTour(getApplicationContext())) {
+            onCreateMediaController();
+        }
+
+        appbarLayout.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
+
+            int collapsingTriggerHeight = collapsingToolbarLayout.getScrimVisibleHeightTrigger();
+            int collapsingOffsetTrigger = -(collapsingToolbarLayout.getHeight() - collapsingTriggerHeight);
+            if (verticalOffset <= collapsingOffsetTrigger) {
+                // Collapsed
+                if (showingLocation && showingArt && imageMenuItem != null && imageMenuItem.isVisible() && loadedArtImage) {
+                    Timber.d("Setting imageMenu invisible on collapse");
+                    imageMenuItem.setVisible(false);
+                }
+            } else {
+                // Expanded
+                if (showingLocation && showingArt && imageMenuItem != null && !imageMenuItem.isVisible() && loadedArtImage) {
+                    Timber.d("Setting imageMenu visible on expand");
+                    imageMenuItem.setVisible(true);
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (item instanceof Art && ((Art) item).hasAudioTour(getApplicationContext())) {
+            onStartMediaController();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (item instanceof Art && ((Art) item).hasAudioTour(getApplicationContext())) {
+            onStopMediaController();
+        }
+
+        if (autoShowArtDisposable != null) {
+            autoShowArtDisposable.dispose();
+        }
+    }
+
+    private void onCreateMediaController() {
+        mediaBrowser = new MediaBrowserCompat(this,
+                new ComponentName(this, AudioPlayerService.class),
+                new PlayaItemViewMediaConnectionCallback(),
+                null); // optional Bundle
+    }
+
+    private void onStartMediaController() {
+        mediaBrowser.connect();
+    }
+
+    private void onStopMediaController() {
+        if (MediaControllerCompat.getMediaController(PlayaItemViewActivity.this) != null) {
+            MediaControllerCompat.getMediaController(PlayaItemViewActivity.this).unregisterCallback(mediaControllerCallback);
+        }
+        mediaBrowser.disconnect();
+    }
+
+    private class PlayaItemViewMediaConnectionCallback extends MediaBrowserCompat.ConnectionCallback {
+
+        @Override
+        public void onConnected() {
+            Timber.d("Connected to media service");
+            try {
+                // Get the token for the MediaSession
+                MediaSessionCompat.Token token = mediaBrowser.getSessionToken();
+
+                // Create a MediaControllerCompat
+                MediaControllerCompat mediaController =
+                        new MediaControllerCompat(
+                                PlayaItemViewActivity.this,
+                                token);
+
+                // Save the controller
+                MediaControllerCompat.setMediaController(PlayaItemViewActivity.this, mediaController);
+
+                // Finish building the UI
+                setupMediaTransportControls();
+
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void onConnectionFailed() {
+            Timber.d("Connection to media service failed");
+            // This means no current media session is active
+            // Finish building the UI
+//            setupMediaTransportControls();
+        }
+    }
+
+    private class PlayaItemMediaControllerCallback extends MediaControllerCompat.Callback {
+        @Override
+        public void onPlaybackStateChanged(PlaybackStateCompat state) {
+            // Selected corresponds to the playing state
+            int playbackState = state.getState();
+            Timber.d("onPlaybackStateChanged to %d", playbackState);
+            MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(PlayaItemViewActivity.this);
+            setAudioTourToggleStateWithPlaybackState(mediaController, item);
+        }
+
+        @Override
+        public void onMetadataChanged(MediaMetadataCompat metadata) {
+            Timber.d("onMetadataChanged to %s", metadata);
+        }
+    }
+
+    private void setupMediaTransportControls() {
+
+        // Find or create Audio Tour Playback Toggle View
+        ViewGroup contentContainer = findViewById(R.id.content_container);
+        TextView audioTourToggle = contentContainer.findViewById(R.id.audio_tour_toggle);
+
+        if (audioTourToggle == null) {
+            audioTourToggle = new TextView(this);
+            audioTourToggle.setId(R.id.audio_tour_toggle);
+            audioTourToggle.setTextColor(getResources().getColor(R.color.regular_text));
+            audioTourToggle.setTextSize(22);
+            audioTourToggle.setCompoundDrawablePadding(12);  // 8 dp
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.bottomMargin = 12; // 8 dp
+            audioTourToggle.setLayoutParams(params);
+
+            contentContainer.addView(audioTourToggle, 3);
+        }
+
+        this.audioTourToggle = audioTourToggle;
+
+        // Get initial media state
+        MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(PlayaItemViewActivity.this);
+        MediaMetadataCompat metadata = mediaController.getMetadata();
+        PlaybackStateCompat pbState = mediaController.getPlaybackState();
+
+        audioTourToggle.setOnClickListener(view -> {
+
+            MediaMetadataCompat currentMetadata = mediaController.getMetadata();
+            int currentPbState = mediaController.getPlaybackState().getState();
+            Timber.d("Audio tour toggle hit in state %d with metadata %s", currentPbState, currentMetadata);
+
+            if (!isCurrentMediaSessionForItem(mediaController, item)) {
+
+                Timber.d("Starting audio tour playback anew for item %s", item.name);
+                // Need to start up the media service
+                audioTourManager.playAudioTourUrl((Art) item);
+
+            } else if (currentPbState == PlaybackStateCompat.STATE_PLAYING) {
+
+                Timber.d("Resuming audio tour playback for item %s", item.name);
+                MediaControllerCompat.getMediaController(PlayaItemViewActivity.this).getTransportControls().pause();
+
+            } else if (currentPbState == PlaybackStateCompat.STATE_PAUSED) {
+
+                Timber.d("Pausing audio tour playback for item %s", item.name);
+                MediaControllerCompat.getMediaController(PlayaItemViewActivity.this).getTransportControls().play();
+
+            } else {
+
+                Timber.e("Unable to handle audio tour playback toggle. MediaController in unknown state %d", pbState);
+
+            }
+            setAudioTourToggleStateWithPlaybackState(mediaController, item);
+        });
+
+        int playbackState = pbState.getState();
+        Timber.d("Initial MediaController state %d with metadata %s", playbackState, metadata);
+
+        setAudioTourToggleStateWithPlaybackState(mediaController, item);
+
+        // Register a Callback to stay in sync
+        if (mediaControllerCallback == null) {
+            mediaControllerCallback = new PlayaItemMediaControllerCallback();
+        }
+        mediaController.registerCallback(mediaControllerCallback);
+    }
+
+    private void setAudioTourToggleStateWithPlaybackState(MediaControllerCompat mediaControllerCompat, PlayaItem item) {
+        if (item == null || mediaControllerCompat == null) return;
+
+        int playbackState = mediaControllerCompat.getPlaybackState().getState();
+        boolean audioTourToggleSelected = (playbackState == PlaybackStateCompat.STATE_PLAYING) &&
+                isCurrentMediaSessionForItem(mediaControllerCompat, item);
+        audioTourToggle.setSelected(audioTourToggleSelected);
+        onAudioTourToggleSelectedChanged();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        audioTourManager = new AudioTourManager(this, this);
-        if (!didPopulateViews) {
-            populateViews(getIntent());
+        audioTourManager = new AudioTourManager(this);
+        if (!didPopulateViews && item != null) {
+            populateViews(item);
             didPopulateViews = true;
         }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        audioTourManager.release();
     }
 
     /**
@@ -167,6 +374,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
      * full height minus status bar and toolbar. This addresses an issue where the
      * collapsing toolbar pattern gets all screwed up.
      */
+
     private void setTextContainerMinHeight() {
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -191,8 +399,17 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         inflater.inflate(R.menu.activity_playa_item, menu);
 
         favoriteMenuItem = menu.findItem(R.id.favorite_menu);
-        if (isFavorite) favoriteMenuItem.setIcon(R.drawable.ic_heart_full);
-        if (showingLocation) favoriteMenuItem.setVisible(false);
+        if (isFavorite) favoriteMenuItem.setIcon(R.drawable.ic_heart_full_white_24dp);
+        if (showingLocation || showingArt) favoriteMenuItem.setVisible(false);
+
+        imageMenuItem = menu.findItem(R.id.image_menu);
+        if (!loadedArtImage || !showingLocation) {
+            imageMenuItem.setVisible(false);
+        } else {
+            boolean isShowingImage = artImageView.getAlpha() == 1f;
+            setImageMenuToggle(isShowingImage);
+        }
+        Timber.d("onCreateOptionsMenu image visible %b", imageMenuItem.isVisible());
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -207,374 +424,289 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
                 setFavorite(!isFavorite, true);
                 return true;
 
+            case R.id.image_menu:
+                if (artImageView != null) {
+                    boolean isVisible = artImageView.getVisibility() == View.VISIBLE && (artImageView.getAlpha() == 1f);
+                    boolean willBeVisible = !isVisible;
+                    if (willBeVisible) {
+                        artImageView.bringToFront();
+                    }
+                    Timber.d("Fading %s art view", willBeVisible ? "in" : "out");
+                    fadeView(artImageView, willBeVisible, null);
+
+                    setImageMenuToggle(willBeVisible);
+
+                    if (autoShowArtDisposable != null) {
+                        autoShowArtDisposable.dispose();
+                    }
+                }
+                return true;
+
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void populateViews(Intent i) {
-        modelId = i.getIntExtra(EXTRA_MODEL_ID, 0);
-        Constants.PlayaItemType model_type = (Constants.PlayaItemType) i.getSerializableExtra(EXTRA_MODEL_TYPE);
-        switch (model_type) {
-            case CAMP:
-                modelTable = PlayaDatabase.CAMPS;
-                break;
-            case ART:
-                modelTable = PlayaDatabase.ART;
-                break;
-            case EVENT:
-                modelTable = PlayaDatabase.EVENTS;
-                break;
+    private void populateViews(PlayaItem item) {
+        boolean embargoActive = Embargo.isEmbargoActive(new PrefsHelper(getApplicationContext()));
+        showingLocation = (item.hasLocation() && !embargoActive) || item.hasUnofficialLocation();
+
+        if (showingLocation) {
+            favoriteButton.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                if (favoriteMenuItem != null)
+                    favoriteMenuItem.setVisible(v.getVisibility() == View.GONE);
+            });
+            if (item.hasLocation() && !embargoActive) {
+                latLng = item.getLatLng();
+            } else {
+                latLng = item.getUnofficialLatLng();
+            }
+            //TextView locationView = ((TextView) findViewById(R.id.location));
+            Timber.d("adding / centering marker on %f, %f", latLng.getLatitude(), latLng.getLongitude());
+
+            MapboxMapFragment mapFragment = new MapboxMapFragment();
+            mapFragment.showcaseLatLng(getApplicationContext(), latLng);
+            getSupportFragmentManager().beginTransaction().add(R.id.map_container, mapFragment).commit();
+            //favoriteMenuItem.setVisible(false);
+            //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
+        } else if (item instanceof Art && ((Art) item).hasImage()) {
+            // Art image will be added by populateArtViews
+            showingArt = true;
+        } else {
+            // Adjust the margin / padding show the heart icon doesn't
+            // overlap title + descrition
+            findViewById(R.id.map_container).setVisibility(View.GONE);
+            collapsingToolbarLayout.setBackgroundResource(android.R.color.transparent);
+            CollapsingToolbarLayout.LayoutParams parms = new CollapsingToolbarLayout.LayoutParams(CollapsingToolbarLayout.LayoutParams.MATCH_PARENT, 24);
+            mapContainer.setLayoutParams(parms);
+            favoriteButton.setVisibility(View.GONE);
+            //favoriteMenuItem.setVisible(true);
         }
 
-        DataProvider.getInstance(getApplicationContext())
-                .subscribeOn(Schedulers.computation())
-                .doOnNext(dataProvider -> this.provider = dataProvider)
-                .flatMap(dataProvider -> dataProvider.createQuery(modelTable, "SELECT * FROM " + modelTable + " WHERE _id = ?", String.valueOf(modelId)))
-                .first()    // Do we want to receive updates?
-                .map(SqlBrite.Query::run)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(itemCursor -> {
-                    try {
-                        if (itemCursor != null && itemCursor.moveToFirst()) {
-                            final String title = itemCursor.getString(itemCursor.getColumnIndexOrThrow(PlayaItemTable.name));
-                            titleTextView.setText(title);
-                            isFavorite = itemCursor.getInt(itemCursor.getColumnIndex(PlayaItemTable.favorite)) == 1;
-                            setFavorite(isFavorite, false);
+        titleTextView.setText(item.name);
+        setFavorite(item.isFavorite, false);
+        favoriteButton.setOnClickListener(favoriteButtonOnClickListener);
 
-                            favoriteButton.setTag(R.id.list_item_related_model, modelId);
-                            favoriteButton.setTag(R.id.list_item_related_model_type, model_type);
-                            favoriteButton.setOnClickListener(favoriteButtonOnClickListener);
+        setTextOrHideIfEmpty(item.description, bodyTextView);
 
-                            if (!itemCursor.isNull(itemCursor.getColumnIndex(PlayaItemTable.description))) {
-                                ((TextView) findViewById(R.id.body)).setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(PlayaItemTable.description)));
-                            } else
-                                findViewById(R.id.body).setVisibility(View.GONE);
+        if (!embargoActive) {
+            setTextOrHideIfEmpty(item.playaAddress, subItem1TextView);
+        } else if (item.hasUnofficialLocation()) {
+            setTextOrHideIfEmpty("BurnerMap: " + item.playaAddressUnofficial, subItem1TextView);
+        } else {
+            subItem1TextView.setVisibility(View.GONE);
+        }
 
-                            showingLocation = !itemCursor.isNull(itemCursor.getColumnIndex(PlayaItemTable.latitude)) && (itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.latitude)) != 0);
-                            if (showingLocation) {
-                                favoriteButton.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-                                    if (favoriteMenuItem != null)
-                                        favoriteMenuItem.setVisible(v.getVisibility() == View.GONE);
-                                });
-                                latLng = new LatLng(itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.latitude)), itemCursor.getDouble(itemCursor.getColumnIndexOrThrow(PlayaItemTable.longitude)));
-                                //TextView locationView = ((TextView) findViewById(R.id.location));
-                                Timber.d("adding / centering marker on %f, %f", latLng.latitude, latLng.longitude);
-                                if (USE_MAPBOX_MAP) {
-                                    com.mapbox.mapboxsdk.geometry.LatLng mbLatLng = new com.mapbox.mapboxsdk.geometry.LatLng(latLng.latitude, latLng.longitude);
-                                    MapboxMapFragment mapFragment = new MapboxMapFragment();
-                                    mapFragment.showcaseMarker(new com.mapbox.mapboxsdk.annotations.MarkerOptions().position(mbLatLng).icon(IconFactory.getInstance(getApplicationContext()).fromResource(R.drawable.pin))); //BitmapDescriptorFactory.fromResource(R.drawable.pin)).anchor(.5f, .5f));
-                                    getSupportFragmentManager().beginTransaction().add(R.id.map_container, mapFragment).commit();
-
-                                } else {
-                                    LatLng start = new LatLng(Geo.MAN_LAT, Geo.MAN_LON);
-                                    GoogleMapFragment mapFragment = GoogleMapFragment.newInstance();
-                                    mapFragment.showcaseMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)).anchor(.5f, .5f));
-                                    getSupportFragmentManager().beginTransaction().add(R.id.map_container, mapFragment).commit();
-                                    mapFragment.getMapAsync(googleMap -> {
-                                        UiSettings settings = googleMap.getUiSettings();
-                                        settings.setMyLocationButtonEnabled(false);
-                                        settings.setZoomControlsEnabled(false);
-                                        googleMap.setOnCameraChangeListener(cameraPosition -> {
-                                            if (cameraPosition.zoom >= 20) {
-                                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPosition.target, (float) 19.99));
-                                            }
-                                        });
-                                    });
-                                }
-
-                                //favoriteMenuItem.setVisible(false);
-                                //locationView.setText(String.format("%f, %f", latLng.latitude, latLng.longitude));
-                            } else {
-                                // Adjust the margin / padding show the heart icon doesn't
-                                // overlap title + descrition
-                                findViewById(R.id.map_container).setVisibility(View.GONE);
-                                //GoogleMapFragment mapFragment = (GoogleMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                                //getSupportFragmentManager().beginTransaction().remove(mapFragment).commit();
-                                collapsingToolbarLayout.setBackgroundResource(android.R.color.transparent);
-                                CollapsingToolbarLayout.LayoutParams parms = new CollapsingToolbarLayout.LayoutParams(CollapsingToolbarLayout.LayoutParams.MATCH_PARENT, 24);
-                                mapContainer.setLayoutParams(parms);
-                                favoriteButton.setVisibility(View.GONE);
-                                //favoriteMenuItem.setVisible(true);
-                            }
-
-                            switch (model_type) {
-                                case ART:
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.playaAddress))) {
-                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.playaAddress)));
-                                    } else {
-                                        subItem1TextView.setVisibility(View.GONE);
-                                    }
-
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.artist))) {
-                                        subItem2TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.artist)));
-                                    } else {
-                                        subItem2TextView.setVisibility(View.GONE);
-                                    }
-
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(ArtTable.artistLoc))) {
-                                        subItem3TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.artistLoc)));
-                                    } else {
-                                        subItem3TextView.setVisibility(View.GONE);
-                                    }
-
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndexOrThrow(ArtTable.audioTourUrl))) {
-                                        audioTourUrl = itemCursor.getString(itemCursor.getColumnIndexOrThrow(ArtTable.audioTourUrl));
-
-                                        Timber.d("Add audio tour control view");
-                                        audioTourToggle = new TextView(this);
-                                        audioTourToggle.setTextColor(getResources().getColor(R.color.regular_text));
-                                        audioTourToggle.setTextSize(22);
-                                        audioTourToggle.setCompoundDrawablePadding(12);  // 8 dp
-                                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                                        params.bottomMargin = 12; // 8 dp
-                                        audioTourToggle.setLayoutParams(params);
-                                        if (isAudioTourManagerPlayingThis()) {
-                                            audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_pause_circle_outline_light_24dp), null, null, null);
-                                            audioTourToggle.setText(R.string.pause_audio_tour);
-                                        } else {
-                                            audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_play_circle_outline_light_24dp), null, null, null);
-                                            audioTourToggle.setText(R.string.play_audio_tour);
-                                        }
-                                        audioTourToggle.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_play_circle_outline_light_24dp), null, null, null);
-                                        LinearLayout contentContainer = (LinearLayout) findViewById(R.id.content_container);
-                                        contentContainer.addView(audioTourToggle, 3);
-
-                                        audioTourToggle.setOnClickListener(view -> {
-                                            view.setSelected(!view.isSelected());
-                                            onAudioTourToggleSelectedChanged();
-
-                                            if (view.isSelected()) {
-                                                // Playing. Show Pause button
-                                                audioTourManager.playAudioTourUrl(audioTourUrl, title);
-                                            } else {
-                                                // Paused. Show Play button
-                                                audioTourManager.pause();
-                                            }
-                                        });
-                                    }
-
-                                    break;
-                                case CAMP:
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(CampTable.playaAddress))) {
-                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(CampTable.playaAddress)));
-                                    } else
-                                        subItem1TextView.setVisibility(View.GONE);
-
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(CampTable.hometown))) {
-                                        subItem2TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(CampTable.hometown)));
-                                    } else
-                                        subItem2TextView.setVisibility(View.GONE);
-                                    subItem3TextView.setVisibility(View.GONE);
-                                    break;
-                                case EVENT:
-                                    if (!itemCursor.isNull(itemCursor.getColumnIndex(EventTable.playaAddress))) {
-                                        subItem1TextView.setText(itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.playaAddress)));
-                                    } else
-                                        subItem1TextView.setVisibility(View.GONE);
-
-                                    Date nowDate = CurrentDateProvider.getCurrentDate();
-                                    Calendar nowPlusOneHrDate = Calendar.getInstance();
-                                    nowPlusOneHrDate.setTime(nowDate);
-                                    nowPlusOneHrDate.add(Calendar.HOUR, 1);
-
-                                    subItem2TextView.setText(DateUtil.getDateString(this, nowDate, nowPlusOneHrDate.getTime(),
-                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.startTime)),
-                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.startTimePrint)),
-                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.endTime)),
-                                            itemCursor.getString(itemCursor.getColumnIndexOrThrow(EventTable.endTimePrint))));
-                                    subItem3TextView.setVisibility(View.GONE);
-                                    break;
-                            }
-
-                            // Look up hosted events or other occurrences
-                            int playaId = itemCursor.getInt(itemCursor.getColumnIndex(PlayaItemTable.playaId));
-
-                            if (modelTable.equals(PlayaDatabase.CAMPS)) {
-                                // Lookup hosted events
-
-                                EventCursorAdapter adapter = new EventCursorAdapter(this, null, true, new AdapterListener() {
-                                    @Override
-                                    public void onItemSelected(int modelId, Constants.PlayaItemType type) {
-                                        Intent intent = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
-                                        intent.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, modelId);
-                                        intent.putExtra(PlayaItemViewActivity.EXTRA_MODEL_TYPE, type);
-                                        startActivity(intent);
-                                    }
-
-                                    @Override
-                                    public void onItemFavoriteButtonSelected(int modelId, Constants.PlayaItemType type) {
-                                        final String modelTable;
-                                        switch (type) {
-                                            case CAMP:
-                                                modelTable = PlayaDatabase.CAMPS;
-                                                break;
-                                            case ART:
-                                                modelTable = PlayaDatabase.ART;
-                                                break;
-                                            case EVENT:
-                                                modelTable = PlayaDatabase.EVENTS;
-                                                break;
-
-                                            default:
-                                                throw new IllegalArgumentException("Invalid type " + type);
-                                        }
-
-                                        provider.toggleFavorite(modelTable, modelId);
-                                    }
-                                });
-
-                                provider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.campPlayaId + " = ? GROUP BY " + PlayaItemTable.name, String.valueOf(playaId))
-                                        .map(SqlBrite.Query::run)
-                                        .subscribe(eventsCursor -> {
-
-                                            if (eventsCursor == null) return;
-
-                                            Timber.d("Got %d hosted events", eventsCursor.getCount());
-
-                                            if (eventsCursor.getCount() == 0) {
-                                                eventsCursor.close();
-                                                return;
-                                            }
-
-                                            int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-
-                                            ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
-
-                                            TextView hostedEventsTitle = new TextView(wrapper);
-                                            hostedEventsTitle.setText(R.string.hosted_events);
-                                            hostedEventsTitle.setTextSize(32);
-                                            hostedEventsTitle.setPadding(pad, pad, pad, pad);
-
-                                            overflowContainer.removeAllViews();
-
-                                            overflowContainer.addView(hostedEventsTitle);
-
-                                            adapter.swapCursor(eventsCursor);
-
-                                            for (int idx = 0; idx < eventsCursor.getCount(); idx++) {
-                                                EventCursorAdapter.ViewHolder holder = adapter.createViewHolder(overflowContainer, 0);
-                                                adapter.bindViewHolder(holder, idx);
-                                                overflowContainer.addView(holder.itemView);
-                                            }
-                                            eventsCursor.close();
-                                        }, throwable -> Timber.e(throwable, "Failed to bind hosted events"));
-
-                            } else if (modelTable.equals(PlayaDatabase.EVENTS)) {
-                                // Lookup other event occurrences
-
-                                final ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
-                                final Typeface condensed = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
-                                int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-
-                                if (!itemCursor.isNull(itemCursor.getColumnIndex(EventTable.campPlayaId))) {
-                                    final TextView hostedByCamp = new TextView(wrapper);
-                                    hostedByCamp.setTag(itemCursor.getInt(itemCursor.getColumnIndex(EventTable.campPlayaId)));
-                                    hostedByCamp.setTypeface(condensed);
-                                    hostedByCamp.setTextSize(32);
-                                    hostedByCamp.setPadding(pad, pad, pad, 0);
-
-                                    provider.createQuery(PlayaDatabase.CAMPS, "SELECT * FROM " + PlayaDatabase.CAMPS + " WHERE " + CampTable.playaId + " = ?", String.valueOf(itemCursor.getInt(itemCursor.getColumnIndex(EventTable.campPlayaId))))
-                                            .first()
-                                            .map(SqlBrite.Query::run)
-                                            .subscribe(campCursor -> {
-                                                if (campCursor != null && campCursor.moveToFirst()) {
-                                                    hostedByCamp.setOnClickListener(new RelatedItemOnClickListener(campCursor.getInt(campCursor.getColumnIndex(PlayaItemTable.id)), Constants.PlayaItemType.CAMP));
-                                                    String campName = campCursor.getString(campCursor.getColumnIndex(PlayaItemTable.name));
-                                                    hostedByCamp.setText("Hosted by " + campName);
-                                                    campCursor.close();
-                                                }
-                                            });
-                                    overflowContainer.addView(hostedByCamp);
-                                }
-
-                                provider.createQuery(PlayaDatabase.EVENTS, "SELECT * FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.playaId + " = ? AND " + EventTable.startTime + " != ?", String.valueOf(playaId), itemCursor.getString(itemCursor.getColumnIndex(EventTable.startTime)))
-                                        .first()
-                                        .map(SqlBrite.Query::run)
-                                        .subscribe(eventsCursor -> {
-                                            if (eventsCursor == null) return;
-
-                                            Timber.d("Got %d other occurrences", eventsCursor.getCount());
-
-                                            if (eventsCursor.getCount() == 0) {
-                                                eventsCursor.close();
-                                                return;
-                                            }
-
-                                            TextView occurrencesTitle = new TextView(wrapper);
-                                            occurrencesTitle.setText(R.string.also_at);
-                                            occurrencesTitle.setTypeface(condensed);
-                                            occurrencesTitle.setTextSize(32);
-                                            occurrencesTitle.setPadding(pad,pad,pad,0);
-                                            overflowContainer.addView(occurrencesTitle);
-
-                                            final SimpleDateFormat timeDayFormatter = new SimpleDateFormat("EEEE, M/d 'at' h:mm a", Locale.US);
-
-                                            while (eventsCursor.moveToNext()) {
-                                                TextView event = new TextView(wrapper);
-                                                event.setTypeface(condensed);
-                                                event.setTextSize(20);
-                                                event.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                                                try {
-                                                    event.setText(timeDayFormatter.format(PlayaDateTypeAdapter.iso8601Format.parse(eventsCursor.getString(eventsCursor.getColumnIndex(EventTable.startTime)))));
-                                                } catch (ParseException e) {
-                                                    Timber.w(e, "Unable to parse date, using pre-computed");
-                                                    event.setText(eventsCursor.getString(eventsCursor.getColumnIndex(EventTable.startTimePrint)).toUpperCase());
-                                                }
-                                                event.setOnClickListener(new RelatedItemOnClickListener(eventsCursor.getInt(eventsCursor.getColumnIndex(PlayaItemTable.id)), Constants.PlayaItemType.EVENT));
-                                                event.setPadding(pad,pad,pad,pad);
-
-                                                TypedValue outValue = new TypedValue();
-                                                getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
-                                                event.setBackgroundResource(outValue.resourceId);
-                                                overflowContainer.addView(event);
-                                            }
-                                            eventsCursor.close();
-                                        }, throwable -> Timber.e(throwable, "Failed to bind event occurrences"));
-                            }
-                        }
-                    } finally {
-                        if (itemCursor != null) itemCursor.close();
+        DataProvider.Companion.getInstance(getApplicationContext())
+                .subscribe(provider -> {
+                    if (item instanceof Art) {
+                        populateArtViews((Art) item, provider);
+                    } else if (item instanceof Camp) {
+                        populateCampViews((Camp) item, provider);
+                    } else if (item instanceof Event) {
+                        populateEventViews((Event) item, provider);
                     }
-                }, throwable -> Timber.e(throwable, "Failed to populate views from item"));
+                });
     }
 
-    @Override
-    public void onStopped() {
-        if (isAudioTourManagerPlayingThis()) {
-            audioTourToggle.setSelected(false);
-            onAudioTourToggleSelectedChanged();
+    private void populateArtViews(Art art, DataProvider provider) {
+
+        setTextOrHideIfEmpty(art.artist, subItem2TextView);
+        setTextOrHideIfEmpty(art.artistLocation, subItem3TextView);
+
+        if (art.hasImage()) {
+            artImageView = new ImageView(this);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+            artImageView.setLayoutParams(params);
+            artImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            artImageView.setAlpha(.99f); // Hack - Can't seem to properly add view if it's visibility is not VISIBLE or alpha 0. This lets us know that the view isn't technically visible (it's not at the front)
+            mapContainer.addView(artImageView);
+
+            loadArtImage(art, artImageView, new com.gaiagps.iburn.Callback() {
+
+                @Override
+                public void onSuccess() {
+                    loadedArtImage = true;
+                    invalidateOptionsMenu();
+                    Timber.d("Loaded image %s", art.imageUrl);
+
+                    // If we're showing location, image will be under map. After a delay
+                    // bring it to front and fade-in. Else, image will be visible here
+                    if (showingLocation) {
+                        autoShowArtDisposable = Observable.timer(7, TimeUnit.SECONDS)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(ignored -> {
+                                    if (artImageView.getAlpha() == 1f) return;
+
+                                    artImageView.bringToFront();
+                                    fadeView(artImageView, true, new AnimatorListenerAdapter() {
+                                        @Override
+                                        public void onAnimationEnd(Animator animation) {
+                                            invalidateOptionsMenu();
+                                        }
+                                    });
+                                });
+                    }
+
+                    // TODO : Cleanup
+                    SchedulersKt.getIoScheduler().scheduleDirect(() -> {
+                        Bitmap bitmap = ((BitmapDrawable)artImageView.getDrawable()).getBitmap();
+
+                        Palette.from(bitmap).generate(palette -> {
+                            // Use generated instance
+                            int defaultColor = getResources().getColor(R.color.iburn_color);
+                            int genColor = palette.getDominantColor(defaultColor);
+                            collapsingToolbarLayout.setBackgroundColor(genColor);
+                            collapsingToolbarLayout.setContentScrimColor(genColor);
+                            collapsingToolbarLayout.setStatusBarScrimColor(genColor);
+                        });
+                    });
+                }
+
+                @Override
+                public void onError() {
+                    // fuhgeddaboudit. Don't show image
+                    Timber.e("Failed to load image");
+                }
+            });
+            // TODO : Add Placeholder and error images
+        }
+
+        // Note : Audio Tour views are populated separately when connection to the
+        // AudioPlaybackService is complete. See setupMediaTransportControls
+    }
+
+    private void populateCampViews(Camp camp, DataProvider provider) {
+        setTextOrHideIfEmpty(camp.hometown, subItem2TextView);
+        subItem3TextView.setVisibility(View.GONE);
+
+        // Display hosted events
+        PlayaItemAdapter adapter = new PlayaItemAdapter(getApplicationContext(), this);
+
+        // This list will be updated if a favorite changes
+        provider.observeEventsHostedByCamp(camp)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(events -> {
+                    int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+
+
+                    overflowContainer.removeAllViews();
+
+                    if (events.size() > 0) {
+                        ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
+                        TextView hostedEventsTitle = new TextView(wrapper);
+                        hostedEventsTitle.setText(R.string.hosted_events);
+                        hostedEventsTitle.setTextSize(32);
+                        hostedEventsTitle.setPadding(pad, pad, pad, pad);
+                        overflowContainer.addView(hostedEventsTitle);
+                    }
+
+                    adapter.setItems(events);
+
+                    for (int idx = 0; idx < events.size(); idx++) {
+                        PlayaItemAdapter.ViewHolder holder = (PlayaItemAdapter.ViewHolder) adapter.createViewHolder(overflowContainer, 0);
+                        adapter.bindViewHolder(holder, idx);
+                        overflowContainer.addView(holder.itemView);
+                    }
+                });
+    }
+
+    private void populateEventViews(Event event, DataProvider provider) {
+
+        Date nowDate = CurrentDateProvider.getCurrentDate();
+
+        // Describe the event time with some smarts: "[Starts|Ends] [in|at] [20m|4:20p]"
+        String dateDescription = DateUtil.getDateString(
+                getApplicationContext(),
+                nowDate,
+                event.startTime,
+                event.startTimePretty,
+                event.endTime,
+                event.endTimePretty);
+
+        subItem2TextView.setText(dateDescription);
+        subItem3TextView.setVisibility(View.GONE);
+
+        // Display Hosted-By-Camp
+        final ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
+        final Typeface condensed = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
+        int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+
+        if (event.hasCampHost()) {
+            final TextView hostedByCamp = new TextView(wrapper);
+            hostedByCamp.setTag(event.campPlayaId);
+            hostedByCamp.setTypeface(condensed);
+            hostedByCamp.setTextSize(32);
+            hostedByCamp.setPadding(pad, pad, pad, 0);
+
+            provider.observeCampByPlayaId(event.campPlayaId)
+                    .firstElement()
+                    .subscribe(camp -> {
+                        hostedByCamp.setOnClickListener(new RelatedItemOnClickListener(camp));
+                        String campName = camp.name;
+                        hostedByCamp.setText("Hosted by " + campName);
+                        overflowContainer.addView(hostedByCamp);
+                    });
+
+        }
+
+        // Display other event occurrences
+        provider.observeOtherOccurrencesOfEvent(event)
+                .firstElement()
+                .subscribe(eventOccurrences -> {
+
+                    Timber.d("Got %d other event occurrences", eventOccurrences.size());
+                    if (eventOccurrences.size() > 0) {
+                        TextView occurrencesTitle = new TextView(wrapper);
+                        occurrencesTitle.setText(R.string.also_at);
+                        occurrencesTitle.setTypeface(condensed);
+                        occurrencesTitle.setTextSize(32);
+                        occurrencesTitle.setPadding(pad, pad, pad, 0);
+                        overflowContainer.addView(occurrencesTitle);
+                    }
+
+                    final SimpleDateFormat timeDayFormatter = new SimpleDateFormat("EEEE, M/d 'at' h:mm a", Locale.US);
+
+                    for (Event occurrence : eventOccurrences) {
+                        TextView eventTv = new TextView(wrapper);
+                        eventTv.setTypeface(condensed);
+                        eventTv.setTextSize(20);
+                        eventTv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                        try {
+                            eventTv.setText(timeDayFormatter.format(PlayaDateTypeAdapter.iso8601Format.parse(occurrence.startTime)));
+                        } catch (ParseException e) {
+                            Timber.w(e, "Unable to parse date, using pre-computed");
+                            eventTv.setText(event.startTimePretty.toUpperCase());
+                        }
+                        eventTv.setOnClickListener(new RelatedItemOnClickListener(occurrence));
+                        eventTv.setPadding(pad, pad, pad, pad);
+
+                        TypedValue outValue = new TypedValue();
+                        getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+                        eventTv.setBackgroundResource(outValue.resourceId);
+                        overflowContainer.addView(eventTv);
+                    }
+                });
+    }
+
+    private void setTextOrHideIfEmpty(String text, TextView view) {
+        if (!TextUtils.isEmpty(text)) {
+            view.setText(text);
+        } else {
+            view.setVisibility(View.GONE);
         }
     }
 
-    @Override
-    public void onPaused(Song song) {
-        if (isAudioTourManagerPlayingThis()) {
-            audioTourToggle.setSelected(false);
-            onAudioTourToggleSelectedChanged();
-        }
-    }
+    private boolean isCurrentMediaSessionForItem(MediaControllerCompat mediaControllerCompat,
+                                                 PlayaItem item) {
+        if (mediaControllerCompat == null) return false;
 
-    @Override
-    public void onLoading(Song song) {
-        // unused
-    }
+        MediaMetadataCompat metadata = mediaControllerCompat.getMetadata();
+        if (metadata == null) return false;
 
-    @Override
-    public void onPlaying(Song song, int i) {
-        if (isAudioTourManagerPlayingThis()) {
-            audioTourToggle.setSelected(true);
-            onAudioTourToggleSelectedChanged();
-        }
-    }
+        String currentlyPlayingArtPlayaId = metadata.getString(MediaMetadataKeyArtPlayaId);
 
-    @Override
-    public void onStreaming(Song song) {
-        // unused
-    }
-
-    private boolean isAudioTourManagerPlayingThis() {
-        return audioTourManager != null && audioTourManager.getCurrentAudioTourUrl() != null &&
-                audioTourManager.getCurrentAudioTourUrl().equals(audioTourUrl);
+        return (currentlyPlayingArtPlayaId != null && currentlyPlayingArtPlayaId.equals(item.playaId));
     }
 
     private void onAudioTourToggleSelectedChanged() {
@@ -590,23 +722,35 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
         }
     }
 
+    @Override
+    public void onItemSelected(PlayaItem item) {
+        Intent intent = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
+        intent.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM, item);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onItemFavoriteButtonSelected(PlayaItem item) {
+        DataProvider.Companion.getInstance(getApplicationContext())
+                .observeOn(SchedulersKt.getIoScheduler())
+                .subscribe(provider -> provider.toggleFavorite(item));
+    }
+
     class RelatedItemOnClickListener implements View.OnClickListener {
 
-        int modelId;
-        Constants.PlayaItemType modeltype;
+        PlayaItem item;
 
-        public RelatedItemOnClickListener(int modelId, Constants.PlayaItemType modeltype) {
-            this.modelId = modelId;
-            this.modeltype = modeltype;
+        public RelatedItemOnClickListener(PlayaItem item) {
+            this.item = item;
         }
 
         @Override
         public void onClick(View v) {
             Intent i = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
-            i.putExtra(EXTRA_MODEL_ID, modelId);
-            i.putExtra(EXTRA_MODEL_TYPE, modeltype);
+            i.putExtra(EXTRA_PLAYA_ITEM, item);
             startActivity(i);
         }
+
     }
 
     View.OnClickListener favoriteButtonOnClickListener = (View v) -> {
@@ -614,21 +758,43 @@ public class PlayaItemViewActivity extends AppCompatActivity implements PlayerHa
     };
 
     private void setFavorite(boolean isFavorite, boolean save) {
-        if (modelTable == null || modelId == 0) {
+        if (item == null) {
             Timber.w("setFavorite called before model data ready. Ignoring");
             return;
         }
 
-        int newMenuDrawableResId = isFavorite ? R.drawable.ic_heart_full : R.drawable.ic_heart_empty;
+        int newMenuDrawableResId = isFavorite ? R.drawable.ic_heart_full_white_24dp : R.drawable.ic_heart_empty_white_24dp;
 
         favoriteButton.setSelectedState(isFavorite, save);
         if (favoriteMenuItem != null) favoriteMenuItem.setIcon(newMenuDrawableResId);
-
         if (save) {
-            DataProvider.getInstance(PlayaItemViewActivity.this.getApplicationContext())
-                    .subscribe(dataProvider -> dataProvider.updateFavorite(modelTable, modelId, isFavorite),
+            DataProvider.Companion.getInstance(getApplicationContext())
+                    .observeOn(SchedulersKt.getIoScheduler())
+                    .subscribe(dataProvider -> dataProvider.toggleFavorite(item),
                             throwable -> Timber.e(throwable, "Failed to save"));
             this.isFavorite = isFavorite;
         }
+    }
+
+    private void setImageMenuToggle(boolean isShowingImage) {
+        if (isShowingImage) {
+            imageMenuItem.setIcon(R.drawable.ic_map_white_on_orange_24dp);
+        } else {
+            imageMenuItem.setIcon(R.drawable.ic_image_white_on_orange_24dp);
+        }
+    }
+
+    private void fadeView(View view, boolean fadeIn, AnimatorListenerAdapter listener) {
+        float startAlpha = fadeIn ? 0 : 1;
+        float stopAlpha = 1 - startAlpha;
+
+        ValueAnimator fade = ValueAnimator.ofFloat(startAlpha, stopAlpha);
+        fade.addUpdateListener(valueAnimator ->
+                view.setAlpha((Float) valueAnimator.getAnimatedValue()));
+        fade.setDuration(1000);
+        if (listener != null) {
+            fade.addListener(listener);
+        }
+        fade.start();
     }
 }

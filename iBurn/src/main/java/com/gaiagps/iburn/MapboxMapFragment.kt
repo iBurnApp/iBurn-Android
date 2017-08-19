@@ -1,29 +1,33 @@
 package com.gaiagps.iburn
 
 
-import android.content.ContentValues
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
-import android.database.Cursor
+import android.graphics.PointF
 import android.os.Bundle
+import android.support.animation.DynamicAnimation
+import android.support.animation.SpringAnimation
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
+import android.text.TextUtils
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.RadioButton
-import android.widget.RadioGroup
+import android.widget.*
 import com.gaiagps.iburn.activity.PlayaItemViewActivity
 import com.gaiagps.iburn.database.*
-import com.gaiagps.iburn.fragment.MapFragmentHelper
+import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.mapbox.mapboxsdk.annotations.Icon
-import com.mapbox.mapboxsdk.annotations.IconFactory
-import com.mapbox.mapboxsdk.annotations.Marker
-import com.mapbox.mapboxsdk.annotations.MarkerOptions
+import com.google.android.gms.location.LocationRequest
+import com.mapbox.mapboxsdk.annotations.*
 import com.mapbox.mapboxsdk.camera.CameraPosition
+import com.mapbox.mapboxsdk.camera.CameraUpdate
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
+import com.mapbox.mapboxsdk.constants.MyLocationTracking
+import com.mapbox.mapboxsdk.exceptions.InvalidLatLngBoundsException
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.geometry.LatLngBounds
 import com.mapbox.mapboxsdk.geometry.VisibleRegion
@@ -31,14 +35,16 @@ import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.utils.MapFragmentUtils
-import com.squareup.sqlbrite.SqlBrite
-import rx.Observable
-import rx.Subscription
-import rx.android.schedulers.AndroidSchedulers
-import rx.subjects.PublishSubject
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.subjects.PublishSubject
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
+import kotlin.collections.set
 
 
 class MapboxMapFragment : Fragment() {
@@ -70,7 +76,12 @@ class MapboxMapFragment : Fragment() {
         /**
          * Show search results
          */
-        SEARCH
+        SEARCH,
+
+        /**
+         * Placing a User POI
+         */
+        PLACE_USER_POI
     }
 
     private var state = State.EXPLORE
@@ -79,20 +90,40 @@ class MapboxMapFragment : Fragment() {
     private val markerShowcaseZoom = 14.5
     private val poiVisibleZoom = 14.0
 
+    private var userPoiButton: ImageView? = null
+    private var addressLabel: TextView? = null
     private var mapView: MapView? = null
     private var onMapReadyCallback: OnMapReadyCallback? = null
 
     private var showcaseMarker: MarkerOptions? = null
 
     private val cameraUpdate = PublishSubject.create<VisibleRegion>()
-    private var cameraUpdateSubscription: Subscription? = null
+    private var cameraUpdateSubscription: Disposable? = null
 
+    private var locationSubscription: Disposable? = null
+
+    /**
+     * Showcase a point on the map using a generic pin
+     */
+    fun showcaseLatLng(context: Context, latLng: LatLng) {
+        // We ask for an external context because we want this method to be callable
+        // before this fragment is resumed (e.g: shortly after construction)
+        // TODO : Refactor to include showcase marker in Bundle on construction
+        val icon = IconFactory.getInstance(context).fromResource(R.drawable.pin)
+        val marker = MarkerOptions().icon(icon).position(latLng)
+        showcaseMarker(marker)
+    }
+
+    /**
+     * Showcase a specific marker on the map. If you just need a generic map pin use [showcaseLatLng]
+     */
     fun showcaseMarker(marker: MarkerOptions) {
         state = State.SHOWCASE
         showcaseMarker = marker
         if (isResumed) {
             _showcaseMarker(marker)
         }
+        locationSubscription?.dispose()
     }
 
     private fun _showcaseMarker(marker: MarkerOptions) {
@@ -103,16 +134,11 @@ class MapboxMapFragment : Fragment() {
 //            locationSubscription.unsubscribe()
 //            locationSubscription = null
 //        }
-//        if (addressLabel != null) addressLabel.setVisibility(View.INVISIBLE)
-//        val poiBtn = activity.findViewById(R.id.mapPoiBtn) as ImageButton
-//        if (poiBtn != null) {
-//            poiBtn.visibility = View.GONE
-//        }
-//        showcaseMarker = null
+        addressLabel?.visibility = View.INVISIBLE
+        userPoiButton?.visibility = View.INVISIBLE
     }
 
     private fun mapMarkerAndFitEntireCity(marker: MarkerOptions) {
-//        latLngToCenterOn = marker.position
         mapView?.getMapAsync { map ->
 
             map.addMarker(marker)
@@ -149,9 +175,117 @@ class MapboxMapFragment : Fragment() {
             val options = MapFragmentUtils.resolveArgs(context, this.arguments)
             val mapView = MapView(context, options)
             this.mapView = mapView
+
+            val dpValue = 10 // margin in dips
+            val d = activity.resources.displayMetrics.density
+            val margin = (dpValue * d).toInt() // margin in pixels
+
+            // Add Playa Address label
+            val addressLabel = inflater.inflate(R.layout.current_playa_address, container, false) as TextView
+            addressLabel.visibility = View.INVISIBLE
+            mapView.addView(addressLabel)
+            setMargins(addressLabel, 0, margin, margin * 5, 0, Gravity.TOP.or(Gravity.RIGHT))
+            addressLabel.setOnClickListener {
+                onUserAddressLabelClicked(longClick = false)
+            }
+            addressLabel.setOnLongClickListener {
+                onUserAddressLabelClicked(longClick = true)
+                true
+            }
+            this.addressLabel = addressLabel
+
+            // Add User POI add button
+            val userPoiButton = inflater.inflate(R.layout.map_image_btn, container, false) as ImageView
+            userPoiButton.visibility = if (state != State.SHOWCASE) View.VISIBLE else View.GONE
+            userPoiButton.setImageResource(R.drawable.ic_pin_drop_black_24dp)
+            mapView.addView(userPoiButton)
+            setMargins(userPoiButton, 0, margin, (margin * 9.5).toInt(), 0, Gravity.TOP.or(Gravity.RIGHT))
+            userPoiButton.setOnClickListener {
+                mapView.getMapAsync { map ->
+
+                    if (state != State.PLACE_USER_POI) {
+                        val prePlaceUserPoiState = state
+
+                        state = State.PLACE_USER_POI
+                        val markerPlaceView = addMarkerPlaceOverlay(inflater) { markerPlaceView, markerLatLng ->
+                            Timber.d("Placing marker")
+                            state = prePlaceUserPoiState
+                            mapView.removeView(markerPlaceView)
+                            addCustomPin(map, markerLatLng, "Custom Marker", UserPoi.ICON_STAR, {
+                                marker ->
+                                showEditPinDialog(marker)
+                            })
+                        }
+//
+//                                inflater.inflate(R.layout.overlay_place_custom_marker, container, false)
+//                        mapView.addView(markerPlaceView)
+//                        val viewDimen = convertDpToPixel(200f, context).toInt()
+//                        markerPlaceView.layoutParams = FrameLayout.LayoutParams(
+//                                viewDimen,
+//                                viewDimen * 2)
+
+                        animateDropView(markerPlaceView)
+
+                        // Express train to Jankville! The discrepancy between a view placed at screen center
+                        // and where Mapbox reports the camera target is might be due to marker anchors... or something else
+                        // TODO : Figure out how to remove this magic margin
+//                        val px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics).toInt()
+//                        setMargins(markerPlaceView, 0, 0, 0, px, Gravity.CENTER)
+
+//                        markerPlaceView.findViewById<ImageView>(R.id.star).setOnClickListener {
+//                            Timber.d("Placing marker")
+//                            state = prePlaceUserPoiState
+//                            mapView.removeView(markerPlaceView)
+//                            addCustomPin(map, null, "Custom Marker", UserPoi.ICON_STAR, {
+//                                marker ->
+//                                showEditPinDialog(marker)
+//                            })
+//                        }
+                    }
+                }
+            }
+            this.userPoiButton = userPoiButton
+
             return this.mapView
         }
         return null
+    }
+
+    private fun addMarkerPlaceOverlay(inflater: LayoutInflater,
+                                      iconResId: Int = R.drawable.puck_star,
+                                      markerClickListener: (View, LatLng) -> Unit): View {
+        val markerPlaceView = inflater.inflate(R.layout.overlay_place_custom_marker, mapView, false)
+        mapView?.addView(markerPlaceView)
+        val viewDimen = convertDpToPixel(200f, context).toInt()
+        markerPlaceView.layoutParams = FrameLayout.LayoutParams(
+                viewDimen,
+                viewDimen * 2)
+
+        // Express train to Jankville! The discrepancy between a view placed at screen center
+        // and where Mapbox reports the camera target is might be due to marker anchors... or something else
+        // TODO : Figure out how to remove this magic margin
+//        val px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics).toInt()
+        setMargins(markerPlaceView, 0, 0, 0, 0 /*px*/, Gravity.CENTER)
+
+        val markerIcon = markerPlaceView.findViewById<ImageView>(R.id.star)
+        markerIcon.setImageResource(iconResId)
+        markerIcon.setOnClickListener {
+            mapView?.getMapAsync { map ->
+
+                val parent = markerIcon.parent as View
+
+                val markerX = parent.left + (parent.width / 2f)
+                val markerY = parent.top + (markerIcon.top + (markerIcon.height / 2f)) // / 2f moves marker up a lil, / 1f moves down a little
+
+                val onScreenPoint = PointF(markerX, markerY)
+                val markerLatLng = map.projection.fromScreenLocation(onScreenPoint)
+                Timber.d("Marker is at position ${markerIcon.x} / $markerX, ${markerIcon.y} / $markerY translated to LatLng ${markerLatLng.latitude}, ${markerLatLng.longitude}")
+
+                markerClickListener.invoke(markerPlaceView, markerLatLng)
+            }
+        }
+
+        return markerPlaceView
     }
 
     private fun setupMap(mapView: MapView) {
@@ -165,19 +299,20 @@ class MapboxMapFragment : Fragment() {
             if (BuildConfig.MOCK) {
                 // TODO : Re-enable mock location after crash resolved
                 // https://github.com/mapbox/mapbox-gl-native/pull/9142
-//                map.setLocationSource(LocationProvider.MapboxMockLocationSource())
+                val mockEngine = LocationProvider.MapboxMockLocationSource()
+                map.setLocationSource(mockEngine)
             }
             map.myLocationViewSettings.foregroundTintColor = context.resources.getColor(R.color.map_my_location)
             map.myLocationViewSettings.accuracyTintColor = context.resources.getColor(R.color.map_my_location)
             // TODO : Re-enable location after crash resolved
             // https://github.com/mapbox/mapbox-gl-native/pull/9142
-//            map.isMyLocationEnabled = true
+            map.isMyLocationEnabled = true
             map.setMinZoomPreference(defaultZoom)
             map.setLatLngBoundsForCameraTarget(cameraBounds)
             map.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
             map.uiSettings.setAllGesturesEnabled(state != State.SHOWCASE)
             map.setOnCameraIdleListener {
-                if (map.cameraPosition.zoom < poiVisibleZoom && areMarkersVisible()) {
+                if (!shouldShowPoisAtZoom(map.cameraPosition.zoom) && areMarkersVisible()) {
                     clearMap(false)
                 } else {
                     cameraUpdate.onNext(map.projection.visibleRegion)
@@ -185,43 +320,65 @@ class MapboxMapFragment : Fragment() {
             }
 
             map.setOnInfoWindowClickListener { marker ->
-                if (markerIdToMeta.containsKey(marker.id)) {
-                    val markerMeta = markerIdToMeta[marker.id]!!
-                    val model_id = Integer.parseInt(markerMeta.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1])
-                    val model_type = Integer.parseInt(markerMeta.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0])
-                    val modelType = DataProvider.getTypeValue(model_type)
+                if (markerIdToItem.containsKey(marker.id)) {
+                    val item = markerIdToItem[marker.id]!!
                     val i = Intent(activity.applicationContext, PlayaItemViewActivity::class.java)
-                    i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_ID, model_id)
-                    i.putExtra(PlayaItemViewActivity.EXTRA_MODEL_TYPE, modelType)
+                    i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM, item)
                     activity.startActivity(i)
-                } else if (mMappedCustomMarkerIds.containsKey(marker.id)) {
+                } else if (mappedCustomMarkerIds.containsKey(marker.id)) {
                     showEditPinDialog(marker)
                 }
                 true
             }
         }
+    }
 
+    private fun setupLocationSub() {
+        val locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_NO_POWER)
+                .setInterval(5000)
+
+        val context = activity.applicationContext
+        locationSubscription?.dispose()
+        locationSubscription = LocationProvider.observeCurrentLocation(context, locationRequest)
+                .observeOn(ioScheduler)
+                .flatMap { location ->
+                    Geocoder.reverseGeocode(context, location.latitude.toFloat(), location.longitude.toFloat())
+                            .toObservable()
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { address ->
+                    addressLabel?.visibility = View.VISIBLE
+                    addressLabel?.text = address
+                }
+    }
+
+    private fun setupCameraUpdateSub(map: MapboxMap) {
         val prefsHelper = PrefsHelper(activity.applicationContext)
         Timber.d("Subscribing to camera updates")
-        cameraUpdateSubscription?.unsubscribe()
+        cameraUpdateSubscription?.dispose()
         cameraUpdateSubscription = cameraUpdate
                 .debounce(250, TimeUnit.MILLISECONDS)
                 .flatMap { visibleRegion ->
                     DataProvider.getInstance(activity.applicationContext)
                             .map { provider -> Pair(provider, visibleRegion) }
                 }
-                .flatMap { providerRegionPair ->
-                    val provider = providerRegionPair.first
-                    val visibleRegion = providerRegionPair.second
+                .flatMap { (provider, visibleRegion) ->
 
-                    MapFragmentHelper().performQuery(provider = provider, visibleRegion = visibleRegion, prefs = prefsHelper, isShowcaseMode = state == State.SHOWCASE)
-                }
-                .map(SqlBrite.Query::run)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { cursor ->
-                    cursor?.let { cursor ->
-                        processMapItemResult(cursor = cursor)
+                    val embargoActive = Embargo.isEmbargoActive(prefsHelper)
+                    val queryAllItems = (state != State.SHOWCASE) && (!embargoActive) && shouldShowPoisAtZoom(map.cameraPosition.zoom)
+
+                    if (queryAllItems) {
+                        Timber.d("Map query for all items at zoom %f", map.cameraPosition.zoom)
+                        provider.observeUserAddedMapItemsOnly().firstElement().toObservable()
+                    } else {
+                        Timber.d("Map query for user items at zoom %f", map.cameraPosition.zoom)
+                        (provider.getUserPoi()).firstElement().toObservable()
                     }
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { items: List<PlayaItem> ->
+                    processMapItemResult(items)
                 }
     }
 
@@ -233,7 +390,13 @@ class MapboxMapFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         mapView?.onStart()
-        mapView?.getMapAsync(this.onMapReadyCallback)
+        mapView?.getMapAsync { map ->
+            onMapReadyCallback?.onMapReady(map)
+            setupCameraUpdateSub(map)
+        }
+        if (state != State.SHOWCASE) {
+            setupLocationSub()
+        }
     }
 
     override fun onResume() {
@@ -254,6 +417,9 @@ class MapboxMapFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         mapView?.onStop()
+        locationSubscription?.dispose()
+        cameraUpdateSubscription?.dispose()
+        Geocoder.close()
     }
 
     override fun onLowMemory() {
@@ -265,8 +431,7 @@ class MapboxMapFragment : Fragment() {
         super.onDestroyView()
         mapView?.onDestroy()
 
-        Timber.d("Unsubscribing from camera updates")
-        cameraUpdateSubscription?.unsubscribe()
+        cameraUpdateSubscription?.dispose()
     }
 
     fun getMapAsync(onMapReadyCallback: OnMapReadyCallback) {
@@ -274,9 +439,14 @@ class MapboxMapFragment : Fragment() {
     }
 
     /**
-     * Map of user added pins. Mapbox Marker Id -> Database Id
+     * Map of user added pins. Mapbox Marker Id -> UserPoi
      */
-    internal var mMappedCustomMarkerIds = HashMap<Long, String>()
+    internal var mappedCustomMarkerIds = HashMap<Long, UserPoi>()
+
+    /**
+     * Set to avoid plotting duplicate items
+     */
+    internal var mappedItems = HashSet<PlayaItem>()
     /**
      * Map of pins shown in response to explore or search
      */
@@ -285,61 +455,66 @@ class MapboxMapFragment : Fragment() {
     // Markers that should only be cleared on new query arrival
     internal var permanentMarkers = HashSet<Marker>()
     // Markers that should be cleared on camera events
-    internal var mMappedTransientMarkers = ArrayDeque<Marker>(MAX_POIS)
-    internal var markerIdToMeta = HashMap<Long, String>()
+    internal var mappedTransientMarkers = ArrayDeque<Marker>(MAX_POIS)
+    internal var markerIdToItem = HashMap<Long, PlayaItem>()
 
     /**
      * Keep track of the bounds describing a batch of results across Loaders
      */
     private var mResultBounds: LatLngBounds.Builder? = null
 
-    private fun processMapItemResult(cursor: Cursor) {
+    private fun processMapItemResult(items: List<PlayaItem>) {
 
         clearPermanentMarkers()
         mResultBounds = LatLngBounds.Builder()
 
-        Timber.d("Got cursor result with %d items", cursor.count)
+        Timber.d("Got result with %d items", items.size)
         mapView?.getMapAsync { map ->
 
             val currentZoom = map.cameraPosition.zoom
-            var markerMapId: String
-            // Sorry, but Java has no immutable primitives and LatLngBounds has no indicator
-            // of when calling .build() will throw IllegalStateException due to including no points
-            val areBoundsValid = BooleanArray(1)
-            while (cursor.moveToNext()) {
-                if (cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)) == 0.0) continue
 
-                val typeInt = cursor.getInt(cursor.getColumnIndex(DataProvider.VirtualType))
-                val type = DataProvider.getTypeValue(typeInt)
+            val itemsWithLocation = items.filter { it.latitude != 0f }
+            itemsWithLocation
+                    .forEach { item ->
+                        if (mappedItems.contains(item)) return@forEach // continue to next item
 
-                markerMapId = generateDataIdForItem(type, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id)).toLong())
-
-                if (type == Constants.PlayaItemType.POI) {
-                    // POIs are permanent markers that are editable when their info window is clicked
-                    if (!mMappedCustomMarkerIds.containsValue(markerMapId)) {
-                        val marker = addNewMarkerForCursorItem(map, typeInt, cursor)
-                        mMappedCustomMarkerIds.put(marker.getId(), markerMapId)
+                        if (item is UserPoi) {
+                            // UserPois are always-visible and editable when their info window is clicked
+                            Timber.d("Adding marker for UserPoi ${item.id}")
+                            val marker = addNewMarkerForItem(map, item)
+                            mappedItems.add(item)
+                            mappedCustomMarkerIds[marker.id] = item
+                        } else if (item.isFavorite) {
+                            // Favorites are always-visible, but not editable
+                            val marker = addNewMarkerForItem(map, item)
+                            markerIdToItem[marker.id] = item
+                            mappedItems.add(item)
+                            permanentMarkers.add(marker)
+                        } else if (shouldShowPoisAtZoom(currentZoom)) {
+                            // Other markers are only displayed at near zoom, and are kept in a pool
+                            // of recyclable markers. mapRecyclableMarker handles adding to markerIdToItem
+                            val marker = mapRecyclableMarker(map, item, mResultBounds)
+                            if (marker != null) {
+                                mappedItems.add(item)
+                            }
+                        }
                     }
-                } else if (cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)) == 1) {
-                    // Favorites are permanent markers, but are not editable
-                    if (!markerIdToMeta.containsValue(markerMapId)) {
-                        val marker = addNewMarkerForCursorItem(map, typeInt, cursor)
-                        markerIdToMeta.put(marker.getId(), markerMapId)
-                        permanentMarkers.add(marker)
-                    }
-                } else if (currentZoom > poiVisibleZoom) {
-                    // Other markers are recyclable, and may be cleared on camera events
-                    mapRecyclableMarker(map, typeInt, markerMapId, cursor, mResultBounds, areBoundsValid)
+
+            // If displaying search results, try to move the camera to include all results
+            if (state == State.SEARCH) {
+                try {
+                    map.animateCamera(CameraUpdateFactory.newLatLngBounds(mResultBounds!!.build(), 80))
+                } catch (e: InvalidLatLngBoundsException) {
+                    Timber.w("Search results bounds are invalid. Likely due to no search results")
+                    // No mappable results
+                    resetMapView(map)
                 }
             }
-            cursor.close()
-            if (areBoundsValid[0] && state == State.SEARCH) {
-                map.animateCamera(CameraUpdateFactory.newLatLngBounds(mResultBounds!!.build(), 80))
-            } else if (!areBoundsValid[0] && state == State.SEARCH) {
-                // No results
-                resetMapView(map)
-            }
         }
+    }
+
+    private fun shouldShowPoisAtZoom(currentZoom: Double): Boolean {
+        return currentZoom > poiVisibleZoom
     }
 
     private val iconFactory: IconFactory by lazy {
@@ -348,6 +523,10 @@ class MapboxMapFragment : Fragment() {
 
     // TODO : Loading many Icons breaks the entire marker rendering system somehow, so we cache 'em:
     // https://github.com/mapbox/mapbox-gl-native/issues/9026
+
+    private val iconGeneric: Icon by lazy {
+        iconFactory.fromResource(R.drawable.pin)
+    }
 
     private val iconArt: Icon by lazy {
         iconFactory.fromResource(R.drawable.art_pin)
@@ -377,23 +556,62 @@ class MapboxMapFragment : Fragment() {
         iconFactory.fromResource(R.drawable.puck_heart)
     }
 
-    private fun addNewMarkerForCursorItem(map: MapboxMap, itemType: Int, cursor: Cursor): Marker {
-        val pos = LatLng(cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)),
-                cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.longitude)))
-        val markerOptions: MarkerOptions
-        markerOptions = MarkerOptions().position(pos)
-                .title(cursor.getString(cursor.getColumnIndex(PlayaItemTable.name)))
+    private fun onUserAddressLabelClicked(longClick: Boolean) {
 
-        val iconFactory = IconFactory.getInstance(context)
+        fun copyAddressToClipboard() {
+            val address = addressLabel?.text.toString()
+            if (!TextUtils.isEmpty(address)) {
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText("Current Playa Address", address)
+                clipboard.primaryClip = clip
+                Toast.makeText(activity.applicationContext, "Copied address to clipboard", Toast.LENGTH_LONG).show()
+            }
+        }
 
-        val modelType = DataProvider.getTypeValue(itemType)
-        when (modelType) {
-            Constants.PlayaItemType.POI ->
-                // Favorite column is mapped to user poi icon type: A hack to make the union query work
-                styleCustomMarkerOption(markerOptions, cursor.getInt(cursor.getColumnIndex(PlayaItemTable.favorite)))
-            Constants.PlayaItemType.ART -> markerOptions.icon(iconArt)
-            Constants.PlayaItemType.CAMP -> markerOptions.icon(iconCamp)
-            Constants.PlayaItemType.EVENT -> markerOptions.icon(iconEvent)
+        fun followCurrentLocaction() {
+            this.mapView?.getMapAsync { map ->
+                val location = map.myLocation
+                location?.let { location ->
+                    val camUpdate = CameraUpdate { _ ->
+                        CameraPosition.Builder().target(LatLng(location.latitude, location.longitude))
+                                .zoom(markerShowcaseZoom)
+                                .build()
+                    }
+
+                    map.animateCamera(camUpdate, object: MapboxMap.CancelableCallback {
+                        override fun onCancel() {
+                            // no-op
+                        }
+
+                        override fun onFinish() {
+                            map.trackingSettings.myLocationTrackingMode = MyLocationTracking.TRACKING_FOLLOW
+                        }
+
+                    })
+                }
+            }
+        }
+
+        if (longClick) copyAddressToClipboard() else followCurrentLocaction()
+    }
+
+
+    private fun addNewMarkerForItem(map: MapboxMap, item: PlayaItem): Marker {
+        val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
+        val markerOptions: MarkerViewOptions
+        markerOptions = MarkerViewOptions()
+                .position(pos)
+                .title(item.name)
+                .anchor(0.5f, 0.5f)
+
+        if (item is UserPoi) {
+            styleCustomMarkerOption(markerOptions, item.icon)
+        } else if (item is Art) {
+            markerOptions.icon(iconArt)
+        } else if (item is Camp) {
+            markerOptions.icon(iconCamp)
+        } else if (item is Event) {
+            markerOptions.icon(iconEvent)
         }
 
         val marker = map.addMarker(markerOptions)
@@ -403,62 +621,60 @@ class MapboxMapFragment : Fragment() {
     /**
      * Apply style to a custom MarkerOptions before
      * adding to Map
-     *
-     *
-     * Note: drawableResId is an int constant from [com.gaiagps.iburn.database.UserPoiTable]
      */
-    private fun styleCustomMarkerOption(markerOption: MarkerOptions, drawableResId: Int) {
-        when (drawableResId) {
-            UserPoiTable.HOME -> markerOption.icon(iconUserHome)
-            UserPoiTable.STAR -> markerOption.icon(iconUserStar)
-            UserPoiTable.BIKE -> markerOption.icon(iconUserBicycle)
-            UserPoiTable.HEART -> markerOption.icon(iconUserHeart)
+    private fun styleCustomMarkerOption(markerOption: MarkerViewOptions, @UserPoi.Icon poiIcon: String) {
+        when (poiIcon) {
+            UserPoi.ICON_HOME -> markerOption.icon(iconUserHome)
+            UserPoi.ICON_BIKE -> markerOption.icon(iconUserBicycle)
+            UserPoi.ICON_HEART -> markerOption.icon(iconUserHeart)
+            else -> markerOption.icon(iconUserStar)
         }
+        markerOption.flat(true)
     }
 
     /**
      * Map a marker as part of a finite set of markers, limiting the total markers
      * displayed and recycling markers if this limit is exceeded.
-
      * @param areBoundsValid a hack one-dimensional boolean array used to report whether boundsBuilder
      * *                       includes at least one point and will not throw an exception on its build()
      */
-    private fun mapRecyclableMarker(map: MapboxMap, itemType: Int, markerMapId: String, cursor: Cursor, boundsBuilder: LatLngBounds.Builder?, areBoundsValid: BooleanArray) {
-        if (!markerIdToMeta.containsValue(markerMapId)) {
-            // This POI is not yet mapped
-            val pos = LatLng(cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.latitude)), cursor.getDouble(cursor.getColumnIndex(PlayaItemTable.longitude)))
-            if (itemType != DataProvider.getTypeValue(Constants.PlayaItemType.POI) && boundsBuilder != null && state == State.SEARCH) {
-                if (cameraBounds.contains(pos)) {
-                    boundsBuilder.include(pos)
-                    areBoundsValid[0] = true
-                }
-            }
-            if (mMappedTransientMarkers.size == MAX_POIS) {
-                Timber.d("")
-                // We should re-use the eldest Marker
-                val marker = mMappedTransientMarkers.remove()
-                marker.setPosition(pos)
-                marker.setTitle(cursor.getString(cursor.getColumnIndex(ArtTable.name)))
+    private fun mapRecyclableMarker(map: MapboxMap, item: PlayaItem, boundsBuilder: LatLngBounds.Builder?): Marker? {
+        val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
 
-                val iconFactory = IconFactory.getInstance(context)
-
-                val modelType = DataProvider.getTypeValue(itemType)
-                when (modelType) {
-                    Constants.PlayaItemType.ART -> marker.icon = iconFactory.fromResource(R.drawable.art_pin)
-                    Constants.PlayaItemType.CAMP -> marker.icon = iconFactory.fromResource(R.drawable.camp_pin)
-                    Constants.PlayaItemType.EVENT -> marker.icon = iconFactory.fromResource(R.drawable.event_pin)
-                }
-
-//                marker.setAnchor(0.5f, 0.5f)
-                mMappedTransientMarkers.add(marker)
-                markerIdToMeta.put(marker.id, markerMapId)
-            } else {
-                // We shall create a new Marker
-                val marker = addNewMarkerForCursorItem(map, itemType, cursor)
-                markerIdToMeta.put(marker.getId(), markerMapId)
-                mMappedTransientMarkers.add(marker)
+        // Assemble search results region boundary
+        if (item !is UserPoi && boundsBuilder != null && state == State.SEARCH) {
+            if (cameraBounds.contains(pos)) {
+                boundsBuilder.include(pos)
             }
         }
+
+        var marker: Marker? = null
+
+        if (mappedTransientMarkers.size == MAX_POIS) {
+            // Re-use the eldest Marker
+            marker = mappedTransientMarkers.remove()
+            marker.position = pos
+            marker.title = item.name
+
+            if (item is Art) {
+                marker.icon = iconFactory.fromResource(R.drawable.art_pin)
+            } else if (item is Camp) {
+                marker.icon = iconFactory.fromResource(R.drawable.camp_pin)
+            } else if (item is Event) {
+                marker.icon = iconFactory.fromResource(R.drawable.event_pin)
+            }
+
+//            marker.setAnchor(0.5f, 0.5f)
+            mappedTransientMarkers.add(marker)
+            markerIdToItem.put(marker.id, item)
+        } else {
+            // Create a new Marker
+            marker = addNewMarkerForItem(map, item)
+            markerIdToItem.put(marker.id, item)
+            mappedTransientMarkers.add(marker)
+        }
+
+        return marker
     }
 
     /**
@@ -468,7 +684,10 @@ class MapboxMapFragment : Fragment() {
     fun clearPermanentMarkers() {
         for (marker in permanentMarkers) {
             marker.remove()
-            markerIdToMeta.remove(marker.id)
+            val metaId = markerIdToItem.remove(marker.id)
+            if (metaId != null) {
+                mappedItems.remove(metaId)
+            }
         }
         permanentMarkers.clear()
     }
@@ -477,17 +696,14 @@ class MapboxMapFragment : Fragment() {
      * Return a key used internally to keep track of data items currently mapped,
      * helping us avoid mapping duplicate points.
 
-     * @param itemType The type of the item
-     * *
-     * @param itemId   The database id of the item
      */
-    private fun generateDataIdForItem(itemType: Constants.PlayaItemType, itemId: Long): String {
-        return String.format("%d-%d", DataProvider.getTypeValue(itemType), itemId)
+    private fun generateMarkerIdForItem(item: PlayaItem): String {
+        return String.format("%s-%d", item.javaClass.simpleName, item.id)
     }
 
     /**
      * Return the internal database id for an item given the string id
-     * generated by [.generateDataIdForItem]
+     * generated by [.generateMarkerIdForItem]
      */
     private fun getDatabaseIdFromGeneratedDataId(dataId: String): Int {
         return Integer.parseInt(dataId.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1])
@@ -502,104 +718,185 @@ class MapboxMapFragment : Fragment() {
             clearPermanentMarkers()
         }
 
-        for (marker in mMappedTransientMarkers) {
+        for (marker in mappedTransientMarkers) {
             marker.remove()
-            markerIdToMeta.remove(marker.id)
+            val metaId = markerIdToItem.remove(marker.id)
+            if (metaId != null) {
+                mappedItems.remove(metaId)
+            }
         }
-        mMappedTransientMarkers.clear()
+        mappedTransientMarkers.clear()
     }
 
 
     fun areMarkersVisible(): Boolean {
-        return mMappedTransientMarkers.size > 0
+        return mappedTransientMarkers.size > 0
     }
 
     private fun showEditPinDialog(marker: Marker) {
+        if (state == State.SHOWCASE) return
+
         val dialogBody = activity.layoutInflater.inflate(R.layout.dialog_poi, null)
-        val iconGroup = dialogBody.findViewById(R.id.iconGroup) as RadioGroup
+        val iconGroup: RadioGroup = dialogBody.findViewById(R.id.iconGroup)
 
         // Fetch current Marker icon
-        DataProvider.getInstance(activity.applicationContext)
-                .flatMap { dataProvider ->
-                    dataProvider.createQuery(PlayaDatabase.POIS,
-                            "SELECT " + PlayaItemTable.id + ", " + UserPoiTable.drawableResId + " FROM " + PlayaDatabase.POIS + " WHERE " + PlayaItemTable.id + " = ?",
-                            getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.id)!!).toString())
-                }
-                .first()
-                .map<Cursor>({ it.run() })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { poi ->
-                    if (poi != null && poi.moveToFirst()) {
-                        val drawableResId = poi.getInt(poi.getColumnIndex(UserPoiTable.drawableResId))
-                        when (drawableResId) {
-                            UserPoiTable.STAR -> (iconGroup.findViewById(R.id.btn_star) as RadioButton).isChecked = true
-                            UserPoiTable.HEART -> (iconGroup.findViewById(R.id.btn_heart) as RadioButton).isChecked = true
-                            UserPoiTable.HOME -> (iconGroup.findViewById(R.id.btn_home) as RadioButton).isChecked = true
-                            UserPoiTable.BIKE -> (iconGroup.findViewById(R.id.btn_bike) as RadioButton).isChecked = true
-                            else -> Timber.e("Unknown custom marker type")
-                        }
-                        poi.close()
+        val userPoi = mappedCustomMarkerIds[marker.id]
+        userPoi?.let { userPoi ->
+
+            val drawableResId = userPoi.icon
+            var checkedRadioButtonLayoutId: Int = 0
+            when (drawableResId) {
+                UserPoi.ICON_STAR -> checkedRadioButtonLayoutId = R.id.btn_star
+                UserPoi.ICON_HEART -> checkedRadioButtonLayoutId = R.id.btn_heart
+                UserPoi.ICON_HOME -> checkedRadioButtonLayoutId = R.id.btn_home
+                UserPoi.ICON_BIKE -> checkedRadioButtonLayoutId = R.id.btn_bike
+                else -> Timber.e("Unknown custom marker type")
+            }
+
+            val checkedRadioButton: RadioButton = iconGroup.findViewById(checkedRadioButtonLayoutId)
+            checkedRadioButton.isChecked = true
+
+
+            val markerTitle: EditText? = dialogBody?.findViewById(R.id.markerTitle)
+            markerTitle?.setText(marker.title)
+            markerTitle?.onFocusChangeListener = object : View.OnFocusChangeListener {
+
+                internal var lastEntry: String = ""
+
+                override fun onFocusChange(v: View, hasFocus: Boolean) {
+                    if (hasFocus) {
+                        lastEntry = (v as EditText).text.toString()
+                        v.setText("")
+                    } else if ((v as EditText).text.isBlank()) {
+                        v.setText(lastEntry)
                     }
-                    val markerTitle = dialogBody.findViewById(R.id.markerTitle) as EditText
-                    markerTitle.setText(marker.title)
-                    markerTitle.onFocusChangeListener = object : View.OnFocusChangeListener {
+                }
+            }
 
-                        internal var lastEntry: String = ""
+            AlertDialog.Builder(activity, R.style.Theme_Iburn_Dialog)
+                    .setView(dialogBody)
+                    .setPositiveButton("Save") { dialog, which ->
+                        // Save the title
+                        if (markerTitle?.text?.isNotBlank() ?: false)
+                            marker.title = markerTitle?.text.toString()
 
-                        override fun onFocusChange(v: View, hasFocus: Boolean) {
-                            if (hasFocus) {
-                                lastEntry = (v as EditText).text.toString()
-                                v.setText("")
-                            } else if ((v as EditText).text.length == 0) {
-                                v.setText(lastEntry)
+                        marker.hideInfoWindow()
+
+                        var icon = ""
+                        when (iconGroup.checkedRadioButtonId) {
+                            R.id.btn_star -> {
+                                icon = UserPoi.ICON_STAR
+                                marker.icon = iconUserStar
+                            }
+                            R.id.btn_heart -> {
+                                icon = UserPoi.ICON_HEART
+                                marker.icon = iconUserHeart
+                            }
+                            R.id.btn_home -> {
+                                icon = UserPoi.ICON_HOME
+                                marker.icon = iconUserHome
+                            }
+                            R.id.btn_bike -> {
+                                icon = UserPoi.ICON_BIKE
+                                marker.icon = iconUserBicycle
                             }
                         }
+                        updateCustomPinWithMarker(marker, icon)
                     }
-                    AlertDialog.Builder(activity, R.style.Theme_Iburn_Dialog)
-                            .setView(dialogBody)
-                            .setPositiveButton("Done") { dialog, which ->
-                                // Save the title
-                                if (markerTitle.text.length > 0)
-                                    marker.setTitle(markerTitle.text.toString())
-                                marker.hideInfoWindow()
+                    .setNeutralButton("Move") { dialog, which ->
+                        if (state != State.PLACE_USER_POI) {
+                            val prePlaceUserPoiState = state
 
-                                var drawableId = 0
-                                when (iconGroup.checkedRadioButtonId) {
-                                    R.id.btn_star -> {
-                                        drawableId = UserPoiTable.STAR
-                                        marker.setIcon(iconUserStar)
-                                    }
-                                    R.id.btn_heart -> {
-                                        drawableId = UserPoiTable.HEART
-                                        marker.setIcon(iconUserHeart)
-                                    }
-                                    R.id.btn_home -> {
-                                        drawableId = UserPoiTable.HOME
-                                        marker.setIcon(iconUserHome)
-                                    }
-                                    R.id.btn_bike -> {
-                                        drawableId = UserPoiTable.BIKE
-                                        marker.setIcon(iconUserBicycle)
+                            state = State.PLACE_USER_POI
+
+                            mapView?.getMapAsync { map ->
+
+                                // Deselect markers to close InfoWindows
+                                map.deselectMarkers()
+
+                                val layoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+                                addMarkerPlaceOverlay(layoutInflater) { markerPlaceView, markerLatLng ->
+                                    state = prePlaceUserPoiState
+                                    mapView?.let { mapView ->
+                                        mapView.removeView(markerPlaceView)
+                                        marker.position = markerLatLng
+                                        DataProvider.getInstance(activity.applicationContext)
+                                                .observeOn(ioScheduler)
+                                                .subscribe { provider ->
+                                                    userPoi.latitude = markerLatLng.latitude.toFloat()
+                                                    userPoi.longitude = markerLatLng.longitude.toFloat()
+                                                    provider.update(userPoi)
+                                                }
                                     }
                                 }
-                                updateCustomPinWithMarker(marker, drawableId)
                             }
-                            .setNegativeButton("Delete") { dialog, which ->
-                                // Delete Pin
-                                removeCustomPin(marker)
-                            }.show()
-                }
+                        }
+                    }
+                    .setNegativeButton("Delete") { dialog, which ->
+                        // Delete Pin
+                        removeCustomPin(marker)
+                    }.show()
+        }
+    }
+
+    /**
+     * Adds a custom pin to the current map and database
+     */
+    private fun addCustomPin(map: MapboxMap, latLng: LatLng?, title: String, @UserPoi.Icon poiIcon: String, callback: ((marker: Marker) -> Unit)?) {
+        var markerLatLng = latLng
+        if (markerLatLng == null) {
+            val mapCenter = map.cameraPosition.target
+            markerLatLng = LatLng(mapCenter.latitude, mapCenter.longitude)
+        }
+
+
+        val markerOptions = MarkerViewOptions()
+                .position(markerLatLng)
+                .title(title)
+                .flat(true)
+
+        styleCustomMarkerOption(markerOptions, UserPoi.ICON_STAR)
+
+        val marker = map.addMarker(markerOptions)
+        val userPoiPlayaId = UUID.randomUUID().toString()
+        val userPoi = UserPoi()
+        userPoi.name = title
+        userPoi.latitude = markerLatLng.latitude.toFloat()
+        userPoi.longitude = markerLatLng.longitude.toFloat()
+        userPoi.icon = poiIcon
+        userPoi.playaId = userPoiPlayaId
+
+        try {
+            DataProvider.getInstance(activity.applicationContext)
+                    .observeOn(ioScheduler)
+                    .flatMap { dataProvider ->
+                        dataProvider.insertUserPoi(userPoi)
+                        dataProvider.getUserPoiByPlayaId(userPoiPlayaId).toObservable()
+                    }
+                    .firstElement() // Inserting can cause the get query to refresh
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe { userPoi ->
+                        Timber.d("After inserting, userPoi has id ${userPoi.id}")
+                        // Make sure UserPoi is added to mappedItems before being inserted as this will
+                        // trigger a map items update
+                        mappedItems.add(userPoi)
+                        mappedCustomMarkerIds[marker.id] = userPoi
+                        callback?.invoke(marker)
+                    }
+        } catch (e: NumberFormatException) {
+            Timber.w("Unable to get id for new custom marker");
+        }
     }
 
     private fun removeCustomPin(marker: Marker) {
         marker.remove()
-        if (mMappedCustomMarkerIds.containsKey(marker.id)) {
-            val itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.id)!!)
+        val userPoi = mappedCustomMarkerIds[marker.id]
+        userPoi?.let { userPoi ->
             DataProvider.getInstance(activity.applicationContext)
-                    .map { provider -> provider.delete(PlayaDatabase.POIS, PlayaItemTable.id + " = ?", itemId.toString()) }
-                    .subscribe { result -> Timber.d("Deleted marker with result " + result!!) }
-        } else
-            Timber.w("Unable to delete marker " + marker.title)
+                    .observeOn(ioScheduler)
+                    .map { provider -> provider.deleteUserPoi(userPoi) }
+                    .subscribe { _ -> Timber.d("Deleted marker") }
+        }
     }
 
     /**
@@ -608,20 +905,49 @@ class MapboxMapFragment : Fragment() {
      *
      * Note: If drawableResId is 0, it is ignored
      */
-    private fun updateCustomPinWithMarker(marker: Marker, drawableResId: Int) {
-        if (mMappedCustomMarkerIds.containsKey(marker.id)) {
-            val poiValues = ContentValues()
-            poiValues.put(UserPoiTable.name, marker.title)
-            poiValues.put(UserPoiTable.latitude, marker.position.latitude)
-            poiValues.put(UserPoiTable.longitude, marker.position.longitude)
-            if (drawableResId != 0)
-                poiValues.put(UserPoiTable.drawableResId, drawableResId)
-            val itemId = getDatabaseIdFromGeneratedDataId(mMappedCustomMarkerIds.get(marker.id)!!)
+    private fun updateCustomPinWithMarker(marker: Marker, icon: String) {
+        val userPoi = mappedCustomMarkerIds[marker.id]
+        userPoi?.let { userPoi ->
+            userPoi.name = marker.title
+            userPoi.latitude = marker.position.latitude.toFloat()
+            userPoi.longitude = marker.position.longitude.toFloat()
+
+            if (icon.isNotBlank()) userPoi.icon = icon
+
             DataProvider.getInstance(activity.applicationContext)
-                    .map { dataProvider -> dataProvider.update(PlayaDatabase.POIS, poiValues, PlayaItemTable.id + " = ?", itemId.toString()) }
-                    .subscribe { numUpdated -> Timber.d("Updated marker with status " + numUpdated!!) }
-        } else
-            Timber.w("Unable to find custom marker in map for updating")
+                    .observeOn(ioScheduler)
+                    .map { dataProvider -> dataProvider.update(userPoi) }
+                    .subscribe { _ -> Timber.d("Updated marker") }
+        }
     }
 
-}// Required empty public constructor
+    /**
+     * Thanks to SO:
+     * http://stackoverflow.com/questions/4472429/change-the-right-margin-of-a-view-programmatically
+     */
+    private fun setMargins(v: View, l: Int, r: Int, t: Int, b: Int, gravity: Int) {
+        if (v.layoutParams is ViewGroup.MarginLayoutParams) {
+            val params = v.layoutParams as ViewGroup.MarginLayoutParams
+            params.setMargins(l, t, r, b)
+            if (params is FrameLayout.LayoutParams) {
+                params.gravity = gravity
+            }
+            v.requestLayout()
+        }
+    }
+
+    internal fun convertDpToPixel(dp: Float, context: Context): Float {
+        val metrics = context.resources.displayMetrics
+        return dp * (metrics.densityDpi / 160).toFloat()
+    }
+
+    private fun animateDropView(view: View) {
+        val heightPx = view.context.resources.displayMetrics.heightPixels / 2
+
+        view.translationY = -heightPx.toFloat()
+        val springAnim = SpringAnimation(view, DynamicAnimation.TRANSLATION_Y, 0f)
+        springAnim.spring.dampingRatio = .6f
+        springAnim.spring.stiffness = 720f
+        springAnim.start()
+    }
+}

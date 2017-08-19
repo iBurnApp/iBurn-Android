@@ -11,6 +11,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 
+import static com.gaiagps.iburn.database.PlayaItem.LATITUDE;
+import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE;
+import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ADDR;
+
 /**
  * A data restriction policy that ensures location data never leaves the database
  * before {@link #EMBARGO_DATE} and without {@link PrefsHelper#enteredValidUnlockCode()}
@@ -24,9 +28,9 @@ public class Embargo implements DataProvider.QueryInterceptor {
 
     // For mock builds, force user to enter unlock code
     private static final boolean FORCE_EMBARGO = BuildConfig.MOCK;
-    private static final String NULL_LATITUDE  = "NULL AS " + PlayaItemTable.latitude;
-    private static final String NULL_LONGITUDE = "NULL AS " + PlayaItemTable.longitude;
-    private static final String NULL_ADDRESS = "NULL AS " + PlayaItemTable.playaAddress;
+    private static final String NULL_LATITUDE  = "NULL AS " + LATITUDE;
+    private static final String NULL_LONGITUDE = "NULL AS " + LONGITUDE;
+    private static final String NULL_ADDRESS = "NULL AS " + PLAYA_ADDR;
 
     private PrefsHelper prefs;
 
@@ -38,9 +42,9 @@ public class Embargo implements DataProvider.QueryInterceptor {
     public String onQueryIntercepted(@NonNull String query, @NonNull Iterable<String> tables) {
         // If Embargo is active and this query does not select from POIS
         if (isEmbargoActive(prefs) && !isPoiTableQuery(tables)) {
-            return query.replace(PlayaItemTable.latitude, NULL_LATITUDE)
-                    .replace(PlayaItemTable.longitude, NULL_LONGITUDE)
-                    .replace(PlayaItemTable.playaAddress, NULL_ADDRESS)
+            return query.replace(LATITUDE, NULL_LATITUDE)
+                    .replace(LONGITUDE, NULL_LONGITUDE)
+                    .replace(PLAYA_ADDR, NULL_ADDRESS)
                     .replace("SELECT *", "SELECT *, " + NULL_LATITUDE + ", " + NULL_LONGITUDE + ", " + NULL_ADDRESS);
         }
         return query;
@@ -49,7 +53,7 @@ public class Embargo implements DataProvider.QueryInterceptor {
     private boolean isPoiTableQuery(Iterable<String> tables) {
         Iterator<String> tableIterator = tables.iterator();
         String tableName = tableIterator.next();
-        return tableName.equals(PlayaDatabase.POIS) && !tableIterator.hasNext();
+        return tableName.equals(UserPoi.TABLE_NAME) && !tableIterator.hasNext();
     }
 
     public static boolean isEmbargoActive(PrefsHelper prefs) {

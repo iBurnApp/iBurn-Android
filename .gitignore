@@ -12,6 +12,10 @@ SECRETS.kt
 *.class
 data/
 
+#Bundled media
+iBurn/src/main/assets/audio_tour/
+iBurn/src/main/assets/art_images/
+
 # Android Studio
 .idea/
 .gradle/
@@ -32,3 +36,4 @@ libraries/google-play-services_lib/build/*
 iBurn/src/main/gen/
 libraries/google-play-services_lib/gen/
 captures
+*.hprof

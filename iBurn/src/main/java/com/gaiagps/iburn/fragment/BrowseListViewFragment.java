@@ -6,29 +6,26 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Subscriber;
 import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.AdapterUtils;
-import com.gaiagps.iburn.adapters.ArtCursorAdapter;
-import com.gaiagps.iburn.adapters.CampCursorAdapter;
-import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
+import com.gaiagps.iburn.adapters.AlphabeticalSectionIndexer;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
-import com.gaiagps.iburn.adapters.EventCursorAdapter;
-import com.gaiagps.iburn.database.ArtTable;
+import com.gaiagps.iburn.adapters.EventStartTimeSectionIndexer;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
+import com.gaiagps.iburn.database.PlayaItem;
 import com.gaiagps.iburn.view.ArtListHeader;
 import com.gaiagps.iburn.view.BrowseListHeader;
 import com.gaiagps.iburn.view.EventListHeader;
-import com.squareup.sqlbrite.SqlBrite;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 import xyz.danoz.recyclerviewfastscroller.sectionindicator.title.SectionTitleIndicator;
 import xyz.danoz.recyclerviewfastscroller.vertical.VerticalRecyclerViewFastScroller;
@@ -56,63 +53,50 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     private boolean showAudioTourOnly;
 
     @Override
-    protected Subscription createSubscription() {
+    protected Disposable createDisposable() {
+
+        Observable<DataProvider> dataProvider = DataProvider.Companion.getInstance(getActivity().getApplicationContext());
+        Observable<List<? extends PlayaItem>> playaItems = null;
+
         switch (categorySelection) {
 
             case CAMPS:
-                adapter = new CampCursorAdapter(getActivity(), null, this);
-                if (mRecyclerView != null) mRecyclerView.setAdapter(adapter);
-                return DataProvider.getInstance(getActivity().getApplicationContext())
-                        .flatMap(dataProvider -> dataProvider.observeTable(PlayaDatabase.CAMPS, adapter.getRequiredProjection()))
-                        .doOnNext(query -> Timber.d("Got query"))
-                        .map(SqlBrite.Query::run)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(cursor -> {
-                                    Timber.d("Data onNext");
-                                    onDataChanged(cursor);
-                                },
-                                throwable -> Timber.e(throwable, "Data onError"),
-                                () -> Timber.d("Data onComplete"));
-
+                playaItems = dataProvider
+                        .flatMap(provider -> provider.observeCamps().toObservable()); // TODO : rm toObservable
+                adapter.setSectionIndexer(new AlphabeticalSectionIndexer());
+                break;
 
             case ART:
-                adapter = new ArtCursorAdapter(getActivity(), null, this);
-                if (mRecyclerView != null) mRecyclerView.setAdapter(adapter);
-                return DataProvider.getInstance(getActivity().getApplicationContext())
-                        .flatMap(dataProvider -> {
+                playaItems = dataProvider
+                        .flatMap(dp -> {
                             if (showAudioTourOnly) {
-                                return dataProvider.observeTable(PlayaDatabase.ART, adapter.getRequiredProjection(), ArtTable.audioTourUrl + " IS NOT NULL");
+                                return dp.observeArtWithAudioTour().toObservable();
                             } else {
-                                return dataProvider.observeTable(PlayaDatabase.ART, adapter.getRequiredProjection());
+                                return dp.observeArt().toObservable();
                             }
-                        })
-                        .map(SqlBrite.Query::run)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(cursor -> {
-                                    Timber.d("Data onNext");
-                                    onDataChanged(cursor);
-                                },
-                                throwable -> Timber.e(throwable, "Data onError"),
-                                () -> Timber.d("Data onComplete"));
+                        });
+                adapter.setSectionIndexer(new AlphabeticalSectionIndexer());
 
+                break;
 
             case EVENT:
-                adapter = new EventCursorAdapter(getActivity(), null, false, this);
-                if (mRecyclerView != null) mRecyclerView.setAdapter(adapter);
-                return DataProvider.getInstance(getActivity().getApplicationContext())
-                        .flatMap(dataProvider -> dataProvider.observeEventsOnDayOfTypes(selectedDay, selectedTypes, adapter.getRequiredProjection()))
-                        .map(SqlBrite.Query::run)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(cursor -> {
-                                    Timber.d("Data onNext %d items", cursor.getCount());
-                                    onDataChanged(cursor);
-                                },
-                                throwable -> Timber.e(throwable, "Data onError"),
-                                () -> Timber.d("Data onComplete"));
-
+                playaItems = dataProvider
+                        .flatMap(dp -> dp.observeEventsOnDayOfTypes(selectedDay, selectedTypes).toObservable());
+                adapter.setSectionIndexer(new EventStartTimeSectionIndexer());
+                break;
         }
 
-        return null;
+        if (playaItems != null) {
+            return playaItems.observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(items -> {
+                                Timber.d("Data onNext");
+                                onDataChanged(items);
+                            },
+                            throwable -> Timber.e(throwable, "Data onError"),
+                            () -> Timber.d("Data onComplete"));
+        } else {
+            return null;
+        }
     }
 
     public void onCreate(Bundle savedInstanceState) {
@@ -122,10 +106,10 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_browse_list_view, container, false);
-        eventListHeader = (ViewGroup) v.findViewById(R.id.eventHeader);
-        artListHeader = (ViewGroup) v.findViewById(R.id.artHeader);
-        mEmptyText = (TextView) v.findViewById(android.R.id.empty);
-        mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
+        eventListHeader = v.findViewById(R.id.eventHeader);
+        artListHeader = v.findViewById(R.id.artHeader);
+        mEmptyText = v.findViewById(android.R.id.empty);
+        mRecyclerView = v.findViewById(android.R.id.list);
 
         VerticalRecyclerViewFastScroller fastScroller = (VerticalRecyclerViewFastScroller) v.findViewById(R.id.fastScroller);
         SectionTitleIndicator sectionTitleIndicator =
@@ -197,19 +181,18 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         if (categorySelection != selection) {
             categorySelection = selection;
             unsubscribeFromData();
+            // Clear items show new data is treated as initial with fade-in animation
+            adapter.setItems(new ArrayList<>(0));
             subscribeToData();
         }
-    }
-
-    @Override
-    protected CursorRecyclerViewAdapter getAdapter() {
-        return new CampCursorAdapter(getActivity(), null, this);
     }
 
     @Override
     public void onSelectionChanged(boolean showAudioTourOnly) {
         this.showAudioTourOnly = showAudioTourOnly;
         unsubscribeFromData();
+        // Clear items show new data is treated as initial with fade-in animation
+        adapter.setItems(new ArrayList<>(0));
         subscribeToData();
     }
 }

@@ -1,28 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/parent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.design.widget.AppBarLayout
+    <com.roughike.bottombar.BottomBar
+        android:id="@+id/bottomBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        app:bb_tabXmlResource="@xml/bottombar_tabs" />
 
-        <include
-            android:id="@+id/tabs"
-            layout="@layout/tablayout" />
-
-    </android.support.design.widget.AppBarLayout>
-
-    <com.gaiagps.iburn.view.MapViewPager
-        android:id="@+id/pager"
+    <FrameLayout
+        android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="45dp"/>
+        android:layout_above="@id/bottomBar" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -32,9 +28,9 @@
         app:borderWidth="0dp"
         app:elevation="6dp"
         app:pressedTranslationZ="12dp"
-        app:layout_anchor="@id/pager"
-        app:layout_anchorGravity="bottom|right|end"
+        android:layout_alignParentRight="true"
         android:src="@drawable/ic_search"
+        android:layout_alignBottom="@id/content"
         android:onClick="onSearchClick"/>
 
-</android.support.design.widget.CoordinatorLayout>
+</RelativeLayout>

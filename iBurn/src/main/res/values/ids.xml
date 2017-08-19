@@ -2,8 +2,10 @@
 <resources>
     <item name="list_item_cache" type="id"/>
     <item name="list_item_related_model" type="id"/>
-    <item name="list_item_related_model_type" type="id"/>
     <item name="favorite_button_state" type="id"/>
 
     <item name="autocomplete_item_holder" type="id"/>
+
+    <item name="audio_tour_toggle" type="id"/>
+
 </resources>

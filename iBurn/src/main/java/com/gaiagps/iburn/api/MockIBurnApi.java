@@ -21,9 +21,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import retrofit.client.Response;
-import rx.Observable;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.ResponseBody;
+
 
 /**
  * Created by dbro on 8/1/15.
@@ -59,7 +60,7 @@ public class MockIBurnApi implements IBurnApi {
 
     @Override
     public Observable<List<Camp>> getCamps() {
-        return Observable.just("json/camps.json")
+        return Observable.just("json/camps.json.js")
                 .observeOn(Schedulers.io())
                 .map(path -> {
                     try {
@@ -77,7 +78,7 @@ public class MockIBurnApi implements IBurnApi {
 
     @Override
     public Observable<List<Art>> getArt() {
-        return Observable.just("json/art.json")
+        return Observable.just("json/art.json.js")
                 .observeOn(Schedulers.io())
                 .map(path -> {
                     try {
@@ -95,7 +96,7 @@ public class MockIBurnApi implements IBurnApi {
 
     @Override
     public Observable<List<Event>> getEvents() {
-        return Observable.just("json/events.json")
+        return Observable.just("json/events.json.js")
                 .observeOn(Schedulers.io())
                 .map(path -> {
                     try {
@@ -112,7 +113,7 @@ public class MockIBurnApi implements IBurnApi {
     }
 
     @Override
-    public Observable<Response> getTiles() {
+    public Observable<ResponseBody> getTiles() {
         // currently unused
         return null;
     }

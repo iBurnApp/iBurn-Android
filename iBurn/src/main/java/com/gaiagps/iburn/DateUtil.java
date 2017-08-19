@@ -7,6 +7,7 @@ import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -23,14 +24,19 @@ public class DateUtil {
      *
      * @param context            The application {@link android.content.Context}
      * @param nowDate            The date to treat as 'now'
-     * @param relativeTimeCutoff The date before which to use relative date descriptors. e.g: (in 2 minutes)
      * @param startDateStr       An ISO start date string
      * @param prettyStartDateStr A 'prettified' start date string
      * @param endDateStr         An ISO end date string
      * @param prettyEndDateStr   A 'prettified' end date string
      */
-    public static String getDateString(Context context, Date nowDate, Date relativeTimeCutoff, String startDateStr, String prettyStartDateStr, String endDateStr, String prettyEndDateStr) {
+    public static String getDateString(Context context, Date nowDate, String startDateStr, String prettyStartDateStr, String endDateStr, String prettyEndDateStr) {
         try {
+
+            // The date before which to use relative date descriptors. e.g: (in 2 minutes)
+            Calendar relativeTimeCutoff = Calendar.getInstance();
+            relativeTimeCutoff.setTime(nowDate);
+            relativeTimeCutoff.add(Calendar.HOUR, 1);
+
             Date startDate = PlayaDateTypeAdapter.iso8601Format.parse(startDateStr);
             if (nowDate.before(startDate)) {
                 // Has not yet started

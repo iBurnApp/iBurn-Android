@@ -28,15 +28,28 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_marginTop="32dp"
-            android:padding="8dp"
             android:fontFamily="sans-serif-condensed"
             android:gravity="center"
-            android:text="Welcome to iBurn\n2016"
+            android:text="@string/welcome_iburn"
             android:textColor="#ffffff"
             android:shadowColor="#000000"
             android:shadowDx="2"
             android:shadowDy="2"
             android:textSize="38sp" />
+
+        <TextView
+            android:id="@+id/sub_heading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:fontFamily="sans-serif-condensed"
+            android:gravity="center"
+            android:text="@string/current_year"
+            android:textColor="#ffffff"
+            android:shadowColor="#000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:textSize="54sp" />
     </LinearLayout>
 
 </RelativeLayout>

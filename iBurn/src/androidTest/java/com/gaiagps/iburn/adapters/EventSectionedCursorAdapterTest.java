@@ -3,14 +3,8 @@ package com.gaiagps.iburn.adapters;
 import android.database.MatrixCursor;
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Log;
 
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @SmallTest
 public class EventSectionedCursorAdapterTest extends AndroidTestCase {
@@ -60,19 +54,19 @@ public class EventSectionedCursorAdapterTest extends AndroidTestCase {
 //        }
     }
 
-    private MatrixCursor prepareMockCursor() {
-
-        MatrixCursor matrixCursor = new MatrixCursor(EventSectionedCursorAdapter.Projection);
-
-        // 21:00:00 Header
-        matrixCursor.addRow(new String[] {"1", "Test Event", "2015-09-01 21:00:00", "Mon 9/1 9:00 PM", "2015-09-01 23:00:00", "Mon 9/1 11:00 PM","0", "0", "0", "0", "cere"});
-        matrixCursor.addRow(new String[] {"2", "Test Event2", "2015-09-01 21:00:00", "Mon 9/1 9:00 PM", "2015-09-01 22:30:00", "Mon 9/1 10:30 PM","0", "0", "0", "0", "cere"});
-        matrixCursor.addRow(new String[] {"3", "Test Event3", "2015-09-01 21:00:00", "Mon 9/1 9:00 PM", "2015-09-01 23:30:00", "Mon 9/1 11:30 PM","0", "0", "0", "0", "cere"});
-        // 23:30 Header
-        matrixCursor.addRow(new String[] {"4", "Test Event4", "2015-09-01 23:30:00", "Mon 9/1 11:30 PM", "2015-09-01 23:45:00", "Mon 9/1 11:45 PM","0", "0", "0", "0", "cere"});
-        // 0:00 Header
-        matrixCursor.addRow(new String[] {"5", "Test Event5", "2015-09-02 0:00:00", "Tues 9/2 12:00 AM", "2015-09-02 01:00:00", "Tues 9/2 1:00 AM","0", "0", "0", "0", "cere"});
-
-        return matrixCursor;
-    }
+//    private MatrixCursor prepareMockCursor() {
+//
+////        MatrixCursor matrixCursor = new MatrixCursor(EventSectionedCursorAdapter.Projection);
+////
+////        // 21:00:00 Header
+////        matrixCursor.addRow(new String[] {"1", "Test Event", "2015-09-01 21:00:00", "Mon 9/1 9:00 PM", "2015-09-01 23:00:00", "Mon 9/1 11:00 PM","0", "0", "0", "0", "cere"});
+////        matrixCursor.addRow(new String[] {"2", "Test Event2", "2015-09-01 21:00:00", "Mon 9/1 9:00 PM", "2015-09-01 22:30:00", "Mon 9/1 10:30 PM","0", "0", "0", "0", "cere"});
+////        matrixCursor.addRow(new String[] {"3", "Test Event3", "2015-09-01 21:00:00", "Mon 9/1 9:00 PM", "2015-09-01 23:30:00", "Mon 9/1 11:30 PM","0", "0", "0", "0", "cere"});
+////        // 23:30 Header
+////        matrixCursor.addRow(new String[] {"4", "Test Event4", "2015-09-01 23:30:00", "Mon 9/1 11:30 PM", "2015-09-01 23:45:00", "Mon 9/1 11:45 PM","0", "0", "0", "0", "cere"});
+////        // 0:00 Header
+////        matrixCursor.addRow(new String[] {"5", "Test Event5", "2015-09-02 0:00:00", "Tues 9/2 12:00 AM", "2015-09-02 01:00:00", "Tues 9/2 1:00 AM","0", "0", "0", "0", "cere"});
+////
+////        return matrixCursor;
+//    }
 }

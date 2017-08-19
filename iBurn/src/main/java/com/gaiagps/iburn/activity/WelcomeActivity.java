@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.activity;
 
 import android.Manifest;
+import android.animation.ValueAnimator;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Color;
@@ -20,9 +21,10 @@ import android.widget.ImageButton;
 import com.gaiagps.iburn.AudioTourDownloader;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.SchedulersKt;
+import com.gaiagps.iburn.database.Camp;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.gaiagps.iburn.database.UserPoiTable;
+import com.gaiagps.iburn.database.UserPoi;
 import com.gaiagps.iburn.fragment.WelcomeFragment;
 
 import permissions.dispatcher.NeedsPermission;
@@ -30,11 +32,11 @@ import permissions.dispatcher.RuntimePermissions;
 
 @RuntimePermissions
 public class WelcomeActivity extends AppCompatActivity implements WelcomeFragment.HomeCampSelectionListener {
-    static final int NUM_PAGES = 5;
+    static final int NUM_PAGES = 4;
 
     private PrefsHelper prefs;
 
-    private CampSelection homeCampSelection;
+    private Camp homeCampSelection;
 
     private ViewPager pager;
     private PagerAdapter pagerAdapter;
@@ -42,6 +44,8 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
     private Button done;
     private ImageButton next;
     private boolean isOpaque = true;
+
+    private boolean performedEntranceAnimation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,17 +122,38 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!performedEntranceAnimation) {
+            View target = findViewById(R.id.button_layout);
+            target.setAlpha(0);
+            ValueAnimator subFadeIn = ValueAnimator.ofFloat(0, 1);
+            subFadeIn.addUpdateListener(animation -> target.setAlpha((Float) animation.getAnimatedValue()));
+            subFadeIn.setStartDelay(3000);
+            subFadeIn.setDuration(1 * 1000);
+            subFadeIn.start();
+            performedEntranceAnimation = true;
+        }
+    }
+
     public void endTutorial() {
 
         if (homeCampSelection != null) {
-            ContentValues poiValues = new ContentValues();
-            poiValues.put(UserPoiTable.name, homeCampSelection.name);
-            poiValues.put(UserPoiTable.latitude, homeCampSelection.lat);
-            poiValues.put(UserPoiTable.longitude, homeCampSelection.lon);
-            poiValues.put(UserPoiTable.drawableResId, UserPoiTable.HOME);
-            DataProvider.getInstance(getApplicationContext())
-                    .map(dataProvider -> dataProvider.insert(PlayaDatabase.POIS, poiValues))
-                    .subscribe();
+            UserPoi poi = new UserPoi();
+            poi.name = homeCampSelection.name;
+            if (homeCampSelection.hasLocation()) {
+                poi.latitude = homeCampSelection.latitude;
+                poi.longitude = homeCampSelection.longitude;
+            } else {
+                poi.latitude = homeCampSelection.latitudeUnofficial;
+                poi.longitude = homeCampSelection.longitudeUnofficial;
+            }
+            poi.icon = UserPoi.ICON_HOME;
+            DataProvider.Companion.getInstance(getApplicationContext())
+                    .observeOn(SchedulersKt.getIoScheduler())
+                    .subscribe(dataProvider -> dataProvider.insertUserPoi(poi));
         }
 
         prefs.setDidShowWelcome(true);
@@ -148,18 +173,18 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         }
     }
 
+//    public void onAudioTourDownloadButtonClicked(View view) {
+//        Button downloadButton = (Button) view;
+//        downloadButton.setText("Consider it done!");
+//        downloadButton.setEnabled(false);
+//
+//        AudioTourDownloader atd = new AudioTourDownloader();
+//        atd.downloadAudioTours(this);
+//    }
+
     @Override
-    public void onHomeCampSelected(CampSelection selection) {
-        homeCampSelection = selection;
-    }
-
-    public void onAudioTourDownloadButtonClicked(View view) {
-        Button downloadButton = (Button) view;
-        downloadButton.setText("Consider it done!");
-        downloadButton.setEnabled(false);
-
-        AudioTourDownloader atd = new AudioTourDownloader();
-        atd.downloadAudioTours(this);
+    public void onHomeCampSelected(Camp homeCamp) {
+        homeCampSelection = homeCamp;
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
@@ -182,9 +207,9 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
                     tp = WelcomeFragment.newInstance(R.layout.welcome_fragment3);
                     break;
                 case 3:
-                    tp = WelcomeFragment.newInstance(R.layout.welcome_fragment4);
-                    break;
-                case 4:
+//                    tp = WelcomeFragment.newInstance(R.layout.welcome_fragment4);
+//                    break;
+//                case 4:
                     tp = WelcomeFragment.newInstance(R.layout.welcome_fragment5);
                     break;
             }
@@ -204,11 +229,12 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         public void transformPage(View page, float position) {
             int pageWidth = page.getWidth();
 
-            View brcOutline = page.findViewById(R.id.a000);
+            View parallax0 = page.findViewById(R.id.parallax0);
+            View parallax1 = page.findViewById(R.id.parallax1);
+
             View welcomeHeader = page.findViewById(R.id.welcomeHeader);
             View video = page.findViewById(R.id.video);
             View welcome2 = page.findViewById(R.id.welcome_fragment2);
-            View yurt = page.findViewById(R.id.yurt);
 
             if (position <= -1.0f || position >= 1.0f) {
                 // do nothing
@@ -228,14 +254,15 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
                 if (welcome2 != null) {
                     welcome2.setAlpha(1.0f - Math.abs(position));
                 }
-                if (yurt != null) {
-                    yurt.setTranslationX(pageWidth * 1.5f * position);
-                    yurt.setAlpha(1.0f - Math.abs(position));
+
+                if (parallax0 != null) {
+                    parallax0.setTranslationX(pageWidth * position);
+                    parallax0.setAlpha(1.0f - Math.abs(position));
                 }
 
-                if (brcOutline != null) {
-                    brcOutline.setTranslationX(pageWidth * position);
-                    brcOutline.setAlpha(1.0f - Math.abs(position));
+                if (parallax1 != null) {
+                    parallax1.setTranslationX(.75f * pageWidth * position);
+                    parallax1.setAlpha(1.0f - Math.abs(position));
                 }
             }
         }

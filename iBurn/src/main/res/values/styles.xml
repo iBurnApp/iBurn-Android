@@ -6,12 +6,14 @@
     -->
     <style name="Theme.Iburn.Base" parent="Theme.AppCompat.NoActionBar">
         <item name="colorPrimary">@color/iburn_color</item>
-        <item name="colorPrimaryDark">@color/iburn_color_dark</item>
-        <item name="colorAccent">@color/iburn_color_accent</item>
+        <item name="colorPrimaryDark">@color/off_blk</item>
+        <item name="colorAccent">@color/iburn_color</item>
+        <item name="android:windowBackground">@color/window_background</item>
+
     </style>
 
     <style name="Theme.Iburn.Dialog" parent="Theme.AppCompat.Dialog">
-        <item name="colorAccent">@color/iburn_color_accent</item>
+        <item name="colorAccent">@color/iburn_color</item>
     </style>
 
     <!-- MainActivity theme -->
@@ -35,6 +37,7 @@
         <item name="android:gravity">center</item>
         <item name="android:clickable">true</item>
         <item name="android:background">@drawable/sub_pager_tab_bg</item>
+        <item name="android:foreground">?attr/selectableItemBackground</item>
     </style>
 
     <style name="PlayaListViewSubHeaderItem">
@@ -45,6 +48,7 @@
         <item name="android:gravity">center</item>
         <item name="android:clickable">true</item>
         <item name="android:background">@drawable/sub_header_bg</item>
+        <item name="android:foreground">?attr/selectableItemBackground</item>
     </style>
 
     <style name="Subdued">

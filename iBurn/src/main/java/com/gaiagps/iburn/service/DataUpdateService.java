@@ -1,7 +1,6 @@
 package com.gaiagps.iburn.service;
 
 import android.content.Context;
-import android.transition.Explode;
 
 import com.gaiagps.iburn.api.IBurnService;
 import com.google.android.gms.gcm.GcmNetworkManager;
@@ -55,7 +54,7 @@ public class DataUpdateService extends GcmTaskService {
             if (taskParams.getTag().equals(AUTO_UPDATE_TASK_NAME)) {
                 Timber.d("GCM invoked update task");
                 IBurnService service = new IBurnService(getApplicationContext());
-                boolean success = service.updateData().singleOrDefault(true).toBlocking().single();
+                boolean success = service.updateData().blockingGet();
                 Timber.d("GCM invoked task finished with success %b", success);
                 return success ? GcmNetworkManager.RESULT_SUCCESS : GcmNetworkManager.RESULT_RESCHEDULE;
             }

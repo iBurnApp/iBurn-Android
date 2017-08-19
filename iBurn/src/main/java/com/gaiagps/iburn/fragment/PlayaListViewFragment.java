@@ -1,7 +1,5 @@
 package com.gaiagps.iburn.fragment;
 
-import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,21 +9,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.IntentUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Subscriber;
-import com.gaiagps.iburn.activity.PlayaItemViewActivity;
 import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
+import com.gaiagps.iburn.adapters.MultiTypePlayaItemAdapter;
+import com.gaiagps.iburn.adapters.PlayaItemAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
+import com.gaiagps.iburn.database.PlayaItem;
 import com.tonicartos.superslim.LayoutManager;
 
-import rx.Subscription;
+import java.util.List;
+
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
@@ -37,12 +37,12 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
 
     public static final String ARG_SCROLL_POS = "spos";
 
-    protected CursorRecyclerViewAdapter adapter;
+    protected PlayaItemAdapter adapter;
 
     protected RecyclerView mRecyclerView;
     protected TextView mEmptyText;
 
-    protected Subscription subscription;
+    protected Disposable disposable;
 
     private int lastScrollPos;
 
@@ -77,12 +77,18 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        subscribeToData();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Timber.d("%s onCreateView", getClass().getSimpleName());
         View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);
         //super.onCreateView(inflater, container, savedInstanceState);
-        mEmptyText = (TextView) v.findViewById(android.R.id.empty);
-        mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
+        mEmptyText = v.findViewById(android.R.id.empty);
+        mRecyclerView = v.findViewById(android.R.id.list);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         return v;
@@ -92,18 +98,48 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
      * Handle notifications that the data corresponding to our query changed,
      * and we should update UI
      */
-    protected void onDataChanged(Cursor newData) {
+    protected void onDataChanged(List<? extends PlayaItem> newData) {
         if (newData == null) {
             Timber.w("Got null data onDataChanged");
             return;
         }
 
+        prepareForNewData(newData);
+
+        // Important to use changeCursor bc, unlike swapCursor, it can be executed asynchronously
+        adapter.setItems(newData);
+
+        restoreScrollPosition();
+    }
+
+    protected void onDataChanged(DataProvider.SectionedPlayaItems newData) {
+        if (newData == null) {
+            Timber.w("Got null data onDataChanged");
+            return;
+        }
+
+        prepareForNewData(newData.getData());
+
+        // Important to use changeCursor bc, unlike swapCursor, it can be executed asynchronously
+        if (adapter instanceof MultiTypePlayaItemAdapter) {
+            ((MultiTypePlayaItemAdapter) adapter).setSectionedItems(newData);
+        } else {
+            Timber.w("Sectioned data provided but adapter does not seem to support sections");
+            adapter.setItems(newData.getData());
+        }
+        restoreScrollPosition();
+    }
+
+    private void prepareForNewData(List<? extends PlayaItem> newData) {
+        // Also save the scroll position here so updating a data list doesn't lose position
+        lastScrollPos = getScrollPosition();
+
         Timber.d("%s onDataChanged Had %d items. Now %d items", getClass().getSimpleName(),
-                adapter.getItemCount(), newData.getCount());
+                adapter.getItemCount(), newData.size());
 
         boolean adapterWasEmpty = adapter.getItemCount() == 0;
 
-        if (adapterWasEmpty && newData.getCount() > 0) {
+        if (adapterWasEmpty && newData.size() > 0) {
             // Fade in the initial data, but let updates happen without animation
             AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
             fadeAnimation.setDuration(250);
@@ -113,15 +149,14 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
             mRecyclerView.startAnimation(fadeAnimation);
         }
 
-        if (newData.getCount() == 0) {
+        if (newData.size() == 0) {
             setListShown(false);
         } else {
             setListShown(true);
         }
+    }
 
-        // Important to use changeCursor bc, unlike swapCursor, it can be executed asynchronously
-        adapter.changeCursor(newData);
-
+    private void restoreScrollPosition() {
         Timber.d("%s Scrolling to prior scroll position %d", getClass().getSimpleName(), lastScrollPos);
         mRecyclerView.scrollToPosition(lastScrollPos);
     }
@@ -131,17 +166,19 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
      * This will be called during {@link #onActivityCreated(Bundle)}, so {@link #getActivity()}
      * is guaranteed to be non-null.
      */
-    protected abstract CursorRecyclerViewAdapter getAdapter();
+    protected PlayaItemAdapter getAdapter() {
+        return new PlayaItemAdapter(getContext(), this);
+    }
 
-    protected abstract Subscription createSubscription();
+    protected abstract Disposable createDisposable();
 
     /**
      * Subscribe to the data describing this fragment's view
      */
     @Override
     public void subscribeToData() {
-        if (subscription == null || subscription.isUnsubscribed()) {
-            subscription = createSubscription();
+        if (disposable == null || disposable.isDisposed()) {
+            disposable = createDisposable();
         }
     }
 
@@ -149,8 +186,8 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
      * Unsubscribe from the data describing this fragment's view
      */
     protected void unsubscribeFromData() {
-        if (subscription != null && !subscription.isUnsubscribed())
-            subscription.unsubscribe();
+        if (disposable != null && !disposable.isDisposed())
+            disposable.dispose();
     }
 
     public void reSubscribeToData() {
@@ -178,31 +215,17 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
     }
 
     @Override
-    public void onItemSelected(int modelId, Constants.PlayaItemType type) {
-        IntentUtil.viewItemDetail(getActivity(), modelId, type);
+    public void onItemSelected(PlayaItem item) {
+        IntentUtil.viewItemDetail(getActivity(), item);
     }
 
-    public void onItemFavoriteButtonSelected(int modelId, Constants.PlayaItemType type) {
-
-        final String modelTable;
-        switch (type) {
-            case CAMP:
-                modelTable = PlayaDatabase.CAMPS;
-                break;
-            case ART:
-                modelTable = PlayaDatabase.ART;
-                break;
-            case EVENT:
-                modelTable = PlayaDatabase.EVENTS;
-                break;
-
-            default:
-                throw new IllegalArgumentException("Invalid type " + type);
-        }
-
-        DataProvider.getInstance(getActivity().getApplicationContext())
+    @Override
+    public void onItemFavoriteButtonSelected(PlayaItem item) {
+        Timber.d("onItemFavoriteButtonSelected for %s", item);
+        DataProvider.Companion.getInstance(getActivity().getApplicationContext())
+                .observeOn(Schedulers.io())
                 .subscribe(dataProvider -> {
-                    dataProvider.toggleFavorite(modelTable, modelId);
+                    dataProvider.toggleFavorite(item);
                 }, throwable -> Timber.e(throwable, "Failed to update favorite"));
     }
 

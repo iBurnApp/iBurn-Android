@@ -24,6 +24,10 @@
     <color name="iburn_color_dark">#F57C00</color>
     <color name="iburn_color_accent">@color/icon_fire_red</color>
     <color name="iburn_color_accent_yel">#ffd600</color>
+    <color name="window_background">#FF303030</color>
+    <color name="window_background_translucent">#2F303030</color>
+
+
     <!-- ActionBar -->
     <color name="ab_bg">@color/off_blk_2</color>
 

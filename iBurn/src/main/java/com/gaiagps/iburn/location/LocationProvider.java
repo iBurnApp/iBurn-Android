@@ -10,17 +10,18 @@ import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PermissionManager;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.maps.LocationSource;
 import com.mapbox.services.android.telemetry.location.LocationEngine;
+import com.mapbox.services.android.telemetry.location.LocationEngineListener;
+import com.patloew.rxlocation.RxLocation;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
-import rx.Observable;
-import rx.Subscription;
-import rx.subjects.PublishSubject;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.subjects.PublishSubject;
 import timber.log.Timber;
 
 /**
@@ -29,11 +30,11 @@ import timber.log.Timber;
  */
 public class LocationProvider {
 
-    private static ReactiveLocationProvider locationProvider;
+    private static RxLocation locationProvider;
 
     // Location Mocking
     private static AtomicBoolean isMockingLocation = new AtomicBoolean(false);
-    private static Subscription mockLocationSubscription;
+    private static Disposable mockLocationSubscription;
     private static Location lastMockLocation;
     private static PublishSubject<Location> mockLocationSubject = PublishSubject.create();
 
@@ -42,6 +43,7 @@ public class LocationProvider {
     private static final double MAX_MOCK_LON = -119.1851;
     private static final double MIN_MOCK_LON = -119.2210;
 
+    @SuppressLint("MissingPermission")
     public static Observable<Location> getLastLocation(Context context) {
         init(context);
 
@@ -52,10 +54,11 @@ public class LocationProvider {
                 // TODO: stall location result until permission ready
                 return Observable.empty();
             }
-            return locationProvider.getLastKnownLocation();
+            return locationProvider.location().lastLocation().toObservable();
         }
     }
 
+    @SuppressLint("MissingPermission")
     public static Observable<Location> observeCurrentLocation(Context context, LocationRequest request) {
         init(context);
 
@@ -66,13 +69,14 @@ public class LocationProvider {
                 // TODO: stall location result until permission ready
                 return Observable.empty();
             }
-            return locationProvider.getUpdatedLocation(request);
+
+            return locationProvider.location().updates(request);
         }
     }
 
     private static void init(Context context) {
         if (locationProvider == null) {
-            locationProvider = new ReactiveLocationProvider(context);
+            locationProvider = new RxLocation(context);
 
             if (BuildConfig.MOCK) mockCurrentLocation();
         }
@@ -102,7 +106,7 @@ public class LocationProvider {
             lastMockLocation = createMockLocation();
             isMockingLocation.set(true);
 
-            mockLocationSubscription = Observable.interval(60, 60, TimeUnit.SECONDS)
+            mockLocationSubscription = Observable.interval(15, 15, TimeUnit.SECONDS)
                     .startWith(-1l)
                     .subscribe(time -> {
                         lastMockLocation = createMockLocation();
@@ -111,40 +115,45 @@ public class LocationProvider {
         }
     }
 
-    /**
-     * A Mock {@link LocationSource} for use with a GoogleMap
-     */
-    public static class MockLocationSource implements LocationSource {
-
-        private Subscription locationSubscription;
-
-        @Override
-        public void activate(final OnLocationChangedListener onLocationChangedListener) {
-            mockCurrentLocation();
-            locationSubscription = mockLocationSubject
-                    .startWith(lastMockLocation)
-                    .subscribe(onLocationChangedListener::onLocationChanged,
-                            throwable -> Timber.e(throwable, "Error sending mock location to map"));
-        }
-
-        @Override
-        public void deactivate() {
-            if (locationSubscription != null) {
-                locationSubscription.unsubscribe();
-                locationSubscription = null;
-            }
-        }
-    }
-
     public static class MapboxMockLocationSource extends LocationEngine {
+
+        private Disposable mockLocationSub;
+        private boolean areUpdatesRequested = false;
+        private Location lastLocation;
+
+        public MapboxMockLocationSource() {
+            super();
+        }
 
         @Override
         public void activate() {
+            Timber.d("activate mock location provider");
             mockCurrentLocation();
+
+            deactivate();
+
+            mockLocationSub = mockLocationSubject
+                    .takeWhile(ignored -> areUpdatesRequested)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(location -> {
+                        lastLocation = location;
+                        for (LocationEngineListener listener : locationListeners) {
+                            listener.onLocationChanged(location);
+                        }
+                    });
+
+            // "Connection" is immediate here
+            for (LocationEngineListener listener : locationListeners) {
+                listener.onConnected();
+            }
         }
 
         @Override
         public void deactivate() {
+            if (mockLocationSub != null) {
+                mockLocationSub.dispose();
+                mockLocationSub = null;
+            }
         }
 
         @Override
@@ -156,27 +165,26 @@ public class LocationProvider {
         @Override
         public Location getLastLocation() {
             Location loc = new Location("MOCK_PROVIDER");
-            if (lastMockLocation != null) {
-                loc.setLatitude(lastMockLocation.getLatitude());
-                loc.setLongitude(lastMockLocation.getLongitude());
+            if (lastLocation != null) {
+                loc.setLatitude(lastLocation.getLatitude());
+                loc.setLongitude(lastLocation.getLongitude());
             } else {
                 loc.setLatitude(Geo.MAN_LAT);
                 loc.setLongitude(Geo.MAN_LON);
             }
             loc.setBearing((float) (Math.random() * 360));
             loc.setAccuracy((float) (Math.random() * 30));
-            Timber.d("Sending mock location %f, %f", loc.getLatitude(), loc.getLongitude());
             return loc;
         }
 
         @Override
         public void requestLocationUpdates() {
-
+            areUpdatesRequested = true;
         }
 
         @Override
         public void removeLocationUpdates() {
-
+            areUpdatesRequested = false;
         }
     }
 }

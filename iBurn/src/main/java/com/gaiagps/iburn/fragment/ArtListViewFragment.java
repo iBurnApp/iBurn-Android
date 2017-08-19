@@ -9,17 +9,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.adapters.ArtCursorAdapter;
-import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
-import com.gaiagps.iburn.database.ArtTable;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
 import com.gaiagps.iburn.view.ArtListHeader;
-import com.squareup.sqlbrite.SqlBrite;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
 /**
@@ -35,26 +30,20 @@ public class ArtListViewFragment extends PlayaListViewFragment implements ArtLis
 
     private boolean showAudioTourOnly;
 
-    protected CursorRecyclerViewAdapter getAdapter() {
-        return new ArtCursorAdapter(getActivity(), null, this);
-    }
-
     @Override
-    public Subscription createSubscription() {
-        return DataProvider.getInstance(getActivity().getApplicationContext())
+    public Disposable createDisposable() {
+        return DataProvider.Companion.getInstance(getActivity().getApplicationContext())
                 .flatMap(dataProvider -> {
                     if (showAudioTourOnly) {
-                        return dataProvider.observeTable(PlayaDatabase.ART, adapter.getRequiredProjection(), ArtTable.audioTourUrl + " IS NOT NULL");
-
+                        return dataProvider.observeArtWithAudioTour().toObservable(); // TODO : Rm toObservable
                     } else {
-                        return dataProvider.observeTable(PlayaDatabase.ART, getAdapter().getRequiredProjection());
+                        return dataProvider.observeArt().toObservable();  // TODO : Rm toObservable
                     }
                 })
-                .map(SqlBrite.Query::run)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(cursor -> {
-                            Timber.d("Data onNext");
-                            onDataChanged(cursor);
+                .subscribe(art -> {
+                            Timber.d("Got Art");
+                            onDataChanged(art);
                         },
                         throwable -> Timber.e(throwable, "Data onError"),
                         () -> Timber.d("Data onComplete"));

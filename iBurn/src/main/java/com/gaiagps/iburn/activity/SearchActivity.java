@@ -1,7 +1,6 @@
 package com.gaiagps.iburn.activity;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -11,29 +10,29 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.TextView;
 
-import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.IntentUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
-import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
+import com.gaiagps.iburn.adapters.MultiTypePlayaItemAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.squareup.sqlbrite.SqlBrite;
+import com.gaiagps.iburn.database.PlayaItem;
 import com.tonicartos.superslim.LayoutManager;
+
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
 public class SearchActivity extends AppCompatActivity implements AdapterListener {
 
-    private PlayaSearchResponseCursorAdapter adapter;
-    private Subscription searchSubscription;
+    private MultiTypePlayaItemAdapter adapter;
+    private Disposable searchSubscription;
 
     @BindView(R.id.results)
     RecyclerView resultList;
@@ -41,13 +40,16 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
     @BindView(R.id.search)
     EditText searchEntry;
 
+    @BindView(R.id.results_summary)
+    TextView resultsSummary;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         ButterKnife.bind(this);
 
-        adapter = new PlayaSearchResponseCursorAdapter(this, null, this);
+        adapter = new MultiTypePlayaItemAdapter(this, this);
 
         resultList.setLayoutManager(new LayoutManager(this));
         resultList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
@@ -84,45 +86,34 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
      * Dispatch a search query to the current Fragment in the FragmentPagerAdapter
      */
     private void dispatchSearchQuery(String query) {
-        if (searchSubscription != null && !searchSubscription.isUnsubscribed())
-            searchSubscription.unsubscribe();
+        if (searchSubscription != null && !searchSubscription.isDisposed())
+            searchSubscription.dispose();
 
-        searchSubscription = DataProvider.getInstance(getApplicationContext())
-                .flatMap(dataProvider -> dataProvider.observeNameQuery(query, adapter.getRequiredProjection()))
-                .map(SqlBrite.Query::run)
+        searchSubscription = DataProvider.Companion.getInstance(getApplicationContext())
+                .flatMap(dataProvider -> dataProvider.observeNameQuery(query).toObservable()) // TODO : rm toObservable
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(adapter::changeCursor);
+                .subscribe(sectionedPlayaItems -> {
+                    resultsSummary.setText(describeResults(sectionedPlayaItems));
+                    adapter.setSectionedItems(sectionedPlayaItems);
+                });
 
     }
 
-    @Override
-    public void onItemSelected(int modelId, Constants.PlayaItemType type) {
-        IntentUtil.viewItemDetail(this, modelId, type);
+    private String describeResults(DataProvider.SectionedPlayaItems searchResults) {
+        return String.format(Locale.US, "%d results",
+                searchResults.getData().size());
     }
 
     @Override
-    public void onItemFavoriteButtonSelected(int modelId, Constants.PlayaItemType type) {
-        final String modelTable;
-        switch (type) {
-            case CAMP:
-                modelTable = PlayaDatabase.CAMPS;
-                break;
-            case ART:
-                modelTable = PlayaDatabase.ART;
-                break;
-            case EVENT:
-                modelTable = PlayaDatabase.EVENTS;
-                break;
-            case POI:
-                modelTable = PlayaDatabase.POIS;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid type " + type);
-        }
+    public void onItemSelected(PlayaItem item) {
+        IntentUtil.viewItemDetail(this, item);
+    }
 
-        DataProvider.getInstance(getApplicationContext())
+    @Override
+    public void onItemFavoriteButtonSelected(PlayaItem item) {
+        DataProvider.Companion.getInstance(getApplicationContext())
                 .subscribe(dataProvider -> {
-                    dataProvider.toggleFavorite(modelTable, modelId);
+                    dataProvider.toggleFavorite(item);
                 }, throwable -> Timber.e(throwable, "failed to toggle favorite"));
     }
 

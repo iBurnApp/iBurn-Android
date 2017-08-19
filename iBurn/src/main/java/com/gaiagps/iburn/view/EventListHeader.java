@@ -26,7 +26,7 @@ public class EventListHeader extends RelativeLayout {
     protected TextView mTypeFilter;
     protected TextView mDayFilter;
 
-    protected String mDaySelection;
+    protected String mDaySelection = AdapterUtils.getCurrentOrFirstDayAbbreviation();
     protected ArrayList<String> mTypeSelection = new ArrayList<>();
     protected int mDaySelectionIndex;
     protected boolean[] mTypeSelectionIndexes = new boolean[100];

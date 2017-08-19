@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.fragment;
 
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,15 +9,14 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
-import com.gaiagps.iburn.adapters.PlayaSearchResponseCursorAdapter;
+import com.gaiagps.iburn.adapters.PlayaItemAdapter;
+import com.gaiagps.iburn.adapters.MultiTypePlayaItemAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.squareup.sqlbrite.SqlBrite;
 import com.tonicartos.superslim.LayoutManager;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
 /**
@@ -25,30 +25,27 @@ import timber.log.Timber;
  */
 public class FavoritesListViewFragment extends PlayaListViewFragment {
 
-    public static FavoritesListViewFragment newInstance() {
-        return new FavoritesListViewFragment();
-    }
-
-    protected CursorRecyclerViewAdapter getAdapter() {
-        return new PlayaSearchResponseCursorAdapter(getActivity(), null, this);
+    @Override
+    protected PlayaItemAdapter getAdapter() {
+        return new MultiTypePlayaItemAdapter(getContext().getApplicationContext(), this);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);
-        mEmptyText = (TextView) v.findViewById(android.R.id.empty);
-        mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
+        mEmptyText = v.findViewById(android.R.id.empty);
+        mRecyclerView = v.findViewById(android.R.id.list);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         return v;
     }
 
     @Override
-    protected Subscription createSubscription() {
+    protected Disposable createDisposable() {
 
-        return DataProvider.getInstance(getActivity().getApplicationContext())
-                .flatMap(dataProvider -> dataProvider.observeFavorites(getAdapter().getRequiredProjection()))
-                .map(SqlBrite.Query::run)
+        return DataProvider.Companion.getInstance(getActivity().getApplicationContext())
+                .flatMap(provider -> provider.observeFavorites().toObservable()) // TODO : rm toObservable
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::onDataChanged, throwable -> Timber.e(throwable, "Failed to load favorites"));
     }

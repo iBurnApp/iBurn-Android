@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.gaiagps.iburn" >
+    package="com.gaiagps.iburn">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -14,17 +14,17 @@
         android:required="true" />
 
     <application
-        android:name="com.gaiagps.iburn.iBurnApp"
+        android:name=".iBurnApp"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.Iburn" >
+        android:theme="@style/Theme.Iburn">
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDnRMtKNtTd_eJ-OmToHqa4hIYpVHVz9J4"/>
+            android:value="AIzaSyDnRMtKNtTd_eJ-OmToHqa4hIYpVHVz9J4" />
 
         <!-- HockeyApp -->
         <activity android:name="net.hockeyapp.android.UpdateActivity" />
@@ -32,13 +32,12 @@
             android:name=".activity.WelcomeActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait" >
-        </activity>
+            android:screenOrientation="portrait"></activity>
         <activity
             android:name=".activity.MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait" >
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -47,34 +46,21 @@
         </activity>
         <activity
             android:name=".activity.PlayaItemViewActivity"
-            android:screenOrientation="portrait" >
-        </activity>
+            android:screenOrientation="portrait"></activity>
         <activity
             android:name=".activity.SearchActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_search" >
-        </activity>
+            android:label="@string/title_activity_search"
+            android:screenOrientation="portrait"></activity>
 
         <!-- GCM Network Manager -->
         <service
             android:name=".service.DataUpdateService"
             android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE" >
+            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
             <intent-filter>
                 <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
             </intent-filter>
         </service>
-
-        <!-- PRX Player Hater -->
-        <service android:name="org.prx.playerhater.PlaybackService" >
-            <meta-data android:name="org.prx.playerhater.Config"
-                       android:resource="@xml/playerhater_config" />
-        </service>
-        <receiver android:name="org.prx.playerhater.BroadcastReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON"/>
-            </intent-filter>
-        </receiver>
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -85,6 +71,21 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/fileprovider_paths" />
         </provider>
+
+        <!-- Audio Tour Playback -->
+        <service
+            android:name=".service.AudioPlayerService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+        <receiver android:name="android.support.v4.media.session.MediaButtonReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

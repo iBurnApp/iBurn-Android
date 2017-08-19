@@ -13,12 +13,12 @@
     <string name="feedback_tab">Fdbk</string>
     <string name="browse_tab">Browse</string>
     <string name="no_results">No Results</string>
-    <string name="mark_some_favorites">Touch the ❤ near any Camp, Event or Art to fall in love</string>
+    <string name="mark_some_favorites">Touch the ❤ near a Camp, Event or Art to see it here</string>
     <string name="no_items_found">No Items Found</string>
     <string name="action_home">Set Home Camp</string>
     <string name="action_nav_home">Navigate to Home Camp</string>
     <string name="unlock">Unlock</string>
-    <string name="victory">Victory!</string>
+    <string name="embargo_disabled">Embargo Disabled</string>
     <string name="location_data_unlocked">Camp, Art, and Event location data unlocked!</string>
     <string name="invalid_password">Invalid Password</string>
     <string name="cancel">Cancel</string>
@@ -28,7 +28,7 @@
     <string name="welcome">With iBurn in your pocket, you\'re ready to find your way around
         the Playa. Camp Location data will become available once the Burn begins. \n\n Try everything, piss clear, and stay safe!</string>
     <string name="welcome_iburn">Welcome to iBurn!</string>
-    <string name="requres_google_play">iBurn requires Google Play Services…</string>
+    <string name="requres_play_services">iBurn requires Google Play Services…</string>
     <string name="device_not_supported">Your device doesn\'t jive with our mapping tech. So sorry…</string>
     <string name="search_title">Search</string>
     <string name="search_hint">Search</string>
@@ -48,11 +48,19 @@
     <string name="dialog_edit_marker_title">Edit Marker</string>
     <string name="enter_unlock_code">Enter Unlock Code</string>
     <string name="unlock_description">Location info is hidden until gates open.</string>
-    <string name="enter_unlock_password">Enter Unlock Password</string>
     <string name="title_activity_search">SearchActivity</string>
 
     <string name="action_settings">Settings</string>
-    <string name="embargo_snackbar_msg">Art, Camp, and Event Location Data is embargoed until %s. Swipe to dismiss.</string>
+    <string name="embargo_msg_1">ART, CAMP, AND EVENT LOCATIONS</string>
+    <string name="embargo_msg_2">WILL BE AVAILABLE %s</string>
+    <string name="embargo_msg_3">OR WITH STAFF UNLOCK CODE ->️</string>
+    <string-array name="news_ticker">
+        <item>DAFT PUNK CONCERT AT TRASH FENCE</item>
+        <item>CENSUS: LAST YEARS BURN BEST YET</item>
+        <item>POLL: IT WAS BETTER NEXT YEAR</item>
+        <item>2018 THEME: TURNKEY CAMPS</item>
+    </string-array>
+
     <string name="also_at">Other Occurrences</string>
     <string name="hosted_events">Hosted Events</string>
     <string name="send_feedback">Send Feedback</string>
@@ -62,15 +70,18 @@
 
     <!-- WelcomeActivity -->
     <string name="title_activity_welcome">WelcomeActivity</string>
-    <string name="place_custom_markers_tip">You can place custom markers at any time from the map.</string>
-    <string name="home_camp_hint">Home Camp Name</string>
+    <string name="place_custom_markers_tip">You can also add custom map markers later. Look for this icon on the app\'s map view.</string>
+    <string name="home_camp_hint">Enter Home Camp Name</string>
     <string name="mark_home_camp">Mark Home Camp?</string>
-    <string name="location_data_notice">Burning Man policy requires that iBurn not display Camp, Event, and Art locations until gates open or you arrive on the Playa.</string>
+    <string name="location_data_notice">Burning Man prohibits displaying Camp, Event, and Art locations until %s, or when you arrive on Playa.\n\nBefore then, iBurn shows crowdsourced locations from BurnerMap.com, but they aren\'t always accurate!</string>
     <string name="location_notice_title">A Word on Location</string>
     <string name="no_now_items">Check back once you get to Burning Man</string>
     <string name="audio_tour_art_only">AUDIO TOUR</string>
     <string name="all_art">ALL</string>
     <string name="play_audio_tour">Play Audio Tour</string>
     <string name="pause_audio_tour">Pause Audio Tour</string>
+    <string name="camp_location_unknown">Sorry, we don\'t have location data for that camp. You can add a marker later from the app\'s map view.</string>
+    <string name="place_marker">Move the map, then tap marker to place it</string>
+    <string name="current_year">2017</string>
 
 </resources>

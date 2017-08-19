@@ -1,8 +1,8 @@
 package com.gaiagps.iburn.fragment;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
-import android.database.Cursor;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -20,13 +20,14 @@ import android.widget.Filterable;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.database.CampTable;
+import com.gaiagps.iburn.database.Camp;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.gaiagps.iburn.database.PlayaItemTable;
-import com.squareup.sqlbrite.SqlBrite;
+import com.gaiagps.iburn.database.Embargo;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Locale;
 
 import timber.log.Timber;
 
@@ -42,6 +43,8 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
     // Welcome 3 - Set Home
     private AutoCompleteTextView campSearchView;
 
+    private boolean performedEntranceAnimation;
+
     public static WelcomeFragment newInstance(int layoutId) {
         WelcomeFragment pane = new WelcomeFragment();
         Bundle args = new Bundle();
@@ -56,26 +59,42 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
         if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment1) {
             // Intro video
-            textureView = ((TextureView) rootView.findViewById(R.id.video));
+            textureView = rootView.findViewById(R.id.video);
             textureView.setSurfaceTextureListener(this);
 
-        } else if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment3) {
+        } else if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment2) { {
+
+            final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE MMMM d", Locale.US);
+            String embargoDate = dayFormatter.format(Embargo.EMBARGO_DATE);
+            ((TextView) rootView.findViewById(R.id.content)).setText(getString(R.string.location_data_notice, embargoDate));
+
+        }} if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment3) {
             // Set Home location
-            campSearchView = (AutoCompleteTextView) rootView.findViewById(R.id.campNameSearch);
+            campSearchView = rootView.findViewById(R.id.campNameSearch);
             campSearchView.setAdapter(new CampAutoCompleteAdapter(getActivity()));
             campSearchView.setOnItemClickListener((parent, view, position, id) -> {
-                Cursor campCursor = ((Cursor) campSearchView.getAdapter().getItem(position));
-                HomeCampSelectionListener.CampSelection selection = new HomeCampSelectionListener.CampSelection(campCursor.getDouble(campCursor.getColumnIndex(CampTable.latitude)),
-                        campCursor.getDouble(campCursor.getColumnIndex(CampTable.longitude)),
-                        campCursor.getString(campCursor.getColumnIndex(CampTable.name)));
-                campSearchView.setTag(selection);
+                Camp selectedCamp = ((Camp) campSearchView.getAdapter().getItem(position));
+
+                if (!selectedCamp.hasLocation() && !selectedCamp.hasUnofficialLocation()) {
+                    rootView.findViewById(R.id.error).setVisibility(View.VISIBLE);
+                    campSearchView.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                    if (getActivity() instanceof HomeCampSelectionListener) {
+                        ((HomeCampSelectionListener) getActivity()).onHomeCampSelected(null);
+                    }
+                    return;
+                } else {
+                    rootView.findViewById(R.id.error).setVisibility(View.GONE);
+                    campSearchView.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_check_green_24dp, 0);
+                }
+
+                campSearchView.setTag(selectedCamp);
                 Timber.d("Item selected %s", campSearchView.getText().toString());
 
                 InputMethodManager inputManager = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputManager.hideSoftInputFromWindow(campSearchView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 
                 if (getActivity() instanceof HomeCampSelectionListener) {
-                    ((HomeCampSelectionListener) getActivity()).onHomeCampSelected(selection);
+                    ((HomeCampSelectionListener) getActivity()).onHomeCampSelected(selectedCamp);
                 }
             });
         }
@@ -83,7 +102,33 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
     }
 
     @Override
-    public void onDestroyView () {
+    public void onResume() {
+        super.onResume();
+
+        boolean isWelcome1 = getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment1;
+        if (isWelcome1 && !performedEntranceAnimation) {
+            final View heading = getView().findViewById(R.id.heading);
+            heading.setAlpha(0);
+            ValueAnimator fadeIn = ValueAnimator.ofFloat(0, 1);
+            fadeIn.addUpdateListener(animation -> heading.setAlpha((Float) animation.getAnimatedValue()));
+            fadeIn.setStartDelay(1000);
+            fadeIn.setDuration(1 * 1000);
+            fadeIn.start();
+
+            final View subHeading = getView().findViewById(R.id.sub_heading);
+            subHeading.setAlpha(0);
+            heading.setAlpha(0);
+            ValueAnimator subFadeIn = ValueAnimator.ofFloat(0, 1);
+            subFadeIn.addUpdateListener(animation -> subHeading.setAlpha((Float) animation.getAnimatedValue()));
+            subFadeIn.setStartDelay(2000);
+            subFadeIn.setDuration(1 * 1000);
+            subFadeIn.start();
+            performedEntranceAnimation = true;
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
         super.onDestroyView();
 
         if (mediaPlayer != null) {
@@ -142,43 +187,36 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
     private class CampAutoCompleteAdapter extends BaseAdapter implements Filterable {
 
-        private Cursor cursor;
+        private List<Camp> camps;
         private DataProvider dataProvider;
         private CampNameFilter filter;
         LayoutInflater inflater;
 
         public CampAutoCompleteAdapter(Context context) {
             inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            DataProvider.getInstance(context.getApplicationContext())
+            DataProvider.Companion.getInstance(context.getApplicationContext())
                     .subscribe(readyDataProvider -> this.dataProvider = readyDataProvider);
         }
 
-        public void changeCursor(Cursor newCursor) {
-            if (cursor != null) {
-                cursor.close();
-                cursor = null;
-            }
-
-            cursor = newCursor;
+        public void changeData(List<Camp> camps) {
+            this.camps = camps;
         }
 
         @Override
         public int getCount() {
-            return cursor == null ? 0 : cursor.getCount();
+            return camps == null ? 0 : camps.size();
         }
 
         @Override
-        public Object getItem(int position) {
-            if (cursor == null) return null;
-            cursor.moveToPosition(position);
-            return cursor;
+        public Camp getItem(int position) {
+            if (camps == null) return null;
+            return camps.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            if (cursor == null) return -1;
-            cursor.moveToPosition(position);
-            return cursor.getInt(cursor.getColumnIndex(PlayaItemTable.id));
+            if (camps == null) return -1;
+            return camps.get(position).id;
         }
 
         @Override
@@ -191,11 +229,9 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
                 ((TextView) convertView).setTextAppearance(getActivity(), R.style.PlayaTextItem);
             }
 
-            if (cursor != null) {
-
-                cursor.moveToPosition(position);
-
-                ((TextView) convertView).setText(cursor.getString(cursor.getColumnIndex(PlayaItemTable.name)));
+            if (camps != null) {
+                Camp camp = camps.get(position);
+                ((TextView) convertView).setText(camp.name);
             }
 
             return convertView;
@@ -219,25 +255,22 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
                 FilterResults r = new FilterResults();
 
                 if (constraint != null) {
-                    String query = '%' + constraint.toString() + '%';
-                    Cursor newResult = dataProvider.createEmbargoExemptQuery(PlayaDatabase.CAMPS, "SELECT * FROM " + PlayaDatabase.CAMPS + " WHERE " + CampTable.name + " LIKE ?", query)
-                            .map(SqlBrite.Query::run)
-                            .toBlocking()
-                            .first();
+                    String query = constraint.toString();// '%' + constraint.toString() + '%';
+                    List<Camp> camps = dataProvider.observeCampsByName(query).blockingFirst();
 
-                    r.values = newResult;
-                    r.count = newResult.getCount();
+                    r.values = camps;
+                    r.count = camps.size();
                 }
                 return r;
             }
 
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
-                Timber.d("Publish %d result for %s", results.values == null ? 0 : ((Cursor) results.values).getCount(), constraint == null ? "None" : constraint.toString());
+                Timber.d("Publish %d result for %s", results.values == null ? 0 : ((List<Camp>) results.values).size(), constraint == null ? "None" : constraint.toString());
 
                 if (results.values == null || results.count > 0) {
                     Timber.d("Publishing results to adapter");
-                    changeCursor((Cursor) results.values);
+                    changeData((List<Camp>) results.values);
                     notifyDataSetChanged();
                 } else {
                     notifyDataSetInvalidated();
@@ -246,9 +279,8 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
             @Override
             public CharSequence convertResultToString(Object result) {
-                if (result instanceof Cursor) {
-                    Cursor cursorResult = (Cursor) result;
-                    return cursorResult.getString(cursorResult.getColumnIndex(PlayaItemTable.name));
+                if (result instanceof Camp) {
+                    return ((Camp) result).name;
                 }
                 return super.convertResultToString(result);
             }
@@ -256,19 +288,6 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
     }
 
     public interface HomeCampSelectionListener {
-        void onHomeCampSelected(CampSelection selection);
-
-        class CampSelection {
-
-            public final String name;
-            public final double lat;
-            public final double lon;
-
-            public CampSelection(double lat, double lon, String name) {
-                this.lat = lat;
-                this.lon = lon;
-                this.name = name;
-            }
-        }
+        void onHomeCampSelected(Camp homeCamp);
     }
 }

@@ -7,10 +7,10 @@ import com.gaiagps.iburn.api.response.Event;
 
 import java.util.List;
 
-import retrofit.client.Response;
-import retrofit.http.GET;
-import retrofit.http.Streaming;
-import rx.Observable;
+import io.reactivex.Observable;
+import okhttp3.ResponseBody;
+import retrofit2.http.GET;
+import retrofit2.http.Streaming;
 
 /**
  * IBurn API Definition
@@ -18,19 +18,19 @@ import rx.Observable;
  */
 public interface IBurnApi {
 
-    @GET("/update.json.js")
+    @GET("update.json.js")
     Observable<DataManifest> getDataManifest();
 
-    @GET("/camps.json.js")
+    @GET("camps.json.js")
     Observable<List<Camp>> getCamps();
 
-    @GET("/art.json.js")
+    @GET("art.json.js")
     Observable<List<Art>> getArt();
 
-    @GET("/events.json.js")
+    @GET("events.json.js")
     Observable<List<Event>> getEvents();
 
-    @GET("/iburn.mbtiles.jar")
+    @GET("iburn.mbtiles.jar")
     @Streaming
-    Observable<Response> getTiles();
+    Observable<ResponseBody> getTiles();
 }

@@ -6,24 +6,21 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.TextAppearanceSpan;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.gaiagps.iburn.Constants;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
-import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.gaiagps.iburn.database.PlayaItemTable;
-import com.squareup.sqlbrite.SqlBrite;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
+
+import timber.log.Timber;
 
 /**
  * Created by davidbrodsky on 8/4/14.
@@ -36,30 +33,18 @@ public class AdapterUtils {
     public static final ArrayList<String> sDayAbbreviations = new ArrayList<>();
     public static final ArrayList<String> sDayNames = new ArrayList<>();
 
-    public static final SimpleDateFormat dayAbbrevFormatter = new SimpleDateFormat("EE M/d", Locale.US);
+    public static final SimpleDateFormat dayLabelFormatter = new SimpleDateFormat("EE M/d", Locale.US);
+    public static final SimpleDateFormat dayAbbrevFormatter = new SimpleDateFormat("M/d", Locale.US);
+
+    public static final Date EVENT_START_DATE = new GregorianCalendar(2017, Calendar.AUGUST, 28, 0, 0).getTime();
+    public static final Date EVENT_END_DATE = new GregorianCalendar(2017, Calendar.SEPTEMBER, 4, 0, 0).getTime();
+
+    public static final String EVENT_TYPE_ABBREVIATION_UNKNOWN = "unknwn";
+    public static final String EVENT_TYPE_NAME_UNKNOWN = "Uncategorized";
 
     static {
-//        sDayNames.add("All Days");
-//        sDayAbbreviations.add(null);
-        sDayNames.add("Monday 8/29");
-        sDayAbbreviations.add("8/29");
-        sDayNames.add("Tuesday 8/30");
-        sDayAbbreviations.add("8/30");
-        sDayNames.add("Wednesday 8/31");
-        sDayAbbreviations.add("8/31");
-        sDayNames.add("Thursday 9/1");
-        sDayAbbreviations.add("9/1");
-        sDayNames.add("Friday 9/2");
-        sDayAbbreviations.add("9/2");
-        sDayNames.add("Saturday 9/3");
-        sDayAbbreviations.add("9/3");
-        sDayNames.add("Sunday 9/4");
-        sDayAbbreviations.add("9/4");
-        sDayNames.add("Monday 9/5");
-        sDayAbbreviations.add("9/5");
-        sDayNames.add("Tuesday 9/6");
-        sDayAbbreviations.add("9/6");
 
+        populateDayRanges(EVENT_START_DATE, EVENT_END_DATE);
 
         sEventTypeAbbreviations.add("work");
         sEventTypeNames.add("Work");
@@ -81,6 +66,23 @@ public class AdapterUtils {
         sEventTypeNames.add("Care");
         sEventTypeAbbreviations.add("fire");
         sEventTypeNames.add("Fire");
+        sEventTypeAbbreviations.add(EVENT_TYPE_ABBREVIATION_UNKNOWN);
+        sEventTypeNames.add(EVENT_TYPE_NAME_UNKNOWN);
+    }
+
+    private static void populateDayRanges(Date start, Date end) {
+        Calendar startCal = Calendar.getInstance();
+        startCal.setTime(start);
+        Calendar endCal = Calendar.getInstance();
+        endCal.setTime(end);
+
+        sDayNames.clear();
+        sDayAbbreviations.clear();
+
+        for (Date date = startCal.getTime(); startCal.before(endCal); startCal.add(Calendar.DATE, 1), date = startCal.getTime()) {
+            sDayNames.add(dayLabelFormatter.format(date));
+            sDayAbbreviations.add(dayAbbrevFormatter.format(date));
+        }
     }
 
     /**
@@ -100,7 +102,7 @@ public class AdapterUtils {
         return null;
     }
 
-    public static void setDistanceText(Location deviceLocation, TextView walkTimeView, TextView bikeTimeView, double lat, double lon) {
+    public static void setDistanceText(Location deviceLocation, TextView walkTimeView, TextView bikeTimeView, float lat, float lon) {
         setDistanceText(deviceLocation, null, null, null, walkTimeView, bikeTimeView, lat, lon);
     }
 
@@ -112,7 +114,7 @@ public class AdapterUtils {
      *
      * @return a time estimate in minutes.
      */
-    public static void setDistanceText(Location deviceLocation, Date nowDate, String startDateStr, String endDateStr, TextView walkTimeView, TextView bikeTimeView, double lat, double lon) {
+    public static void setDistanceText(Location deviceLocation, Date nowDate, String startDateStr, String endDateStr, TextView walkTimeView, TextView bikeTimeView, float lat, float lon) {
         if (deviceLocation != null && lat != 0) {
             double metersToTarget = Geo.getDistance(lat, lon, deviceLocation);
             int walkingMinutesToTarget = (int) Geo.getWalkingEstimateMinutes(metersToTarget);
@@ -135,9 +137,9 @@ public class AdapterUtils {
             bikeTimeView.setVisibility(View.VISIBLE);
         } else {
             walkTimeView.setText("");
-            walkTimeView.setVisibility(View.GONE);
+            walkTimeView.setVisibility(View.INVISIBLE);
             bikeTimeView.setText("");
-            bikeTimeView.setVisibility(View.GONE);
+            bikeTimeView.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -159,9 +161,9 @@ public class AdapterUtils {
 
             if (startDate.before(nowDate) && endDate.after(nowDate)) {
                 // Event already started
-                long timeLeftMinutes = ( endDate.getTime() - nowDate.getTime() ) / 1000 / 60;
+                long timeLeftMinutes = (endDate.getTime() - nowDate.getTime()) / 1000 / 60;
                 //Timber.d("ongoing event ends in " + timeLeftMinutes + " minutes ( " + endDateStr + ") eta " + minutesToTarget + " duration " + duration);
-                if ( (timeLeftMinutes - minutesToTarget) > 0) {
+                if ((timeLeftMinutes - minutesToTarget) > 0) {
                     // If we'll make at least a quarter of the event, Color it yellow
                     int endSpan = distanceText.indexOf("min") + 3;
                     spanRange = new SpannableString(distanceText);
@@ -169,9 +171,9 @@ public class AdapterUtils {
                     spanRange.setSpan(tas, 0, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
             } else if (startDate.after(nowDate)) {
-                long timeUntilStartMinutes = ( startDate.getTime() - nowDate.getTime() ) / 1000 / 60;
+                long timeUntilStartMinutes = (startDate.getTime() - nowDate.getTime()) / 1000 / 60;
                 //Timber.d("future event starts in " + timeUntilStartMinutes + " minutes ( " + startDateStr + ") eta " + minutesToTarget + " duration " + duration);
-                if ( (timeUntilStartMinutes - minutesToTarget) > 0) {
+                if ((timeUntilStartMinutes - minutesToTarget) > 0) {
                     // If we'll make the event start, Color it green
                     int endSpan = distanceText.indexOf("min") + 3;
                     TextAppearanceSpan tas = new TextAppearanceSpan(context, R.style.GreenText);
@@ -181,34 +183,4 @@ public class AdapterUtils {
         }
         return spanRange;
     }
-
-    public static AdapterView.OnItemLongClickListener mListItemLongClickListener = (parent, v, position, id) -> {
-        int model_id = (Integer) v.getTag(R.id.list_item_related_model);
-        Constants.PlayaItemType itemType = (Constants.PlayaItemType) v.getTag(R.id.list_item_related_model_type);
-        String tableName;
-        switch (itemType) {
-            case ART:
-                tableName = PlayaDatabase.ART;
-                break;
-            case CAMP:
-                tableName = PlayaDatabase.CAMPS;
-                break;
-            case EVENT:
-                tableName = PlayaDatabase.EVENTS;
-                break;
-            default:
-                throw new IllegalStateException("Unknown PLAYA_ITEM");
-        }
-        final DataProvider[] storedProvider = new DataProvider[1];
-        DataProvider.getInstance(v.getContext().getApplicationContext())
-                .doOnNext(provider -> storedProvider[0] = provider)
-                .flatMap(dataProvider -> dataProvider.createQuery(tableName, "SELECT " + PlayaItemTable.favorite + " FROM " + tableName + " WHERE " + PlayaItemTable.id + " = ?", String.valueOf(model_id)))
-                .map(SqlBrite.Query::run)
-                .subscribe(cursor -> {
-                    boolean isFavorite = cursor.getInt(0) == 1;
-                    storedProvider[0].updateFavorite(PlayaItemTable.favorite, model_id, !isFavorite);
-                    Toast.makeText(v.getContext(), String.format("%s Favorites", isFavorite ? "Removed from" : "Added to"), Toast.LENGTH_SHORT).show();
-                });
-        return true;
-    };
 }

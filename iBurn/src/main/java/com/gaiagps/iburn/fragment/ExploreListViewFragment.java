@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.fragment;
 
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,21 +10,18 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.adapters.CursorRecyclerViewAdapter;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;
-import com.gaiagps.iburn.adapters.EventSectionedCursorAdapter;
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
+import com.gaiagps.iburn.adapters.PlayaItemAdapter;
+import com.gaiagps.iburn.adapters.UpcomingEventsAdapter;
 import com.gaiagps.iburn.database.DataProvider;
-import com.gaiagps.iburn.database.EventTable;
-import com.gaiagps.iburn.database.PlayaDatabase;
-import com.squareup.sqlbrite.SqlBrite;
 import com.tonicartos.superslim.LayoutManager;
 
 import java.util.Calendar;
+import java.util.Date;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
@@ -37,28 +35,27 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
         return new ExploreListViewFragment();
     }
 
-    protected CursorRecyclerViewAdapter getAdapter() {
-        return new EventSectionedCursorAdapter(getActivity(), null, this);
+    @Override
+    protected PlayaItemAdapter getAdapter() {
+        return new UpcomingEventsAdapter(getContext().getApplicationContext(), this);
     }
 
     @Override
-    public Subscription createSubscription() {
-        Calendar modifiedDate = Calendar.getInstance();
-        modifiedDate.setTime(CurrentDateProvider.getCurrentDate());
-        String lowerBoundDateStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
-        modifiedDate.add(Calendar.HOUR, 7);
-        String upperBoundDateStr = PlayaDateTypeAdapter.iso8601Format.format(modifiedDate.getTime());
+    public Disposable createDisposable() {
+        Date now = CurrentDateProvider.getCurrentDate();
 
+        Calendar endCal = Calendar.getInstance();
+        endCal.setTime(now);
+        endCal.add(Calendar.HOUR, 7);
+        Date end = endCal.getTime();
 
-        // Get Events that start now to the next several hours
-        return DataProvider.getInstance(getActivity().getApplicationContext())
+        return DataProvider.Companion.getInstance(getActivity().getApplicationContext())
                 .subscribeOn(Schedulers.computation())
-                .flatMap(dataProvider -> dataProvider.createQuery(PlayaDatabase.EVENTS, "SELECT " + DataProvider.makeProjectionString(adapter.getRequiredProjection()) + " FROM " + PlayaDatabase.EVENTS + " WHERE " + EventTable.startTime + " > '" + lowerBoundDateStr + "' AND " + EventTable.startTime + " < '" + upperBoundDateStr + "\' ORDER BY " + EventTable.startTime + " ASC LIMIT 100"))
-                .map(SqlBrite.Query::run)
+                .flatMap(dataProvider -> dataProvider.observeEventBetweenDates(now, end).toObservable())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(cursor -> {
-                            Timber.d("Data onNext %d items", cursor.getCount());
-                            onDataChanged(cursor);
+                .subscribe(events -> {
+                            Timber.d("Data onNext %d items", events.size());
+                            onDataChanged(events);
                         },
                         throwable -> Timber.e(throwable, "Data onError"),
                         () -> Timber.d("Data onComplete"));
@@ -69,6 +66,8 @@ public class ExploreListViewFragment extends PlayaListViewFragment {
         View v = inflater.inflate(R.layout.fragment_playa_list_view, container, false);
         mEmptyText = (TextView) v.findViewById(android.R.id.empty);
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        // TODO : Implement sectioned adapter
         mRecyclerView.setLayoutManager(new LayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         return v;

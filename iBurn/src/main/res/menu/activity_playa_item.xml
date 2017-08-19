@@ -3,7 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/favorite_menu"
-        android:icon="@drawable/ic_heart_empty"
+        android:icon="@drawable/ic_heart_empty_white_24dp"
         android:title="@string/fav_tab"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/image_menu"
+        android:icon="@drawable/ic_image_white_on_orange_24dp"
+        android:title="@string/art_tab"
         app:showAsAction="always" />
 </menu>

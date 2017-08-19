@@ -1,0 +1,33 @@
+<tabs>
+    <tab
+        activeColor="@color/iburn_color"
+        barColorWhenSelected="@color/off_blk"
+        icon="@drawable/ic_map_black_24dp"
+        id="@+id/tab_map"
+        inActiveColor="@color/white"
+        title="Map" />
+
+    <tab
+        activeColor="@color/iburn_color"
+        barColorWhenSelected="@color/off_blk"
+        icon="@drawable/ic_watch_later_black_24dp"
+        id="@+id/tab_now"
+        inActiveColor="@color/white"
+        title="Now" />
+
+    <tab
+        activeColor="@color/iburn_color"
+        barColorWhenSelected="@color/off_blk"
+        icon="@drawable/ic_format_list_bulleted_black_24dp"
+        id="@+id/tab_browse"
+        inActiveColor="@color/white"
+        title="Browse" />
+
+    <tab
+        activeColor="@color/iburn_color"
+        barColorWhenSelected="@color/off_blk"
+        icon="@drawable/ic_favorite_black_24dp"
+        id="@+id/tab_favorites"
+        inActiveColor="@color/white"
+        title="Favorites" />
+</tabs>

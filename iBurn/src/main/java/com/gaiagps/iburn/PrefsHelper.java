@@ -8,9 +8,9 @@ import android.content.SharedPreferences;
  */
 public class PrefsHelper {
 
-    private static final String SHOWED_WELCOME = "welcomed_2016_preivew";   // boolean
+    private static final String SHOWED_WELCOME = "welcomed_2017_preivew";   // boolean
     private static final String POPULATED_DB_VERSION = "db_populated_ver";  // long
-    private static final String VALID_UNLOCK_CODE = "unlocked_2015";        // boolean
+    private static final String VALID_UNLOCK_CODE = "unlocked_2017";        // boolean
     private static final String SCHEDULED_UPDATE = "sched_update";          // boolean
 
     private static final String DEFAULT_RESOURCE_VERSION = "resver";        // long

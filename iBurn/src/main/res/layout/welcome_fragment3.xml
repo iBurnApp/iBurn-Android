@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/welcome_fragment"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -17,40 +18,64 @@
         android:layout_marginLeft="@dimen/welcome_text_margin"
         android:layout_marginRight="@dimen/welcome_text_margin"
         android:layout_marginTop="16dp"
+        android:layout_alignParentTop="true"
         android:fontFamily="sans-serif-condensed"
         android:text="@string/mark_home_camp"
         android:textSize="32sp" />
 
-    <LinearLayout
+    <AutoCompleteTextView
+        android:id='@+id/campNameSearch'
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/welcome_text_margin"
+        android:layout_marginRight="@dimen/welcome_text_margin"
+        android:layout_marginTop="8dp"
+        android:drawablePadding="8dp"
+        android:hint="@string/home_camp_hint"
+        android:inputType="textFilter|textNoSuggestions"
+        android:singleLine="true"
+        android:layout_below="@id/heading"/>
+
+    <TextView
+        android:id="@+id/error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/campNameSearch"
+        android:layout_marginLeft="@dimen/welcome_text_margin"
+        android:layout_marginRight="@dimen/welcome_text_margin"
+        android:text="@string/camp_location_unknown"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:textColor="@color/icon_fire_red"
+        android:textSize="@dimen/welcome_content" />
+
+    <FrameLayout
         android:id="@+id/bodyContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/heading"
-        android:orientation="vertical">
-
-        <AutoCompleteTextView
-            android:id='@+id/campNameSearch'
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/welcome_text_margin"
-            android:layout_marginRight="@dimen/welcome_text_margin"
-            android:layout_marginTop="8dp"
-            android:drawableLeft="@drawable/puck_home"
-            android:drawablePadding="4dp"
-            android:hint="@string/home_camp_hint"
-            android:inputType="textFilter|textNoSuggestions"
-            android:singleLine="true" />
+        android:layout_below="@id/campNameSearch">
 
         <ImageView
-            android:id="@+id/yurt"
+            android:id="@+id/parallax0"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginLeft="32dp"
             android:layout_marginRight="32dp"
             android:scaleType="centerInside"
-            android:src="@drawable/yurt" />
-    </LinearLayout>
+            android:alpha="0.55"
+            android:src="@drawable/city_negative" />
+
+        <ImageView
+            android:id="@+id/parallax1"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_gravity="center"
+            android:translationY="50dp"
+            android:layout_marginLeft="4dp"
+            android:src="@drawable/puck_home" />
+
+    </FrameLayout>
 
     <TextView
         android:layout_width="wrap_content"
@@ -59,8 +84,8 @@
         android:layout_marginBottom="64dp"
         android:layout_marginLeft="@dimen/welcome_text_margin"
         android:layout_marginRight="@dimen/welcome_text_margin"
-        android:drawableLeft="@drawable/map_btn_pin"
-        android:drawablePadding="4dp"
+        android:drawableLeft="@drawable/ic_pin_drop_white_24dp"
+        android:drawablePadding="8dp"
         android:text="@string/place_custom_markers_tip"
         android:textSize="@dimen/welcome_content" />
 </RelativeLayout>
