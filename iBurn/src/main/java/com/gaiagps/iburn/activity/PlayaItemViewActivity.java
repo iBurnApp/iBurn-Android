@@ -547,20 +547,6 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                                     });
                                 });
                     }
-
-                    // TODO : Cleanup
-                    SchedulersKt.getIoScheduler().scheduleDirect(() -> {
-                        Bitmap bitmap = ((BitmapDrawable)artImageView.getDrawable()).getBitmap();
-
-                        Palette.from(bitmap).generate(palette -> {
-                            // Use generated instance
-                            int defaultColor = getResources().getColor(R.color.iburn_color);
-                            int genColor = palette.getDominantColor(defaultColor);
-                            collapsingToolbarLayout.setBackgroundColor(genColor);
-                            collapsingToolbarLayout.setContentScrimColor(genColor);
-                            collapsingToolbarLayout.setStatusBarScrimColor(genColor);
-                        });
-                    });
                 }
 
                 @Override
