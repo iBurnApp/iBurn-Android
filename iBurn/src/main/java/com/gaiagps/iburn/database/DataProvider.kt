@@ -389,7 +389,7 @@ class DataProvider private constructor(private val context: Context, private val
         /**
          * Version of database data and mbtiles. This is basically the unix time at which bundled data was provided to this build.
          */
-        val RESOURCES_VERSION: Long = 0 //1472093065000L; // Unix time of creation
+        val RESOURCES_VERSION: Long = 1503171563000L // Unix time of creation
 
         private var provider: DataProvider? = null
 
