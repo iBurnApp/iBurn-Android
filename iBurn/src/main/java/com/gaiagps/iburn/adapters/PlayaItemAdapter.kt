@@ -112,19 +112,20 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
             holder.titleView.text = item.name
             holder.descView.text = item.description
 
-            if (isEmbargoActive && !item.hasUnofficialLocation()) {
+            val canShowOfficialLocation = !isEmbargoActive && item.hasLocation()
+            val canShowLocation = canShowOfficialLocation || item.hasUnofficialLocation()
+
+            if (!canShowLocation) {
 
                 holder.addressView.visibility = View.GONE
                 holder.bikeTimeView.visibility = View.GONE
                 holder.walkTimeView.visibility = View.GONE
 
-            } else if (item.hasLocation() || item.hasUnofficialLocation() || !TextUtils.isEmpty(item.playaAddress)) {
+            } else {
 
-                val useOfficialLocation = item.hasLocation() && !isEmbargoActive
-
-                val lat = if (useOfficialLocation) item.latitude else item.latitudeUnofficial
-                val lon = if (useOfficialLocation) item.longitude else item.longitudeUnofficial
-                val address = if (useOfficialLocation) item.playaAddress else item.playaAddressUnofficial
+                val lat = if (canShowOfficialLocation) item.latitude else item.latitudeUnofficial
+                val lon = if (canShowOfficialLocation) item.longitude else item.longitudeUnofficial
+                val address = if (canShowOfficialLocation) item.playaAddress else item.playaAddressUnofficial
 
                 // Sets Walk and Bike time, hiding views if item.latitude / longitude is 0
                 AdapterUtils.setDistanceText(deviceLocation, holder.walkTimeView, holder.bikeTimeView,
@@ -132,7 +133,7 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
 
                 if (!TextUtils.isEmpty(address)) {
                     holder.addressView.visibility = View.VISIBLE
-                    if (!useOfficialLocation) {
+                    if (!canShowOfficialLocation) {
                         holder.addressView.text = "BurnerMap: " + address
                     } else {
                         holder.addressView.text = address
