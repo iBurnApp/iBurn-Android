@@ -12,6 +12,7 @@ import android.support.animation.DynamicAnimation
 import android.support.animation.SpringAnimation
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
