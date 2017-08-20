@@ -295,7 +295,7 @@ class MapboxMapFragment : GjFragment(), ServiceConnection {
     }
 
     private fun setupMap(mapView: MapView) {
-//        mapView.setStyleUrl("mapbox://styles/dchiles/cj3nxjqli000u2soyeb947f7s")
+        mapView.setStyleUrl("mapbox://styles/dchiles/cj3nxjqli000u2soyeb947f7s")
         val pos = CameraPosition.Builder()
                 .target(LatLng(Geo.MAN_LAT, Geo.MAN_LON))
                 .zoom(defaultZoom)
