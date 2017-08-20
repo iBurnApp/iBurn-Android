@@ -24,14 +24,14 @@ public class Geo {
      * @return a walking estimate in minutes for a distance in meters
      */
     public static double getWalkingEstimateMinutes(double meters) {
-        return 60 * (meters / 5000); // At 5 kph
+        return 60 * (meters / 2500); // At 2.5 kph
     }
 
     /**
      * @return a bicycling estimate in minutes for a distance in meters
      */
     public static double getBikingEstimateMinutes(double meters) {
-        return 60 * (meters / 15500); // At 15.5 kph
+        return 60 * (meters / 7550); // At 7.75 kph
     }
 
 }
