@@ -37,3 +37,5 @@ iBurn/src/main/gen/
 libraries/google-play-services_lib/gen/
 captures
 *.hprof
+
+iBurn/regular/release/output.json
