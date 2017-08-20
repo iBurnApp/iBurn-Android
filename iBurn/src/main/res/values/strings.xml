@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">iBurn 2017</string>
+    <string name="app_name">iBurn-Gj 2017</string>
 
     <!-- MainActivity Tabs -->
     <string name="fav_tab">Faves️</string>
