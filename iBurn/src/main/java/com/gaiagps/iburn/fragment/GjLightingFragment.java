@@ -3,16 +3,14 @@ package com.gaiagps.iburn.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
-import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.WifiCredentialCallback;
 import com.gaiagps.iburn.WifiUtilKt;
 import com.gj.animalauto.OscClient;
 import com.gj.animalauto.OscHostManager;
@@ -27,8 +25,6 @@ import io.reactivex.disposables.Disposable;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import timber.log.Timber;
-
-import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
 /**
  * Created by liorsaar on 4/19/15
@@ -68,15 +64,15 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
                     case R.id.lightBrightness:
                         oscClient.setBrightness(value);
                         break;
-                    case R.id.lightSaturation:
-                        oscClient.setSaturation(value);
+                    case R.id.lightHue:
+                        oscClient.setHue(value);
                         break;
                     case R.id.lightSpeed:
                         oscClient.setSpeed(value);
                         break;
-                    case R.id.lightDensity:
-                        oscClient.setDensity(value);
-                        break;
+//                    case R.id.lightDensity:
+//                        oscClient.setDensity(value);
+//                        break;
 
                     default:
                         Timber.w("Unknown slider toggled!");
@@ -94,24 +90,30 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
         }
     };
 
-    private class ButtonOnClickListener implements View.OnClickListener {
+    private class ButtonOnTouchListener implements View.OnTouchListener {
 
         private int buttonNumber;
 
-        public ButtonOnClickListener(int buttonNumber) {
+        public ButtonOnTouchListener(int buttonNumber) {
             this.buttonNumber = buttonNumber;
         }
 
         @Override
-        public void onClick(View view) {
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+
             if (oscClient == null) {
                 Timber.w("Cannot send command, OSC client not ready");
-                return;
+                return false;
             }
 
-            if (isOkToSendNextMessage()) {
+            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                 oscClient.sendButtonPress(buttonNumber);
+                return true;
+            } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                oscClient.sendButtonPressReleased(buttonNumber);
+                return true;
             }
+            return false;
         }
     }
 
@@ -141,25 +143,24 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
 
         View view = inflater.inflate(R.layout.fragment_lighting, container, false);
 
-        seekBar = new SeekBar[4];
+        seekBar = new SeekBar[3]; //4];
         seekBar[0] = view.findViewById(R.id.lightBrightness);
-        seekBar[1] = view.findViewById(R.id.lightSaturation);
+        seekBar[1] = view.findViewById(R.id.lightHue);
         seekBar[2] = view.findViewById(R.id.lightSpeed);
-        seekBar[3] = view.findViewById(R.id.lightDensity);
+//        seekBar[3] = view.findViewById(R.id.lightDensity);
 
         for (int i = 0; i < seekBar.length; i++) {
             seekBar[i].setOnSeekBarChangeListener(seekBarChangeListener);
         }
 
-        view.findViewById(R.id.presetBtn1).setOnClickListener(new ButtonOnClickListener(1));
-        view.findViewById(R.id.presetBtn2).setOnClickListener(new ButtonOnClickListener(2));
-        view.findViewById(R.id.presetBtn3).setOnClickListener(new ButtonOnClickListener(3));
-        view.findViewById(R.id.presetBtn4).setOnClickListener(new ButtonOnClickListener(4));
-        view.findViewById(R.id.presetBtn5).setOnClickListener(new ButtonOnClickListener(5));
-        view.findViewById(R.id.presetBtn6).setOnClickListener(new ButtonOnClickListener(6));
-        view.findViewById(R.id.presetBtn7).setOnClickListener(new ButtonOnClickListener(7));
-        view.findViewById(R.id.presetBtn8).setOnClickListener(new ButtonOnClickListener(8));
-
+        view.findViewById(R.id.presetBtn1).setOnTouchListener(new ButtonOnTouchListener(1));
+        view.findViewById(R.id.presetBtn2).setOnTouchListener(new ButtonOnTouchListener(2));
+        view.findViewById(R.id.presetBtn3).setOnTouchListener(new ButtonOnTouchListener(3));
+        view.findViewById(R.id.presetBtn4).setOnTouchListener(new ButtonOnTouchListener(4));
+        view.findViewById(R.id.presetBtn5).setOnTouchListener(new ButtonOnTouchListener(5));
+        view.findViewById(R.id.presetBtn6).setOnTouchListener(new ButtonOnTouchListener(6));
+        view.findViewById(R.id.presetBtn7).setOnTouchListener(new ButtonOnTouchListener(7));
+        view.findViewById(R.id.presetBtn8).setOnTouchListener(new ButtonOnTouchListener(8));
         return view;
     }
 

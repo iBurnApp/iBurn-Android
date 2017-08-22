@@ -25,6 +25,7 @@ public class OscClient(val hostAddress: InetAddress = InetAddress.getByName("192
     private val addressFader = "/GLOBAL/fader"
 
     private val brightnessFader = "2"
+    private val hueFader = "3"
     private val saturationFader = "4"
     private val densityFader = "8"
     private val speedFader = "7"
@@ -40,6 +41,11 @@ public class OscClient(val hostAddress: InetAddress = InetAddress.getByName("192
     fun setBrightness(brightness: Float) {
         Timber.d("Send brightness $brightness")
         sendCommand(addressFader + brightnessFader, floatArrayOf(brightness).toList())
+    }
+
+    fun setHue(hue: Float) {
+        Timber.d("Send hut $hue")
+        sendCommand(addressFader + hueFader, floatArrayOf(hue).toList())
     }
 
     fun setSaturation(saturation: Float) {
@@ -62,6 +68,13 @@ public class OscClient(val hostAddress: InetAddress = InetAddress.getByName("192
             Timber.w("Button $button is outside known range $pushButtonRange")
         }
         sendCommand(addressPushButton + button.toString(), floatArrayOf(1f).toList())
+    }
+
+    fun sendButtonPressReleased(button: Int) {
+        if (!pushButtonRange.contains(button)) {
+            Timber.w("Button $button is outside known range $pushButtonRange")
+        }
+        sendCommand(addressPushButton + button.toString(), floatArrayOf(0f).toList())
     }
 
     private fun sendCommand(address: String, args: Collection<Any>) {

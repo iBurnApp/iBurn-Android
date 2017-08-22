@@ -24,3 +24,14 @@ fun getVehicleName(vehicleId: Int): String {
         else -> return "Elephant"
     }
 }
+
+fun getOscOrder() {
+    // In order of priority
+    // These Wifi
+//     "GJ_Camp",
+//      "GJ_Lion",
+//      "GJ_Tiger",
+//      "GJ_Rhino",
+//      "GJ_Zebra",
+//      "GJ_Elephant",
+}

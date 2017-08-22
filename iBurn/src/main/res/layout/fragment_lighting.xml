@@ -101,10 +101,10 @@
 
             <TextView
                 style="@style/GjLightSliderLabel"
-                android:text="Saturation" />
+                android:text="Hue" />
 
             <SeekBar
-                android:id="@+id/lightSaturation"
+                android:id="@+id/lightHue"
                 style="@style/GjLightSlider"
                 android:progress="40" />
 
@@ -122,7 +122,7 @@
                 android:layout_marginRight="32dp"
                 android:progress="50" />
 
-
+<!--
             <TextView
                 style="@style/GjLightSliderLabel"
                 android:text="Density" />
@@ -131,11 +131,11 @@
                 android:id="@+id/lightDensity"
                 style="@style/GjLightSlider"
                 android:progress="60" />
-
+-->
         </TableRow>
 
         <TableRow style="@style/GjLightTableRow">
-
+<!--
             <TextView
                 style="@style/GjLightSliderLabel"
                 android:text="Mod1" />
@@ -154,6 +154,7 @@
                 android:id="@+id/lightMod2"
                 style="@style/GjLightSlider"
                 android:progress="60" />
+                -->
         </TableRow>
 
     </TableLayout>
