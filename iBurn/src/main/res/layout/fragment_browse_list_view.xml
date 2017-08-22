@@ -43,7 +43,7 @@
 
     </LinearLayout>
 
-    <xyz.danoz.recyclerviewfastscroller.vertical.VerticalRecyclerViewFastScroller
+    <com.gaiagps.iburn.VerticalRecyclerViewFastScroller2
         android:id="@+id/fastScroller"
         android:layout_marginTop="68dp"
         android:layout_width="24dp"

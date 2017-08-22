@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.Subscriber;
+import com.gaiagps.iburn.VerticalRecyclerViewFastScroller2;
 import com.gaiagps.iburn.adapters.AdapterListener;
 import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.adapters.AlphabeticalSectionIndexer;
@@ -111,7 +112,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         mEmptyText = v.findViewById(android.R.id.empty);
         mRecyclerView = v.findViewById(android.R.id.list);
 
-        VerticalRecyclerViewFastScroller fastScroller = (VerticalRecyclerViewFastScroller) v.findViewById(R.id.fastScroller);
+        VerticalRecyclerViewFastScroller2 fastScroller = (VerticalRecyclerViewFastScroller2) v.findViewById(R.id.fastScroller);
         SectionTitleIndicator sectionTitleIndicator =
                 (SectionTitleIndicator) v.findViewById(R.id.fastScrollerSectionIndicator);
 
@@ -119,7 +120,13 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         fastScroller.setRecyclerView(mRecyclerView);
 
         // Connect the scroller to the recycler (to let the recycler scroll the scroller's handle)
-        mRecyclerView.setOnScrollListener(fastScroller.getOnScrollListener());
+        mRecyclerView.addOnScrollListener(fastScroller.getOnScrollListener());
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+            }
+        });
 
         fastScroller.setSectionIndicator(sectionTitleIndicator);
 
