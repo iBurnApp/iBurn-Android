@@ -455,7 +455,8 @@ public class IBurnService {
             if (locationPlayaId != null) {
                 if (cachedLocations.containsKey(locationPlayaId)) {
                     item.location = cachedLocations.get(locationPlayaId);
-                } else if (cachedUnofficialLocations.containsKey(locationPlayaId)) {
+                }
+                if (cachedUnofficialLocations.containsKey(locationPlayaId)) {
                     item.burnermap_location = cachedUnofficialLocations.get(locationPlayaId);
                 }
             }
@@ -470,8 +471,9 @@ public class IBurnService {
                 location.gps_longitude = item.location.gps_longitude;
                 location.string = item.location.string;
                 cachedLocations.put(item.uid, location);
+            }
 
-            } else if (item.burnermap_location != null) {
+            if (item.burnermap_location != null) {
 
                 Location location = new Location();
                 location.gps_latitude =  item.burnermap_location.gps_latitude;
