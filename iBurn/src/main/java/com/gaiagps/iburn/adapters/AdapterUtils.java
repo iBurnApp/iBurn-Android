@@ -67,8 +67,10 @@ public class AdapterUtils {
         sEventTypeNames.add("Care");
         sEventTypeAbbreviations.add("fire");
         sEventTypeNames.add("Fire");
-        sEventTypeAbbreviations.add(EVENT_TYPE_ABBREVIATION_UNKNOWN);
-        sEventTypeNames.add(EVENT_TYPE_NAME_UNKNOWN);
+        // Initial 2017 data had uncategorized events but first update with official location
+        // has all events categorized
+//        sEventTypeAbbreviations.add(EVENT_TYPE_ABBREVIATION_UNKNOWN);
+//        sEventTypeNames.add(EVENT_TYPE_NAME_UNKNOWN);
     }
 
     private static void populateDayRanges(Date start, Date end) {
