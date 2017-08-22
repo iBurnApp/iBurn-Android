@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.content, fragment)
-                .commit();
+                .commitAllowingStateLoss();
     }
 
     public void onSearchClick(View view) {
