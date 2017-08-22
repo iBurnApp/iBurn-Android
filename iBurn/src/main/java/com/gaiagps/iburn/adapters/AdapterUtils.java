@@ -139,6 +139,13 @@ public class AdapterUtils {
         }
     }
 
+    /**
+     * {@link #createSpannableForDistance(Context, int, Date, Date, Date)} colors walking / biking times
+     * if they're reachable before ending time. However, don't color events far out into the future
+     * as reachable because I think that adds more noise than value
+     */
+    private static final int SOON_EVENT_TIME_MS = 2 * 60 * 60 * 1000; // 2 hr
+
     private static Spannable createSpannableForDistance(Context context, int minutesToTarget, Date nowDate, Date startDate, Date endDate) {
         String distanceText;
         Spannable spanRange;
@@ -166,7 +173,7 @@ public class AdapterUtils {
                     TextAppearanceSpan tas = new TextAppearanceSpan(context, R.style.OrangeText);
                     spanRange.setSpan(tas, 0, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
-            } else if (startDate.after(nowDate)) {
+            } else if (startDate.after(nowDate) && (startDate.getTime() - nowDate.getTime() < SOON_EVENT_TIME_MS)) {
                 long timeUntilStartMinutes = (startDate.getTime() - nowDate.getTime()) / 1000 / 60;
                 //Timber.d("future event starts in " + timeUntilStartMinutes + " minutes ( " + startDateStr + ") eta " + minutesToTarget + " duration " + duration);
                 if ((timeUntilStartMinutes - minutesToTarget) > 0) {
