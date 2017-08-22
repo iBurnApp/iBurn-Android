@@ -12,6 +12,7 @@ import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -85,6 +86,8 @@ public class AdapterUtils {
         }
     }
 
+    private static final DateFormat apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format();
+
     /**
      * @return the abbreviation for the current day, if it's during the burn, else the first day of the burn
      */
@@ -114,7 +117,7 @@ public class AdapterUtils {
      *
      * @return a time estimate in minutes.
      */
-    public static void setDistanceText(Location deviceLocation, Date nowDate, String startDateStr, String endDateStr, TextView walkTimeView, TextView bikeTimeView, float lat, float lon) {
+    public static void setDistanceText(Location deviceLocation, Date nowDate, Date startDate, Date endDate, TextView walkTimeView, TextView bikeTimeView, float lat, float lon) {
         if (deviceLocation != null && lat != 0) {
             double metersToTarget = Geo.getDistance(lat, lon, deviceLocation);
             int walkingMinutesToTarget = (int) Geo.getWalkingEstimateMinutes(metersToTarget);
@@ -123,15 +126,8 @@ public class AdapterUtils {
             String distanceText;
             Context context = walkTimeView.getContext();
 
-            try {
-                Date startDate = startDateStr != null ? PlayaDateTypeAdapter.iso8601Format.parse(startDateStr) : null;
-                Date endDate = endDateStr != null ? PlayaDateTypeAdapter.iso8601Format.parse(endDateStr) : null;
-
-                walkTimeView.setText(createSpannableForDistance(context, walkingMinutesToTarget, nowDate, startDate, endDate));
-                bikeTimeView.setText(createSpannableForDistance(context, bikingMinutesToTarget, nowDate, startDate, endDate));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            walkTimeView.setText(createSpannableForDistance(context, walkingMinutesToTarget, nowDate, startDate, endDate));
+            bikeTimeView.setText(createSpannableForDistance(context, bikingMinutesToTarget, nowDate, startDate, endDate));
             // If minutes < startDate || minutes < (endDate - now)
             walkTimeView.setVisibility(View.VISIBLE);
             bikeTimeView.setVisibility(View.VISIBLE);

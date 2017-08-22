@@ -35,7 +35,7 @@ class UpcomingEventsAdapter(context: Context, listener: AdapterListener) :
         val item = items?.get(firstSectionItem) as Event
 
         val headerTitle = DateUtil.getStartDateString(
-                PlayaDateTypeAdapter.iso8601Format.parse(item.startTime),
+                apiDateFormat.parse(item.startTime),
                 CurrentDateProvider.getCurrentDate()).toUpperCase()
 
         // SectionedPlayaItemAdapter sets header layout to a single TextView

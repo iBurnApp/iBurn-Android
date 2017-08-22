@@ -23,6 +23,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -209,6 +210,8 @@ public class IBurnService {
     HashMap<String, Location> cachedLocations = new HashMap<>();
     HashMap<String, Location> cachedUnofficialLocations = new HashMap<>();
 
+    private static final DateFormat apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format();
+
     public IBurnService(@NonNull Context context) {
         Gson gson = new GsonBuilder()
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -348,11 +351,11 @@ public class IBurnService {
             }
 
             for (EventOccurrence occurrence : event.occurrenceSet) {
-                values.put(START_TIME, PlayaDateTypeAdapter.iso8601Format.format(occurrence.startTime));
+                values.put(START_TIME, apiDateFormat.format(occurrence.startTime));
                 values.put(START_TIME_PRETTY, (event.allDay == 1) ? dayFormatter.format(occurrence.startTime) :
                         timeDayFormatter.format(occurrence.startTime));
 
-                values.put(END_TIME, PlayaDateTypeAdapter.iso8601Format.format(occurrence.endTime));
+                values.put(END_TIME, apiDateFormat.format(occurrence.endTime));
                 values.put(END_TIME_PRETTY, (event.allDay == 1) ? dayFormatter.format(occurrence.endTime) :
                         timeDayFormatter.format(occurrence.endTime));
 

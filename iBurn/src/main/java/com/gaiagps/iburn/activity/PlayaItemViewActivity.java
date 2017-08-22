@@ -55,6 +55,7 @@ import com.gaiagps.iburn.service.AudioPlayerService;
 import com.gaiagps.iburn.view.AnimatedFloatingActionButton;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -598,15 +599,25 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         Date nowDate = CurrentDateProvider.getCurrentDate();
 
         // Describe the event time with some smarts: "[Starts|Ends] [in|at] [20m|4:20p]"
-        String dateDescription = DateUtil.getDateString(
-                getApplicationContext(),
-                nowDate,
-                event.startTime,
-                event.startTimePretty,
-                event.endTime,
-                event.endTimePretty);
+        final DateFormat apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format();
+        try {
+            Date startDate = apiDateFormat.parse(event.startTime);
+            Date endDate = apiDateFormat.parse(event.endTime);
 
-        subItem2TextView.setText(dateDescription);
+            String dateDescription = DateUtil.getDateString(
+                    getApplicationContext(),
+                    nowDate,
+                    startDate,
+                    event.startTimePretty,
+                    endDate,
+                    event.endTimePretty);
+            subItem2TextView.setText(dateDescription);
+
+        } catch (ParseException e) {
+            Timber.e(e, "Failed to parse event dates");
+            subItem2TextView.setText(event.startTimePretty);
+        }
+
         subItem3TextView.setVisibility(View.GONE);
 
         // Display Hosted-By-Camp
@@ -655,7 +666,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                         eventTv.setTextSize(20);
                         eventTv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                         try {
-                            eventTv.setText(timeDayFormatter.format(PlayaDateTypeAdapter.iso8601Format.parse(occurrence.startTime)));
+                            eventTv.setText(timeDayFormatter.format(apiDateFormat.parse(occurrence.startTime)));
                         } catch (ParseException e) {
                             Timber.w(e, "Unable to parse date, using pre-computed");
                             eventTv.setText(event.startTimePretty.toUpperCase());

@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class DataProvider private constructor(private val context: Context, private val db: AppDatabase, private val interceptor: DataProvider.QueryInterceptor?) {
 
+    private val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
+
     interface QueryInterceptor {
         fun onQueryIntercepted(query: String, tables: Iterable<String>): String
     }
@@ -151,8 +153,8 @@ class DataProvider private constructor(private val context: Context, private val
 
     fun observeEventBetweenDates(start: Date, end: Date): Flowable<List<Event>> {
 
-        val startDateStr = PlayaDateTypeAdapter.iso8601Format.format(start)
-        val endDateStr = PlayaDateTypeAdapter.iso8601Format.format(end)
+        val startDateStr = apiDateFormat.format(start)
+        val endDateStr = apiDateFormat.format(end)
         // TODO : Honor upgradeLock?
         Timber.d("Start time between %s and %s", startDateStr, endDateStr)
         return db.eventDao().findInDateRange(startDateStr, endDateStr)

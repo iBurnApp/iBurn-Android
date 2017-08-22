@@ -17,6 +17,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import timber.log.Timber;
+
 /**
  * A ever-so-slightly modified version of {@link com.google.gson.internal.bind.DateTypeAdapter}
  * that works with the PlayaEventsAPI Date format e.g: "2016-09-01T21:00:00-7:00"
@@ -29,9 +31,9 @@ public final class PlayaDateTypeAdapter extends TypeAdapter<Date> {
         }
     };
 
-    public static final DateFormat iso8601Format = buildIso8601Format();
+    private final DateFormat iso8601Format = buildIso8601Format();
 
-    private static DateFormat buildIso8601Format() {
+    public static DateFormat buildIso8601Format() {
         DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
         iso8601Format.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
         return iso8601Format;
@@ -48,7 +50,8 @@ public final class PlayaDateTypeAdapter extends TypeAdapter<Date> {
     private synchronized Date deserializeToDate(String json) {
         try {
             return iso8601Format.parse(json);
-        } catch (ParseException e) {
+        } catch (Exception e) {
+            Timber.e(e, "Unable to parse date %s", json);
             throw new JsonSyntaxException(json, e);
         }
     }

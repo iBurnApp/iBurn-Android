@@ -15,16 +15,21 @@ import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.DateUtil.getDateString
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.R
+import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.loadArtImage
 import com.gaiagps.iburn.location.LocationProvider
 import timber.log.Timber
+import java.text.ParseException
+import java.util.*
 
 /**
  * Facilities the display of a collection of [PlayaItem]s in a [RecyclerView]
  * Created by dbro on 6/7/17.
  */
 open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, val listener: AdapterListener) : RecyclerView.Adapter<T>(), SectionIndexer {
+
+    protected val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
 
     var sectionIndexer: PlayaItemSectionIndxer? = null
 
@@ -68,6 +73,10 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
 
         item?.let { item ->
             val holder = (viewHolder as ViewHolder)
+
+            var startDate: Date? = null
+            var endDate: Date? = null
+
             if (item is Art) {
                 holder.artistView.visibility = View.VISIBLE
                 holder.artistView.text = item.artist
@@ -97,8 +106,16 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
                 holder.eventTimeView.visibility = View.VISIBLE
 
                 holder.eventTypeView.text = AdapterUtils.getStringForEventType(item.type)
-                holder.eventTimeView.text =
-                        getDateString(context, now, item.startTime, item.startTimePretty, item.endTime, item.endTimePretty)
+
+                try {
+                    startDate = apiDateFormat.parse(item.startTime)
+                    endDate = apiDateFormat.parse(item.endTime)
+                    holder.eventTimeView.text =
+                            getDateString(context, now, startDate, item.startTimePretty, endDate, item.endTimePretty)
+                } catch (e: ParseException) {
+                    Timber.e(e, "Failed to parse event dates")
+                    holder.eventTimeView.text = item.startTimePretty
+                }
 
                 holder.artistView.visibility = View.GONE
                 holder.audioTourView.visibility = View.GONE
@@ -128,7 +145,7 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
                 val address = if (canShowOfficialLocation) item.playaAddress else item.playaAddressUnofficial
 
                 // Sets Walk and Bike time, hiding views if item.latitude / longitude is 0
-                AdapterUtils.setDistanceText(deviceLocation, holder.walkTimeView, holder.bikeTimeView,
+                AdapterUtils.setDistanceText(deviceLocation, now, startDate, endDate, holder.walkTimeView, holder.bikeTimeView,
                         lat, lon)
 
                 if (!TextUtils.isEmpty(address)) {

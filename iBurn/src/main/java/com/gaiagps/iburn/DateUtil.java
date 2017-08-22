@@ -3,9 +3,6 @@ package com.gaiagps.iburn;
 import android.content.Context;
 import android.text.format.DateUtils;
 
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
-
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,20 +21,17 @@ public class DateUtil {
      *
      * @param context            The application {@link android.content.Context}
      * @param nowDate            The date to treat as 'now'
-     * @param startDateStr       An ISO start date string
+     * @param startDate          The start Date
      * @param prettyStartDateStr A 'prettified' start date string
-     * @param endDateStr         An ISO end date string
+     * @param endDate            The end Date
      * @param prettyEndDateStr   A 'prettified' end date string
      */
-    public static String getDateString(Context context, Date nowDate, String startDateStr, String prettyStartDateStr, String endDateStr, String prettyEndDateStr) {
-        try {
-
+    public static String getDateString(Context context, Date nowDate, Date startDate, String prettyStartDateStr, Date endDate, String prettyEndDateStr) {
             // The date before which to use relative date descriptors. e.g: (in 2 minutes)
             Calendar relativeTimeCutoff = Calendar.getInstance();
             relativeTimeCutoff.setTime(nowDate);
             relativeTimeCutoff.add(Calendar.HOUR, 1);
 
-            Date startDate = PlayaDateTypeAdapter.iso8601Format.parse(startDateStr);
             if (nowDate.before(startDate)) {
                 // Has not yet started
                 if (relativeTimeCutoff.after(startDate)) {
@@ -46,7 +40,6 @@ public class DateUtil {
                 return context.getString(R.string.starts) + " " + prettyStartDateStr;
             } else {
                 // Already started
-                Date endDate = PlayaDateTypeAdapter.iso8601Format.parse(endDateStr);
                 if (endDate.before(nowDate)) {
                     if (relativeTimeCutoff.after(endDate)) {
                         return context.getString(R.string.ended) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime(), nowDate.getTime(), DateUtils.MINUTE_IN_MILLIS).toString();
@@ -60,10 +53,6 @@ public class DateUtil {
                 }
 
             }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return prettyStartDateStr;
     }
 
     public static String getStartDateString(Date startDate, Date nowDate) {
