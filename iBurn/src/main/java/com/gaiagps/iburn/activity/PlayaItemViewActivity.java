@@ -634,6 +634,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
             provider.observeCampByPlayaId(event.campPlayaId)
                     .firstElement()
+                    .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(camp -> {
                         hostedByCamp.setOnClickListener(new RelatedItemOnClickListener(camp));
                         String campName = camp.name;
@@ -646,6 +647,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         // Display other event occurrences
         provider.observeOtherOccurrencesOfEvent(event)
                 .firstElement()
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(eventOccurrences -> {
 
                     Timber.d("Got %d other event occurrences", eventOccurrences.size());
