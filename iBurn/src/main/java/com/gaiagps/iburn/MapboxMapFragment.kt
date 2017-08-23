@@ -347,10 +347,10 @@ class MapboxMapFragment : Fragment() {
                             .toObservable()
                 }
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { address ->
+                .subscribe( { address ->
                     addressLabel?.visibility = View.VISIBLE
                     addressLabel?.text = address
-                }
+                }, {error -> Timber.e(error, "Failed to get device location")})
     }
 
     private fun setupCameraUpdateSub(map: MapboxMap) {
