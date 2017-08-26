@@ -998,11 +998,10 @@ class MapboxMapFragment : GjFragment(), ServiceConnection {
                 }
             }
 
-        } else if (message is GjMessageStatusResponse) {
-
-            // Identifies which vehicle is paired with the current device
-            localVehicleId = message.getVehicle().toInt()
         }
     }
 
+    override fun onLocalIdDetermined(localId: Int) {
+        localVehicleId = localId
+    }
 }

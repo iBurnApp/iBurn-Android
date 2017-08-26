@@ -2,25 +2,32 @@ package com.gaiagps.iburn.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.WifiUtilKt;
 import com.gj.animalauto.OscClient;
 import com.gj.animalauto.OscHostManager;
 import com.gj.animalauto.PrefsHelper;
+import com.gj.animalauto.VehicleInfoKt;
 import com.gj.animalauto.wifi.WifiManager;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.net.InetAddress;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
@@ -40,10 +47,12 @@ Color Palette - drop down menu with bitmap for every palette
 Effect parameter 1 - slider
 Effect parameter 2 - slider
  */
-public class GjLightingFragment extends Fragment implements Function1<OscHostManager.OscHost, Unit> {
+public class GjLightingFragment extends GjFragment implements Function1<OscHostManager.OscHost, Unit> {
     private static final String TAG = "GjLightingFragment";
     private static final int LIGHTING_MESSAGE_REFRESH_RATE = 5; // seconds
-    private static SeekBar[] seekBar;
+    private SeekBar[] seekBar;
+    private Button[] presets;
+    private TextView controlLossTitle;
 
     private long seekbarTimeOfLastUpdate = 0;
 
@@ -90,6 +99,12 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
         }
     };
 
+
+    @Override
+    protected void onLocalIdDetermined(int localId) {
+        localVehicleId = localId;
+    }
+
     private class ButtonOnTouchListener implements View.OnTouchListener {
 
         private int buttonNumber;
@@ -121,6 +136,8 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
     private OscClient oscClient;
     private WifiManager wifiManager;
     private Disposable wifiConnectDisposable;
+    private Disposable wifiScanDisposable;
+    private int localVehicleId;
 
     public static GjLightingFragment newInstance() {
         return new GjLightingFragment();
@@ -153,14 +170,20 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
             seekBar[i].setOnSeekBarChangeListener(seekBarChangeListener);
         }
 
-        view.findViewById(R.id.presetBtn1).setOnTouchListener(new ButtonOnTouchListener(1));
-        view.findViewById(R.id.presetBtn2).setOnTouchListener(new ButtonOnTouchListener(2));
-        view.findViewById(R.id.presetBtn3).setOnTouchListener(new ButtonOnTouchListener(3));
-        view.findViewById(R.id.presetBtn4).setOnTouchListener(new ButtonOnTouchListener(4));
-        view.findViewById(R.id.presetBtn5).setOnTouchListener(new ButtonOnTouchListener(5));
-        view.findViewById(R.id.presetBtn6).setOnTouchListener(new ButtonOnTouchListener(6));
-        view.findViewById(R.id.presetBtn7).setOnTouchListener(new ButtonOnTouchListener(7));
-        view.findViewById(R.id.presetBtn8).setOnTouchListener(new ButtonOnTouchListener(8));
+        ViewGroup presetContainer = view.findViewById(R.id.lightModeGrid);
+        int numPresetButtons = presetContainer.getChildCount();
+        presets = new Button[numPresetButtons];
+
+        for (int childId = 0; childId < numPresetButtons; childId++) {
+            Button presetButton = (Button) presetContainer.getChildAt(childId);
+            presets[childId] = presetButton;
+            int buttonId = childId + 1;
+            presetButton.setOnTouchListener(new ButtonOnTouchListener(buttonId));
+        }
+
+        controlLossTitle = view.findViewById(R.id.control_loss_title);
+
+        setControlsEnabled(false);
         return view;
     }
 
@@ -188,6 +211,61 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
 
         } else {
             beginOscWifiConnection(gjPrefs.getOscWifiSsid(), gjPrefs.getOscWifiPass());
+        }
+
+
+    }
+
+    private static final int wifiScanIntervalS = 10;
+
+    /**
+     * Start detecting the presence of other cars via WiFi SSID scans
+     */
+    private void startMonitoringWifiNetworks() {
+        stopMonitoringWifiNetworks();
+
+        wifiScanDisposable = Observable.interval(wifiScanIntervalS, TimeUnit.SECONDS)
+                .flatMap(ignored -> wifiManager.requestScan())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(scanResults -> {
+                    boolean isHigherPriorityCarIdPresent = VehicleInfoKt.isHigherPriorityCarPresentInWifiScan(scanResults, localVehicleId);
+
+                    if (!isHigherPriorityCarIdPresent) {
+                        setControlLossNoticeVisible(false, null);
+                        if (oscClient != null) setControlsEnabled(true);
+                    } else {
+                        int higherPriorityCarId = VehicleInfoKt.getHighestPriorityCarIdPresentInScanResults(scanResults);
+                        String higherPriorityCarName = VehicleInfoKt.getVehicleName(higherPriorityCarId);
+
+                        setControlLossNoticeVisible(true, higherPriorityCarName);
+                        setControlsEnabled(false);
+                    }
+                });
+    }
+
+    /**
+     * Stop detecting the presence of other cars via WiFi SSID scans
+     */
+    private void stopMonitoringWifiNetworks() {
+        wifiScanDisposable.dispose();
+    }
+
+    private void setControlsEnabled(boolean enabled) {
+
+        // Seekbars
+        for (View v : seekBar) {
+            v.setEnabled(enabled);
+        }
+        // Presets
+        for (View v : presets) {
+            v.setEnabled(enabled);
+        }
+    }
+
+    private void setControlLossNoticeVisible(boolean isVisible, String higherPriorityCar) {
+        getView().findViewById(R.id.control_loss_notice).setVisibility(isVisible ? View.VISIBLE : View.GONE);
+        if (higherPriorityCar != null) {
+            controlLossTitle.setText(getString(R.string.another_car_has_taken_lighting_control, higherPriorityCar));
         }
     }
 
@@ -237,6 +315,8 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
             wifiConnectDisposable.dispose();
             wifiConnectDisposable = null;
         }
+
+        stopMonitoringWifiNetworks();
     }
 
     private boolean isOkToSendNextMessage() {
@@ -259,9 +339,13 @@ public class GjLightingFragment extends Fragment implements Function1<OscHostMan
 
     private void connectToOscHost(@NotNull String hostName, @NotNull InetAddress hostAddress, int hostPort) {
         if (oscClient == null) {
-            Timber.d("Connecting to OSC client %s", hostName);
+            String message = String.format(Locale.US, "Connecting to OSC client %s", hostName);
+            Timber.d(message);
+            Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
             oscClient = new OscClient(hostAddress, hostPort);
             oscClient.listen();
+            setControlsEnabled(true);
+            startMonitoringWifiNetworks();
         } else {
             Timber.w("Already connected to an OSC Host, ignoring request");
         }

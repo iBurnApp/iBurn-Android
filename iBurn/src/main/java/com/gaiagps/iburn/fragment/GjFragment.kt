@@ -6,6 +6,7 @@ import android.os.IBinder
 import android.support.v4.app.Fragment
 import com.gaiagps.iburn.service.iBurnCarService
 import com.gj.animalauto.message.GjMessage
+import com.gj.animalauto.message.GjMessageStatusResponse
 import com.gj.animalauto.service.CarService
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -58,6 +59,14 @@ abstract class GjFragment() :Fragment(), ServiceConnection {
             messageDisposable = carServiceBinder.observeMessages()
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe { message ->
+
+                        if (message is GjMessageStatusResponse) {
+
+                            // Identifies which vehicle is paired with the current device
+                            val localVehicleId = message.getVehicle().toInt()
+                            onLocalIdDetermined(localVehicleId)
+                        }
+
                         onMessage(message)
                     }
         }
@@ -65,5 +74,11 @@ abstract class GjFragment() :Fragment(), ServiceConnection {
 
     // </editor-fold desc="ServiceConnection">
 
-    abstract fun onMessage(message: GjMessage)
+    open protected fun onMessage(message: GjMessage) {
+        // no-op. Subclasses can insert logic here
+    }
+
+    open protected fun onLocalIdDetermined(localId: Int) {
+        // no-op. Subclasses can insert logic here
+    }
 }

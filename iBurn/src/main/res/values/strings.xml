@@ -90,5 +90,6 @@
     <string name="feedback_notes_hint">What happened?</string>
     <string name="send">Send</string>
     <string name="current_year">2017</string>
+    <string name="another_car_has_taken_lighting_control">%s Has Taken Lighting Control</string>
 
 </resources>
