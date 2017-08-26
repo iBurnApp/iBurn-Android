@@ -228,6 +228,8 @@ public class GjLightingFragment extends GjFragment implements Function1<OscHostM
                 .flatMap(ignored -> wifiManager.requestScan())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(scanResults -> {
+                    Timber.d("Got WiFi scan results:");
+                    scanResults.forEach(scanResult -> Timber.d(scanResult.BSSID + " " + scanResult.SSID));
                     boolean isHigherPriorityCarIdPresent = VehicleInfoKt.isHigherPriorityCarPresentInWifiScan(scanResults, localVehicleId);
 
                     if (!isHigherPriorityCarIdPresent) {
