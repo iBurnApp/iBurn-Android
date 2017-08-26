@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.fragment;
 
 import android.content.Context;
+import android.net.wifi.ScanResult;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -229,15 +230,21 @@ public class GjLightingFragment extends GjFragment implements Function1<OscHostM
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(scanResults -> {
                     Timber.d("Got WiFi scan results:");
-                    scanResults.forEach(scanResult -> Timber.d(scanResult.BSSID + " " + scanResult.SSID));
+                    for (ScanResult scanResult : scanResults) {
+                        Timber.d(scanResult.BSSID + " " + scanResult.SSID);
+                    }
+
                     boolean isHigherPriorityCarIdPresent = VehicleInfoKt.isHigherPriorityCarPresentInWifiScan(scanResults, localVehicleId);
 
                     if (!isHigherPriorityCarIdPresent) {
+                        Timber.d("Local vehicle maintains lighting control");
                         setControlLossNoticeVisible(false, null);
                         if (oscClient != null) setControlsEnabled(true);
                     } else {
                         int higherPriorityCarId = VehicleInfoKt.getHighestPriorityCarIdPresentInScanResults(scanResults);
                         String higherPriorityCarName = VehicleInfoKt.getVehicleName(higherPriorityCarId);
+                        Timber.d("Local vehicle loses lighting control to vehicle '%s' with id %d",
+                                higherPriorityCarName, higherPriorityCarId);
 
                         setControlLossNoticeVisible(true, higherPriorityCarName);
                         setControlsEnabled(false);
