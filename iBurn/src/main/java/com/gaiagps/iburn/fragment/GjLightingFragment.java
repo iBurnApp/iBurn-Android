@@ -247,7 +247,9 @@ public class GjLightingFragment extends GjFragment implements Function1<OscHostM
      * Stop detecting the presence of other cars via WiFi SSID scans
      */
     private void stopMonitoringWifiNetworks() {
-        wifiScanDisposable.dispose();
+        if (wifiScanDisposable != null) {
+            wifiScanDisposable.dispose();
+        }
     }
 
     private void setControlsEnabled(boolean enabled) {
