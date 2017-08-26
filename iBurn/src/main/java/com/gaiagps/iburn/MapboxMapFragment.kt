@@ -314,6 +314,12 @@ class MapboxMapFragment : GjFragment(), ServiceConnection {
             // TODO : Might want to hide blue dot since animal car icon will be superimposed
             map.myLocationViewSettings.foregroundTintColor = activity.resources.getColor(R.color.map_my_location)
             map.myLocationViewSettings.accuracyTintColor = activity.resources.getColor(R.color.map_my_location)
+
+            // Disable my location tweening between location updates. We move the maker icons
+            // instantly, so the user location should move consistently
+            map.trackingSettings.isLocationChangeAnimationEnabled = false
+            map.myLocationViewSettings.foregroundTintColor = activity.resources.getColor(R.color.map_my_location)
+
             // TODO : Re-enable location after crash resolved
             // https://github.com/mapbox/mapbox-gl-native/pull/9142
             map.isMyLocationEnabled = true
