@@ -70,7 +70,7 @@ public fun getHighestPriorityCarIdPresentInScanResults(scanResults: List<ScanRes
 }
 
 private fun containsSsid(ssid: String, scanResults: List<ScanResult>): Boolean {
-    return scanResults.find { it.BSSID == ssid } != null
+    return scanResults.find { it.SSID == ssid } != null
 }
 
 /**
