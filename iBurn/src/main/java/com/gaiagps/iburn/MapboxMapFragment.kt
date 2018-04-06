@@ -167,7 +167,7 @@ class MapboxMapFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         inflater?.let { inflater ->
@@ -177,7 +177,7 @@ class MapboxMapFragment : Fragment() {
             this.mapView = mapView
 
             val dpValue = 10 // margin in dips
-            val d = activity.resources.displayMetrics.density
+            val d = activity!!.resources!!.displayMetrics!!.density
             val margin = (dpValue * d).toInt() // margin in pixels
 
             // Add Playa Address label
@@ -256,7 +256,9 @@ class MapboxMapFragment : Fragment() {
                                       markerClickListener: (View, LatLng) -> Unit): View {
         val markerPlaceView = inflater.inflate(R.layout.overlay_place_custom_marker, mapView, false)
         mapView?.addView(markerPlaceView)
-        val viewDimen = convertDpToPixel(200f, context).toInt()
+
+
+        val viewDimen = convertDpToPixel(200f, context!!).toInt()
         markerPlaceView.layoutParams = FrameLayout.LayoutParams(
                 viewDimen,
                 viewDimen * 2)
@@ -302,8 +304,8 @@ class MapboxMapFragment : Fragment() {
                 val mockEngine = LocationProvider.MapboxMockLocationSource()
                 map.setLocationSource(mockEngine)
             }
-            map.myLocationViewSettings.foregroundTintColor = context.resources.getColor(R.color.map_my_location)
-            map.myLocationViewSettings.accuracyTintColor = context.resources.getColor(R.color.map_my_location)
+            map.myLocationViewSettings.foregroundTintColor = context!!.resources.getColor(R.color.map_my_location)
+            map.myLocationViewSettings.accuracyTintColor = context!!.resources.getColor(R.color.map_my_location)
             // TODO : Re-enable location after crash resolved
             // https://github.com/mapbox/mapbox-gl-native/pull/9142
             map.isMyLocationEnabled = true
@@ -322,9 +324,9 @@ class MapboxMapFragment : Fragment() {
             map.setOnInfoWindowClickListener { marker ->
                 if (markerIdToItem.containsKey(marker.id)) {
                     val item = markerIdToItem[marker.id]!!
-                    val i = Intent(activity.applicationContext, PlayaItemViewActivity::class.java)
+                    val i = Intent(activity!!.applicationContext, PlayaItemViewActivity::class.java)
                     i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM, item)
-                    activity.startActivity(i)
+                    activity?.startActivity(i)
                 } else if (mappedCustomMarkerIds.containsKey(marker.id)) {
                     showEditPinDialog(marker)
                 }
@@ -338,7 +340,7 @@ class MapboxMapFragment : Fragment() {
                 .setPriority(LocationRequest.PRIORITY_NO_POWER)
                 .setInterval(5000)
 
-        val context = activity.applicationContext
+        val context = activity!!.applicationContext
         locationSubscription?.dispose()
         locationSubscription = LocationProvider.observeCurrentLocation(context, locationRequest)
                 .observeOn(ioScheduler)
@@ -354,13 +356,13 @@ class MapboxMapFragment : Fragment() {
     }
 
     private fun setupCameraUpdateSub(map: MapboxMap) {
-        val prefsHelper = PrefsHelper(activity.applicationContext)
+        val prefsHelper = PrefsHelper(activity!!.applicationContext)
         Timber.d("Subscribing to camera updates")
         cameraUpdateSubscription?.dispose()
         cameraUpdateSubscription = cameraUpdate
                 .debounce(250, TimeUnit.MILLISECONDS)
                 .flatMap { visibleRegion ->
-                    DataProvider.getInstance(activity.applicationContext)
+                    DataProvider.getInstance(activity!!.applicationContext)
                             .map { provider -> Pair(provider, visibleRegion) }
                 }
                 .flatMap { (provider, visibleRegion) ->
@@ -518,7 +520,7 @@ class MapboxMapFragment : Fragment() {
     }
 
     private val iconFactory: IconFactory by lazy {
-        IconFactory.getInstance(context)
+        IconFactory.getInstance(context!!)
     }
 
     // TODO : Loading many Icons breaks the entire marker rendering system somehow, so we cache 'em:
@@ -561,10 +563,10 @@ class MapboxMapFragment : Fragment() {
         fun copyAddressToClipboard() {
             val address = addressLabel?.text.toString()
             if (!TextUtils.isEmpty(address)) {
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clipboard = context!!.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText("Current Playa Address", address)
                 clipboard.primaryClip = clip
-                Toast.makeText(activity.applicationContext, "Copied address to clipboard", Toast.LENGTH_LONG).show()
+                Toast.makeText(activity!!.applicationContext, "Copied address to clipboard", Toast.LENGTH_LONG).show()
             }
         }
 
@@ -736,7 +738,7 @@ class MapboxMapFragment : Fragment() {
     private fun showEditPinDialog(marker: Marker) {
         if (state == State.SHOWCASE) return
 
-        val dialogBody = activity.layoutInflater.inflate(R.layout.dialog_poi, null)
+        val dialogBody = activity!!.layoutInflater!!.inflate(R.layout.dialog_poi, null)
         val iconGroup: RadioGroup = dialogBody.findViewById(R.id.iconGroup)
 
         // Fetch current Marker icon
@@ -773,7 +775,7 @@ class MapboxMapFragment : Fragment() {
                 }
             }
 
-            AlertDialog.Builder(activity, R.style.Theme_Iburn_Dialog)
+            AlertDialog.Builder(activity!!, R.style.Theme_Iburn_Dialog)
                     .setView(dialogBody)
                     .setPositiveButton("Save") { dialog, which ->
                         // Save the title
@@ -814,13 +816,13 @@ class MapboxMapFragment : Fragment() {
                                 // Deselect markers to close InfoWindows
                                 map.deselectMarkers()
 
-                                val layoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+                                val layoutInflater = context!!.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
                                 addMarkerPlaceOverlay(layoutInflater) { markerPlaceView, markerLatLng ->
                                     state = prePlaceUserPoiState
                                     mapView?.let { mapView ->
                                         mapView.removeView(markerPlaceView)
                                         marker.position = markerLatLng
-                                        DataProvider.getInstance(activity.applicationContext)
+                                        DataProvider.getInstance(activity!!.applicationContext)
                                                 .observeOn(ioScheduler)
                                                 .subscribe { provider ->
                                                     userPoi.latitude = markerLatLng.latitude.toFloat()
@@ -867,7 +869,7 @@ class MapboxMapFragment : Fragment() {
         userPoi.playaId = userPoiPlayaId
 
         try {
-            DataProvider.getInstance(activity.applicationContext)
+            DataProvider.getInstance(activity!!.applicationContext)
                     .observeOn(ioScheduler)
                     .flatMap { dataProvider ->
                         dataProvider.insertUserPoi(userPoi)
@@ -892,7 +894,7 @@ class MapboxMapFragment : Fragment() {
         marker.remove()
         val userPoi = mappedCustomMarkerIds[marker.id]
         userPoi?.let { userPoi ->
-            DataProvider.getInstance(activity.applicationContext)
+            DataProvider.getInstance(activity!!.applicationContext)
                     .observeOn(ioScheduler)
                     .map { provider -> provider.deleteUserPoi(userPoi) }
                     .subscribe { _ -> Timber.d("Deleted marker") }
@@ -914,7 +916,7 @@ class MapboxMapFragment : Fragment() {
 
             if (icon.isNotBlank()) userPoi.icon = icon
 
-            DataProvider.getInstance(activity.applicationContext)
+            DataProvider.getInstance(activity!!.applicationContext)
                     .observeOn(ioScheduler)
                     .map { dataProvider -> dataProvider.update(userPoi) }
                     .subscribe { _ -> Timber.d("Updated marker") }

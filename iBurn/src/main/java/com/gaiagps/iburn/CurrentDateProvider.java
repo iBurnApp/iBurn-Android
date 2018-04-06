@@ -12,7 +12,9 @@ public class CurrentDateProvider {
     /**
      * Date to use as "now" for Debug builds
      */
-    public static Date MOCK_NOW_DATE = new GregorianCalendar(2017, Calendar.AUGUST, 28, 15, 43).getTime();
+    private static Date MOCK_NOW_DATE = new GregorianCalendar(
+            2017, Calendar.AUGUST, 28, 15, 43)
+            .getTime();
 
     public static Date getCurrentDate() {
         return BuildConfig.MOCK ? MOCK_NOW_DATE : new Date();
