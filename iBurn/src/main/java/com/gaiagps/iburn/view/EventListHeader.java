@@ -28,7 +28,8 @@ public class EventListHeader extends RelativeLayout {
 
     protected String mDaySelection = AdapterUtils.getCurrentOrFirstDayAbbreviation();
     protected ArrayList<String> mTypeSelection = new ArrayList<>();
-    protected int mDaySelectionIndex;
+    protected int mDaySelectionIndex =
+            AdapterUtils.sDayAbbreviations.indexOf(mDaySelection);
     protected boolean[] mTypeSelectionIndexes = new boolean[100];
 
 
@@ -92,13 +93,19 @@ public class EventListHeader extends RelativeLayout {
                 } else if (v.getTag().equals("day")) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_Iburn_Dialog);
                     builder.setTitle(getContext().getString(R.string.filter_by_day));
-                    builder.setSingleChoiceItems(AdapterUtils.sDayNames.toArray(new CharSequence[AdapterUtils.sDayNames.size()]),
+                    builder.setSingleChoiceItems(
+                            AdapterUtils.sDayNames.toArray(
+                                    new CharSequence[AdapterUtils.sDayNames.size()]),
                             mDaySelectionIndex,
                             (dialog, which) -> {
                                 mDaySelectionIndex = which;
-                                CharSequence selection = AdapterUtils.sDayAbbreviations.toArray(new CharSequence[AdapterUtils.sDayAbbreviations.size()])[which];
+                                CharSequence selection = AdapterUtils.sDayAbbreviations.toArray(
+                                        new CharSequence[AdapterUtils.sDayAbbreviations.size()])[which];
                                 mDaySelection = (selection == null) ? null : selection.toString();
-                                String tabTitle = (selection == null) ? getResources().getString(R.string.any_day) : AdapterUtils.sDayNames.toArray(new CharSequence[AdapterUtils.sDayNames.size()])[which].toString();
+                                String tabTitle = (selection == null) ?
+                                        getResources().getString(R.string.any_day) :
+                                        AdapterUtils.sDayNames.toArray(
+                                                new CharSequence[AdapterUtils.sDayNames.size()])[which].toString();
                                 ((TextView) v).setText(tabTitle.toUpperCase());
                                 dispatchSelection();
                                 dialog.dismiss();
@@ -113,11 +120,14 @@ public class EventListHeader extends RelativeLayout {
     };
 
     protected void init(Context context) {
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE);
         View v = inflater.inflate(R.layout.list_view_header_two, this, false);
         mTypeFilter = (TextView) v.findViewById(R.id.typeFilter);
         mDayFilter = (TextView) v.findViewById(R.id.dateFilter);
-        mDayFilter.setText(AdapterUtils.sDayNames.get(AdapterUtils.sDayAbbreviations.indexOf(AdapterUtils.getCurrentOrFirstDayAbbreviation())).toUpperCase());
+        mDayFilter.setText(AdapterUtils.sDayNames.get(
+                AdapterUtils.sDayAbbreviations.indexOf(
+                        AdapterUtils.getCurrentOrFirstDayAbbreviation())).toUpperCase());
         setupTouchListeners();
         addView(v);
     }
