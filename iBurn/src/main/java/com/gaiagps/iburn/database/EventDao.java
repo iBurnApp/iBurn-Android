@@ -84,7 +84,7 @@ public interface EventDao {
     @Query("SELECT * FROM " + TABLE_NAME +
             " WHERE (" + START_TIME_PRETTY +
             " LIKE :day AND " +
-            START_TIME + ">= :now AND "+
+            END_TIME + ">= :now AND "+
             "not(s_time <= :allDayStart AND e_time >= :allDayEnd) AND "+
              TYPE + " IN (:types)) ORDER BY " + ALL_DAY + ", " + START_TIME + " ASC")
     Flowable<List<Event>> findByDayAndTypeNoExpiredTimed
