@@ -72,33 +72,32 @@ public interface EventDao {
                                                     String allDayStart,
                                                     String allDayEnd);
 
-
-
-
-
       @Query("SELECT * FROM " + TABLE_NAME + " WHERE ("
               + START_TIME_PRETTY + " LIKE :day AND " +
+              "not(s_time <= :allDayStart AND e_time >= :allDayEnd) AND "+
               TYPE + " IN (:types)) ORDER BY " + ALL_DAY +
               ", " + START_TIME + " ASC")
-    Flowable<List<Event>> findByDayAndType(String day, List<String> types);
+    Flowable<List<Event>> findByDayAndTypeTimed(String day, List<String> types,
+                                                String allDayStart,
+                                                String allDayEnd);
 
     @Query("SELECT * FROM " + TABLE_NAME +
             " WHERE (" + START_TIME_PRETTY +
             " LIKE :day AND " +
-            START_TIME + ">= :now AND "
-            + TYPE + " IN (:types)) ORDER BY " + ALL_DAY + ", " + START_TIME + " ASC")
-    Flowable<List<Event>> findByDayAndTypeNoExpired(String day, List<String> types,
-                                                    String now);
+            START_TIME + ">= :now AND "+
+            "not(s_time <= :allDayStart AND e_time >= :allDayEnd) AND "+
+             TYPE + " IN (:types)) ORDER BY " + ALL_DAY + ", " + START_TIME + " ASC")
+    Flowable<List<Event>> findByDayAndTypeNoExpiredTimed
+            (String day, List<String> types, String now,
+             String allDayStart, String allDayEnd);
 
     @Query("SELECT * FROM " + TABLE_NAME +
             " WHERE (" + START_TIME_PRETTY +
-            " LIKE :day AND " +
-            START_TIME + ">= :now AND "
+            " LIKE :day AND "
             + TYPE + " IN (:types) AND "+
-            "s_time= :allDayStart AND e_time = :allDayEnd "+
+            "s_time <= :allDayStart AND e_time >= :allDayEnd "+
             ") ORDER BY " + ALL_DAY + ", " + START_TIME + " ASC")
-    Flowable<List<Event>> findByDayAndTypeNoExpiredAllDay(String day, List<String> types,
-                                                         String now,
+    Flowable<List<Event>> findByDayAndTypeAllDay(String day, List<String> types,
                                                           String allDayStart,
                                                           String allDayEnd);
 

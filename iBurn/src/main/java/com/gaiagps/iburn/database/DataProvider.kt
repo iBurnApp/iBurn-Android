@@ -157,12 +157,21 @@ class DataProvider private constructor(private val context: Context, private val
                         allDayEnd)
             }
         } else {
-            if(includeExpired == true) {
-                return db.eventDao().findByDayAndType(wildDay, types)
+            if(eventTiming=="timed"){
+                if(includeExpired == true) {
+                    return db.eventDao().findByDayAndTypeTimed(wildDay,types,
+                            allDayStart,allDayEnd)
+                }
+                else{
+                    return db.eventDao().findByDayAndTypeNoExpiredTimed(wildDay,
+                            types,now,
+                            allDayStart,allDayEnd)
+                }
             }
             else{
-                return db.eventDao().findByDayAndTypeNoExpired(wildDay, types,
-                        now)
+                return db.eventDao().findByDayAndTypeAllDay(wildDay,types,
+                        allDayStart,
+                        allDayEnd)
             }
         }
     }
