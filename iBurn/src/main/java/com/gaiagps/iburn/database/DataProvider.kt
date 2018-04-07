@@ -3,8 +3,10 @@ package com.gaiagps.iburn.database
 import android.content.ContentValues
 import android.content.Context
 import com.gaiagps.iburn.AudioTourManager
+import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
+import com.gaiagps.iburn.view.Utils
 import com.mapbox.mapboxsdk.geometry.VisibleRegion
 import io.reactivex.Flowable
 import io.reactivex.Observable
@@ -126,14 +128,42 @@ class DataProvider private constructor(private val context: Context, private val
     }
 
     fun observeEventsOnDayOfTypes(day: String,
-                                  types: ArrayList<String>?): Flowable<List<Event>> {
+                                  types: ArrayList<String>?,
+                                  includeExpired: Boolean,
+                                  eventTiming: String): Flowable<List<Event>> {
 
         // TODO : Honor upgradeLock?
         val wildDay = addWildcardsToQuery(day)
+        val nowDate = CurrentDateProvider.getCurrentDate()
+        val now = Utils.convertDateToString(nowDate)
+        val allDayStart = Utils.convertDateToString(
+                Utils.getAllDayStartDateTime())
+        val allDayEnd = Utils.convertDateToString(
+                Utils.getAllDayEndDateTime())
+
         if (types == null || types.isEmpty()) {
-            return db.eventDao().findByDay(wildDay)
+            if(eventTiming=="timed"){
+                if(includeExpired == true) {
+                    return db.eventDao().findByDayTimed(wildDay,
+                            allDayStart,allDayEnd)
+                }
+                else{
+                    return db.eventDao().findByDayNoExpiredTimed(wildDay, now,
+                            allDayStart,allDayEnd)
+                }
+            }
+            else{
+                return db.eventDao().findByDayAllDay(wildDay,allDayStart,
+                        allDayEnd)
+            }
         } else {
-            return db.eventDao().findByDayAndType(wildDay, types)
+            if(includeExpired == true) {
+                return db.eventDao().findByDayAndType(wildDay, types)
+            }
+            else{
+                return db.eventDao().findByDayAndTypeNoExpired(wildDay, types,
+                        now)
+            }
         }
     }
 

@@ -11,6 +11,7 @@ import io.reactivex.Flowable;
 
 import static com.gaiagps.iburn.database.Event.ALL_DAY;
 import static com.gaiagps.iburn.database.Event.CAMP_PLAYA_ID;
+import static com.gaiagps.iburn.database.Event.END_TIME;
 import static com.gaiagps.iburn.database.Event.START_TIME;
 import static com.gaiagps.iburn.database.Event.START_TIME_PRETTY;
 import static com.gaiagps.iburn.database.Event.TABLE_NAME;
@@ -43,11 +44,64 @@ public interface EventDao {
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + PLAYA_ID + " = :playaId AND " + ID + " != :excludingId")
     Flowable<List<Event>> findOtherOccurrences(String playaId, int excludingId);
 
-    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + START_TIME_PRETTY + " LIKE :day ORDER BY " + ALL_DAY + ", " + START_TIME + " ASC")
-    Flowable<List<Event>> findByDay(String day);
 
-    @Query("SELECT * FROM " + TABLE_NAME + " WHERE (" + START_TIME_PRETTY + " LIKE :day AND " + TYPE + " IN (:types)) ORDER BY " + ALL_DAY + ", " + START_TIME + " ASC")
+
+    //Event-related Queries
+    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " +
+            START_TIME_PRETTY + " LIKE :day AND "+
+            "not(s_time <= :allDayStart AND e_time >= :allDayEnd)"+
+            "ORDER BY "
+            + ALL_DAY + ", " + START_TIME + " ASC")
+    Flowable<List<Event>> findByDayTimed(String day,String allDayStart,
+                                         String allDayEnd);
+
+    @Query("SELECT * FROM " + TABLE_NAME + " WHERE (" + START_TIME_PRETTY +
+            " LIKE :day AND " + END_TIME + ">= :now AND " +
+            "not(s_time <= :allDayStart AND e_time >= :allDayEnd)"+
+            " ) ORDER BY "
+            + ALL_DAY + ", " + START_TIME + " ASC")
+    Flowable<List<Event>> findByDayNoExpiredTimed(String day,String now,
+                                                  String allDayStart,
+                                                  String allDayEnd);
+
+    @Query("SELECT * FROM " + TABLE_NAME + " WHERE (" + START_TIME_PRETTY +
+            " LIKE :day AND "+
+            "s_time<= :allDayStart AND e_time >= :allDayEnd"+
+            " ) ORDER BY " + ALL_DAY + ", " + START_TIME + " ASC")
+    Flowable<List<Event>> findByDayAllDay(String day,
+                                                    String allDayStart,
+                                                    String allDayEnd);
+
+
+
+
+
+      @Query("SELECT * FROM " + TABLE_NAME + " WHERE ("
+              + START_TIME_PRETTY + " LIKE :day AND " +
+              TYPE + " IN (:types)) ORDER BY " + ALL_DAY +
+              ", " + START_TIME + " ASC")
     Flowable<List<Event>> findByDayAndType(String day, List<String> types);
+
+    @Query("SELECT * FROM " + TABLE_NAME +
+            " WHERE (" + START_TIME_PRETTY +
+            " LIKE :day AND " +
+            START_TIME + ">= :now AND "
+            + TYPE + " IN (:types)) ORDER BY " + ALL_DAY + ", " + START_TIME + " ASC")
+    Flowable<List<Event>> findByDayAndTypeNoExpired(String day, List<String> types,
+                                                    String now);
+
+    @Query("SELECT * FROM " + TABLE_NAME +
+            " WHERE (" + START_TIME_PRETTY +
+            " LIKE :day AND " +
+            START_TIME + ">= :now AND "
+            + TYPE + " IN (:types) AND "+
+            "s_time= :allDayStart AND e_time = :allDayEnd "+
+            ") ORDER BY " + ALL_DAY + ", " + START_TIME + " ASC")
+    Flowable<List<Event>> findByDayAndTypeNoExpiredAllDay(String day, List<String> types,
+                                                         String now,
+                                                          String allDayStart,
+                                                          String allDayEnd);
+
 
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + START_TIME + " BETWEEN :startDate AND :endDate AND " + ALL_DAY + " = 0  ORDER BY " + START_TIME)
     Flowable<List<Event>> findInDateRange(String startDate, String endDate);

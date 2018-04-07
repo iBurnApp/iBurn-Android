@@ -101,11 +101,10 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):
             RecyclerView.ViewHolder {
 
-        // TODO : Verify parent cannot be null. Believe this is due to Java API missing @NonNull annotation
         if (viewType == ViewTypeHeader) {
-            return onCreateHeaderViewHolder(parent!!)
+            return onCreateHeaderViewHolder(parent)
         } else if (viewType == ViewTypeContent) {
-            return onCreateContentViewHolder(parent!!)
+            return onCreateContentViewHolder(parent)
         } else {
             throw IllegalStateException("Invalid view type " + viewType)
         }

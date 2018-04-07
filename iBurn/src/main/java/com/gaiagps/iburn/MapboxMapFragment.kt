@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.support.animation.DynamicAnimation
 import android.support.animation.SpringAnimation
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.text.TextUtils
 import android.view.Gravity
@@ -170,7 +171,7 @@ class MapboxMapFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        inflater?.let { inflater ->
+        inflater.let { inflater ->
             val context = inflater.context
             val options = MapFragmentUtils.resolveArgs(context, this.arguments)
             val mapView = MapView(context, options)
@@ -184,7 +185,7 @@ class MapboxMapFragment : Fragment() {
             val addressLabel = inflater.inflate(R.layout.current_playa_address, container, false) as TextView
             addressLabel.visibility = View.INVISIBLE
             mapView.addView(addressLabel)
-            setMargins(addressLabel, 0, margin, margin * 5, 0, Gravity.TOP.or(Gravity.RIGHT))
+            setMargins(addressLabel, 0, margin, margin * 5, 0, Gravity.TOP.or(Gravity.END))
             addressLabel.setOnClickListener {
                 onUserAddressLabelClicked(longClick = false)
             }
@@ -199,7 +200,7 @@ class MapboxMapFragment : Fragment() {
             userPoiButton.visibility = if (state != State.SHOWCASE) View.VISIBLE else View.GONE
             userPoiButton.setImageResource(R.drawable.ic_pin_drop_black_24dp)
             mapView.addView(userPoiButton)
-            setMargins(userPoiButton, 0, margin, (margin * 9.5).toInt(), 0, Gravity.TOP.or(Gravity.RIGHT))
+            setMargins(userPoiButton, 0, margin, (margin * 9.5).toInt(), 0, Gravity.TOP.or(Gravity.END))
             userPoiButton.setOnClickListener {
                 mapView.getMapAsync { map ->
 
@@ -304,8 +305,10 @@ class MapboxMapFragment : Fragment() {
                 val mockEngine = LocationProvider.MapboxMockLocationSource()
                 map.setLocationSource(mockEngine)
             }
-            map.myLocationViewSettings.foregroundTintColor = context!!.resources.getColor(R.color.map_my_location)
-            map.myLocationViewSettings.accuracyTintColor = context!!.resources.getColor(R.color.map_my_location)
+            map.myLocationViewSettings.foregroundTintColor =
+                    ContextCompat.getColor(context!!,R.color.map_my_location)
+            map.myLocationViewSettings.accuracyTintColor =
+                    ContextCompat.getColor(context!!,R.color.map_my_location)
             // TODO : Re-enable location after crash resolved
             // https://github.com/mapbox/mapbox-gl-native/pull/9142
             map.isMyLocationEnabled = true
@@ -886,7 +889,7 @@ class MapboxMapFragment : Fragment() {
                         callback?.invoke(marker)
                     }
         } catch (e: NumberFormatException) {
-            Timber.w("Unable to get id for new custom marker");
+            Timber.w("Unable to get id for new custom marker")
         }
     }
 

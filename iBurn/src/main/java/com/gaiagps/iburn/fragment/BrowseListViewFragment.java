@@ -49,6 +49,8 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     // Event filtering
     private String selectedDay = AdapterUtils.getCurrentOrFirstDayAbbreviation();
     private ArrayList<String> selectedTypes = null;
+    private Boolean includeExpired = false;
+    private String eventTiming = "timed";
 
     // Art filtering
     private boolean showAudioTourOnly;
@@ -82,7 +84,9 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
 
             case EVENT:
                 playaItems = dataProvider
-                        .flatMap(dp -> dp.observeEventsOnDayOfTypes(selectedDay, selectedTypes).toObservable());
+                        .flatMap(dp -> dp.observeEventsOnDayOfTypes(
+                                selectedDay, selectedTypes,includeExpired,
+                                eventTiming).toObservable());
                 adapter.setSectionIndexer(new EventStartTimeSectionIndexer());
                 break;
         }
@@ -156,11 +160,14 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     }
 
     @Override
-    public void onSelectionChanged(String day, ArrayList<String> types) {
+    public void onSelectionChanged(String day, ArrayList<String> types,
+                                   boolean expired,
+                                   String timing) {
         selectedDay = day;
         selectedTypes = types;
-        unsubscribeFromData();
-        subscribeToData();
+        includeExpired = expired;
+        eventTiming = timing;
+        reSubscribeToData();
     }
 
     @Override

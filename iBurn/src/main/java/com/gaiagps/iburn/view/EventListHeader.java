@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterUtils;
@@ -25,7 +26,11 @@ public class EventListHeader extends RelativeLayout {
 
     protected TextView mTypeFilter;
     protected TextView mDayFilter;
+    protected ToggleButton mExpiredFilter;
+    protected ToggleButton mTimingFilter;
 
+    protected boolean mIncludeExpiredSelection = false;
+    protected String mTimingSelection = "timed";
     protected String mDaySelection = AdapterUtils.getCurrentOrFirstDayAbbreviation();
     protected ArrayList<String> mTypeSelection = new ArrayList<>();
     protected int mDaySelectionIndex =
@@ -54,7 +59,9 @@ public class EventListHeader extends RelativeLayout {
      * Interface for users to receive feedback from this view
      */
     public interface PlayaListViewHeaderReceiver {
-        void onSelectionChanged(String day, ArrayList<String> types);
+        void onSelectionChanged(String day, ArrayList<String> types,
+                                boolean includeExpired,
+                                String eventTiming);
     }
 
     /**
@@ -113,6 +120,22 @@ public class EventListHeader extends RelativeLayout {
                     );
                     builder.setPositiveButton("Cancel", null);
                     builder.show();
+                } else if (v.getTag().equals("expired")) {
+                    if(((ToggleButton) v).isChecked()){
+                        mIncludeExpiredSelection = true;
+                    }
+                    else{
+                        mIncludeExpiredSelection = false;
+                    }
+                    dispatchSelection();
+                } else if (v.getTag().equals("timing")) {
+                    if(((ToggleButton) v).isChecked()){
+                        mTimingSelection = "all-day";
+                    }
+                    else{
+                        mTimingSelection = "timed";
+                    }
+                    dispatchSelection();
                 }
                 v.setSelected(false);
             }
@@ -123,6 +146,8 @@ public class EventListHeader extends RelativeLayout {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(
                 Context.LAYOUT_INFLATER_SERVICE);
         View v = inflater.inflate(R.layout.list_view_header_two, this, false);
+        mExpiredFilter = (ToggleButton) v.findViewById(R.id.expiredFilter);
+        mTimingFilter = (ToggleButton) v.findViewById(R.id.timingFilter);
         mTypeFilter = (TextView) v.findViewById(R.id.typeFilter);
         mDayFilter = (TextView) v.findViewById(R.id.dateFilter);
         mDayFilter.setText(AdapterUtils.sDayNames.get(
@@ -139,14 +164,19 @@ public class EventListHeader extends RelativeLayout {
     protected void setupTouchListeners() {
         mTypeFilter.setTag("type");
         mDayFilter.setTag("day");
-
+        mExpiredFilter.setTag("expired");
+        mTimingFilter.setTag("timing");
         mTypeFilter.setOnClickListener(mOnClickListener);
         mDayFilter.setOnClickListener(mOnClickListener);
+        mExpiredFilter.setOnClickListener(mOnClickListener);
+        mTimingFilter.setOnClickListener(mOnClickListener);
     }
 
     protected void dispatchSelection() {
         if (mReceiver != null) {
-            mReceiver.onSelectionChanged(mDaySelection, mTypeSelection);
+            mReceiver.onSelectionChanged(mDaySelection, mTypeSelection,
+                    mIncludeExpiredSelection,
+                    mTimingSelection);
         }
     }
 
