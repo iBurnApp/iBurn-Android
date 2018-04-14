@@ -67,7 +67,7 @@ public class ArtListHeader extends RelativeLayout {
 
     protected void init(Context context) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View v = inflater.inflate(R.layout.list_view_header_two, this, false);
+        View v = inflater.inflate(R.layout.list_view_header_two_art, this, false);
         mAllArt = (TextView) v.findViewById(R.id.typeFilter);
         mAllArt.setText(R.string.all_art);
         mAllArt.setSelected(true);

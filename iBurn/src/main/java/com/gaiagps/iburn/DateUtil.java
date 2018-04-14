@@ -89,4 +89,41 @@ public class DateUtil {
             return (endDate.before(nowDate) ? "Ended " : "Ends ") + relativeSpan;
         }
     }
+
+    public static Date getAllDayStartDateTime(String day){
+        /***
+         * This gets the start time
+         * we will assume is the datetime for events that are
+         * actually all day events
+         **/
+        Date now = CurrentDateProvider.getCurrentDate();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.set(Calendar.MONTH,Integer.valueOf(day.split("/")[0])-1);
+        cal.set(Calendar.DATE,Integer.valueOf(day.split("/")[1]));
+        cal.set(Calendar.HOUR_OF_DAY,10);
+        cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0);
+        cal.set(Calendar.MILLISECOND,0);
+        return cal.getTime();
+    }
+
+    public static Date getAllDayEndDateTime(String day){
+        /***
+         * This gets the end time we will assume is the datetime
+         * for events that are
+         * actually all day events
+         **/
+        Date now = CurrentDateProvider.getCurrentDate();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.set(Calendar.MONTH,Integer.valueOf(day.split("/")[0])-1);
+        cal.set(Calendar.DATE,Integer.valueOf(day.split("/")[1]));
+        cal.set(Calendar.HOUR_OF_DAY,20);
+        cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0);
+        cal.set(Calendar.MILLISECOND,0);
+        Date newTime = cal.getTime();
+        return newTime;
+    }
 }

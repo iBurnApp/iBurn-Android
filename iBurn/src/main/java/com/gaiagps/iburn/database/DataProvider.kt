@@ -7,6 +7,7 @@ import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.view.Utils
+import com.gaiagps.iburn.DateUtil
 import com.mapbox.mapboxsdk.geometry.VisibleRegion
 import io.reactivex.Flowable
 import io.reactivex.Observable
@@ -137,9 +138,9 @@ class DataProvider private constructor(private val context: Context, private val
         val nowDate = CurrentDateProvider.getCurrentDate()
         val now = Utils.convertDateToString(nowDate)
         val allDayStart = Utils.convertDateToString(
-                Utils.getAllDayStartDateTime())
+                DateUtil.getAllDayStartDateTime(day))
         val allDayEnd = Utils.convertDateToString(
-                Utils.getAllDayEndDateTime())
+                DateUtil.getAllDayEndDateTime(day))
 
         if (types == null || types.isEmpty()) {
             if(eventTiming=="timed"){
