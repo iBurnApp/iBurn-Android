@@ -27,11 +27,31 @@ public class DateUtil {
      * @param prettyEndDateStr   A 'prettified' end date string
      */
     public static String getDateString(Context context, Date nowDate, Date startDate, String prettyStartDateStr, Date endDate, String prettyEndDateStr) {
+
+
+            Calendar startCal = Calendar.getInstance();
+            Calendar endCal = Calendar.getInstance();
+            startCal.setTime(startDate);
+            endCal.setTime(endDate);
+            
+            //Show date/day only if end date is not same date as start date
+            final SimpleDateFormat timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
+            if(endCal.get(Calendar.YEAR) == startCal.get(Calendar.YEAR) &&
+                endCal.get(Calendar.DAY_OF_YEAR) == startCal.get(Calendar.DAY_OF_YEAR))
+            {
+                return timeFormatter.format(startDate) + "-" + timeFormatter.format(endDate);
+
+            }
+            else {
+                return timeFormatter.format(startDate) + "-" + prettyEndDateStr;
+            }
+
+
+            /*
             // The date before which to use relative date descriptors. e.g: (in 2 minutes)
             Calendar relativeTimeCutoff = Calendar.getInstance();
             relativeTimeCutoff.setTime(nowDate);
             relativeTimeCutoff.add(Calendar.HOUR, 1);
-
             if (nowDate.before(startDate)) {
                 // Has not yet started
                 if (relativeTimeCutoff.after(startDate)) {
@@ -52,7 +72,7 @@ public class DateUtil {
                     return context.getString(R.string.ends) + " " + prettyEndDateStr;
                 }
 
-            }
+            }*/
     }
 
     public static String getStartDateString(Date startDate, Date nowDate) {
