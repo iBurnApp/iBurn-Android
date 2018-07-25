@@ -38,8 +38,6 @@ android {
                                      "$projectDir/schemas".toString()]
             }
         }
-
-
     }
 
     splits {
