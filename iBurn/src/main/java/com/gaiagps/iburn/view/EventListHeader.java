@@ -121,12 +121,7 @@ public class EventListHeader extends RelativeLayout {
                     builder.setPositiveButton("Cancel", null);
                     builder.show();
                 } else if (v.getTag().equals("expired")) {
-                    if(((ToggleButton) v).isChecked()){
-                        mIncludeExpiredSelection = true;
-                    }
-                    else{
-                        mIncludeExpiredSelection = false;
-                    }
+                    mIncludeExpiredSelection = ((ToggleButton) v).isChecked();
                     dispatchSelection();
                 } else if (v.getTag().equals("timing")) {
                     if(((ToggleButton) v).isChecked()){

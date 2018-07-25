@@ -85,8 +85,11 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
             case EVENT:
                 playaItems = dataProvider
                         .flatMap(dp -> dp.observeEventsOnDayOfTypes(
-                                selectedDay, selectedTypes,includeExpired,
-                                eventTiming).toObservable());
+                                selectedDay,
+                                selectedTypes,
+                                includeExpired,
+                                eventTiming)
+                                .toObservable());
                 adapter.setSectionIndexer(new EventStartTimeSectionIndexer());
                 break;
         }
