@@ -15,7 +15,8 @@ import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.support.v7.app.NotificationCompat
+import android.support.v4.app.NotificationCompat
+import android.support.v4.media.app.NotificationCompat.MediaStyle
 import android.text.TextUtils
 import com.gaiagps.iburn.R
 import com.gaiagps.iburn.database.Art
@@ -206,7 +207,7 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
                 .setContentText(art.artist)
                 .setSound(null)
                 .setSubText("Art Discovery Audio Guide by Jim Tierney")
-                .setStyle(NotificationCompat.MediaStyle()
+                .setStyle(MediaStyle()
                         .setMediaSession(mediaSession.sessionToken))
 
                 // Stop the service when the notification is swiped away

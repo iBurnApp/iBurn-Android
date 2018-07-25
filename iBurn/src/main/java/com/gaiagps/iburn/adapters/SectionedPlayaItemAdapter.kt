@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.adapters
 
 import android.content.Context
+import android.support.annotation.NonNull
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -75,21 +76,21 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
 
     abstract fun createHeaderPositionsForItems(items: List<PlayaItem>): Set<Int>
 
-    open protected fun onBindContentViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int, dataPosition: Int) {
+    protected open fun onBindContentViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int, dataPosition: Int) {
         super.onBindViewHolder(viewHolder, dataPosition)
         setLinearSlimParameters(viewHolder, position)
     }
 
     abstract fun onBindHeaderViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int)
 
-    open protected fun onCreateHeaderViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
+    protected open fun onCreateHeaderViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val itemView = LayoutInflater.from(parent.context)
                 .inflate(R.layout.listview_header_item, parent, false)
 
         return HeaderViewHolder(itemView)
     }
 
-    open protected fun onCreateContentViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
+    protected open fun onCreateContentViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         // PlayaItemAdapter doesn't have itemTypes, so the second parameter value isn't
         // currently necessary
         return super.onCreateViewHolder(parent, ViewTypeHeader)
@@ -97,13 +98,13 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
 
     //</editor-fold desc="Client Provided Implementation">
 
-    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):
+            RecyclerView.ViewHolder {
 
-        // TODO : Verify parent cannot be null. Believe this is due to Java API missing @NonNull annotation
         if (viewType == ViewTypeHeader) {
-            return onCreateHeaderViewHolder(parent!!)
+            return onCreateHeaderViewHolder(parent)
         } else if (viewType == ViewTypeContent) {
-            return onCreateContentViewHolder(parent!!)
+            return onCreateContentViewHolder(parent)
         } else {
             throw IllegalStateException("Invalid view type " + viewType)
         }

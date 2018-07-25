@@ -8,6 +8,7 @@ import android.text.style.TextAppearanceSpan;
 import android.view.View;
 import android.widget.TextView;
 
+import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
@@ -94,7 +95,8 @@ public class AdapterUtils {
      * @return the abbreviation for the current day, if it's during the burn, else the first day of the burn
      */
     public static String getCurrentOrFirstDayAbbreviation() {
-        String todayAbbrev = dayAbbrevFormatter.format(new Date());
+        Date now = CurrentDateProvider.getCurrentDate();
+        String todayAbbrev = dayAbbrevFormatter.format(now);
         if (sDayAbbreviations.contains(todayAbbrev)) return todayAbbrev;
 
         return sDayAbbreviations.get(0);

@@ -7,13 +7,16 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Created by davidbrodsky on 8/6/14.
  */
 public class DateUtil {
 
-    private static SimpleDateFormat timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
+    public static final TimeZone PLAYA_TIME_ZONE = TimeZone.getTimeZone("America/Los_Angeles");
+
+    private static SimpleDateFormat TIME_FORMATTER = new SimpleDateFormat("h:mm a", Locale.US);
 
     /**
      * Get a human description of an event's state
@@ -27,11 +30,31 @@ public class DateUtil {
      * @param prettyEndDateStr   A 'prettified' end date string
      */
     public static String getDateString(Context context, Date nowDate, Date startDate, String prettyStartDateStr, Date endDate, String prettyEndDateStr) {
+
+
+            Calendar startCal = Calendar.getInstance();
+            Calendar endCal = Calendar.getInstance();
+            startCal.setTime(startDate);
+            endCal.setTime(endDate);
+            
+            //Show date/day only if end date is not same date as start date
+            final SimpleDateFormat timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
+            if(endCal.get(Calendar.YEAR) == startCal.get(Calendar.YEAR) &&
+                endCal.get(Calendar.DAY_OF_YEAR) == startCal.get(Calendar.DAY_OF_YEAR))
+            {
+                return timeFormatter.format(startDate) + "-" + timeFormatter.format(endDate);
+
+            }
+            else {
+                return timeFormatter.format(startDate) + "-" + prettyEndDateStr;
+            }
+
+
+            /*
             // The date before which to use relative date descriptors. e.g: (in 2 minutes)
             Calendar relativeTimeCutoff = Calendar.getInstance();
             relativeTimeCutoff.setTime(nowDate);
             relativeTimeCutoff.add(Calendar.HOUR, 1);
-
             if (nowDate.before(startDate)) {
                 // Has not yet started
                 if (relativeTimeCutoff.after(startDate)) {
@@ -52,7 +75,7 @@ public class DateUtil {
                     return context.getString(R.string.ends) + " " + prettyEndDateStr;
                 }
 
-            }
+            }*/
     }
 
     public static String getStartDateString(Date startDate, Date nowDate) {
@@ -67,7 +90,7 @@ public class DateUtil {
 
             String relativeSpan = null;
             if (hours > 0)
-                relativeSpan = "at " + timeFormatter.format(startDate);
+                relativeSpan = "at " + TIME_FORMATTER.format(startDate);
             else
                 relativeSpan = String.format("in %d minute%s", minutes, minutes > 1 ? 's' : "");
 
@@ -88,5 +111,42 @@ public class DateUtil {
                     DateUtils.MINUTE_IN_MILLIS).toString();
             return (endDate.before(nowDate) ? "Ended " : "Ends ") + relativeSpan;
         }
+    }
+
+    public static Date getAllDayStartDateTime(String day){
+        /***
+         * This gets the start time
+         * we will assume is the datetime for events that are
+         * actually all day events
+         **/
+        Date now = CurrentDateProvider.getCurrentDate();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.set(Calendar.MONTH,Integer.valueOf(day.split("/")[0])-1);
+        cal.set(Calendar.DATE,Integer.valueOf(day.split("/")[1]));
+        cal.set(Calendar.HOUR_OF_DAY,10);
+        cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0);
+        cal.set(Calendar.MILLISECOND,0);
+        return cal.getTime();
+    }
+
+    public static Date getAllDayEndDateTime(String day){
+        /***
+         * This gets the end time we will assume is the datetime
+         * for events that are
+         * actually all day events
+         **/
+        Date now = CurrentDateProvider.getCurrentDate();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.set(Calendar.MONTH,Integer.valueOf(day.split("/")[0])-1);
+        cal.set(Calendar.DATE,Integer.valueOf(day.split("/")[1]));
+        cal.set(Calendar.HOUR_OF_DAY,20);
+        cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0);
+        cal.set(Calendar.MILLISECOND,0);
+        Date newTime = cal.getTime();
+        return newTime;
     }
 }

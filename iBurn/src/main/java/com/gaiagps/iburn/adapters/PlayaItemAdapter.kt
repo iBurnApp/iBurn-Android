@@ -19,6 +19,7 @@ import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.loadArtImage
 import com.gaiagps.iburn.location.LocationProvider
+import org.jetbrains.annotations.NotNull
 import timber.log.Timber
 import java.text.ParseException
 import java.util.*
@@ -27,7 +28,10 @@ import java.util.*
  * Facilities the display of a collection of [PlayaItem]s in a [RecyclerView]
  * Created by dbro on 6/7/17.
  */
-open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, val listener: AdapterListener) : RecyclerView.Adapter<T>(), SectionIndexer {
+open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
+        val context: Context,
+        val listener: AdapterListener) :
+        RecyclerView.Adapter<T>(), SectionIndexer {
 
     protected val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
 
@@ -56,8 +60,9 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(val context: Context, va
         lastItemPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, context.resources.displayMetrics).toInt()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): T {
-        val view = LayoutInflater.from(parent!!.context).inflate(R.layout.listview_playaitem, parent, false)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): T {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.listview_playaitem, parent, false)
 
         val viewHolder = ViewHolder(view)
         setupClickListeners(viewHolder)

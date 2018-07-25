@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.api.typeadapter;
 
+import com.gaiagps.iburn.DateUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.TypeAdapter;
@@ -35,7 +36,7 @@ public final class PlayaDateTypeAdapter extends TypeAdapter<Date> {
 
     public static DateFormat buildIso8601Format() {
         DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
-        iso8601Format.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
+        iso8601Format.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
         return iso8601Format;
     }
 

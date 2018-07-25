@@ -4,6 +4,7 @@ import android.arch.persistence.db.SupportSQLiteDatabase;
 import android.arch.persistence.db.SupportSQLiteOpenHelper;
 import android.content.Context;
 import android.database.DatabaseErrorHandler;
+import android.database.DefaultDatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -12,14 +13,18 @@ class AssetSQLiteOpenHelper implements SupportSQLiteOpenHelper {
     private final OpenHelper mDelegate;
 
     AssetSQLiteOpenHelper(Context context, String name,
-                          SQLiteDatabase.CursorFactory factory, int version,
+                          SQLiteDatabase.CursorFactory factory,
                           DatabaseErrorHandler errorHandler,
                           Callback callback) {
-        mDelegate = createDelegate(context, name, factory, version, errorHandler, callback);
+
+
+        mDelegate = createDelegate(context, name, factory, callback.version,
+                errorHandler, callback);
     }
 
     private OpenHelper createDelegate(Context context, String name,
-                                      SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler,
+                                      SQLiteDatabase.CursorFactory factory, int version,
+                                      DatabaseErrorHandler errorHandler,
                                       final Callback callback) {
         return new OpenHelper(context, name, factory, version, errorHandler) {
             @Override

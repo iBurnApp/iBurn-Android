@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterUtils;
@@ -25,10 +26,15 @@ public class EventListHeader extends RelativeLayout {
 
     protected TextView mTypeFilter;
     protected TextView mDayFilter;
+    protected ToggleButton mExpiredFilter;
+    protected ToggleButton mTimingFilter;
 
+    protected boolean mIncludeExpiredSelection = false;
+    protected String mTimingSelection = "timed";
     protected String mDaySelection = AdapterUtils.getCurrentOrFirstDayAbbreviation();
     protected ArrayList<String> mTypeSelection = new ArrayList<>();
-    protected int mDaySelectionIndex;
+    protected int mDaySelectionIndex =
+            AdapterUtils.sDayAbbreviations.indexOf(mDaySelection);
     protected boolean[] mTypeSelectionIndexes = new boolean[100];
 
 
@@ -53,7 +59,9 @@ public class EventListHeader extends RelativeLayout {
      * Interface for users to receive feedback from this view
      */
     public interface PlayaListViewHeaderReceiver {
-        void onSelectionChanged(String day, ArrayList<String> types);
+        void onSelectionChanged(String day, ArrayList<String> types,
+                                boolean includeExpired,
+                                String eventTiming);
     }
 
     /**
@@ -92,13 +100,19 @@ public class EventListHeader extends RelativeLayout {
                 } else if (v.getTag().equals("day")) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_Iburn_Dialog);
                     builder.setTitle(getContext().getString(R.string.filter_by_day));
-                    builder.setSingleChoiceItems(AdapterUtils.sDayNames.toArray(new CharSequence[AdapterUtils.sDayNames.size()]),
+                    builder.setSingleChoiceItems(
+                            AdapterUtils.sDayNames.toArray(
+                                    new CharSequence[AdapterUtils.sDayNames.size()]),
                             mDaySelectionIndex,
                             (dialog, which) -> {
                                 mDaySelectionIndex = which;
-                                CharSequence selection = AdapterUtils.sDayAbbreviations.toArray(new CharSequence[AdapterUtils.sDayAbbreviations.size()])[which];
+                                CharSequence selection = AdapterUtils.sDayAbbreviations.toArray(
+                                        new CharSequence[AdapterUtils.sDayAbbreviations.size()])[which];
                                 mDaySelection = (selection == null) ? null : selection.toString();
-                                String tabTitle = (selection == null) ? getResources().getString(R.string.any_day) : AdapterUtils.sDayNames.toArray(new CharSequence[AdapterUtils.sDayNames.size()])[which].toString();
+                                String tabTitle = (selection == null) ?
+                                        getResources().getString(R.string.any_day) :
+                                        AdapterUtils.sDayNames.toArray(
+                                                new CharSequence[AdapterUtils.sDayNames.size()])[which].toString();
                                 ((TextView) v).setText(tabTitle.toUpperCase());
                                 dispatchSelection();
                                 dialog.dismiss();
@@ -106,6 +120,17 @@ public class EventListHeader extends RelativeLayout {
                     );
                     builder.setPositiveButton("Cancel", null);
                     builder.show();
+                } else if (v.getTag().equals("expired")) {
+                    mIncludeExpiredSelection = ((ToggleButton) v).isChecked();
+                    dispatchSelection();
+                } else if (v.getTag().equals("timing")) {
+                    if(((ToggleButton) v).isChecked()){
+                        mTimingSelection = "all-day";
+                    }
+                    else{
+                        mTimingSelection = "timed";
+                    }
+                    dispatchSelection();
                 }
                 v.setSelected(false);
             }
@@ -113,11 +138,16 @@ public class EventListHeader extends RelativeLayout {
     };
 
     protected void init(Context context) {
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE);
         View v = inflater.inflate(R.layout.list_view_header_two, this, false);
+        mExpiredFilter = (ToggleButton) v.findViewById(R.id.expiredFilter);
+        mTimingFilter = (ToggleButton) v.findViewById(R.id.timingFilter);
         mTypeFilter = (TextView) v.findViewById(R.id.typeFilter);
         mDayFilter = (TextView) v.findViewById(R.id.dateFilter);
-        mDayFilter.setText(AdapterUtils.sDayNames.get(AdapterUtils.sDayAbbreviations.indexOf(AdapterUtils.getCurrentOrFirstDayAbbreviation())).toUpperCase());
+        mDayFilter.setText(AdapterUtils.sDayNames.get(
+                AdapterUtils.sDayAbbreviations.indexOf(
+                        AdapterUtils.getCurrentOrFirstDayAbbreviation())).toUpperCase());
         setupTouchListeners();
         addView(v);
     }
@@ -129,14 +159,19 @@ public class EventListHeader extends RelativeLayout {
     protected void setupTouchListeners() {
         mTypeFilter.setTag("type");
         mDayFilter.setTag("day");
-
+        mExpiredFilter.setTag("expired");
+        mTimingFilter.setTag("timing");
         mTypeFilter.setOnClickListener(mOnClickListener);
         mDayFilter.setOnClickListener(mOnClickListener);
+        mExpiredFilter.setOnClickListener(mOnClickListener);
+        mTimingFilter.setOnClickListener(mOnClickListener);
     }
 
     protected void dispatchSelection() {
         if (mReceiver != null) {
-            mReceiver.onSelectionChanged(mDaySelection, mTypeSelection);
+            mReceiver.onSelectionChanged(mDaySelection, mTypeSelection,
+                    mIncludeExpiredSelection,
+                    mTimingSelection);
         }
     }
 

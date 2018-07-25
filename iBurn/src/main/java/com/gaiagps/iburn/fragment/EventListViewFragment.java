@@ -32,12 +32,19 @@ public class EventListViewFragment extends PlayaListViewFragment implements Even
     }
 
     private String selectedDay = AdapterUtils.getCurrentOrFirstDayAbbreviation();
-    private ArrayList<String> selectedTypes;
+    private ArrayList<String> selectedTypes = null;
+    private boolean includeExpired = false;
+    private String eventTiming = "timed";
 
     @Override
     public Disposable createDisposable() {
         return DataProvider.Companion.getInstance(getActivity().getApplicationContext())
-                .flatMap(dataProvider -> dataProvider.observeEventsOnDayOfTypes(selectedDay, selectedTypes).toObservable()) // TODO : RM toObservable
+                .flatMap(dataProvider -> dataProvider.observeEventsOnDayOfTypes(
+                        selectedDay,
+                        selectedTypes,
+                        includeExpired,
+                        eventTiming)
+                        .toObservable()) // TODO : RM toObservable
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(events -> {
                             Timber.d("Data onNext %d items", events.size());
@@ -63,10 +70,13 @@ public class EventListViewFragment extends PlayaListViewFragment implements Even
     }
 
     @Override
-    public void onSelectionChanged(String day, ArrayList<String> types) {
+    public void onSelectionChanged(String day, ArrayList<String> types,
+                                   boolean expired,
+                                   String timing) {
         selectedDay = day;
         selectedTypes = types;
-        unsubscribeFromData();
-        subscribeToData();
+        includeExpired = expired;
+        eventTiming = timing;
+        reSubscribeToData();
     }
 }
