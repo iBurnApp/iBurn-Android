@@ -1,12 +1,11 @@
 package com.gaiagps.iburn.view;
 
-import com.gaiagps.iburn.CurrentDateProvider;
+import com.gaiagps.iburn.DateUtil;
 
-import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.TimeZone;
-import java.util.Calendar;
 
 /**
  * From https://github.com/jd-alexander/LikeButton
@@ -22,7 +21,7 @@ public class Utils {
     }
 
     public static String convertDateToString(Date datetime){
-        TimeZone tz = TimeZone.getTimeZone("GMT-07:00");
+        TimeZone tz = DateUtil.PLAYA_TIME_ZONE;
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
         formatter.setTimeZone(tz);
         String datetime_string = formatter.format(datetime);

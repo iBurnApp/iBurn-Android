@@ -7,13 +7,16 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Created by davidbrodsky on 8/6/14.
  */
 public class DateUtil {
 
-    private static SimpleDateFormat timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
+    public static final TimeZone PLAYA_TIME_ZONE = TimeZone.getTimeZone("America/Los_Angeles");
+
+    private static SimpleDateFormat TIME_FORMATTER = new SimpleDateFormat("h:mm a", Locale.US);
 
     /**
      * Get a human description of an event's state
@@ -87,7 +90,7 @@ public class DateUtil {
 
             String relativeSpan = null;
             if (hours > 0)
-                relativeSpan = "at " + timeFormatter.format(startDate);
+                relativeSpan = "at " + TIME_FORMATTER.format(startDate);
             else
                 relativeSpan = String.format("in %d minute%s", minutes, minutes > 1 ? 's' : "");
 
