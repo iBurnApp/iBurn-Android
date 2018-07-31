@@ -37,7 +37,15 @@ Fortunately, you can still run and test the app with the previous year's data.
 ## Updating data
 If bundled tiles are updated, you can change MapProvider.MBTILE_DESTINATION to force all upgrades to copy the bundled tiles.
 
-Put bundled database in `./iBurn/main/assets/databases`, make sure DBWrapper filename is up to date, and bump version to force a dump-and-recopy.
+Put bundled database in `./iBurn/main/assets/databases`, make sure PlayaDatabase2.kt filename is up to date, and bump version to force a dump-and-recopy.
+
+## Working with mock data
+
+Place `art.json.js`, `camps.json.js`, `events.json.js` in ./iBurn/src/main/assets/json, and add
+the following code somewhere on app start, like MainActivity#onCreate ~L#130:
+
+    IBurnService service = new IBurnService(context, new MockIBurnApi(context));
+    service.updateData().subscribe(success -> Timber.d("Update result success: %b", success));
 
 ## Releasing
 Make sure you've:

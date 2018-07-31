@@ -47,8 +47,8 @@ public class MockIBurnApi implements IBurnApi {
 
         // Do trigger an update
         ResourceManifest art = new ResourceManifest("art.json.js", new Date());
-        ResourceManifest camp = new ResourceManifest("camp.json.js", new Date());
-        ResourceManifest event = new ResourceManifest("event.json.js", new Date());
+        ResourceManifest camp = new ResourceManifest("camps.json.js", new Date());
+        ResourceManifest event = new ResourceManifest("events.json.js", new Date());
 
         manifest = new DataManifest(art, camp, event, map);
     }
