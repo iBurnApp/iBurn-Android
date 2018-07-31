@@ -39,7 +39,7 @@ fun getSharedDb(context: Context): AppDatabase {
     if (db == null) {
         val builder = android.arch.persistence.room.Room.databaseBuilder(
                 context,
-                AppDatabase::class.java, "playaDatabase2017.db")
+                AppDatabase::class.java, "playaDatabase2018.db")
 
 
         // TODO : Possible to optionally use bundled db?
