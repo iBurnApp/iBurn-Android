@@ -374,7 +374,14 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
                 };
 
-        BottomTickerView ticker = new BottomTickerView(parent, getBottomBannerLayoutParams(), true, "DON'T PANIC", messages, 12, 4);
+        BottomTickerView ticker = new BottomTickerView(
+                parent,
+                getBottomBannerLayoutParams(),
+                true,
+                "DON'T PANIC",
+                messages,
+                12, 
+                4);
         ticker.setCallback(new BottomTickerView.Callback() {
             @Override
             public void onShown() {
