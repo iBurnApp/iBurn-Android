@@ -10,8 +10,8 @@ import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PermissionManager;
 import com.google.android.gms.location.LocationRequest;
-import com.mapbox.services.android.telemetry.location.LocationEngine;
-import com.mapbox.services.android.telemetry.location.LocationEngineListener;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineListener;
 import com.patloew.rxlocation.RxLocation;
 
 import java.util.Date;
@@ -123,6 +123,11 @@ public class LocationProvider {
 
         public MapboxMockLocationSource() {
             super();
+        }
+
+        @Override
+        public LocationEngine.Type obtainType() {
+            return Type.MOCK;
         }
 
         @Override

@@ -27,7 +27,8 @@ import com.mapbox.mapboxsdk.annotations.*
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.camera.CameraUpdate
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
-import com.mapbox.mapboxsdk.constants.MyLocationTracking
+import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
+import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerOptions
 import com.mapbox.mapboxsdk.exceptions.InvalidLatLngBoundsException
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.geometry.LatLngBounds
@@ -46,6 +47,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 import kotlin.collections.set
+import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode
 
 
 class MapboxMapFragment : Fragment() {
@@ -103,6 +105,8 @@ class MapboxMapFragment : Fragment() {
 
     private var locationSubscription: Disposable? = null
 
+    private var locationPlugin: LocationLayerPlugin? = null
+    private var mapboxMap: MapboxMap? = null
     /**
      * Showcase a point on the map using a generic pin
      */
@@ -302,15 +306,23 @@ class MapboxMapFragment : Fragment() {
             if (BuildConfig.MOCK) {
                 // TODO : Re-enable mock location after crash resolved
                 // https://github.com/mapbox/mapbox-gl-native/pull/9142
-                val mockEngine = LocationProvider.MapboxMockLocationSource()
-                map.setLocationSource(mockEngine)
+                var mockEngine = LocationProvider.MapboxMockLocationSource()
+                var locationPlugin = this.locationPlugin
+                locationPlugin = LocationLayerPlugin(mapView, map, mockEngine)
             }
-            map.myLocationViewSettings.foregroundTintColor =
-                    ContextCompat.getColor(context!!,R.color.map_my_location)
-            map.myLocationViewSettings.accuracyTintColor =
-                    ContextCompat.getColor(context!!,R.color.map_my_location)
+            else{
+                locationPlugin = LocationLayerPlugin(mapView, map)
+            }
+            locationPlugin.setRenderMode(RenderMode.COMPASS)
+
+            val builder = builder()
+            builder.foregroundTintColor(
+                    ContextCompat.getColor(context!!,R.color.map_my_location))
+            builder.accuracyTintColor()
+                    ContextCompat.getColor(context!!,R.color.map_my_location))
             // TODO : Re-enable location after crash resolved
             // https://github.com/mapbox/mapbox-gl-native/pull/9142
+            builder.isLocationEnabled()
             map.isMyLocationEnabled = true
             map.setMinZoomPreference(defaultZoom)
             map.setLatLngBoundsForCameraTarget(cameraBounds)
