@@ -125,6 +125,12 @@ public class LocationProvider {
             super();
         }
 
+
+        @Override
+        public Type obtainType() {
+            return Type.MOCK;
+        }
+
         @Override
         public void activate() {
             Timber.d("activate mock location provider");
