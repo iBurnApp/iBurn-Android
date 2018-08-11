@@ -67,10 +67,10 @@
     <color name="off_blk">#ff151515</color>
     <color name="dull_highlight">#FFE29F</color>
     <color name="highlight">#FFE29F</color>
-    <color name="white">#ccfaffef</color>
-    <color name="dull_white">#ccb9beb0</color>
-    <color name="dull_white_2">#cc989d91</color>
-    <color name="dull_white_3">#cc4c5149</color>
+    <color name="white">#ffffff</color>
+    <color name="dull_white">#e1e1e1</color>
+    <color name="dull_white_2">#bababa</color>
+    <color name="dull_white_3">#a4a4a4</color>
 
     <!-- Map Colors -->
     <color name="map_my_location">#139dff</color>
