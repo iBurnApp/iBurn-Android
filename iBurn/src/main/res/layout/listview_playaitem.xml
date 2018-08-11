@@ -16,6 +16,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible"
         tools:src="@drawable/ic_image_white_24dp" />
 
     <ImageView
@@ -24,6 +25,7 @@
         android:layout_height="150dp"
         android:scaleType="centerCrop"
         android:src="@drawable/gradient"
+        tools:visibility="visible"
         app:layout_constraintBottom_toBottomOf="@id/image"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -40,9 +42,7 @@
         android:scaleType="fitEnd"
         android:src="@drawable/ic_heart_empty"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/imageMask"
-        app:layout_constraintVertical_bias=".99"
-        app:layout_constraintBottom_toBottomOf="@id/imageMask" />
+        app:layout_constraintTop_toBottomOf="@id/imageMask" />
 
     <TextView
         android:id="@+id/title"
@@ -56,9 +56,7 @@
         app:layout_constraintEnd_toStartOf="@id/heart"
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/imageMask"
-        app:layout_constraintBottom_toBottomOf="@id/imageMask"
-        app:layout_constraintVertical_bias=".99"
+        app:layout_constraintTop_toBottomOf="@id/imageMask"
         tools:text="Dust Feast really long title omg its gonna hit the heart" />
 
     <TextView
