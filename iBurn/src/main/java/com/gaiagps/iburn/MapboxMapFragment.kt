@@ -1,6 +1,7 @@
 package com.gaiagps.iburn
 
 
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -10,7 +11,6 @@ import android.os.Bundle
 import android.support.animation.DynamicAnimation
 import android.support.animation.SpringAnimation
 import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.text.TextUtils
 import android.view.Gravity
@@ -23,11 +23,10 @@ import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
 import com.google.android.gms.location.LocationRequest
+import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.mapboxsdk.annotations.*
 import com.mapbox.mapboxsdk.camera.CameraPosition
-import com.mapbox.mapboxsdk.camera.CameraUpdate
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
-import com.mapbox.mapboxsdk.constants.MyLocationTracking
 import com.mapbox.mapboxsdk.exceptions.InvalidLatLngBoundsException
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.geometry.LatLngBounds
@@ -35,6 +34,11 @@ import com.mapbox.mapboxsdk.geometry.VisibleRegion
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
+import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
+import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode.NONE
+import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode.TRACKING_COMPASS
+import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode
+import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode.COMPASS
 import com.mapbox.mapboxsdk.utils.MapFragmentUtils
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -103,6 +107,8 @@ class MapboxMapFragment : Fragment() {
 
     private var locationSubscription: Disposable? = null
 
+    private var locationLayerPlugin: LocationLayerPlugin? = null
+
     /**
      * Showcase a point on the map using a generic pin
      */
@@ -130,6 +136,9 @@ class MapboxMapFragment : Fragment() {
     private fun _showcaseMarker(marker: MarkerOptions) {
         Timber.d("_showcaseMarker")
         mapMarkerAndFitEntireCity(marker)
+        locationLayerPlugin?.let {
+            it.cameraMode = NONE
+        }
 //        if (locationSubscription != null) {
 //            Timber.d("unsubscribing from location")
 //            locationSubscription.unsubscribe()
@@ -212,8 +221,7 @@ class MapboxMapFragment : Fragment() {
                             Timber.d("Placing marker")
                             state = prePlaceUserPoiState
                             mapView.removeView(markerPlaceView)
-                            addCustomPin(map, markerLatLng, "Custom Marker", UserPoi.ICON_STAR, {
-                                marker ->
+                            addCustomPin(map, markerLatLng, "Custom Marker", UserPoi.ICON_STAR, { marker ->
                                 showEditPinDialog(marker)
                             })
                         }
@@ -291,6 +299,7 @@ class MapboxMapFragment : Fragment() {
         return markerPlaceView
     }
 
+    @SuppressLint("MissingPermission")
     private fun setupMap(mapView: MapView) {
         mapView.setStyleUrl("mapbox://styles/dchiles/cj3nxjqli000u2soyeb947f7s")
         val pos = CameraPosition.Builder()
@@ -299,19 +308,29 @@ class MapboxMapFragment : Fragment() {
                 .build()
 
         mapView.getMapAsync { map ->
-            if (BuildConfig.MOCK) {
+            val locationLayerPlugin: LocationLayerPlugin = if (BuildConfig.MOCK) {
                 // TODO : Re-enable mock location after crash resolved
                 // https://github.com/mapbox/mapbox-gl-native/pull/9142
-                val mockEngine = LocationProvider.MapboxMockLocationSource()
-                map.setLocationSource(mockEngine)
+                val engine = LocationProvider.MapboxMockLocationSource()
+                engine.activate()
+                engine.requestLocationUpdates()
+                val plugin = LocationLayerPlugin(mapView, map)
+                plugin.locationEngine = engine
+                plugin
+            } else {
+                LocationLayerPlugin(mapView, map)
             }
-            map.myLocationViewSettings.foregroundTintColor =
-                    ContextCompat.getColor(context!!,R.color.map_my_location)
-            map.myLocationViewSettings.accuracyTintColor =
-                    ContextCompat.getColor(context!!,R.color.map_my_location)
+
+            locationLayerPlugin.renderMode = RenderMode.NORMAL
+            lifecycle.addObserver(locationLayerPlugin)
+            this.locationLayerPlugin = locationLayerPlugin
+//            map.myLocationViewSettings.foregroundTintColor =
+//                    ContextCompat.getColor(context!!, R.color.map_my_location)
+//            map.myLocationViewSettings.accuracyTintColor =
+//                    ContextCompat.getColor(context!!, R.color.map_my_location)
             // TODO : Re-enable location after crash resolved
             // https://github.com/mapbox/mapbox-gl-native/pull/9142
-            map.isMyLocationEnabled = true
+//            map.isMyLocationEnabled = true
             map.setMinZoomPreference(defaultZoom)
             map.setLatLngBoundsForCameraTarget(cameraBounds)
             map.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
@@ -352,10 +371,10 @@ class MapboxMapFragment : Fragment() {
                             .toObservable()
                 }
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe( { address ->
+                .subscribe({ address ->
                     addressLabel?.visibility = View.VISIBLE
                     addressLabel?.text = address
-                }, {error -> Timber.e(error, "Failed to get device location")})
+                }, { error -> Timber.e(error, "Failed to get device location") })
     }
 
     private fun setupCameraUpdateSub(map: MapboxMap) {
@@ -575,25 +594,9 @@ class MapboxMapFragment : Fragment() {
 
         fun followCurrentLocaction() {
             this.mapView?.getMapAsync { map ->
-                val location = map.myLocation
-                location?.let { location ->
-                    val camUpdate = CameraUpdate { _ ->
-                        CameraPosition.Builder().target(LatLng(location.latitude, location.longitude))
-                                .zoom(markerShowcaseZoom)
-                                .build()
-                    }
-
-                    map.animateCamera(camUpdate, object: MapboxMap.CancelableCallback {
-                        override fun onCancel() {
-                            // no-op
-                        }
-
-                        override fun onFinish() {
-                            map.trackingSettings.myLocationTrackingMode = MyLocationTracking.TRACKING_FOLLOW
-                        }
-
-                    })
-                }
+                locationLayerPlugin?.renderMode = COMPASS
+                locationLayerPlugin?.cameraMode = TRACKING_COMPASS
+                locationLayerPlugin?.zoomWhileTracking(markerShowcaseZoom)
             }
         }
 
