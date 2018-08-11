@@ -380,7 +380,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                 true,
                 "DON'T PANIC",
                 messages,
-                12, 
+                24,
                 4);
         ticker.setCallback(new BottomTickerView.Callback() {
             @Override

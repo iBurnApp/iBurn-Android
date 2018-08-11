@@ -65,7 +65,6 @@ public class BottomTickerView(val viewParent: ViewGroup,
         tickerContentText.inAnimation = `in`
         tickerContentText.outAnimation = out
 
-        embargoBanner.setOnClickListener { view -> remove() }
         embargoBanner.alpha = 0f
 
         val enterUnlockCodeBtn = embargoBanner.findViewById<ImageButton>(R.id.enter_unlock_code_btn)
@@ -91,6 +90,8 @@ public class BottomTickerView(val viewParent: ViewGroup,
                     }
                 }
 
+        // Allow clicking anywhere on banner to enter unlock code
+        embargoBanner.setOnClickListener { view ->  enterUnlockCodeBtn.performClick() }
         enterUnlockCodeBtn.setOnClickListener { view ->
             remove()
             callback?.onEnterUnlockCodeRequested()
