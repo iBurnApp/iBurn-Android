@@ -11,13 +11,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.SectionIndexer
 import android.widget.TextView
-import com.gaiagps.iburn.CurrentDateProvider
+import com.gaiagps.iburn.*
 import com.gaiagps.iburn.DateUtil.getDateString
-import com.gaiagps.iburn.PrefsHelper
-import com.gaiagps.iburn.R
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.*
-import com.gaiagps.iburn.loadArtImage
 import com.gaiagps.iburn.location.LocationProvider
 import org.jetbrains.annotations.NotNull
 import timber.log.Timber
@@ -94,17 +91,23 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
 
                 holder.eventTypeView.visibility = View.GONE
                 holder.eventTimeView.visibility = View.GONE
-                holder.imageMaskView.visibility = View.VISIBLE
-                holder.imageView.visibility = View.VISIBLE
-                loadArtImage(item, holder.imageView)
+                holder.showImage(true)
+                loadArtImage(item, holder.imageView, object: Callback {
+                    override fun onSuccess() {
+                        //no-op
+                    }
+
+                    override fun onError() {
+                        holder.showImage(false)
+                    }
+                })
 
             } else if (item is Camp) {
                 holder.artistView.visibility = View.GONE
                 holder.audioTourView.visibility = View.GONE
                 holder.eventTypeView.visibility = View.GONE
                 holder.eventTimeView.visibility = View.GONE
-                holder.imageView.visibility = View.GONE
-                holder.imageMaskView.visibility = View.GONE
+                holder.showImage(false)
 
             } else if (item is Event) {
                 holder.eventTypeView.visibility = View.VISIBLE
@@ -124,9 +127,7 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
 
                 holder.artistView.visibility = View.GONE
                 holder.audioTourView.visibility = View.GONE
-                holder.imageView.visibility = View.GONE
-                holder.imageMaskView.visibility = View.GONE
-
+                holder.showImage(false)
             } else {
                 Timber.e("Unknown Item type! Display behavior will be unexpected")
             }
@@ -247,6 +248,12 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
 
         val walkTimeView: TextView = view.findViewById(R.id.walk_time)
         val bikeTimeView: TextView = view.findViewById(R.id.bike_time)
+
+        fun showImage(doShow: Boolean) {
+            val visibility = if (doShow) View.VISIBLE else View.GONE
+            imageView.visibility = visibility
+            imageMaskView.visibility = visibility
+        }
     }
 
 }
