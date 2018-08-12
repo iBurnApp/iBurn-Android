@@ -489,7 +489,6 @@ class MapboxMapFragment : Fragment() {
 
     private fun processMapItemResult(items: List<PlayaItem>) {
 
-        clearPermanentMarkers()
         mResultBounds = LatLngBounds.Builder()
 
         Timber.d("Got result with %d items", items.size)
