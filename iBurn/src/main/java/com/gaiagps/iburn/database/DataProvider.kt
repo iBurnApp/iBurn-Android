@@ -359,10 +359,13 @@ class DataProvider private constructor(private val context: Context, private val
      */
     fun observeUserAddedMapItemsOnly(): Flowable<List<PlayaItem>> {
         // TODO : Honor upgradeLock
+        val nowDate = CurrentDateProvider.getCurrentDate()
+        val now = Utils.convertDateToString(nowDate)
+
         return Flowables.combineLatest(
                 db.artDao().favorites,
                 db.campDao().favorites,
-                db.eventDao().favorites,
+                db.eventDao().getNonExpiredFavorites(now),
                 db.userPoiDao().all)
         { arts, camps, events, userpois ->
             val all = ArrayList<PlayaItem>(arts.size + camps.size + events.size + userpois.size)
