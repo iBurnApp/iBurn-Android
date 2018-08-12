@@ -23,7 +23,6 @@ import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
 import com.google.android.gms.location.LocationRequest
-import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.mapboxsdk.annotations.*
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
@@ -41,6 +40,7 @@ import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode.COMPASS
 import com.mapbox.mapboxsdk.utils.MapFragmentUtils
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
@@ -302,15 +302,14 @@ class MapboxMapFragment : Fragment() {
     @SuppressLint("MissingPermission")
     private fun setupMap(mapView: MapView) {
         mapView.setStyleUrl("mapbox://styles/dchiles/cj3nxjqli000u2soyeb947f7s")
+        val initZoomAmount = 0.2
         val pos = CameraPosition.Builder()
                 .target(LatLng(Geo.MAN_LAT, Geo.MAN_LON))
-                .zoom(defaultZoom)
+                .zoom(defaultZoom - initZoomAmount)
                 .build()
 
         mapView.getMapAsync { map ->
             val locationLayerPlugin: LocationLayerPlugin = if (BuildConfig.MOCK) {
-                // TODO : Re-enable mock location after crash resolved
-                // https://github.com/mapbox/mapbox-gl-native/pull/9142
                 val engine = LocationProvider.MapboxMockLocationSource()
                 engine.activate()
                 engine.requestLocationUpdates()
@@ -324,19 +323,18 @@ class MapboxMapFragment : Fragment() {
             locationLayerPlugin.renderMode = RenderMode.NORMAL
             lifecycle.addObserver(locationLayerPlugin)
             this.locationLayerPlugin = locationLayerPlugin
-//            map.myLocationViewSettings.foregroundTintColor =
-//                    ContextCompat.getColor(context!!, R.color.map_my_location)
-//            map.myLocationViewSettings.accuracyTintColor =
-//                    ContextCompat.getColor(context!!, R.color.map_my_location)
-            // TODO : Re-enable location after crash resolved
-            // https://github.com/mapbox/mapbox-gl-native/pull/9142
-//            map.isMyLocationEnabled = true
             map.setMinZoomPreference(defaultZoom)
             map.setLatLngBoundsForCameraTarget(cameraBounds)
             map.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
+            Single.timer(800, TimeUnit.MILLISECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe { it ->
+                        map.easeCamera(CameraUpdateFactory.zoomBy(initZoomAmount), 500)
+                    }
             map.uiSettings.setAllGesturesEnabled(state != State.SHOWCASE)
             map.setOnCameraIdleListener {
                 if (!shouldShowPoisAtZoom(map.cameraPosition.zoom) && areMarkersVisible()) {
+                    Timber.d("Clearing transient markers on zoom change")
                     clearMap(false)
                 } else {
                     cameraUpdate.onNext(map.projection.visibleRegion)
@@ -390,7 +388,12 @@ class MapboxMapFragment : Fragment() {
                 .flatMap { (provider, visibleRegion) ->
 
                     val embargoActive = Embargo.isEmbargoActive(prefsHelper)
-                    val queryAllItems = (state != State.SHOWCASE) && (!embargoActive) && shouldShowPoisAtZoom(map.cameraPosition.zoom)
+                    val queryAllItems = (state != State.SHOWCASE) && (!embargoActive)
+                    // Note we're only querying user-added (favorites) and user pois, which
+                    // should be visible at all zooms. If we were to plot all camps, art, etc,
+                    // we could use the zoom gate, but then we'd only want zoom to affect
+                    // query of those types, so it'd require a new DataProvider query
+                    // && shouldShowPoisAtZoom(map.cameraPosition.zoom)
 
                     if (queryAllItems) {
                         Timber.d("Map query for all items at zoom %f", map.cameraPosition.zoom)
@@ -642,8 +645,6 @@ class MapboxMapFragment : Fragment() {
     /**
      * Map a marker as part of a finite set of markers, limiting the total markers
      * displayed and recycling markers if this limit is exceeded.
-     * @param areBoundsValid a hack one-dimensional boolean array used to report whether boundsBuilder
-     * *                       includes at least one point and will not throw an exception on its build()
      */
     private fun mapRecyclableMarker(map: MapboxMap, item: PlayaItem, boundsBuilder: LatLngBounds.Builder?): Marker? {
         val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
