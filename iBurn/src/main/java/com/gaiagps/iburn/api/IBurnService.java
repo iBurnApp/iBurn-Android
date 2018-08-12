@@ -4,9 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
+import android.text.TextUtils;
 
 import com.gaiagps.iburn.PrefsHelper;
-import com.gaiagps.iburn.SchedulersKt;
 import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.api.response.Art;
 import com.gaiagps.iburn.api.response.Camp;
@@ -18,11 +18,12 @@ import com.gaiagps.iburn.api.response.PlayaItem;
 import com.gaiagps.iburn.api.response.ResourceManifest;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 import com.gaiagps.iburn.database.DataProvider;
+import com.gaiagps.iburn.js.Geocoder;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -470,6 +471,17 @@ public class IBurnService {
                 location.gps_latitude = item.location.gps_latitude;
                 location.gps_longitude = item.location.gps_longitude;
                 location.string = item.location.string;
+
+                if (!TextUtils.isEmpty(location.string) &&
+                        !(location.string.equals("Mobile")) &&
+                        location.gps_latitude == 0.0 && location.gps_longitude == 0.0) {
+                    LatLng response = Geocoder.INSTANCE.forwardGeocode(context, location.string).blockingGet();
+                    location.gps_latitude = response.getLatitude();
+                    location.gps_longitude = response.getLongitude();
+                    item.location.gps_latitude = response.getLatitude();
+                    item.location.gps_longitude = response.getLongitude();
+                }
+
                 cachedLocations.put(item.uid, location);
             }
 

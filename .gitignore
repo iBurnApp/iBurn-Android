@@ -41,3 +41,5 @@ captures
 iBurn/regular/release/output.json
 
 iBurn/output.json
+
+*.aab
