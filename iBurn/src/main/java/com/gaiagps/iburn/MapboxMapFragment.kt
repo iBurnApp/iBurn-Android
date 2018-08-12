@@ -155,7 +155,7 @@ class MapboxMapFragment : Fragment() {
             Timber.d("Moving camera to %s at zoom %f", marker.position, markerShowcaseZoom)
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.position, markerShowcaseZoom))
 
-            Observable.timer(5, TimeUnit.SECONDS)
+            Observable.timer(1, TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe { ignored ->
                         Timber.d("Animating camera")
