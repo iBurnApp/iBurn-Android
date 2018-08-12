@@ -73,7 +73,7 @@
     <string name="place_custom_markers_tip">You can also add custom map markers later. Look for this icon on the app\'s map view.</string>
     <string name="home_camp_hint">Enter Home Camp Name</string>
     <string name="mark_home_camp">Mark Home Camp?</string>
-    <string name="location_data_notice">Burning Man prohibits displaying Camp, Event, and Art locations until %s, or when you arrive on Playa.\n\nBefore then, iBurn shows crowdsourced locations from BurnerMap.com, but they aren\'t always accurate!</string>
+    <string name="location_data_notice">Burning Man prohibits displaying Camp, Event, and Art locations until %s, or when you arrive on Playa.</string>
     <string name="location_notice_title">A Word on Location</string>
     <string name="no_now_items">Check back once you get to Burning Man</string>
     <string name="audio_tour_art_only">AUDIO TOUR</string>
