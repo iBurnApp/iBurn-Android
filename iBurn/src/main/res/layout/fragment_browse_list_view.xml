@@ -21,13 +21,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone" />
-
+<!--
         <com.gaiagps.iburn.view.ArtListHeader
             android:id="@+id/artHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone" />
-
+-->
         <TextView
             android:id="@android:id/empty"
             android:layout_width="match_parent"
