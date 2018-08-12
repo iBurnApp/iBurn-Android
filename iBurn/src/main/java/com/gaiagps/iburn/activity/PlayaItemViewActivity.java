@@ -767,8 +767,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                     .observeOn(SchedulersKt.getIoScheduler())
                     .subscribe(dataProvider -> dataProvider.toggleFavorite(item),
                             throwable -> Timber.e(throwable, "Failed to save"));
-            this.isFavorite = isFavorite;
         }
+        this.isFavorite = isFavorite;
     }
 
     private void setImageMenuToggle(boolean isShowingImage) {
