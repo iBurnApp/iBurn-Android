@@ -27,6 +27,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class SearchActivity extends AppCompatActivity implements AdapterListener {
@@ -112,6 +113,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
     @Override
     public void onItemFavoriteButtonSelected(PlayaItem item) {
         DataProvider.Companion.getInstance(getApplicationContext())
+                .observeOn(Schedulers.io())
                 .subscribe(dataProvider -> {
                     dataProvider.toggleFavorite(item);
                 }, throwable -> Timber.e(throwable, "failed to toggle favorite"));
