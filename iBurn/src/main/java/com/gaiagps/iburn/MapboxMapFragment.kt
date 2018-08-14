@@ -326,11 +326,16 @@ class MapboxMapFragment : Fragment() {
             map.setMinZoomPreference(defaultZoom)
             map.setLatLngBoundsForCameraTarget(cameraBounds)
             map.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
-            Single.timer(800, TimeUnit.MILLISECONDS)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { it ->
-                        map.easeCamera(CameraUpdateFactory.zoomBy(initZoomAmount), 500)
-                    }
+
+            if (state != State.SHOWCASE) {
+                Timber.d("Easing camera in")
+                Single.timer(800, TimeUnit.MILLISECONDS)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe { it ->
+                            map.easeCamera(CameraUpdateFactory.zoomBy(initZoomAmount), 500)
+                        }
+            }
+
             map.uiSettings.setAllGesturesEnabled(state != State.SHOWCASE)
             map.setOnCameraIdleListener {
                 if (!shouldShowPoisAtZoom(map.cameraPosition.zoom) && areMarkersVisible()) {
