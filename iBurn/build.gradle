@@ -164,7 +164,7 @@ dependencies {
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-locationlayer:0.7.1'
 
     implementation 'com.roughike:bottom-bar:2.3.1'
-    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.squareup.picasso:picasso:2.71828'
 
     implementation 'com.github.hotchemi:permissionsdispatcher:2.4.0'
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'

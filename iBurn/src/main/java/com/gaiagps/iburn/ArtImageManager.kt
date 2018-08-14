@@ -4,7 +4,6 @@ import android.content.Context
 import android.widget.ImageView
 import com.gaiagps.iburn.database.Art
 import com.squareup.picasso.Picasso
-import com.squareup.picasso.Target
 import io.reactivex.android.schedulers.AndroidSchedulers
 import okhttp3.Call
 import okhttp3.OkHttpClient
@@ -14,6 +13,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.lang.Exception
 
 /**
  * Created by dbro on 8/16/17.
@@ -46,15 +46,16 @@ fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
     if (useBundledArtImages) {
         val assetPath = getArtImageAssetPath(art)
 
-        val picasso = Picasso.with(context)
+        val picasso = Picasso.get()
         picasso
                 .load(assetPath)
                 .into(view, object : com.squareup.picasso.Callback {
+
                     override fun onSuccess() {
                         callback?.onSuccess()
                     }
 
-                    override fun onError() {
+                    override fun onError(e: Exception?) {
                         callback?.onError()
                     }
                 })
@@ -62,7 +63,7 @@ fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
         // Load and cache art images from Internet
         val cachedFile = getCachedArtImageFile(context, art.imageUrl)
 
-        val picasso = Picasso.with(context)
+        val picasso = Picasso.get()
         if (cachedFile.exists()) {
             Timber.d("Cache hit for ${art.name} image")
             picasso
@@ -72,7 +73,7 @@ fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
                             callback?.onSuccess()
                         }
 
-                        override fun onError() {
+                        override fun onError(e: Exception?) {
                             callback?.onError()
                         }
                     })
