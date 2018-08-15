@@ -9,8 +9,6 @@ import com.google.android.gms.gcm.PeriodicTask;
 import com.google.android.gms.gcm.Task;
 import com.google.android.gms.gcm.TaskParams;
 
-import net.hockeyapp.android.ExceptionHandler;
-
 import timber.log.Timber;
 
 /**
@@ -61,7 +59,6 @@ public class DataUpdateService extends GcmTaskService {
             Timber.w("Unknown task (%s) invoked", taskParams.getTag());
             return GcmNetworkManager.RESULT_FAILURE;
         } catch (Exception e) {
-            ExceptionHandler.saveException(e, null);
             Timber.e(e, "GCM task failed: %s", e.getClass().getSimpleName());
             return GcmNetworkManager.RESULT_RESCHEDULE;
         }

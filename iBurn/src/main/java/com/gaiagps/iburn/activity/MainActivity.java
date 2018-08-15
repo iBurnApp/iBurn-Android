@@ -37,9 +37,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.roughike.bottombar.BottomBar;
 
-import net.hockeyapp.android.CrashManager;
-import net.hockeyapp.android.UpdateManager;
-
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -53,7 +50,6 @@ import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
 import timber.log.Timber;
 
-import static com.gaiagps.iburn.SECRETSKt.HOCKEY_ID;
 import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
 
 @RuntimePermissions
@@ -191,7 +187,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     @Override
     protected void onResume() {
         super.onResume();
-        checkForCrashes();
         if (googlePlayServicesMissing && checkPlayServices()) {
             googlePlayServicesMissing = false;
         }
@@ -336,15 +331,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                 return;
         }
         super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    private void checkForCrashes() {
-        CrashManager.register(this, HOCKEY_ID);
-    }
-
-    private void checkForUpdates() {
-        // Remove this for store builds!
-        UpdateManager.register(this, HOCKEY_ID);
     }
 
     @Override
