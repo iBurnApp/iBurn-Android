@@ -42,7 +42,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         return new BrowseListViewFragment();
     }
 
-//    private ViewGroup artListHeader;
+    private ViewGroup artListHeader;
     private ViewGroup eventListHeader;
     private BrowseListHeader.BrowseSelection categorySelection = BrowseListHeader.BrowseSelection.CAMPS;
 
@@ -115,7 +115,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_browse_list_view, container, false);
         eventListHeader = v.findViewById(R.id.eventHeader);
-//        artListHeader = v.findViewById(R.id.artHeader);
+        artListHeader = v.findViewById(R.id.artHeader);
         mEmptyText = v.findViewById(android.R.id.empty);
         mRecyclerView = v.findViewById(android.R.id.list);
 
@@ -143,7 +143,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
         ((BrowseListHeader) v.findViewById(R.id.header)).setBrowseSelectionListener(this);
         ((EventListHeader) v.findViewById(R.id.eventHeader)).setReceiver(this);
-//        ((ArtListHeader) v.findViewById(R.id.artHeader)).setListener(this);
+        ((ArtListHeader) v.findViewById(R.id.artHeader)).setListener(this);
         return v;
     }
 
@@ -180,18 +180,18 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
         switch (selection) {
             case CAMPS:
                 eventListHeader.setVisibility(View.GONE);
-//                artListHeader.setVisibility(View.GONE);
+                artListHeader.setVisibility(View.GONE);
                 break;
 
             case ART:
                 eventListHeader.setVisibility(View.GONE);
-//                artListHeader.setVisibility(View.VISIBLE);
+                artListHeader.setVisibility(View.VISIBLE);
 
                 break;
 
             case EVENT:
                 eventListHeader.setVisibility(View.VISIBLE);
-//                artListHeader.setVisibility(View.GONE);
+                artListHeader.setVisibility(View.GONE);
                 break;
         }
 

@@ -60,7 +60,7 @@ public class ArtListViewFragment extends PlayaListViewFragment implements ArtLis
         mRecyclerView = ((RecyclerView) v.findViewById(android.R.id.list));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
-//        ((ArtListHeader) v.findViewById(R.id.header)).setListener(this);
+        ((ArtListHeader) v.findViewById(R.id.header)).setListener(this);
         return v;
     }
 
