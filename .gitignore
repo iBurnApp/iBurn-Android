@@ -43,3 +43,5 @@ iBurn/regular/release/output.json
 iBurn/output.json
 
 *.aab
+
+fabric.properties

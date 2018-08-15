@@ -12,16 +12,19 @@ Got iOS? You'll love [iBurn for iOS](https://github.com/Burning-Man-Earth/iBurn-
 * `$ git clone https://github.com/Burning-Man-Earth/iBurn-Android --recursive`
 * `$ cd ./iBurn-Android`
 * `$ touch ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.kt && open ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.kt`
-* Copy the following into SECRETS.kt:
+* Copy the following into `SECRETS.kt`:
 
     ```java
     package com.gaiagps.iburn
 
-    const val HOCKEY_ID = "SOME_ID"
     const val UNLOCK_CODE = "WHATEVER_PASSWORD"
     const val IBURN_API_URL = "https://SOME_API"
     const val MAPBOX_API_KEY = "YOUR_MAPBOX_KEY"
     ```
+* Copy the following into `./iBurn/fabric.properties`:
+
+    apiKey=yourFabricApiKey
+
 * `$ ./gradlew assembleDebug` or from Android Studio invoke 'Import Project' and select the `./iBurn-Android` directory.
 
 **Note**: Camp, Art and Event location data (`camps.json`, `art.json`, `events.json`) are embargoed by the Burning Man Organization until the gates open each year. Sorry!

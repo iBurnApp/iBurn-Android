@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.gaiagps.iburn.MapboxBundledMapKt;
 import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.PermissionManager;
@@ -43,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.fabric.sdk.android.Fabric;
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import permissions.dispatcher.NeedsPermission;
@@ -72,6 +74,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Fabric.with(this, new Crashlytics());
 
         if (false) { //BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
