@@ -40,6 +40,7 @@ public class AudioTourManager {
     private static final boolean USE_BUNDLED_AUDIO_TOUR = true; // Before returning to false must re-enable audiotour attribute of Art database entry
     private static final String AUDIO_TOUR_ASSET_DIR = "audio_tour";
     private static Set<String> assetTours;
+    private static final String AUDIO_EXT = ".m4a";
 
 //    private final OkHttpClient http = new OkHttpClient();
 
@@ -50,7 +51,7 @@ public class AudioTourManager {
 
     public static boolean hasAudioTour(@NonNull Context context, @NonNull String artPlayaId) {
         if (assetTours != null) {
-            return assetTours.contains(artPlayaId + ".mp3");
+            return assetTours.contains(artPlayaId + AUDIO_EXT);
         }
 
         try {
@@ -121,7 +122,7 @@ public class AudioTourManager {
                 String localArtImage = ArtImageManagerKt.getArtImageLocalPath(context, art);
                 if (localArtImage != null) {
                     albumArtUri = Uri.parse(localArtImage);
-                    Timber.d("Using local art image because no image in mp3 metadata: %s", albumArtUri);
+                    Timber.d("Using local art image because no image in " + AUDIO_EXT + " metadata: %s", albumArtUri);
                 }
             }
             AudioPlayerService.Companion.playAudioTour(context, localMediaUri, art, albumArtUri);
@@ -188,7 +189,7 @@ public class AudioTourManager {
     }
 
     private String getTourAssetFileForArt(@NonNull Art art) {
-        return "file:///android_asset/audio_tour/" + art.playaId + ".mp3";
+        return "file:///android_asset/audio_tour/" + art.playaId + AUDIO_EXT;
     }
 
     private File getMediaArtFileForMediaPath(@NonNull Uri mediaPath) {
