@@ -20,8 +20,8 @@
 <resources>
 
     <!-- Primary Palette -->
-    <color name="iburn_color">#FF9800</color>
-    <color name="iburn_color_dark">#F57C00</color>
+    <color name="iburn_color">#F57C00</color>
+    <color name="iburn_color_dark">#EF6C00</color>
     <color name="iburn_color_accent">@color/icon_fire_red</color>
     <color name="iburn_color_accent_yel">#ffd600</color>
     <color name="window_background">#FF303030</color>
