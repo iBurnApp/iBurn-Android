@@ -309,19 +309,28 @@ class MapboxMapFragment : Fragment() {
                 .build()
 
         mapView.getMapAsync { map ->
-            val locationLayerPlugin: LocationLayerPlugin = if (BuildConfig.MOCK) {
+            val hasLocationPermission = context
+                    ?.let { PermissionManager.hasLocationPermissions(it) }
+                    ?: false
+
+            val locationLayerPlugin: LocationLayerPlugin? = if (BuildConfig.MOCK) {
                 val engine = LocationProvider.MapboxMockLocationSource()
                 engine.activate()
                 engine.requestLocationUpdates()
                 val plugin = LocationLayerPlugin(mapView, map)
                 plugin.locationEngine = engine
                 plugin
-            } else {
+            } else if (hasLocationPermission) {
                 LocationLayerPlugin(mapView, map)
+            } else {
+                null
             }
 
-            locationLayerPlugin.renderMode = RenderMode.NORMAL
-            lifecycle.addObserver(locationLayerPlugin)
+            locationLayerPlugin?.let {
+                it.renderMode = RenderMode.NORMAL
+                lifecycle.addObserver(it)
+            }
+
             this.locationLayerPlugin = locationLayerPlugin
             map.setMinZoomPreference(defaultZoom)
             map.setLatLngBoundsForCameraTarget(cameraBounds)
