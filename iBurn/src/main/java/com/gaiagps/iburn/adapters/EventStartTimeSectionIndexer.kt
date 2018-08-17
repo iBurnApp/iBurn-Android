@@ -38,6 +38,8 @@ class EventStartTimeSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSe
 
             sections = newSections
             sectionPositions = newSectionPositions
+        } else if (items == null) {
+            return emptyArray()
         }
 
         return sections?.toArray() as Array<Any>
@@ -65,7 +67,7 @@ class EventStartTimeSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSe
         } else {
             try {
                 return humanDateFormat.format(apiDateFormat.parse(event.startTime))
-            } catch(e: ParseException) {
+            } catch (e: ParseException) {
                 return event.startTimePretty
             }
         }
