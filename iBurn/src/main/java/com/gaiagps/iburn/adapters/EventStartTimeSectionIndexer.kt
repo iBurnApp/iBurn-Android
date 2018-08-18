@@ -38,11 +38,9 @@ class EventStartTimeSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSe
 
             sections = newSections
             sectionPositions = newSectionPositions
-        } else if (items == null) {
-            return emptyArray()
         }
 
-        return sections?.toArray() as Array<Any>
+        return sections?.toArray() ?: emptyArray()
     }
 
     override fun getSectionForPosition(position: Int): Int {
