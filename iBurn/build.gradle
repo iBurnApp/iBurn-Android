@@ -21,14 +21,14 @@ repositories {
 }
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "27.0.3"
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 32
-        versionName "2018.0.0.4"
+        versionName "2019.0.0.4"
 
         applicationId "com.iburnapp.iburn2"
 
@@ -182,7 +182,7 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-    compile('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
+    api('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true
     }
 
