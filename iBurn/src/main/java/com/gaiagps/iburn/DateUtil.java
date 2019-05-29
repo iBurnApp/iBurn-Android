@@ -34,20 +34,16 @@ public class DateUtil {
 
             Calendar startCal = Calendar.getInstance();
             Calendar endCal = Calendar.getInstance();
+
             startCal.setTime(startDate);
             endCal.setTime(endDate);
-            
-            //Show date/day only if end date is not same date as start date
-            final SimpleDateFormat timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
-            if(endCal.get(Calendar.YEAR) == startCal.get(Calendar.YEAR) &&
-                endCal.get(Calendar.DAY_OF_YEAR) == startCal.get(Calendar.DAY_OF_YEAR))
-            {
-                return timeFormatter.format(startDate) + "-" + timeFormatter.format(endDate);
 
-            }
-            else {
-                return timeFormatter.format(startDate) + "-" + prettyEndDateStr;
-            }
+            startCal.setTimeZone(TimeZone.getTimeZone("PST"));
+            endCal.setTimeZone(TimeZone.getTimeZone("PST"));
+            final SimpleDateFormat timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
+
+            return prettyStartDateStr + " - " + prettyEndDateStr;
+
 
 
             /*
