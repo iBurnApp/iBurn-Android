@@ -46,9 +46,9 @@ public class MockIBurnApi implements IBurnApi {
         ResourceManifest map = new ResourceManifest("map.mbtiles.jar", new Date(0));
 
         // Do trigger an update
-        ResourceManifest art = new ResourceManifest("art.json.js", new Date());
-        ResourceManifest camp = new ResourceManifest("camps.json.js", new Date());
-        ResourceManifest event = new ResourceManifest("events.json.js", new Date());
+        ResourceManifest art = new ResourceManifest("art.json", new Date());
+        ResourceManifest camp = new ResourceManifest("camps.json", new Date());
+        ResourceManifest event = new ResourceManifest("events.json", new Date());
 
         manifest = new DataManifest(art, camp, event, map);
     }
@@ -60,7 +60,7 @@ public class MockIBurnApi implements IBurnApi {
 
     @Override
     public Observable<List<Camp>> getCamps() {
-        return Observable.just("json/camps.json.js")
+        return Observable.just("json/camp.json")
                 .observeOn(Schedulers.io())
                 .map(path -> {
                     try {
@@ -78,7 +78,7 @@ public class MockIBurnApi implements IBurnApi {
 
     @Override
     public Observable<List<Art>> getArt() {
-        return Observable.just("json/art.json.js")
+        return Observable.just("json/art.json")
                 .observeOn(Schedulers.io())
                 .map(path -> {
                     try {
@@ -96,7 +96,7 @@ public class MockIBurnApi implements IBurnApi {
 
     @Override
     public Observable<List<Event>> getEvents() {
-        return Observable.just("json/events.json.js")
+        return Observable.just("json/event.json")
                 .observeOn(Schedulers.io())
                 .map(path -> {
                     try {
