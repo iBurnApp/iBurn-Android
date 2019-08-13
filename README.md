@@ -31,6 +31,11 @@ Got iOS? You'll love [iBurn for iOS](https://github.com/Burning-Man-Earth/iBurn-
 
 Fortunately, you can still run and test the app with the previous year's data.
 
+## Annual Update
+
+* Update `MOCK_NOW_DATE` in CurrentDateProvider (Used when simulating event time during testing)
+* Update `versionName` and `versionCode` in `iBurn/build.gradle`
+
 ## TODO
 
 * Pretty up that item detail view.
