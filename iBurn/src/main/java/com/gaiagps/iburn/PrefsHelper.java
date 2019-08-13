@@ -8,9 +8,12 @@ import android.content.SharedPreferences;
  */
 public class PrefsHelper {
 
-    private static final String SHOWED_WELCOME = "welcomed_2018";           // boolean
+    // Year specific preferences: These keys should be combined with the
+    // current event year.
+    private static final String SHOWED_WELCOME = "welcomed";                // boolean
+    private static final String VALID_UNLOCK_CODE = "unlocked";             // boolean
+
     private static final String POPULATED_DB_VERSION = "db_populated_ver";  // long
-    private static final String VALID_UNLOCK_CODE = "unlocked_2018";        // boolean
     private static final String SCHEDULED_UPDATE = "sched_update";          // boolean
 
     private static final String DEFAULT_RESOURCE_VERSION = "resver";        // long
@@ -18,31 +21,42 @@ public class PrefsHelper {
 
     private static final String SHARED_PREFS_NAME = PrefsHelper.class.getSimpleName();
 
+    private Context context;
     private SharedPreferences sharedPrefs;
     private SharedPreferences.Editor editor;
 
     public PrefsHelper(Context context) {
+        this.context = context;
         sharedPrefs = context.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
         editor = sharedPrefs.edit();
+    }
+
+    /**
+     * @return a key that is a combination of the given baseKey with the current app year.
+     * This is handy when you want preferences set in a previous app release to be cleared
+     * on update.
+     */
+    private String getAnnualKey(String baseKey) {
+        return String.format("%s_%s", baseKey, context.getString(R.string.current_year));
     }
 
     /**
      * @return whether a valid unlock code has been presented for this year
      */
     public boolean enteredValidUnlockCode() {
-        return sharedPrefs.getBoolean(VALID_UNLOCK_CODE, false);
+        return sharedPrefs.getBoolean(getAnnualKey(VALID_UNLOCK_CODE), false);
     }
 
     public void setEnteredValidUnlockCode(boolean didEnter) {
-        editor.putBoolean(VALID_UNLOCK_CODE, didEnter).apply();
+        editor.putBoolean(getAnnualKey(VALID_UNLOCK_CODE), didEnter).apply();
     }
 
     public boolean didShowWelcome() {
-        return sharedPrefs.getBoolean(SHOWED_WELCOME, false);
+        return sharedPrefs.getBoolean(getAnnualKey(SHOWED_WELCOME), false);
     }
 
     public void setDidShowWelcome(boolean didShow) {
-        editor.putBoolean(SHOWED_WELCOME, didShow).commit();
+        editor.putBoolean(getAnnualKey(SHOWED_WELCOME), didShow).commit();
     }
 
     public void setDatabaseVersion(long version) {
