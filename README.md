@@ -36,6 +36,8 @@ Fortunately, you can still run and test the app with the previous year's data.
 * Update `app_name` and `current_year` in iBurn/src/main/res/values/strings.xml
 * Update `MOCK_NOW_DATE` in CurrentDateProvider (Used when simulating event time during testing)
 * Update `versionName` and `versionCode` in `iBurn/build.gradle`
+* Update `EVENT_START_DATE` and `EVENT_END_DATE` in AdapterUtils.java
+* Update `EMBARGO_DATE` in Embargo.java
 
 ## TODO
 
