@@ -1,8 +1,8 @@
 package com.gaiagps.iburn
 
 import android.content.Context
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.util.AttributeSet
 import xyz.danoz.recyclerviewfastscroller.calculation.VerticalScrollBoundsProvider
 import xyz.danoz.recyclerviewfastscroller.calculation.position.VerticalScreenPositionCalculator
@@ -39,10 +39,10 @@ public class VerticalRecyclerViewFastScroller2(context: Context, attributeSet: A
 
 
     class VerticalLinearLayoutManagerScrollProgressCalculator2(verticalScrollBoundsProvider: VerticalScrollBoundsProvider) : VerticalLinearLayoutManagerScrollProgressCalculator(verticalScrollBoundsProvider) {
-        override fun calculateScrollProgress(recyclerView: RecyclerView?): Float {
+        override fun calculateScrollProgress(recyclerView: androidx.recyclerview.widget.RecyclerView?): Float {
             if (recyclerView == null) return 0f
 
-            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+            val layoutManager = recyclerView.layoutManager as androidx.recyclerview.widget.LinearLayoutManager
             val thisItem = layoutManager.findLastVisibleItemPosition()
             val itemCount = layoutManager.itemCount
 

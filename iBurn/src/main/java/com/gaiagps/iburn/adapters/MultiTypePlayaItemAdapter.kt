@@ -1,7 +1,7 @@
 package com.gaiagps.iburn.adapters
 
 import android.content.Context
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.widget.TextView
 import com.gaiagps.iburn.R
 import com.gaiagps.iburn.database.*
@@ -18,7 +18,7 @@ class MultiTypePlayaItemAdapter(context: Context, listener: AdapterListener) :
             items = sectionedItems?.data
         }
 
-    override fun onBindHeaderViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
+    override fun onBindHeaderViewHolder(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int) {
         setLinearSlimParameters(viewHolder, position)
 
         val firstSectionItem = getDataPositionForPosition(position + 1)

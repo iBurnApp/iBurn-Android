@@ -3,7 +3,7 @@ package com.gaiagps.iburn.view
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Color
-import android.support.v4.widget.TextViewCompat
+import androidx.core.widget.TextViewCompat
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View

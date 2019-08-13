@@ -1,8 +1,8 @@
 package com.gaiagps.iburn.database;
 
-import android.arch.persistence.room.ColumnInfo;
-import android.arch.persistence.room.Entity;
-import android.support.annotation.StringDef;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.annotation.StringDef;
 
 import java.lang.annotation.Retention;
 

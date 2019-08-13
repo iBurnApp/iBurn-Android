@@ -2,7 +2,7 @@ package com.gaiagps.iburn.adapters
 
 import android.content.Context
 import android.location.Location
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -25,10 +25,10 @@ import java.util.*
  * Facilities the display of a collection of [PlayaItem]s in a [RecyclerView]
  * Created by dbro on 6/7/17.
  */
-open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
+open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHolder>(
         val context: Context,
         val listener: AdapterListener) :
-        RecyclerView.Adapter<T>(), SectionIndexer {
+        androidx.recyclerview.widget.RecyclerView.Adapter<T>(), SectionIndexer {
 
     protected val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
 
@@ -232,7 +232,7 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
 
     // </editor-fold desc="SectionIndexer">
 
-    open class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
+    open class ViewHolder(val view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
 
         val imageView: ImageView = view.findViewById(R.id.image)
         val imageMaskView: ImageView = view.findViewById(R.id.imageMask)

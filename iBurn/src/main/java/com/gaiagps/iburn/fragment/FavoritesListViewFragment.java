@@ -1,12 +1,11 @@
 package com.gaiagps.iburn.fragment;
 
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.DividerItemDecoration;

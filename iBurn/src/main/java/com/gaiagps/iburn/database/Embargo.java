@@ -1,6 +1,6 @@
 package com.gaiagps.iburn.database;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.CurrentDateProvider;

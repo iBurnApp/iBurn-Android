@@ -3,8 +3,8 @@ package com.gaiagps.iburn;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 
 /**
  * Created by dbro on 3/3/16.

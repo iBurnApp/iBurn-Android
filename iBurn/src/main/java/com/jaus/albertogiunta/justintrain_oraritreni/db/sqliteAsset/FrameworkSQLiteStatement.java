@@ -16,7 +16,7 @@ package com.jaus.albertogiunta.justintrain_oraritreni.db.sqliteAsset;
  */
 
 
-import android.arch.persistence.db.SupportSQLiteStatement;
+import androidx.sqlite.db.SupportSQLiteStatement;
 import android.database.sqlite.SQLiteStatement;
 
 /**

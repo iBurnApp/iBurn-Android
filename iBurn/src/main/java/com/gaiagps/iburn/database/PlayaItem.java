@@ -1,7 +1,7 @@
 package com.gaiagps.iburn.database;
 
-import android.arch.persistence.room.ColumnInfo;
-import android.arch.persistence.room.PrimaryKey;
+import androidx.room.ColumnInfo;
+import androidx.room.PrimaryKey;
 
 import com.mapbox.mapboxsdk.geometry.LatLng;
 

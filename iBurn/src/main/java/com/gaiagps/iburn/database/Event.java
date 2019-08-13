@@ -1,7 +1,7 @@
 package com.gaiagps.iburn.database;
 
-import android.arch.persistence.room.ColumnInfo;
-import android.arch.persistence.room.Entity;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
 import android.text.TextUtils;
 
 import static com.gaiagps.iburn.database.Event.TABLE_NAME;
