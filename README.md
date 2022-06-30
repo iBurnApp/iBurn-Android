@@ -31,6 +31,28 @@ Got iOS? You'll love [iBurn for iOS](https://github.com/Burning-Man-Earth/iBurn-
 
 Fortunately, you can still run and test the app with the previous year's data.
 
+## Annual Update
+
+#### Update code and text resources
+
+* Update `app_name` and `current_year` in iBurn/src/main/res/values/strings.xml
+* Update `MOCK_NOW_DATE` in CurrentDateProvider (Used when simulating event time during testing)
+* Update `versionName` and `versionCode` in `iBurn/build.gradle`
+* Update `EVENT_START_DATE` and `EVENT_END_DATE` in AdapterUtils.java
+* Update `EMBARGO_DATE` in Embargo.java
+
+#### Update data
+
+Follow instructions in "Working with mock data" below, placing art, camp, and event json
+in iBurn/src/main/assets/json. Start app and observe data import succeeds with log line:
+ `MainActivity: Update result success: true`.
+
+Copy the generated database from your device. Depending on the value of the database name
+set in PlayaDatabase2.kt the file will be located somewhere like `/data/data/com.iburnapp.iburn2.debug/databases/playaDatabase2018.db`.
+You can use Android Studio's "Device File Explorer" to conveniently copy this, or use `adb pull` from
+the command line. Place the saved database in `iBurn/src/main/assets/databases`, and toggle
+the value of `USE_BUNDLED_DB` in PlayaDatabase2.kt back to true.
+
 ## TODO
 
 * Pretty up that item detail view.
@@ -44,6 +66,7 @@ Put bundled database in `./iBurn/main/assets/databases`, make sure PlayaDatabase
 
 ## Working with mock data
 
+First, disable using any bundled db by changing `USE_BUNDLED_DB` to false in PlayaDatabase2.kt
 Place `art.json.js`, `camps.json.js`, `events.json.js` in ./iBurn/src/main/assets/json, and add
 the following code somewhere on app start, like MainActivity#onCreate ~L#130:
 

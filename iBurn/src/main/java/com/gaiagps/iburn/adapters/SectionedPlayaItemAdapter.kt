@@ -1,8 +1,8 @@
 package com.gaiagps.iburn.adapters
 
 import android.content.Context
-import android.support.annotation.NonNull
-import android.support.v7.widget.RecyclerView
+import androidx.annotation.NonNull
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +19,7 @@ const val ViewTypeContent = 1
  * Created by dbro on 6/13/17.
  */
 abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterListener) :
-        PlayaItemAdapter<RecyclerView.ViewHolder>(context, listener) {
+        PlayaItemAdapter<androidx.recyclerview.widget.RecyclerView.ViewHolder>(context, listener) {
 
     override var items: List<PlayaItem>? = null
         set(value) {
@@ -76,21 +76,21 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
 
     abstract fun createHeaderPositionsForItems(items: List<PlayaItem>): Set<Int>
 
-    protected open fun onBindContentViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int, dataPosition: Int) {
+    protected open fun onBindContentViewHolder(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int, dataPosition: Int) {
         super.onBindViewHolder(viewHolder, dataPosition)
         setLinearSlimParameters(viewHolder, position)
     }
 
-    abstract fun onBindHeaderViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int)
+    abstract fun onBindHeaderViewHolder(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int)
 
-    protected open fun onCreateHeaderViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
+    protected open fun onCreateHeaderViewHolder(parent: ViewGroup): androidx.recyclerview.widget.RecyclerView.ViewHolder {
         val itemView = LayoutInflater.from(parent.context)
                 .inflate(R.layout.listview_header_item, parent, false)
 
         return HeaderViewHolder(itemView)
     }
 
-    protected open fun onCreateContentViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
+    protected open fun onCreateContentViewHolder(parent: ViewGroup): androidx.recyclerview.widget.RecyclerView.ViewHolder {
         // PlayaItemAdapter doesn't have itemTypes, so the second parameter value isn't
         // currently necessary
         return super.onCreateViewHolder(parent, ViewTypeHeader)
@@ -99,7 +99,7 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
     //</editor-fold desc="Client Provided Implementation">
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):
-            RecyclerView.ViewHolder {
+            androidx.recyclerview.widget.RecyclerView.ViewHolder {
 
         if (viewType == ViewTypeHeader) {
             return onCreateHeaderViewHolder(parent)
@@ -110,7 +110,7 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
         }
     }
 
-    override fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
+    override fun onBindViewHolder(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int) {
 
         if (isHeaderPosition(position)) {
             onBindHeaderViewHolder(viewHolder, position)
@@ -120,7 +120,7 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
         }
     }
 
-    protected fun setLinearSlimParameters(viewHolder: RecyclerView.ViewHolder, position: Int) {
+    protected fun setLinearSlimParameters(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int) {
         val params = viewHolder.itemView.layoutParams as LayoutManager.LayoutParams
         params.setSlm(LinearSLM.ID)
         params.width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -176,5 +176,5 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
         return dataPosition
     }
 
-    open class HeaderViewHolder(val view: View) : RecyclerView.ViewHolder(view)
+    open class HeaderViewHolder(val view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view)
 }

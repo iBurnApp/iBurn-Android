@@ -11,12 +11,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaBrowserServiceCompat
-import android.support.v4.media.session.MediaButtonReceiver
+import androidx.media.MediaBrowserServiceCompat
+import androidx.media.session.MediaButtonReceiver
 import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.app.NotificationCompat
-import android.support.v4.media.app.NotificationCompat.MediaStyle
+import androidx.core.app.NotificationCompat
+import androidx.media.app.NotificationCompat.MediaStyle
 import android.text.TextUtils
 import com.gaiagps.iburn.R
 import com.gaiagps.iburn.database.Art
@@ -199,7 +199,7 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun createNotificationBuilder(art: Art, albumArtUri: Uri?, isPlaying: Boolean): android.support.v4.app.NotificationCompat.Builder {
+    private fun createNotificationBuilder(art: Art, albumArtUri: Uri?, isPlaying: Boolean): androidx.core.app.NotificationCompat.Builder {
 
         val notification = NotificationCompat.Builder(applicationContext)
                 .setSmallIcon(R.drawable.zzz_ph_ic_notification)
@@ -211,7 +211,7 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
                         .setMediaSession(mediaSession.sessionToken))
 
                 // Stop the service when the notification is swiped away
-                .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(this,
+                .setDeleteIntent(androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(this,
                         PlaybackStateCompat.ACTION_STOP))
 
                 // Make the transport controls visible on the lockscreen
@@ -220,14 +220,14 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
                 // Add a pause button
                 .addAction(
                         if (isPlaying)
-                            android.support.v4.app.NotificationCompat.Action(
+                            androidx.core.app.NotificationCompat.Action(
                                     R.drawable.ic_pause_black_24dp, "Pause",
-                                    MediaButtonReceiver.buildMediaButtonPendingIntent(this,
+                                    androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(this,
                                             PlaybackStateCompat.ACTION_PLAY_PAUSE))
                         else
-                            android.support.v4.app.NotificationCompat.Action(
+                            androidx.core.app.NotificationCompat.Action(
                                     R.drawable.ic_play_arrow_black_24dp, "Play",
-                                    MediaButtonReceiver.buildMediaButtonPendingIntent(this,
+                                    androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(this,
                                             PlaybackStateCompat.ACTION_PLAY_PAUSE)))
 
 

@@ -1,9 +1,9 @@
 package com.gaiagps.iburn.database;
 
-import android.arch.persistence.room.ColumnInfo;
-import android.arch.persistence.room.Entity;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.gaiagps.iburn.AudioTourManager;

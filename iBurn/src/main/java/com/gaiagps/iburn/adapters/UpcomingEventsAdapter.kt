@@ -1,7 +1,7 @@
 package com.gaiagps.iburn.adapters
 
 import android.content.Context
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.widget.TextView
 import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.DateUtil
@@ -28,7 +28,7 @@ class UpcomingEventsAdapter(context: Context, listener: AdapterListener) :
         return set
     }
 
-    override fun onBindHeaderViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
+    override fun onBindHeaderViewHolder(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int) {
         setLinearSlimParameters(viewHolder, position)
 
         val firstSectionItem = getDataPositionForPosition(position + 1)

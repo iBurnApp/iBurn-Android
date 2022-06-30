@@ -20,7 +20,7 @@
         android:layout_height="match_parent"
         android:layout_above="@id/bottomBar" />
 
-    <android.support.design.widget.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         style="@style/FloatingActionButton"
         android:layout_width="wrap_content"

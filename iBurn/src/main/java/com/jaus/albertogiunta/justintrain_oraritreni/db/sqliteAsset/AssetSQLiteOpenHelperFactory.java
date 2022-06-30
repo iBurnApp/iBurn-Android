@@ -1,6 +1,6 @@
 package com.jaus.albertogiunta.justintrain_oraritreni.db.sqliteAsset;
 
-import android.arch.persistence.db.SupportSQLiteOpenHelper;
+import androidx.sqlite.db.SupportSQLiteOpenHelper;
 import android.database.DefaultDatabaseErrorHandler;
 
 /**

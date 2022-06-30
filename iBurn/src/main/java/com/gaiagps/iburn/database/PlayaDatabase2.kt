@@ -1,13 +1,13 @@
 package com.gaiagps.iburn.database
 
-import android.arch.persistence.room.Database
-import android.arch.persistence.room.RoomDatabase
-import android.arch.persistence.room.TypeConverter
-import android.arch.persistence.room.TypeConverters
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
 import android.content.Context
 import java.util.*
 import com.mapbox.mapboxsdk.Mapbox.getApplicationContext
-import android.arch.persistence.room.Room
+import androidx.room.Room
 import com.jaus.albertogiunta.justintrain_oraritreni.db.sqliteAsset.AssetSQLiteOpenHelperFactory
 
 
@@ -37,9 +37,9 @@ fun getSharedDb(context: Context): AppDatabase {
 
     val db = sharedDb
     if (db == null) {
-        val builder = android.arch.persistence.room.Room.databaseBuilder(
+        val builder = androidx.room.Room.databaseBuilder(
                 context,
-                AppDatabase::class.java, "playaDatabase2018.db")
+                AppDatabase::class.java, "playaDatabase2019.db")
 
 
         // TODO : Possible to optionally use bundled db?

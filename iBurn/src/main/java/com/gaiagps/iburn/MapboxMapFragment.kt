@@ -8,10 +8,10 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PointF
 import android.os.Bundle
-import android.support.animation.DynamicAnimation
-import android.support.animation.SpringAnimation
-import android.support.v4.app.Fragment
-import android.support.v7.app.AlertDialog
+import androidx.dynamicanimation.animation.DynamicAnimation
+import androidx.dynamicanimation.animation.SpringAnimation
+import androidx.fragment.app.Fragment
+import androidx.appcompat.app.AlertDialog
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
