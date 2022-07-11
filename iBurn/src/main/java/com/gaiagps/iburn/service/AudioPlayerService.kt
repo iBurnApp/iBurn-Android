@@ -140,8 +140,8 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
 
             val extras = intent.extras
             val art = art as Art
-            val albumArtUri = Uri.parse(extras.getString(ExtraAlbumArtUri))
-            val mediaUri = Uri.parse(extras.getString(ExtraLocalMediaUri))
+            val albumArtUri = Uri.parse(extras!!.getString(ExtraAlbumArtUri))
+            val mediaUri = Uri.parse(extras!!.getString(ExtraLocalMediaUri))
 
             currentAlbumArtUri = albumArtUri
             currentArt = art
