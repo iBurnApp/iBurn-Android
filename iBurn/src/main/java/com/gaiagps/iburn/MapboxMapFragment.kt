@@ -2,6 +2,8 @@ package com.gaiagps.iburn
 
 
 import android.annotation.SuppressLint
+import android.app.PendingIntent
+import android.bluetooth.BluetoothClass
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -19,6 +21,7 @@ import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.fragment.app.Fragment
 import com.gaiagps.iburn.activity.PlayaItemViewActivity
+import com.gaiagps.iburn.api.IBurnService
 import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
@@ -31,6 +34,10 @@ import com.mapbox.mapboxsdk.exceptions.InvalidLatLngBoundsException
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.geometry.LatLngBounds
 import com.mapbox.mapboxsdk.geometry.VisibleRegion
+import com.mapbox.mapboxsdk.location.LocationComponent
+import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
+import com.mapbox.mapboxsdk.location.modes.CameraMode
+import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
@@ -108,8 +115,6 @@ class MapboxMapFragment : Fragment() {
 
     private var locationSubscription: Disposable? = null
 
-   // private var locationLayerPlugin: LocationLayerPlugin? = null
-
     /**
      * Showcase a point on the map using a generic pin
      */
@@ -134,17 +139,21 @@ class MapboxMapFragment : Fragment() {
         locationSubscription?.dispose()
     }
 
+    private fun hasLocationPermission(): Boolean {
+        return context
+                ?.let { PermissionManager.hasLocationPermissions(it) }
+                ?: false
+    }
+
+    @SuppressLint("MissingPermission")
     private fun _showcaseMarker(marker: SymbolOptions) {
         Timber.d("_showcaseMarker")
         mapMarkerAndFitEntireCity(marker)
-        //locationLayerPlugin?.let {
-        //    it.CAMERA_MODE = NONE
-        //}
-//        if (locationSubscription != null) {
-//            Timber.d("unsubscribing from location")
-//            locationSubscription.unsubscribe()
-//            locationSubscription = null
-//        }
+        map?.locationComponent?.cameraMode = CameraMode.NONE
+
+        if (hasLocationPermission()) {
+            map?.locationComponent?.isLocationComponentEnabled = false
+        }
         addressLabel?.visibility = View.INVISIBLE
         userPoiButton?.visibility = View.INVISIBLE
     }
@@ -301,54 +310,45 @@ class MapboxMapFragment : Fragment() {
         return markerPlaceView
     }
 
+    private fun copyAssets(): String {
+        val tilesInput = requireContext().assets.open("map/map.mbtiles")
+        val tilesOutput = File(requireContext().getExternalFilesDir(null), "map.mbtiles")
+        val tilesOutputStream = tilesOutput.outputStream()
+        val buffer = ByteArray(1024)
+        var read: Int
+        while (tilesInput.read(buffer).also { read = it } != -1) {
+            tilesOutputStream.write(buffer, 0, read)
+        }
+        tilesInput.close()
+        tilesOutputStream.flush()
+        tilesOutputStream.close()
+        return tilesOutput.path
+    }
+
     @SuppressLint("MissingPermission")
     private fun setupMap(mapView: MapView) {
         mapView?.getMapAsync { map ->
-            val tilesInput = requireContext().assets.open("map/map.mbtiles")
-            val tilesOutput = File(requireContext().getExternalFilesDir(null), "map.mbtiles")
-            val tilesOutputStream = tilesOutput.outputStream()
-            val buffer = ByteArray(1024)
-            var read: Int
-            while (tilesInput.read(buffer).also { read = it } != -1) {
-                tilesOutputStream.write(buffer, 0, read)
-            }
-            tilesInput.close()
-            tilesOutputStream.flush()
-            tilesOutputStream.close()
-            val style = Style.Builder().fromUri("asset://map/style.json").withSource(VectorSource("composite", "mbtiles://" + tilesOutput.path))
+            val tilesPath = copyAssets()
+            val style = Style.Builder().fromUri("asset://map/style.json")
+                    .withSource(VectorSource("composite", "mbtiles://$tilesPath"))
+
             map.setStyle(style) {
                 this.map = map
+
                 symbolManager = SymbolManager(mapView, map, it)
                 val initZoomAmount = 0.2
                 val pos = CameraPosition.Builder()
                         .target(LatLng(Geo.MAN_LAT, Geo.MAN_LON))
                         .zoom(defaultZoom - initZoomAmount)
                         .build()
-                val hasLocationPermission = context
-                        ?.let { PermissionManager.hasLocationPermissions(it) }
-                        ?: false
 
-                /*val locationLayerPlugin: LocationLayerPlugin? = if (BuildConfig.MOCK) {
-                    val engine = LocationProvider.MapboxMockLocationSource()
-                    engine.activate()
-                    engine.requestLocationUpdates()
-                    val plugin = LocationLayerPlugin(mapView, map)
-                    plugin.locationEngine = engine
-                    plugin
-                } else if (hasLocationPermission) {
-                    LocationLayerPlugin(mapView, map)
-                } else {
-                    null
+                if (hasLocationPermission()) {
+                    val activateOptions = LocationComponentActivationOptions.Builder(requireContext(), it)
+                            .build()
+                    map.locationComponent.activateLocationComponent(activateOptions)
+                    map.locationComponent.isLocationComponentEnabled = true
+                    map.locationComponent.renderMode = RenderMode.NORMAL
                 }
-
-                locationLayerPlugin?.let {
-                    it.renderMode = RenderMode.NORMAL
-                    lifecycle.addObserver(it)
-                }
-
-                this.locationLayerPlugin = locationLayerPlugin
-
-                 */
                 map.setMinZoomPreference(defaultZoom)
                 map.setLatLngBoundsForCameraTarget(cameraBounds)
                 map.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
@@ -628,11 +628,9 @@ class MapboxMapFragment : Fragment() {
         }
 
         fun followCurrentLocaction() {
-            /*this.mapView?.getMapAsync { map ->
-                locationLayerPlugin?.renderMode = COMPASS
-                locationLayerPlugin?.cameraMode = TRACKING_COMPASS
-                locationLayerPlugin?.zoomWhileTracking(markerShowcaseZoom)
-            }*/
+            map?.locationComponent?.cameraMode = CameraMode.TRACKING
+            map?.locationComponent?.renderMode = RenderMode.COMPASS
+            map?.locationComponent?.zoomWhileTracking(markerShowcaseZoom)
         }
 
         if (longClick) copyAddressToClipboard() else followCurrentLocaction()
