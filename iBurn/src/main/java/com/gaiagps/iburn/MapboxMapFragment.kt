@@ -31,10 +31,10 @@ import com.mapbox.mapboxsdk.exceptions.InvalidLatLngBoundsException
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.geometry.LatLngBounds
 import com.mapbox.mapboxsdk.geometry.VisibleRegion
-//import com.mapbox.mapboxsdk.location.LocationLayerPlugin
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
+import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.utils.MapFragmentUtils
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -48,6 +48,7 @@ import kotlin.collections.set
 import com.mapbox.mapboxsdk.plugins.annotation.Symbol
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
+import com.mapbox.mapboxsdk.style.sources.VectorSource
 
 
 class MapboxMapFragment : Fragment() {
@@ -96,6 +97,7 @@ class MapboxMapFragment : Fragment() {
     private var userPoiButton: ImageView? = null
     private var addressLabel: TextView? = null
     private var mapView: MapView? = null
+    private var map: MapboxMap? = null
     private var onMapReadyCallback: OnMapReadyCallback? = null
 
     private var showcaseMarker: SymbolOptions? = null
@@ -210,8 +212,8 @@ class MapboxMapFragment : Fragment() {
             mapView.addView(userPoiButton)
             setMargins(userPoiButton, 0, margin, (margin * 9.5).toInt(), 0, Gravity.TOP.or(Gravity.END))
             userPoiButton.setOnClickListener {
-                mapView.getMapAsync { map ->
-
+                var map = this.map
+                if (map != null) {
                     if (state != State.PLACE_USER_POI) {
                         val prePlaceUserPoiState = state
 
@@ -301,74 +303,74 @@ class MapboxMapFragment : Fragment() {
     @SuppressLint("MissingPermission")
     private fun setupMap(mapView: MapView) {
         mapView?.getMapAsync { map ->
-            map.setStyle("mapbox://styles/dchiles/cj3nxjqli000u2soyeb947f7s") {
-            }
-        }
-        val initZoomAmount = 0.2
-        val pos = CameraPosition.Builder()
-                .target(LatLng(Geo.MAN_LAT, Geo.MAN_LON))
-                .zoom(defaultZoom - initZoomAmount)
-                .build()
+            val style = Style.Builder().fromUri("asset://map/style.json").withSource(VectorSource("composite", "asset://map/map.mbtiles"))
+            map.setStyle(style) {
+                this.map = map
+                symbolManager = SymbolManager(mapView, map, it)
+                val initZoomAmount = 0.2
+                val pos = CameraPosition.Builder()
+                        .target(LatLng(Geo.MAN_LAT, Geo.MAN_LON))
+                        .zoom(defaultZoom - initZoomAmount)
+                        .build()
+                val hasLocationPermission = context
+                        ?.let { PermissionManager.hasLocationPermissions(it) }
+                        ?: false
 
-        mapView.getMapAsync { map ->
-            val hasLocationPermission = context
-                    ?.let { PermissionManager.hasLocationPermissions(it) }
-                    ?: false
-
-            /*val locationLayerPlugin: LocationLayerPlugin? = if (BuildConfig.MOCK) {
-                val engine = LocationProvider.MapboxMockLocationSource()
-                engine.activate()
-                engine.requestLocationUpdates()
-                val plugin = LocationLayerPlugin(mapView, map)
-                plugin.locationEngine = engine
-                plugin
-            } else if (hasLocationPermission) {
-                LocationLayerPlugin(mapView, map)
-            } else {
-                null
-            }
-
-            locationLayerPlugin?.let {
-                it.renderMode = RenderMode.NORMAL
-                lifecycle.addObserver(it)
-            }
-
-            this.locationLayerPlugin = locationLayerPlugin
-
-             */
-            map.setMinZoomPreference(defaultZoom)
-            map.setLatLngBoundsForCameraTarget(cameraBounds)
-            map.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
-
-            if (state != State.SHOWCASE) {
-                Timber.d("Easing camera in")
-                Single.timer(800, TimeUnit.MILLISECONDS)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe { it ->
-                            map.easeCamera(CameraUpdateFactory.zoomBy(initZoomAmount), 500)
-                        }
-            }
-
-            map.uiSettings.setAllGesturesEnabled(state != State.SHOWCASE)
-
-            map.addOnCameraIdleListener {
-                if (!shouldShowPoisAtZoom(map.cameraPosition.zoom) && areMarkersVisible()) {
-                    Timber.d("Clearing transient markers on zoom change")
-                    clearMap(false)
+                /*val locationLayerPlugin: LocationLayerPlugin? = if (BuildConfig.MOCK) {
+                    val engine = LocationProvider.MapboxMockLocationSource()
+                    engine.activate()
+                    engine.requestLocationUpdates()
+                    val plugin = LocationLayerPlugin(mapView, map)
+                    plugin.locationEngine = engine
+                    plugin
+                } else if (hasLocationPermission) {
+                    LocationLayerPlugin(mapView, map)
                 } else {
-                    cameraUpdate.onNext(map.projection.visibleRegion)
+                    null
                 }
-            }
-            map.setOnInfoWindowClickListener { symbol ->
-                if (markerIdToItem.containsKey(symbol.id)) {
-                    val item = markerIdToItem[symbol.id]!!
-                    val i = Intent(requireActivity().applicationContext, PlayaItemViewActivity::class.java)
-                    i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM, item)
-                    activity?.startActivity(i)
-                } else if (mappedCustomMarkerIds.containsKey(symbol.id)) {
-                    showEditPinDialog(symbol)
+
+                locationLayerPlugin?.let {
+                    it.renderMode = RenderMode.NORMAL
+                    lifecycle.addObserver(it)
                 }
-                true
+
+                this.locationLayerPlugin = locationLayerPlugin
+
+                 */
+                map.setMinZoomPreference(defaultZoom)
+                map.setLatLngBoundsForCameraTarget(cameraBounds)
+                map.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
+
+                if (state != State.SHOWCASE) {
+                    Timber.d("Easing camera in")
+                    Single.timer(800, TimeUnit.MILLISECONDS)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe { it ->
+                                map.easeCamera(CameraUpdateFactory.zoomBy(initZoomAmount), 500)
+                            }
+                }
+
+                map.uiSettings.setAllGesturesEnabled(state != State.SHOWCASE)
+
+                map.addOnCameraIdleListener {
+                    if (!shouldShowPoisAtZoom(map.cameraPosition.zoom) && areMarkersVisible()) {
+                        Timber.d("Clearing transient markers on zoom change")
+                        clearMap(false)
+                    } else {
+                        cameraUpdate.onNext(map.projection.visibleRegion)
+                    }
+                }
+                map.setOnInfoWindowClickListener { symbol ->
+                    if (markerIdToItem.containsKey(symbol.id)) {
+                        val item = markerIdToItem[symbol.id]!!
+                        val i = Intent(requireActivity().applicationContext, PlayaItemViewActivity::class.java)
+                        i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM, item)
+                        activity?.startActivity(i)
+                    } else if (mappedCustomMarkerIds.containsKey(symbol.id)) {
+                        showEditPinDialog(symbol)
+                    }
+                    true
+                }
             }
         }
     }
@@ -475,6 +477,7 @@ class MapboxMapFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         mapView?.onDestroy()
+        symbolManager?.onDestroy();
 
         cameraUpdateSubscription?.dispose()
     }
@@ -627,7 +630,6 @@ class MapboxMapFragment : Fragment() {
     private fun addNewMarkerForItem(map: MapboxMap, item: PlayaItem): Symbol {
         val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
         val symbolOptions: SymbolOptions = SymbolOptions().withLatLng(pos).withTextField(item.name)
-        val symbolManager = SymbolManager(mapView!!, map, map.style!!)
 
         if (item is UserPoi) {
             styleCustomMarkerOption(symbolOptions, item.icon)
@@ -639,7 +641,7 @@ class MapboxMapFragment : Fragment() {
             symbolOptions.withIconImage(iconEvent.toString())
         }
 
-        return symbolManager.create(symbolOptions)
+        return symbolManager!!.create(symbolOptions)
     }
 
     /**
@@ -864,7 +866,7 @@ class MapboxMapFragment : Fragment() {
     /**
      * Adds a custom pin to the current map and database
      */
-    private fun addCustomPin(map: MapboxMap, latLng: LatLng?, title: String, @UserPoi.Icon poiIcon: String, callback: ((marker: Symbol) -> Unit)?) {
+    private fun addCustomPin(map: MapboxMap, latLng: LatLng?, title: String, @UserPoi.Icon poiIcon: String, callback: ((marker: Marker) -> Unit)?) {
         var markerLatLng = latLng
         if (markerLatLng == null) {
             val mapCenter = map.cameraPosition.target
@@ -902,7 +904,7 @@ class MapboxMapFragment : Fragment() {
                         mappedItems.add(userPoi)
                         if (marker != null) {
                             mappedCustomMarkerIds[marker.id] = userPoi
-                            callback?.invoke(marker)
+                            // callback?.invoke(marker)TODO
                         }
                     }
         } catch (e: NumberFormatException) {
