@@ -35,6 +35,10 @@ import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.mapboxsdk.plugins.annotation.Symbol
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
+import com.mapbox.mapboxsdk.style.sources.VectorSource
 import com.mapbox.mapboxsdk.utils.MapFragmentUtils
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -42,13 +46,10 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import timber.log.Timber
+import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.set
-import com.mapbox.mapboxsdk.plugins.annotation.Symbol
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
-import com.mapbox.mapboxsdk.style.sources.VectorSource
 
 
 class MapboxMapFragment : Fragment() {
@@ -303,7 +304,18 @@ class MapboxMapFragment : Fragment() {
     @SuppressLint("MissingPermission")
     private fun setupMap(mapView: MapView) {
         mapView?.getMapAsync { map ->
-            val style = Style.Builder().fromUri("asset://map/style.json").withSource(VectorSource("composite", "asset://map/map.mbtiles"))
+            val tilesInput = requireContext().assets.open("map/map.mbtiles")
+            val tilesOutput = File(requireContext().getExternalFilesDir(null), "map.mbtiles")
+            val tilesOutputStream = tilesOutput.outputStream()
+            val buffer = ByteArray(1024)
+            var read: Int
+            while (tilesInput.read(buffer).also { read = it } != -1) {
+                tilesOutputStream.write(buffer, 0, read)
+            }
+            tilesInput.close()
+            tilesOutputStream.flush()
+            tilesOutputStream.close()
+            val style = Style.Builder().fromUri("asset://map/style.json").withSource(VectorSource("composite", "mbtiles://" + tilesOutput.path))
             map.setStyle(style) {
                 this.map = map
                 symbolManager = SymbolManager(mapView, map, it)
