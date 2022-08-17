@@ -341,6 +341,8 @@ class MapboxMapFragment : Fragment() {
                 it.addImage("pin", BitmapFactory.decodeResource(this.resources, R.drawable.pin))
 
                 symbolManager = SymbolManager(mapView, map, it)
+                symbolManager?.iconAllowOverlap = true
+                symbolManager?.textAllowOverlap = true
 
                 symbolManager?.addClickListener { symbol ->
                     if (markerIdToItem.containsKey(symbol.id)) {
@@ -613,20 +615,20 @@ class MapboxMapFragment : Fragment() {
         val symbolOptions: SymbolOptions = SymbolOptions()
                 .withLatLng(pos)
                 .withTextField(item.name)
-                .withTextAnchor(item.name)
+                .withTextSize(12f)
 
         if (item is UserPoi) {
             symbolOptions.withIconImage(item.icon)
-                    .withTextOffset(floatArrayOf(0f, 2.0f).toTypedArray())
+                    .withTextOffset(floatArrayOf(0f, 2.5f).toTypedArray())
         } else if (item is Art) {
             symbolOptions.withIconImage(iconArt)
-                    .withTextOffset(floatArrayOf(0f, 0.5f).toTypedArray())
+                    .withTextOffset(floatArrayOf(0f, 0.8f).toTypedArray())
         } else if (item is Camp) {
             symbolOptions.withIconImage(iconCamp)
-                    .withTextOffset(floatArrayOf(0f, 0.5f).toTypedArray())
+                    .withTextOffset(floatArrayOf(0f, 0.8f).toTypedArray())
         } else if (item is Event) {
             symbolOptions.withIconImage(iconEvent)
-                    .withTextOffset(floatArrayOf(0f, 0.5f).toTypedArray())
+                    .withTextOffset(floatArrayOf(0f, 0.8f).toTypedArray())
         }
 
         return symbolManager!!.create(symbolOptions)
