@@ -12,8 +12,8 @@
   "zoom": 14.23063189341901,
   "bearing": 0,
   "pitch": 3.5,
-  "sprite": "asset://map/sprites/sprite",
-  "glyphs": "asset://map/glyphs/{fontstack}/{range}.pbf",
+  "sprite": "asset://map/sprite",
+  "glyphs": "asset://map/glyphs/{range}.pbf",
   "layers": [
     {
       "id": "background",
