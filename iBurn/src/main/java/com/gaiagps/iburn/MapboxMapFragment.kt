@@ -339,6 +339,16 @@ class MapboxMapFragment : Fragment() {
                 it.addImage(iconCamp, BitmapFactory.decodeResource(this.resources, R.drawable.camp_pin))
                 it.addImage(iconArt, BitmapFactory.decodeResource(this.resources, R.drawable.art_pin))
                 it.addImage("pin", BitmapFactory.decodeResource(this.resources, R.drawable.pin))
+                it.addImage("ice", BitmapFactory.decodeResource(this.resources, R.drawable.ice))
+                it.addImage("firstAid", BitmapFactory.decodeResource(this.resources, R.drawable.first_aid))
+                it.addImage("bus", BitmapFactory.decodeResource(this.resources, R.drawable.bus))
+                it.addImage("airport", BitmapFactory.decodeResource(this.resources, R.drawable.airport))
+                it.addImage("centerCamp", BitmapFactory.decodeResource(this.resources, R.drawable.center_camp))
+                it.addImage("info", BitmapFactory.decodeResource(this.resources, R.drawable.info))
+                it.addImage("ranger", BitmapFactory.decodeResource(this.resources, R.drawable.ranger))
+                it.addImage("recycle", BitmapFactory.decodeResource(this.resources, R.drawable.recycle))
+                it.addImage("temple", BitmapFactory.decodeResource(this.resources, R.drawable.temple))
+                it.addImage("toilet", BitmapFactory.decodeResource(this.resources, R.drawable.toilet))
 
                 symbolManager = SymbolManager(mapView, map, it)
                 symbolManager?.iconAllowOverlap = true
