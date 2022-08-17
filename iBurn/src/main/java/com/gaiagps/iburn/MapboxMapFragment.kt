@@ -6,6 +6,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.PointF
 import android.os.Bundle
 import android.text.TextUtils
@@ -41,11 +42,7 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.annotation.Symbol
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory
-import com.mapbox.mapboxsdk.style.layers.PropertyValue
-import com.mapbox.mapboxsdk.style.layers.SymbolLayer
 import com.mapbox.mapboxsdk.style.sources.VectorSource
-import com.mapbox.mapboxsdk.utils.BitmapUtils
 import com.mapbox.mapboxsdk.utils.MapFragmentUtils
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -122,8 +119,7 @@ class MapboxMapFragment : Fragment() {
         // We ask for an external context because we want this method to be callable
         // before this fragment is resumed (e.g: shortly after construction)
         // TODO : Refactor to include showcase marker in Bundle on construction
-        val icon = IconFactory.getInstance(context).fromResource(R.drawable.pin)
-        val marker = SymbolOptions().withIconImage(icon.toString()).withGeometry(Point.fromLngLat(latLng.longitude, latLng.latitude))
+        val marker = SymbolOptions().withIconImage("pin").withGeometry(Point.fromLngLat(latLng.longitude, latLng.latitude))
         showcaseMarker(marker)
     }
 
@@ -334,6 +330,15 @@ class MapboxMapFragment : Fragment() {
 
             map.setStyle(style) {
                 this.map = map
+
+                it.addImage(UserPoi.ICON_HEART, BitmapFactory.decodeResource(this.resources, R.drawable.puck_heart))
+                it.addImage(UserPoi.ICON_HOME, BitmapFactory.decodeResource(this.resources, R.drawable.puck_home))
+                it.addImage(UserPoi.ICON_STAR, BitmapFactory.decodeResource(this.resources, R.drawable.puck_star))
+                it.addImage(UserPoi.ICON_BIKE, BitmapFactory.decodeResource(this.resources, R.drawable.puck_bicycle))
+                it.addImage(iconEvent, BitmapFactory.decodeResource(this.resources, R.drawable.event_pin))
+                it.addImage(iconCamp, BitmapFactory.decodeResource(this.resources, R.drawable.camp_pin))
+                it.addImage(iconArt, BitmapFactory.decodeResource(this.resources, R.drawable.art_pin))
+                it.addImage("pin", BitmapFactory.decodeResource(this.resources, R.drawable.pin))
 
                 symbolManager = SymbolManager(mapView, map, it)
 
@@ -577,32 +582,9 @@ class MapboxMapFragment : Fragment() {
         return currentZoom > poiVisibleZoom
     }
 
-    private val iconFactory: IconFactory by lazy {
-        IconFactory.getInstance(requireContext())
-    }
-
-    // TODO : Loading many Icons breaks the entire marker rendering system somehow, so we cache 'em:
-    // https://github.com/mapbox/mapbox-gl-native/issues/9026
-
-    private val iconGeneric: Icon by lazy {
-        iconFactory.fromResource(R.drawable.pin)
-    }
-
-    private val iconArt: Icon by lazy {
-        iconFactory.fromResource(R.drawable.art_pin)
-    }
-
-    private val iconCamp: Icon by lazy {
-        iconFactory.fromResource(R.drawable.camp_pin)
-    }
-
-    private val iconEvent: Icon by lazy {
-        iconFactory.fromResource(R.drawable.event_pin)
-    }
-
-    private val iconUserHome: Icon by lazy {
-        iconFactory.fromResource(R.drawable.puck_home)
-    }
+    private val iconArt = "art_pin"
+    private val iconCamp = "camp_pin"
+    private val iconEvent = "event_pin"
 
     private fun onUserAddressLabelClicked(longClick: Boolean) {
 
@@ -628,16 +610,23 @@ class MapboxMapFragment : Fragment() {
 
     private fun addNewMarkerForItem(map: MapboxMap, item: PlayaItem): Symbol {
         val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
-        val symbolOptions: SymbolOptions = SymbolOptions().withLatLng(pos).withTextField(item.name)
+        val symbolOptions: SymbolOptions = SymbolOptions()
+                .withLatLng(pos)
+                .withTextField(item.name)
+                .withTextAnchor(item.name)
 
         if (item is UserPoi) {
             symbolOptions.withIconImage(item.icon)
+                    .withTextOffset(floatArrayOf(0f, 2.0f).toTypedArray())
         } else if (item is Art) {
-            symbolOptions.withIconImage(iconArt.toString())
+            symbolOptions.withIconImage(iconArt)
+                    .withTextOffset(floatArrayOf(0f, 0.5f).toTypedArray())
         } else if (item is Camp) {
-            symbolOptions.withIconImage(iconCamp.toString())
+            symbolOptions.withIconImage(iconCamp)
+                    .withTextOffset(floatArrayOf(0f, 0.5f).toTypedArray())
         } else if (item is Event) {
-            symbolOptions.withIconImage(iconEvent.toString())
+            symbolOptions.withIconImage(iconEvent)
+                    .withTextOffset(floatArrayOf(0f, 0.5f).toTypedArray())
         }
 
         return symbolManager!!.create(symbolOptions)
@@ -667,11 +656,13 @@ class MapboxMapFragment : Fragment() {
             marker.textField = item.name
 
             if (item is Art) {
-                marker.iconImage = (iconFactory.fromResource(R.drawable.art_pin)).toString()
+                marker.iconImage = iconArt
             } else if (item is Camp) {
-                marker.iconImage = iconFactory.fromResource(R.drawable.camp_pin).toString()
+                marker.iconImage = iconCamp
             } else if (item is Event) {
-                marker.iconImage = iconFactory.fromResource(R.drawable.event_pin).toString()
+                marker.iconImage = iconEvent
+            } else if (item is UserPoi) {
+                marker.iconImage = item.icon
             }
 
 //            marker.setAnchor(0.5f, 0.5f)
@@ -886,7 +877,6 @@ class MapboxMapFragment : Fragment() {
                         mappedItems.add(userPoi)
                         if (marker != null) {
                             mappedCustomMarkerIds[marker.id] = userPoi
-                            // callback?.invoke(marker)TODO
                         }
                     }
         } catch (e: NumberFormatException) {
