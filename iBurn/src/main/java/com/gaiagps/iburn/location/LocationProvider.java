@@ -12,13 +12,11 @@ import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PermissionManager;
 import com.google.android.gms.location.LocationRequest;
-import com.mapbox.android.core.location.LocationEngineListener;
 import com.mapbox.mapboxsdk.location.engine.LocationEngine;
 import com.mapbox.mapboxsdk.location.engine.LocationEngineCallback;
 import com.mapbox.mapboxsdk.location.engine.LocationEngineRequest;
 import com.mapbox.mapboxsdk.location.engine.LocationEngineResult;
 import com.patloew.rxlocation.RxLocation;
-import com.mapbox.android.core.location.LocationEngine.Type;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -196,9 +194,9 @@ public class LocationProvider {
             areUpdatesRequested = false;
         }
 
-
-        public Type obtainType() {
-            return Type.MOCK;
-        }
+//
+//        public Type obtainType() {
+//            return Type.MOCK;
+//        }
     }
 }
