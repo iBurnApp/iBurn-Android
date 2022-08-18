@@ -6,23 +6,25 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.PointF
 import android.os.Bundle
-import androidx.dynamicanimation.animation.DynamicAnimation
-import androidx.dynamicanimation.animation.SpringAnimation
-import androidx.fragment.app.Fragment
-import androidx.appcompat.app.AlertDialog
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
+import androidx.dynamicanimation.animation.DynamicAnimation
+import androidx.dynamicanimation.animation.SpringAnimation
+import androidx.fragment.app.Fragment
 import com.gaiagps.iburn.activity.PlayaItemViewActivity
 import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
 import com.google.android.gms.location.LocationRequest
+import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.annotations.*
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
@@ -30,14 +32,17 @@ import com.mapbox.mapboxsdk.exceptions.InvalidLatLngBoundsException
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.geometry.LatLngBounds
 import com.mapbox.mapboxsdk.geometry.VisibleRegion
+import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
+import com.mapbox.mapboxsdk.location.modes.CameraMode
+import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
-import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
-import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode.NONE
-import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode.TRACKING_COMPASS
-import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode
-import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode.COMPASS
+import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.mapboxsdk.plugins.annotation.Symbol
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
+import com.mapbox.mapboxsdk.style.sources.VectorSource
 import com.mapbox.mapboxsdk.utils.MapFragmentUtils
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -45,10 +50,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import timber.log.Timber
+import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 import kotlin.collections.set
 
 
@@ -98,16 +102,15 @@ class MapboxMapFragment : Fragment() {
     private var userPoiButton: ImageView? = null
     private var addressLabel: TextView? = null
     private var mapView: MapView? = null
+    private var map: MapboxMap? = null
     private var onMapReadyCallback: OnMapReadyCallback? = null
 
-    private var showcaseMarker: MarkerOptions? = null
-
+    private var showcaseMarker: SymbolOptions? = null
+    private var symbolManager: SymbolManager? = null
     private val cameraUpdate = PublishSubject.create<VisibleRegion>()
     private var cameraUpdateSubscription: Disposable? = null
 
     private var locationSubscription: Disposable? = null
-
-    private var locationLayerPlugin: LocationLayerPlugin? = null
 
     /**
      * Showcase a point on the map using a generic pin
@@ -116,15 +119,14 @@ class MapboxMapFragment : Fragment() {
         // We ask for an external context because we want this method to be callable
         // before this fragment is resumed (e.g: shortly after construction)
         // TODO : Refactor to include showcase marker in Bundle on construction
-        val icon = IconFactory.getInstance(context).fromResource(R.drawable.pin)
-        val marker = MarkerOptions().icon(icon).position(latLng)
+        val marker = SymbolOptions().withIconImage("pin").withGeometry(Point.fromLngLat(latLng.longitude, latLng.latitude))
         showcaseMarker(marker)
     }
 
     /**
      * Showcase a specific marker on the map. If you just need a generic map pin use [showcaseLatLng]
      */
-    fun showcaseMarker(marker: MarkerOptions) {
+    fun showcaseMarker(marker: SymbolOptions) {
         state = State.SHOWCASE
         showcaseMarker = marker
         if (isResumed) {
@@ -133,27 +135,32 @@ class MapboxMapFragment : Fragment() {
         locationSubscription?.dispose()
     }
 
-    private fun _showcaseMarker(marker: MarkerOptions) {
+    private fun hasLocationPermission(): Boolean {
+        return context
+                ?.let { PermissionManager.hasLocationPermissions(it) }
+                ?: false
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun _showcaseMarker(marker: SymbolOptions) {
         Timber.d("_showcaseMarker")
         mapMarkerAndFitEntireCity(marker)
-        locationLayerPlugin?.let {
-            it.cameraMode = NONE
+        map?.locationComponent?.cameraMode = CameraMode.NONE
+
+        if (hasLocationPermission()) {
+            map?.locationComponent?.isLocationComponentEnabled = false
         }
-//        if (locationSubscription != null) {
-//            Timber.d("unsubscribing from location")
-//            locationSubscription.unsubscribe()
-//            locationSubscription = null
-//        }
         addressLabel?.visibility = View.INVISIBLE
         userPoiButton?.visibility = View.INVISIBLE
     }
 
-    private fun mapMarkerAndFitEntireCity(marker: MarkerOptions) {
+    private fun mapMarkerAndFitEntireCity(marker: SymbolOptions) {
         mapView?.getMapAsync { map ->
-
-            map.addMarker(marker)
-            Timber.d("Moving camera to %s at zoom %f", marker.position, markerShowcaseZoom)
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.position, markerShowcaseZoom))
+            symbolManager?.create(marker)
+            Timber.d("Moving camera to %s at zoom %f", marker.geometry, markerShowcaseZoom)
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                marker.latLng, markerShowcaseZoom)
+            )
 
             Observable.timer(1, TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
@@ -187,7 +194,7 @@ class MapboxMapFragment : Fragment() {
             this.mapView = mapView
 
             val dpValue = 10 // margin in dips
-            val d = activity!!.resources!!.displayMetrics!!.density
+            val d = requireActivity().resources!!.displayMetrics!!.density
             val margin = (dpValue * d).toInt() // margin in pixels
 
             // Add Playa Address label
@@ -211,8 +218,8 @@ class MapboxMapFragment : Fragment() {
             mapView.addView(userPoiButton)
             setMargins(userPoiButton, 0, margin, (margin * 9.5).toInt(), 0, Gravity.TOP.or(Gravity.END))
             userPoiButton.setOnClickListener {
-                mapView.getMapAsync { map ->
-
+                var map = this.map
+                if (map != null) {
                     if (state != State.PLACE_USER_POI) {
                         val prePlaceUserPoiState = state
 
@@ -221,9 +228,9 @@ class MapboxMapFragment : Fragment() {
                             Timber.d("Placing marker")
                             state = prePlaceUserPoiState
                             mapView.removeView(markerPlaceView)
-                            addCustomPin(map, markerLatLng, "Custom Marker", UserPoi.ICON_STAR, { marker ->
-                                showEditPinDialog(marker)
-                            })
+                            addCustomPin(map, markerLatLng, "Custom Marker", UserPoi.ICON_STAR) { marker ->
+//                                showEditPinDialog(marker) // TODO
+                            }
                         }
 //
 //                                inflater.inflate(R.layout.overlay_place_custom_marker, container, false)
@@ -267,7 +274,7 @@ class MapboxMapFragment : Fragment() {
         mapView?.addView(markerPlaceView)
 
 
-        val viewDimen = convertDpToPixel(200f, context!!).toInt()
+        val viewDimen = convertDpToPixel(200f, requireContext()).toInt()
         markerPlaceView.layoutParams = FrameLayout.LayoutParams(
                 viewDimen,
                 viewDimen * 2)
@@ -299,72 +306,101 @@ class MapboxMapFragment : Fragment() {
         return markerPlaceView
     }
 
+    private fun copyAssets(): String {
+        val tilesInput = requireContext().assets.open("map/map.mbtiles")
+        val tilesOutput = File(requireContext().getExternalFilesDir(null), "map.mbtiles")
+        val tilesOutputStream = tilesOutput.outputStream()
+        val buffer = ByteArray(1024)
+        var read: Int
+        while (tilesInput.read(buffer).also { read = it } != -1) {
+            tilesOutputStream.write(buffer, 0, read)
+        }
+        tilesInput.close()
+        tilesOutputStream.flush()
+        tilesOutputStream.close()
+        return tilesOutput.path
+    }
+
     @SuppressLint("MissingPermission")
     private fun setupMap(mapView: MapView) {
-        mapView.setStyleUrl("mapbox://styles/dchiles/cj3nxjqli000u2soyeb947f7s")
-        val initZoomAmount = 0.2
-        val pos = CameraPosition.Builder()
-                .target(LatLng(Geo.MAN_LAT, Geo.MAN_LON))
-                .zoom(defaultZoom - initZoomAmount)
-                .build()
+        mapView?.getMapAsync { map ->
+            val tilesPath = copyAssets()
+            val style = Style.Builder().fromUri("asset://map/style.json")
+                    .withSource(VectorSource("composite", "mbtiles://$tilesPath"))
 
-        mapView.getMapAsync { map ->
-            val hasLocationPermission = context
-                    ?.let { PermissionManager.hasLocationPermissions(it) }
-                    ?: false
+            map.setStyle(style) {
+                this.map = map
 
-            val locationLayerPlugin: LocationLayerPlugin? = if (BuildConfig.MOCK) {
-                val engine = LocationProvider.MapboxMockLocationSource()
-                engine.activate()
-                engine.requestLocationUpdates()
-                val plugin = LocationLayerPlugin(mapView, map)
-                plugin.locationEngine = engine
-                plugin
-            } else if (hasLocationPermission) {
-                LocationLayerPlugin(mapView, map)
-            } else {
-                null
-            }
+                it.addImage(UserPoi.ICON_HEART, BitmapFactory.decodeResource(this.resources, R.drawable.puck_heart))
+                it.addImage(UserPoi.ICON_HOME, BitmapFactory.decodeResource(this.resources, R.drawable.puck_home))
+                it.addImage(UserPoi.ICON_STAR, BitmapFactory.decodeResource(this.resources, R.drawable.puck_star))
+                it.addImage(UserPoi.ICON_BIKE, BitmapFactory.decodeResource(this.resources, R.drawable.puck_bicycle))
+                it.addImage(iconEvent, BitmapFactory.decodeResource(this.resources, R.drawable.event_pin))
+                it.addImage(iconCamp, BitmapFactory.decodeResource(this.resources, R.drawable.camp_pin))
+                it.addImage(iconArt, BitmapFactory.decodeResource(this.resources, R.drawable.art_pin))
+                it.addImage("pin", BitmapFactory.decodeResource(this.resources, R.drawable.pin))
+                it.addImage("ice", BitmapFactory.decodeResource(this.resources, R.drawable.ice))
+                it.addImage("firstAid", BitmapFactory.decodeResource(this.resources, R.drawable.first_aid))
+                it.addImage("bus", BitmapFactory.decodeResource(this.resources, R.drawable.bus))
+                it.addImage("airport", BitmapFactory.decodeResource(this.resources, R.drawable.airport))
+                it.addImage("centerCamp", BitmapFactory.decodeResource(this.resources, R.drawable.center_camp))
+                it.addImage("info", BitmapFactory.decodeResource(this.resources, R.drawable.info))
+                it.addImage("ranger", BitmapFactory.decodeResource(this.resources, R.drawable.ranger))
+                it.addImage("recycle", BitmapFactory.decodeResource(this.resources, R.drawable.recycle))
+                it.addImage("temple", BitmapFactory.decodeResource(this.resources, R.drawable.temple))
+                it.addImage("toilet", BitmapFactory.decodeResource(this.resources, R.drawable.toilet))
 
-            locationLayerPlugin?.let {
-                it.renderMode = RenderMode.NORMAL
-                lifecycle.addObserver(it)
-            }
+                symbolManager = SymbolManager(mapView, map, it)
+                symbolManager?.iconAllowOverlap = true
+                symbolManager?.textAllowOverlap = true
 
-            this.locationLayerPlugin = locationLayerPlugin
-            map.setMinZoomPreference(defaultZoom)
-            map.setLatLngBoundsForCameraTarget(cameraBounds)
-            map.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
-
-            if (state != State.SHOWCASE) {
-                Timber.d("Easing camera in")
-                Single.timer(800, TimeUnit.MILLISECONDS)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe { it ->
-                            map.easeCamera(CameraUpdateFactory.zoomBy(initZoomAmount), 500)
-                        }
-            }
-
-            map.uiSettings.setAllGesturesEnabled(state != State.SHOWCASE)
-            map.setOnCameraIdleListener {
-                if (!shouldShowPoisAtZoom(map.cameraPosition.zoom) && areMarkersVisible()) {
-                    Timber.d("Clearing transient markers on zoom change")
-                    clearMap(false)
-                } else {
-                    cameraUpdate.onNext(map.projection.visibleRegion)
+                symbolManager?.addClickListener { symbol ->
+                    if (markerIdToItem.containsKey(symbol.id)) {
+                        val item = markerIdToItem[symbol.id]!!
+                        val i = Intent(requireActivity().applicationContext, PlayaItemViewActivity::class.java)
+                        i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM, item)
+                        activity?.startActivity(i)
+                    } else if (mappedCustomMarkerIds.containsKey(symbol.id)) {
+                        showEditPinDialog(symbol)
+                    }
+                    true
                 }
-            }
+                val initZoomAmount = 0.2
+                val pos = CameraPosition.Builder()
+                        .target(LatLng(Geo.MAN_LAT, Geo.MAN_LON))
+                        .zoom(defaultZoom - initZoomAmount)
+                        .build()
 
-            map.setOnInfoWindowClickListener { marker ->
-                if (markerIdToItem.containsKey(marker.id)) {
-                    val item = markerIdToItem[marker.id]!!
-                    val i = Intent(activity!!.applicationContext, PlayaItemViewActivity::class.java)
-                    i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM, item)
-                    activity?.startActivity(i)
-                } else if (mappedCustomMarkerIds.containsKey(marker.id)) {
-                    showEditPinDialog(marker)
+                if (hasLocationPermission()) {
+                    val activateOptions = LocationComponentActivationOptions.Builder(requireContext(), it)
+                            .build()
+                    map.locationComponent.activateLocationComponent(activateOptions)
+                    map.locationComponent.isLocationComponentEnabled = true
+                    map.locationComponent.renderMode = RenderMode.NORMAL
                 }
-                true
+                map.setMinZoomPreference(defaultZoom)
+                map.setLatLngBoundsForCameraTarget(cameraBounds)
+                map.moveCamera(CameraUpdateFactory.newCameraPosition(pos))
+
+                if (state != State.SHOWCASE) {
+                    Timber.d("Easing camera in")
+                    Single.timer(800, TimeUnit.MILLISECONDS)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe { it ->
+                                map.easeCamera(CameraUpdateFactory.zoomBy(initZoomAmount), 500)
+                            }
+                }
+
+                map.uiSettings.setAllGesturesEnabled(state != State.SHOWCASE)
+
+                map.addOnCameraIdleListener {
+                    if (!shouldShowPoisAtZoom(map.cameraPosition.zoom) && areMarkersVisible()) {
+                        Timber.d("Clearing transient markers on zoom change")
+                        clearMap(false)
+                    } else {
+                        cameraUpdate.onNext(map.projection.visibleRegion)
+                    }
+                }
             }
         }
     }
@@ -374,7 +410,7 @@ class MapboxMapFragment : Fragment() {
                 .setPriority(LocationRequest.PRIORITY_NO_POWER)
                 .setInterval(5000)
 
-        val context = activity!!.applicationContext
+        val context = requireActivity().applicationContext
         locationSubscription?.dispose()
         locationSubscription = LocationProvider.observeCurrentLocation(context, locationRequest)
                 .observeOn(ioScheduler)
@@ -390,13 +426,13 @@ class MapboxMapFragment : Fragment() {
     }
 
     private fun setupCameraUpdateSub(map: MapboxMap) {
-        val prefsHelper = PrefsHelper(activity!!.applicationContext)
+        val prefsHelper = PrefsHelper(requireActivity().applicationContext)
         Timber.d("Subscribing to camera updates")
         cameraUpdateSubscription?.dispose()
         cameraUpdateSubscription = cameraUpdate
                 .debounce(250, TimeUnit.MILLISECONDS)
                 .flatMap { visibleRegion ->
-                    DataProvider.getInstance(activity!!.applicationContext)
+                    DataProvider.getInstance(requireActivity().applicationContext)
                             .map { provider -> Pair(provider, visibleRegion) }
                 }
                 .flatMap { (provider, visibleRegion) ->
@@ -471,6 +507,7 @@ class MapboxMapFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         mapView?.onDestroy()
+        symbolManager?.onDestroy();
 
         cameraUpdateSubscription?.dispose()
     }
@@ -494,9 +531,9 @@ class MapboxMapFragment : Fragment() {
     private val MAX_POIS = 100
 
     // Markers that should only be cleared on new query arrival
-    internal var permanentMarkers = HashSet<Marker>()
+    internal var permanentMarkers = HashSet<Symbol>()
     // Markers that should be cleared on camera events
-    internal var mappedTransientMarkers = ArrayDeque<Marker>(MAX_POIS)
+    internal var mappedTransientMarkers = ArrayDeque<Symbol>(MAX_POIS)
     internal var markerIdToItem = HashMap<Long, PlayaItem>()
 
     /**
@@ -557,110 +594,61 @@ class MapboxMapFragment : Fragment() {
         return currentZoom > poiVisibleZoom
     }
 
-    private val iconFactory: IconFactory by lazy {
-        IconFactory.getInstance(context!!)
-    }
-
-    // TODO : Loading many Icons breaks the entire marker rendering system somehow, so we cache 'em:
-    // https://github.com/mapbox/mapbox-gl-native/issues/9026
-
-    private val iconGeneric: Icon by lazy {
-        iconFactory.fromResource(R.drawable.pin)
-    }
-
-    private val iconArt: Icon by lazy {
-        iconFactory.fromResource(R.drawable.art_pin)
-    }
-
-    private val iconCamp: Icon by lazy {
-        iconFactory.fromResource(R.drawable.camp_pin)
-    }
-
-    private val iconEvent: Icon by lazy {
-        iconFactory.fromResource(R.drawable.event_pin)
-    }
-
-    private val iconUserHome: Icon by lazy {
-        iconFactory.fromResource(R.drawable.puck_home)
-    }
-
-    private val iconUserStar: Icon by lazy {
-        iconFactory.fromResource(R.drawable.puck_star)
-    }
-
-    private val iconUserBicycle: Icon by lazy {
-        iconFactory.fromResource(R.drawable.puck_bicycle)
-    }
-
-    private val iconUserHeart: Icon by lazy {
-        iconFactory.fromResource(R.drawable.puck_heart)
-    }
+    private val iconArt = "art_pin"
+    private val iconCamp = "camp_pin"
+    private val iconEvent = "event_pin"
 
     private fun onUserAddressLabelClicked(longClick: Boolean) {
 
         fun copyAddressToClipboard() {
             val address = addressLabel?.text.toString()
             if (!TextUtils.isEmpty(address)) {
-                val clipboard = context!!.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clip = ClipData.newPlainText("Current Playa Address", address)
-                clipboard.primaryClip = clip
-                Toast.makeText(activity!!.applicationContext, "Copied address to clipboard", Toast.LENGTH_LONG).show()
+                val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                var clip = ClipData.newPlainText("Current Playa Address", address)
+                //clipboard.primaryClip = clip
+                Toast.makeText(requireActivity().applicationContext, "Copied address to clipboard", Toast.LENGTH_LONG).show()
             }
         }
 
         fun followCurrentLocaction() {
-            this.mapView?.getMapAsync { map ->
-                locationLayerPlugin?.renderMode = COMPASS
-                locationLayerPlugin?.cameraMode = TRACKING_COMPASS
-                locationLayerPlugin?.zoomWhileTracking(markerShowcaseZoom)
-            }
+            map?.locationComponent?.cameraMode = CameraMode.TRACKING
+            map?.locationComponent?.renderMode = RenderMode.COMPASS
+            map?.locationComponent?.zoomWhileTracking(markerShowcaseZoom)
         }
 
         if (longClick) copyAddressToClipboard() else followCurrentLocaction()
     }
 
 
-    private fun addNewMarkerForItem(map: MapboxMap, item: PlayaItem): Marker {
+    private fun addNewMarkerForItem(map: MapboxMap, item: PlayaItem): Symbol {
         val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
-        val markerOptions: MarkerViewOptions
-        markerOptions = MarkerViewOptions()
-                .position(pos)
-                .title(item.name)
-                .anchor(0.5f, 0.5f)
+        val symbolOptions: SymbolOptions = SymbolOptions()
+                .withLatLng(pos)
+                .withTextField(item.name)
+                .withTextSize(12f)
 
         if (item is UserPoi) {
-            styleCustomMarkerOption(markerOptions, item.icon)
+            symbolOptions.withIconImage(item.icon)
+                    .withTextOffset(floatArrayOf(0f, 2.5f).toTypedArray())
         } else if (item is Art) {
-            markerOptions.icon(iconArt)
+            symbolOptions.withIconImage(iconArt)
+                    .withTextOffset(floatArrayOf(0f, 0.8f).toTypedArray())
         } else if (item is Camp) {
-            markerOptions.icon(iconCamp)
+            symbolOptions.withIconImage(iconCamp)
+                    .withTextOffset(floatArrayOf(0f, 0.8f).toTypedArray())
         } else if (item is Event) {
-            markerOptions.icon(iconEvent)
+            symbolOptions.withIconImage(iconEvent)
+                    .withTextOffset(floatArrayOf(0f, 0.8f).toTypedArray())
         }
 
-        val marker = map.addMarker(markerOptions)
-        return marker
-    }
-
-    /**
-     * Apply style to a custom MarkerOptions before
-     * adding to Map
-     */
-    private fun styleCustomMarkerOption(markerOption: MarkerViewOptions, @UserPoi.Icon poiIcon: String) {
-        when (poiIcon) {
-            UserPoi.ICON_HOME -> markerOption.icon(iconUserHome)
-            UserPoi.ICON_BIKE -> markerOption.icon(iconUserBicycle)
-            UserPoi.ICON_HEART -> markerOption.icon(iconUserHeart)
-            else -> markerOption.icon(iconUserStar)
-        }
-        markerOption.flat(true)
+        return symbolManager!!.create(symbolOptions)
     }
 
     /**
      * Map a marker as part of a finite set of markers, limiting the total markers
      * displayed and recycling markers if this limit is exceeded.
      */
-    private fun mapRecyclableMarker(map: MapboxMap, item: PlayaItem, boundsBuilder: LatLngBounds.Builder?): Marker? {
+    private fun mapRecyclableMarker(map: MapboxMap, item: PlayaItem, boundsBuilder: LatLngBounds.Builder?): Symbol? {
         val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
 
         // Assemble search results region boundary
@@ -670,20 +658,23 @@ class MapboxMapFragment : Fragment() {
             }
         }
 
-        var marker: Marker? = null
+        var marker: Symbol? = null
 
         if (mappedTransientMarkers.size == MAX_POIS) {
             // Re-use the eldest Marker
+
             marker = mappedTransientMarkers.remove()
-            marker.position = pos
-            marker.title = item.name
+            marker.geometry = Point.fromLngLat(pos.longitude, pos.latitude)
+            marker.textField = item.name
 
             if (item is Art) {
-                marker.icon = iconFactory.fromResource(R.drawable.art_pin)
+                marker.iconImage = iconArt
             } else if (item is Camp) {
-                marker.icon = iconFactory.fromResource(R.drawable.camp_pin)
+                marker.iconImage = iconCamp
             } else if (item is Event) {
-                marker.icon = iconFactory.fromResource(R.drawable.event_pin)
+                marker.iconImage = iconEvent
+            } else if (item is UserPoi) {
+                marker.iconImage = item.icon
             }
 
 //            marker.setAnchor(0.5f, 0.5f)
@@ -705,7 +696,7 @@ class MapboxMapFragment : Fragment() {
      */
     fun clearPermanentMarkers() {
         for (marker in permanentMarkers) {
-            marker.remove()
+            symbolManager?.delete(marker)
             val metaId = markerIdToItem.remove(marker.id)
             if (metaId != null) {
                 mappedItems.remove(metaId)
@@ -741,7 +732,7 @@ class MapboxMapFragment : Fragment() {
         }
 
         for (marker in mappedTransientMarkers) {
-            marker.remove()
+            symbolManager?.delete(marker)
             val metaId = markerIdToItem.remove(marker.id)
             if (metaId != null) {
                 mappedItems.remove(metaId)
@@ -755,10 +746,10 @@ class MapboxMapFragment : Fragment() {
         return mappedTransientMarkers.size > 0
     }
 
-    private fun showEditPinDialog(marker: Marker) {
+    private fun showEditPinDialog(marker: Symbol) {
         if (state == State.SHOWCASE) return
 
-        val dialogBody = activity!!.layoutInflater!!.inflate(R.layout.dialog_poi, null)
+        val dialogBody = requireActivity().layoutInflater!!.inflate(R.layout.dialog_poi, null)
         val iconGroup: RadioGroup = dialogBody.findViewById(R.id.iconGroup)
 
         // Fetch current Marker icon
@@ -780,7 +771,7 @@ class MapboxMapFragment : Fragment() {
 
 
             val markerTitle: EditText? = dialogBody?.findViewById(R.id.markerTitle)
-            markerTitle?.setText(marker.title)
+            markerTitle?.setText(marker.textField)
             markerTitle?.onFocusChangeListener = object : View.OnFocusChangeListener {
 
                 internal var lastEntry: String = ""
@@ -795,32 +786,28 @@ class MapboxMapFragment : Fragment() {
                 }
             }
 
-            AlertDialog.Builder(activity!!, R.style.Theme_Iburn_Dialog)
+            AlertDialog.Builder(requireActivity(), R.style.Theme_Iburn_Dialog)
                     .setView(dialogBody)
                     .setPositiveButton("Save") { dialog, which ->
                         // Save the title
                         if (markerTitle?.text?.isNotBlank() ?: false)
-                            marker.title = markerTitle?.text.toString()
+                            marker.textField = markerTitle?.text.toString()
 
-                        marker.hideInfoWindow()
+//                        marker.hideInfoWindow()
 
                         var icon = ""
                         when (iconGroup.checkedRadioButtonId) {
                             R.id.btn_star -> {
-                                icon = UserPoi.ICON_STAR
-                                marker.icon = iconUserStar
+                                marker.iconImage = UserPoi.ICON_STAR
                             }
                             R.id.btn_heart -> {
-                                icon = UserPoi.ICON_HEART
-                                marker.icon = iconUserHeart
+                                marker.iconImage = UserPoi.ICON_HEART
                             }
                             R.id.btn_home -> {
-                                icon = UserPoi.ICON_HOME
-                                marker.icon = iconUserHome
+                                marker.iconImage = UserPoi.ICON_HOME
                             }
                             R.id.btn_bike -> {
-                                icon = UserPoi.ICON_BIKE
-                                marker.icon = iconUserBicycle
+                                marker.iconImage = UserPoi.ICON_BIKE
                             }
                         }
                         updateCustomPinWithMarker(marker, icon)
@@ -836,19 +823,20 @@ class MapboxMapFragment : Fragment() {
                                 // Deselect markers to close InfoWindows
                                 map.deselectMarkers()
 
-                                val layoutInflater = context!!.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+                                val layoutInflater = requireContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
                                 addMarkerPlaceOverlay(layoutInflater) { markerPlaceView, markerLatLng ->
                                     state = prePlaceUserPoiState
                                     mapView?.let { mapView ->
                                         mapView.removeView(markerPlaceView)
-                                        marker.position = markerLatLng
-                                        DataProvider.getInstance(activity!!.applicationContext)
+                                        marker.latLng = markerLatLng
+                                        DataProvider.getInstance(requireActivity().applicationContext)
                                                 .observeOn(ioScheduler)
                                                 .subscribe { provider ->
                                                     userPoi.latitude = markerLatLng.latitude.toFloat()
                                                     userPoi.longitude = markerLatLng.longitude.toFloat()
                                                     provider.update(userPoi)
                                                 }
+                                        symbolManager?.update(marker)
                                     }
                                 }
                             }
@@ -872,14 +860,11 @@ class MapboxMapFragment : Fragment() {
         }
 
 
-        val markerOptions = MarkerViewOptions()
-                .position(markerLatLng)
-                .title(title)
-                .flat(true)
 
-        styleCustomMarkerOption(markerOptions, UserPoi.ICON_STAR)
+        val symbolOptions: SymbolOptions = SymbolOptions().withLatLng(markerLatLng).withTextField(title)
+        symbolOptions.withIconImage(UserPoi.ICON_STAR)
+        val marker = symbolManager?.create(symbolOptions)
 
-        val marker = map.addMarker(markerOptions)
         val userPoiPlayaId = UUID.randomUUID().toString()
         val userPoi = UserPoi()
         userPoi.name = title
@@ -889,7 +874,7 @@ class MapboxMapFragment : Fragment() {
         userPoi.playaId = userPoiPlayaId
 
         try {
-            DataProvider.getInstance(activity!!.applicationContext)
+            DataProvider.getInstance(requireActivity().applicationContext)
                     .observeOn(ioScheduler)
                     .flatMap { dataProvider ->
                         dataProvider.insertUserPoi(userPoi)
@@ -902,19 +887,20 @@ class MapboxMapFragment : Fragment() {
                         // Make sure UserPoi is added to mappedItems before being inserted as this will
                         // trigger a map items update
                         mappedItems.add(userPoi)
-                        mappedCustomMarkerIds[marker.id] = userPoi
-                        callback?.invoke(marker)
+                        if (marker != null) {
+                            mappedCustomMarkerIds[marker.id] = userPoi
+                        }
                     }
         } catch (e: NumberFormatException) {
             Timber.w("Unable to get id for new custom marker")
         }
     }
 
-    private fun removeCustomPin(marker: Marker) {
-        marker.remove()
+    private fun removeCustomPin(marker: Symbol) {
+        symbolManager?.delete(marker)
         val userPoi = mappedCustomMarkerIds[marker.id]
         userPoi?.let { userPoi ->
-            DataProvider.getInstance(activity!!.applicationContext)
+            DataProvider.getInstance(requireActivity().applicationContext)
                     .observeOn(ioScheduler)
                     .map { provider -> provider.deleteUserPoi(userPoi) }
                     .subscribe { _ -> Timber.d("Deleted marker") }
@@ -927,19 +913,21 @@ class MapboxMapFragment : Fragment() {
      *
      * Note: If drawableResId is 0, it is ignored
      */
-    private fun updateCustomPinWithMarker(marker: Marker, icon: String) {
+    private fun updateCustomPinWithMarker(marker: Symbol, icon: String) {
         val userPoi = mappedCustomMarkerIds[marker.id]
         userPoi?.let { userPoi ->
-            userPoi.name = marker.title
-            userPoi.latitude = marker.position.latitude.toFloat()
-            userPoi.longitude = marker.position.longitude.toFloat()
+            userPoi.icon = marker.iconImage
+            userPoi.name = marker.textField
+            userPoi.latitude = marker.latLng.latitude.toFloat()
+            userPoi.longitude = marker.latLng.longitude.toFloat()
 
             if (icon.isNotBlank()) userPoi.icon = icon
 
-            DataProvider.getInstance(activity!!.applicationContext)
+            DataProvider.getInstance(requireActivity().applicationContext)
                     .observeOn(ioScheduler)
                     .map { dataProvider -> dataProvider.update(userPoi) }
                     .subscribe { _ -> Timber.d("Updated marker") }
+            symbolManager?.update(marker)
         }
     }
 

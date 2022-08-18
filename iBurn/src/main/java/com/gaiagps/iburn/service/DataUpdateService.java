@@ -34,7 +34,7 @@ public class DataUpdateService extends GcmTaskService {
                 .setUpdateCurrent(true)
                 .build();
 
-        GcmNetworkManager.getInstance(context).schedule(dailyUpdate);
+//        GcmNetworkManager.getInstance(context).schedule(dailyUpdate);
         Timber.d("Scheduled auto-update");
     }
 

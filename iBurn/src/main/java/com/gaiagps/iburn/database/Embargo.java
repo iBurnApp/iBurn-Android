@@ -23,8 +23,8 @@ import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ADDR;
  */
 public class Embargo implements DataProvider.QueryInterceptor {
 
-    // 2019 Embargo date is August 25
-    public  static final Date   EMBARGO_DATE   = new GregorianCalendar(2019, Calendar.AUGUST, 25, 0, 0).getTime();
+    // 2022 Embargo date is August 28
+    public  static final Date   EMBARGO_DATE   = new GregorianCalendar(2022, Calendar.AUGUST, 28, 0, 0).getTime();
 
     // For mock builds, force user to enter unlock code
     private static final boolean FORCE_EMBARGO = BuildConfig.MOCK;

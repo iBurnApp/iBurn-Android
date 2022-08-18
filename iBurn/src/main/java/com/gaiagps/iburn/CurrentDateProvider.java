@@ -13,7 +13,7 @@ public class CurrentDateProvider {
      * Date to use as "now" for Debug builds
      */
     private static Date MOCK_NOW_DATE = new GregorianCalendar(
-            2019, Calendar.AUGUST, 27, 10, 05)
+            2022, Calendar.AUGUST, 29, 10, 05)
             .getTime();
 
     public static Date getCurrentDate() {

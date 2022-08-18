@@ -1,17 +1,21 @@
 package com.gaiagps.iburn.location;
 
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.location.Location;
 import android.os.Build;
+import android.os.Looper;
 import android.os.SystemClock;
 
 import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PermissionManager;
 import com.google.android.gms.location.LocationRequest;
-import com.mapbox.android.core.location.LocationEngine;
-import com.mapbox.android.core.location.LocationEngineListener;
+import com.mapbox.mapboxsdk.location.engine.LocationEngine;
+import com.mapbox.mapboxsdk.location.engine.LocationEngineCallback;
+import com.mapbox.mapboxsdk.location.engine.LocationEngineRequest;
+import com.mapbox.mapboxsdk.location.engine.LocationEngineResult;
 import com.patloew.rxlocation.RxLocation;
 
 import java.util.Date;
@@ -115,7 +119,7 @@ public class LocationProvider {
         }
     }
 
-    public static class MapboxMockLocationSource extends LocationEngine {
+    public static class MapboxMockLocationSource implements LocationEngine {
 
         private Disposable mockLocationSub;
         private boolean areUpdatesRequested = false;
@@ -125,7 +129,6 @@ public class LocationProvider {
             super();
         }
 
-        @Override
         public void activate() {
             Timber.d("activate mock location provider");
             mockCurrentLocation();
@@ -137,18 +140,14 @@ public class LocationProvider {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(location -> {
                         lastLocation = location;
-                        for (LocationEngineListener listener : locationListeners) {
-                            listener.onLocationChanged(location);
-                        }
+
                     });
 
             // "Connection" is immediate here
-            for (LocationEngineListener listener : locationListeners) {
-                listener.onConnected();
-            }
+
         }
 
-        @Override
+
         public void deactivate() {
             if (mockLocationSub != null) {
                 mockLocationSub.dispose();
@@ -156,14 +155,13 @@ public class LocationProvider {
             }
         }
 
-        @Override
+
         public boolean isConnected() {
             return true;
         }
 
         @SuppressLint("MissingPermission")
-        @Override
-        public Location getLastLocation() {
+        public void getLastLocation(LocationEngineCallback<LocationEngineResult> callback) {
             Location loc = new Location("MOCK_PROVIDER");
             if (lastLocation != null) {
                 loc.setLatitude(lastLocation.getLatitude());
@@ -174,22 +172,31 @@ public class LocationProvider {
             }
             loc.setBearing((float) (Math.random() * 360));
             loc.setAccuracy((float) (Math.random() * 30));
-            return loc;
+
         }
 
-        @Override
-        public void requestLocationUpdates() {
+
+        public void requestLocationUpdates(PendingIntent intent) {
+            areUpdatesRequested = true;
+        }
+        public void requestLocationUpdates(LocationEngineRequest request, PendingIntent intent) {
+            areUpdatesRequested = true;
+        }
+        public void requestLocationUpdates(LocationEngineRequest request, LocationEngineCallback<LocationEngineResult> result, Looper looper) {
             areUpdatesRequested = true;
         }
 
-        @Override
-        public void removeLocationUpdates() {
+        public void removeLocationUpdates(PendingIntent intent) {
             areUpdatesRequested = false;
         }
 
-        @Override
-        public Type obtainType() {
-            return Type.MOCK;
+        public void removeLocationUpdates(LocationEngineCallback<LocationEngineResult> result) {
+            areUpdatesRequested = false;
         }
+
+//
+//        public Type obtainType() {
+//            return Type.MOCK;
+//        }
     }
 }

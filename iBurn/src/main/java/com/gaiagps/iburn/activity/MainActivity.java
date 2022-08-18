@@ -1,15 +1,12 @@
 package com.gaiagps.iburn.activity;
 
+import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
+
 import android.Manifest;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
-import androidx.annotation.NonNull;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import androidx.fragment.app.Fragment;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,8 +15,14 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
-import com.crashlytics.android.Crashlytics;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+
+
 import com.gaiagps.iburn.MapboxBundledMapKt;
 import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.PermissionManager;
@@ -36,6 +39,7 @@ import com.gaiagps.iburn.service.DataUpdateService;
 import com.gaiagps.iburn.view.BottomTickerView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.roughike.bottombar.BottomBar;
 
 import java.text.SimpleDateFormat;
@@ -44,15 +48,12 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.fabric.sdk.android.Fabric;
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
 import timber.log.Timber;
-
-import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
 
 @RuntimePermissions
 public class MainActivity extends AppCompatActivity implements SearchQueryProvider {
@@ -74,8 +75,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Fabric.with(this, new Crashlytics());
 
         if (false) { //BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
