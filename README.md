@@ -70,8 +70,11 @@ First, disable using any bundled db by changing `USE_BUNDLED_DB` to false in Pla
 Place `art.json`, `camp.json`, `event.json` in ./iBurn/src/main/assets/json, and add
 the following code somewhere on app start, like MainActivity#onCreate ~L#130:
 
-    IBurnService service = new IBurnService(context, new MockIBurnApi(context));
-    service.updateData().subscribe(success -> Timber.d("Update result success: %b", success));
+```java
+Context context = getApplicationContext();
+IBurnService service = new IBurnService(context, new MockIBurnApi(context));
+service.updateData().subscribe(success -> Timber.d("Update result success: %b", success));
+```
 
 ## Releasing
 Make sure you've:

@@ -6,7 +6,7 @@ SECRETS.java
 SECRETS.kt
 
 #Embargo Data
-#iBurn/src/main/assets/databases/
+iBurn/src/main/assets/databases/
 iBurn/src/main/assets/json/
 .DS_Store
 *.class

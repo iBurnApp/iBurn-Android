@@ -17,12 +17,7 @@ private const val databaseName = "mbgl-offline.db"
 fun copyBundledMap(context: Context) {
 
     Schedulers.io().scheduleDirect {
-
-        val dest = File(context.filesDir, databaseName)
-
-        context.assets
-                .open("databases/$databaseName")
-                .copyTo(FileOutputStream(dest))
-        Timber.d("Copied bundled mapbox map")
+        // This is no longer necessary since migrating to MapLibre
+        // TODO: Remove this entirely
     }
 }

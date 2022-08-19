@@ -4,6 +4,7 @@ import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
 
 import android.Manifest;
 import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -15,6 +16,8 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import com.gaiagps.iburn.api.MockIBurnApi;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import androidx.annotation.NonNull;
@@ -22,7 +25,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-
+import com.gaiagps.iburn.api.IBurnService;
 import com.gaiagps.iburn.MapboxBundledMapKt;
 import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.PermissionManager;
@@ -128,7 +131,11 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     });
         }
         handleIntent(getIntent());
-        //checkForUpdates();
+
+        // uncomment these to load updated JSON
+//        Context context = getApplicationContext();
+//        IBurnService service = new IBurnService(context, new MockIBurnApi(context));
+//        service.updateData().subscribe(success -> Timber.d("Update result success: %b", success));
     }
 
     private void setAwaitingLocationPermission(boolean awaitingPermission) {
