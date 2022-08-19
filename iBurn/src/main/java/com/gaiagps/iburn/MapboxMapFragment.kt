@@ -118,7 +118,9 @@ class MapboxMapFragment : Fragment() {
         // We ask for an external context because we want this method to be callable
         // before this fragment is resumed (e.g: shortly after construction)
         // TODO : Refactor to include showcase marker in Bundle on construction
-        val marker = SymbolOptions().withIconImage("pin").withGeometry(Point.fromLngLat(latLng.longitude, latLng.latitude))
+        val marker = SymbolOptions()
+            .withIconImage("pin")
+            .withGeometry(Point.fromLngLat(latLng.longitude, latLng.latitude))
         showcaseMarker(marker)
     }
 
@@ -175,11 +177,6 @@ class MapboxMapFragment : Fragment() {
 
         mapView?.let { mapView ->
             setupMap(mapView)
-        }
-
-        val showcaseMarker = this.showcaseMarker
-        if (state == State.SHOWCASE && showcaseMarker != null) {
-            _showcaseMarker(showcaseMarker)
         }
     }
 
@@ -400,6 +397,11 @@ class MapboxMapFragment : Fragment() {
                         cameraUpdate.onNext(map.projection.visibleRegion)
                     }
                 }
+
+                val showcaseMarker = this.showcaseMarker
+                if (state == State.SHOWCASE && showcaseMarker != null) {
+                    _showcaseMarker(showcaseMarker)
+                }
             }
         }
     }
@@ -468,7 +470,9 @@ class MapboxMapFragment : Fragment() {
         mapView?.onStart()
         mapView?.getMapAsync { map ->
             onMapReadyCallback?.onMapReady(map)
-            setupCameraUpdateSub(map)
+            if (state != State.SHOWCASE) {
+                setupCameraUpdateSub(map)
+            }
         }
         if (state != State.SHOWCASE) {
             setupLocationSub()
@@ -557,19 +561,19 @@ class MapboxMapFragment : Fragment() {
                         if (item is UserPoi) {
                             // UserPois are always-visible and editable when their info window is clicked
                             Timber.d("Adding marker for UserPoi ${item.id}")
-                            val marker = addNewMarkerForItem(map, item)
+                            val marker = addNewMarkerForItem(item)
                             mappedItems.add(item)
                             mappedCustomMarkerIds[marker.id] = item
                         } else if (item.isFavorite) {
                             // Favorites are always-visible, but not editable
-                            val marker = addNewMarkerForItem(map, item)
+                            val marker = addNewMarkerForItem(item)
                             markerIdToItem[marker.id] = item
                             mappedItems.add(item)
                             permanentMarkers.add(marker)
                         } else if (shouldShowPoisAtZoom(currentZoom)) {
                             // Other markers are only displayed at near zoom, and are kept in a pool
                             // of recyclable markers. mapRecyclableMarker handles adding to markerIdToItem
-                            val marker = mapRecyclableMarker(map, item, mResultBounds)
+                            val marker = mapRecyclableMarker(item, mResultBounds)
                             if (marker != null) {
                                 mappedItems.add(item)
                             }
@@ -619,7 +623,7 @@ class MapboxMapFragment : Fragment() {
     }
 
 
-    private fun addNewMarkerForItem(map: MapboxMap, item: PlayaItem): Symbol {
+    private fun addNewMarkerForItem(item: PlayaItem): Symbol {
         val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
         val symbolOptions: SymbolOptions = SymbolOptions()
                 .withLatLng(pos)
@@ -647,7 +651,7 @@ class MapboxMapFragment : Fragment() {
      * Map a marker as part of a finite set of markers, limiting the total markers
      * displayed and recycling markers if this limit is exceeded.
      */
-    private fun mapRecyclableMarker(map: MapboxMap, item: PlayaItem, boundsBuilder: LatLngBounds.Builder?): Symbol? {
+    private fun mapRecyclableMarker(item: PlayaItem, boundsBuilder: LatLngBounds.Builder?): Symbol? {
         val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
 
         // Assemble search results region boundary
@@ -681,7 +685,7 @@ class MapboxMapFragment : Fragment() {
             markerIdToItem.put(marker.id, item)
         } else {
             // Create a new Marker
-            marker = addNewMarkerForItem(map, item)
+            marker = addNewMarkerForItem(item)
             markerIdToItem.put(marker.id, item)
             mappedTransientMarkers.add(marker)
         }
