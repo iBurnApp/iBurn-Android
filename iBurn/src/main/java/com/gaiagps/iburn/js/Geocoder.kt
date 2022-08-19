@@ -38,10 +38,14 @@ object Geocoder {
 
                     Timber.d("Reverse geocoding...")
                     // Call into the JavaScript object to decode a string.
-                    val playaAddress = v8?.executeStringScript("coder.reverse($lat, $lon)")
-                    Timber.d("Reverse geocode result %s", playaAddress)
+                    try {
+                        val playaAddress = v8?.executeStringScript("coder.reverse($lat, $lon)")
+                        Timber.d("Reverse geocode result %s", playaAddress)
 
-                    playaAddress ?: "?"
+                        playaAddress ?: "?"
+                    } catch (e: Exception) {
+                        "?"
+                    }
                 }
 
     }
@@ -59,25 +63,29 @@ object Geocoder {
                         Timber.w("Invalid playa address $playaAddress, not geocoding")
                     } else {
                         // Call into the JavaScript object to decode a string.
-                        val latLon = v8?.executeObjectScript("coder.forward(\"$playaAddress\")")
-                        Timber.d("Forward geocode result %s", latLon)
+                        try {
+                            val latLon = v8?.executeObjectScript("coder.forward(\"$playaAddress\")")
+                            Timber.d("Forward geocode result %s", latLon)
 
-                        latLon?.let {
-                            if (it.toString() == "undefined") {
-                                Timber.w("Undefined result for $playaAddress")
-                                return@let
-                            }
-                            val rawCoords = it.getObject("geometry").getObject("coordinates")
-                            if (rawCoords is V8Array) {
-                                var item: V8Array = rawCoords
-                                while (item.type != 2 /* double */) {
-                                    item = item.getArray(0)
+                            latLon?.let {
+                                if (it.toString() == "undefined") {
+                                    Timber.w("Undefined result for $playaAddress")
+                                    return@let
                                 }
-                                val coords = item.getDoubles(0, 2)
-                                Timber.d("Got coords! ${coords[0]}, ${coords[1]}")
-                                result.latitude = coords[1]
-                                result.longitude = coords[0]
+                                val rawCoords = it.getObject("geometry").getObject("coordinates")
+                                if (rawCoords is V8Array) {
+                                    var item: V8Array = rawCoords
+                                    while (item.type != 2 /* double */) {
+                                        item = item.getArray(0)
+                                    }
+                                    val coords = item.getDoubles(0, 2)
+                                    Timber.d("Got coords! ${coords[0]}, ${coords[1]}")
+                                    result.latitude = coords[1]
+                                    result.longitude = coords[0]
+                                }
                             }
+                        } catch (e: Exception) {
+                            Timber.w("Geocoder exception: $e")
                         }
                     }
                     result
