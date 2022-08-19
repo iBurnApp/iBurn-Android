@@ -67,7 +67,7 @@ Put bundled database in `./iBurn/main/assets/databases`, make sure PlayaDatabase
 ## Working with mock data
 
 First, disable using any bundled db by changing `USE_BUNDLED_DB` to false in PlayaDatabase2.kt
-Place `art.json.js`, `camps.json.js`, `events.json.js` in ./iBurn/src/main/assets/json, and add
+Place `art.json`, `camp.json`, `event.json` in ./iBurn/src/main/assets/json, and add
 the following code somewhere on app start, like MainActivity#onCreate ~L#130:
 
     IBurnService service = new IBurnService(context, new MockIBurnApi(context));

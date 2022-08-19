@@ -1,0 +1,85 @@
+{
+  "project_info": {
+    "project_number": "374351838691",
+    "firebase_url": "https://iburn-app.firebaseio.com",
+    "project_id": "iburn-app",
+    "storage_bucket": "iburn-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:374351838691:android:28e734717265374b",
+        "android_client_info": {
+          "package_name": "com.iburnapp.iburn2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "374351838691-9gaqibdopi8tjngtq9g5ed1t9trnvmu7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCN8VzwTQR-ut1WoGd6ShIMHZTepKsXnMA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "374351838691-9gaqibdopi8tjngtq9g5ed1t9trnvmu7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "374351838691-0ur78j9m04jbnjkso5envcqjpu2rjnb4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.trailbehind.iBurn2010",
+                "app_store_id": "388169740"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:374351838691:android:b8d68640298d38c80374d6",
+        "android_client_info": {
+          "package_name": "com.iburnapp.iburn2.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "374351838691-9gaqibdopi8tjngtq9g5ed1t9trnvmu7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCN8VzwTQR-ut1WoGd6ShIMHZTepKsXnMA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "374351838691-9gaqibdopi8tjngtq9g5ed1t9trnvmu7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "374351838691-0ur78j9m04jbnjkso5envcqjpu2rjnb4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.trailbehind.iBurn2010",
+                "app_store_id": "388169740"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
