@@ -146,7 +146,7 @@ private fun getCachedArtImageFile(context: Context, mediaPath: String): File {
  */
 private fun getArtImageAssetPath(art: Art): String {
     Timber.d("Getting bundled art for ${art.name}")
-    return "file:///android_asset/art_images/${art.playaId}.webp"
+    return "file:///android_asset/art_images/${art.playaId}.jpg"
 }
 
 private fun getArtImagesDirectory(context: Context): File {
