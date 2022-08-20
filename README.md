@@ -83,7 +83,9 @@ Make sure you've:
 + Incremented the version code and name in ./iBurn/build.grade
 The final pre-signed store release should be built with:
 
+```
     $ ./gradlew assembleRegularUnsigned
+```
 
 Pass the resulting apk off for signing. Then zipalign before publishing:
 
