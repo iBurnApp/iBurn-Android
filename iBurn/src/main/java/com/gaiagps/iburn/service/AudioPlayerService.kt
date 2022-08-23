@@ -23,6 +23,7 @@ import com.gaiagps.iburn.database.Art
 import timber.log.Timber
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.res.AssetFileDescriptor
 import android.support.v4.media.MediaMetadataCompat
 import com.gaiagps.iburn.getAssetPathFromAssetUri
@@ -69,7 +70,14 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
     }
 
     private val mediaSession: MediaSessionCompat by lazy {
-        MediaSessionCompat(applicationContext, LogTag)
+
+        val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
+        val pendingIntent = PendingIntent.getBroadcast(
+            baseContext,
+            0, mediaButtonIntent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+        MediaSessionCompat(applicationContext, LogTag, null, pendingIntent)
     }
 
     private var currentAlbumArtUri: Uri? = null
