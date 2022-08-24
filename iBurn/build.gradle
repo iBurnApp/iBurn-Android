@@ -28,8 +28,8 @@ android {
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 32
-        versionCode 35
-        versionName "2022.0.0.1"
+        versionCode 36
+        versionName "2022.0.0.2"
 
         applicationId "com.iburnapp.iburn3"
 
