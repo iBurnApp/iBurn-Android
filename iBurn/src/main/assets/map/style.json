@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "iburn-2022",
+  "name": "iburn-2023",
   "metadata": {
     "mapbox:autocomposite": false,
     "mapbox:type": "template",
@@ -14,6 +14,7 @@
   "pitch": 3.5,
   "sprite": "asset://map/sprites/sprite",
   "glyphs": "asset://map/glyphs/{range}.pbf",
+  "sources": {},
   "layers": [
     {
       "id": "background",
