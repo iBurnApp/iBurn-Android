@@ -101,12 +101,12 @@ private fun cacheArtImageFile(context: Context, art: Art, callback: Callback) {
 
     Timber.d("Downloading image for ${art.name}")
     httpClient.newCall(request).enqueue(object : okhttp3.Callback {
-        override fun onResponse(call: Call?, response: Response?) {
+        override fun onResponse(call: Call, response: Response) {
             if (response?.isSuccessful == true) {
                 Timber.d("Downloaded image for ${art.name}")
                 val destFile = getCachedArtImageFile(context, imageUrl)
                 val outStream = FileOutputStream(destFile)
-                val inStream = response?.body()?.byteStream()
+                val inStream = response.body?.byteStream()
                 if (inStream != null) {
                     inStream.copyTo(outStream)
                     postResult(callback)
@@ -119,7 +119,7 @@ private fun cacheArtImageFile(context: Context, art: Art, callback: Callback) {
             }
         }
 
-        override fun onFailure(call: Call?, e: IOException?) {
+        override fun onFailure(call: Call, e: IOException) {
             Timber.e(e, "Download failed")
             postResult(callback, succcess = false)
         }

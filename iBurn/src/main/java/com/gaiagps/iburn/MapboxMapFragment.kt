@@ -370,6 +370,7 @@ class MapboxMapFragment : Fragment() {
                 if (hasLocationPermission()) {
                     val activateOptions = LocationComponentActivationOptions.Builder(requireContext(), it)
                             .build()
+
                     map.locationComponent.activateLocationComponent(activateOptions)
                     map.locationComponent.isLocationComponentEnabled = true
                     map.locationComponent.renderMode = RenderMode.NORMAL
@@ -858,7 +859,7 @@ class MapboxMapFragment : Fragment() {
         var markerLatLng = latLng
         if (markerLatLng == null) {
             val mapCenter = map.cameraPosition.target
-            markerLatLng = LatLng(mapCenter.latitude, mapCenter.longitude)
+            markerLatLng = LatLng(mapCenter!!.latitude, mapCenter!!.longitude)
         }
 
         val symbolOptions: SymbolOptions = SymbolOptions()
