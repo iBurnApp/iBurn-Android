@@ -4,7 +4,6 @@ import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
 
 import android.Manifest;
 import android.app.SearchManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -17,15 +16,11 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.gaiagps.iburn.api.MockIBurnApi;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import com.gaiagps.iburn.api.IBurnService;
 import com.gaiagps.iburn.MapboxBundledMapKt;
 import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.PermissionManager;
@@ -34,6 +29,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
+import com.gaiagps.iburn.databinding.ActivityMainBinding;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
@@ -42,15 +38,12 @@ import com.gaiagps.iburn.service.DataUpdateService;
 import com.gaiagps.iburn.view.BottomTickerView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.roughike.bottombar.BottomBar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import permissions.dispatcher.NeedsPermission;
@@ -65,15 +58,11 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private boolean googlePlayServicesMissing = false;
     private boolean awaitingLocationPermission = false;
 
-    @BindView(R.id.parent)
-    ViewGroup parent;
-
-    @BindView(R.id.fab)
-    FloatingActionButton fab;
+    private ActivityMainBinding binding;
 
     private PrefsHelper prefs;
     private String searchQuery;
-    private BottomBar bottomBar;
+    private BottomNavigationView bottomBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,8 +80,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 //                    .build());
         }
 
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         bottomBar = findViewById(R.id.bottomBar);
         setupBottomBar(bottomBar);
 
@@ -105,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
                 setAwaitingLocationPermission(true);
                 // Request location permission and notify onAcquiredLocationPermission on success
-                MainActivityPermissionsDispatcher.onAcquiredLocationPermissionWithCheck(MainActivity.this);
+                MainActivityPermissionsDispatcher.onAcquiredLocationPermissionWithPermissionCheck(MainActivity.this);
             }
         }
         if (!checkPlayServices()) {
@@ -141,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private void setAwaitingLocationPermission(boolean awaitingPermission) {
         this.awaitingLocationPermission = awaitingPermission;
 
-        int currentTabId = bottomBar.getCurrentTabId();
+        int currentTabId = bottomBar.getSelectedItemId();
         int mapTabId = R.id.tab_map;
 
         if (currentTabId == mapTabId) {
@@ -151,36 +140,30 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
     }
 
-    private void setupBottomBar(BottomBar bottomBar) {
-        bottomBar.setOnTabSelectListener(id -> {
+    private void setupBottomBar(BottomNavigationView bottomBar) {
+        bottomBar.setOnItemSelectedListener(menuItem -> {
             Fragment frag = null;
-
-            switch (id) {
-                case R.id.tab_map:
-                    if (awaitingLocationPermission) {
-                        frag = new MapPlaceHolderFragment();
-                    } else {
-                        frag = new MapboxMapFragment();
-                    }
-                    break;
-
-                case R.id.tab_now:
-                    frag = new ExploreListViewFragment();
-                    break;
-
-                case R.id.tab_browse:
-                    frag = new BrowseListViewFragment();
-                    break;
-
-                case R.id.tab_favorites:
-                    frag = new FavoritesListViewFragment();
-                    break;
+            final int selectedId = menuItem.getItemId();
+            if (R.id.tab_map == selectedId) {
+                if (awaitingLocationPermission) {
+                    frag = new MapPlaceHolderFragment();
+                } else {
+                    frag = new MapboxMapFragment();
+                }
+            } else if (R.id.tab_now == selectedId) {
+                frag = new ExploreListViewFragment();
+            } else if (R.id.tab_browse == selectedId) {
+                frag = new BrowseListViewFragment();
+            } else if (R.id.tab_favorites == selectedId) {
+                frag = new FavoritesListViewFragment();
             }
 
             if (frag != null) {
                 setCurrentFragment(frag);
             }
+            return true;
         });
+        bottomBar.setSelectedItemId(R.id.tab_map);
     }
 
     private void setCurrentFragment(@NonNull Fragment fragment) {
@@ -272,6 +255,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
     @Override
     protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
         handleIntent(intent);
     }
 
@@ -381,12 +365,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         ticker.setCallback(new BottomTickerView.Callback() {
             @Override
             public void onShown() {
-                fab.hide();
+                binding.fab.hide();
             }
 
             @Override
             public void onDismissed() {
-                fab.show();
+                binding.fab.show();
             }
 
             @Override
@@ -409,12 +393,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         ticker.setCallback(new BottomTickerView.Callback() {
             @Override
             public void onShown() {
-                fab.hide();
+                binding.fab.hide();
             }
 
             @Override
             public void onDismissed() {
-                fab.show();
+                binding.fab.show();
             }
 
             @Override
