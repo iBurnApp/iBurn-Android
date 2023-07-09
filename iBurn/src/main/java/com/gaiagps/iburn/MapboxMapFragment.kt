@@ -451,8 +451,13 @@ class MapboxMapFragment : Fragment() {
                             .build()
 
                     map.locationComponent.activateLocationComponent(activateOptions)
-                    map.locationComponent.isLocationComponentEnabled = true
                     map.locationComponent.renderMode = RenderMode.NORMAL
+                    if (BuildConfig.MOCK) {
+                        val mockProvider = LocationProvider.MapboxMockLocationSource()
+                        mockProvider.activate()
+                        map.locationComponent.locationEngine = mockProvider
+                    }
+                    map.locationComponent.isLocationComponentEnabled = true
                 }
                 map.setMinZoomPreference(defaultZoom)
                 map.setLatLngBoundsForCameraTarget(cameraBounds)

@@ -8,8 +8,9 @@ import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
 
+import androidx.annotation.NonNull;
+
 import com.gaiagps.iburn.BuildConfig;
-import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.PermissionManager;
 import com.google.android.gms.location.LocationRequest;
 import com.mapbox.mapboxsdk.location.engine.LocationEngine;
@@ -24,6 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.PublishSubject;
 import timber.log.Timber;
@@ -121,7 +123,7 @@ public class LocationProvider {
 
     public static class MapboxMockLocationSource implements LocationEngine {
 
-        private Disposable mockLocationSub;
+        private CompositeDisposable mockLocationSubs;
         private boolean areUpdatesRequested = false;
         private Location lastLocation;
 
@@ -135,23 +137,22 @@ public class LocationProvider {
 
             deactivate();
 
-            mockLocationSub = mockLocationSubject
+            areUpdatesRequested = true;
+            Disposable lastLocationSub = mockLocationSubject
                     .takeWhile(ignored -> areUpdatesRequested)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(location -> {
                         lastLocation = location;
-
                     });
-
+            mockLocationSubs = new CompositeDisposable(lastLocationSub);
             // "Connection" is immediate here
-
         }
 
 
         public void deactivate() {
-            if (mockLocationSub != null) {
-                mockLocationSub.dispose();
-                mockLocationSub = null;
+            if (mockLocationSubs != null) {
+                mockLocationSubs.dispose();
+                mockLocationSubs = null;
             }
         }
 
@@ -160,30 +161,36 @@ public class LocationProvider {
             return true;
         }
 
-        @SuppressLint("MissingPermission")
-        public void getLastLocation(LocationEngineCallback<LocationEngineResult> callback) {
-            Location loc = new Location("MOCK_PROVIDER");
-            if (lastLocation != null) {
-                loc.setLatitude(lastLocation.getLatitude());
-                loc.setLongitude(lastLocation.getLongitude());
-            } else {
-                loc.setLatitude(Geo.MAN_LAT);
-                loc.setLongitude(Geo.MAN_LON);
-            }
-            loc.setBearing((float) (Math.random() * 360));
-            loc.setAccuracy((float) (Math.random() * 30));
-
+        @SuppressLint({"MissingPermission", "CheckResult"})
+        public void getLastLocation(@NonNull LocationEngineCallback<LocationEngineResult> callback) {
+            mockLocationSubject
+                    .take(1)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(location -> {
+                        callback.onSuccess(LocationEngineResult.create(location));
+                    });
         }
 
 
         public void requestLocationUpdates(PendingIntent intent) {
-            areUpdatesRequested = true;
+            // PendingIntent API is probably for maplibre internal use only - this would require
+            // some knowledge about how to format result into the PendingIntent's "extra" keys and values
+            throw new UnsupportedOperationException("PendingIntent API not supported");
         }
+
         public void requestLocationUpdates(LocationEngineRequest request, PendingIntent intent) {
-            areUpdatesRequested = true;
+            throw new UnsupportedOperationException("PendingIntent API not supported");
         }
+
         public void requestLocationUpdates(LocationEngineRequest request, LocationEngineCallback<LocationEngineResult> result, Looper looper) {
             areUpdatesRequested = true;
+            Disposable requestLocationSub = mockLocationSubject
+                    .takeWhile(ignored -> areUpdatesRequested)
+                    .observeOn(AndroidSchedulers.from(looper))
+                    .subscribe(location -> {
+                        result.onSuccess(LocationEngineResult.create(location));
+                    });
+            mockLocationSubs.add(requestLocationSub);
         }
 
         public void removeLocationUpdates(PendingIntent intent) {
@@ -193,10 +200,5 @@ public class LocationProvider {
         public void removeLocationUpdates(LocationEngineCallback<LocationEngineResult> result) {
             areUpdatesRequested = false;
         }
-
-//
-//        public Type obtainType() {
-//            return Type.MOCK;
-//        }
     }
 }
