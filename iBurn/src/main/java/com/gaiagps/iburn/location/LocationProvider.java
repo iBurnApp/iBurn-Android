@@ -41,7 +41,7 @@ public class LocationProvider {
     // Location Mocking
     private static AtomicBoolean isMockingLocation = new AtomicBoolean(false);
     private static Disposable mockLocationSubscription;
-    private static Location lastMockLocation;
+    private static Location lastMockLocation = createMockLocation();
     private static PublishSubject<Location> mockLocationSubject = PublishSubject.create();
 
     private static final double MAX_MOCK_LAT = 40.8037;
@@ -109,10 +109,9 @@ public class LocationProvider {
 
     private static void mockCurrentLocation() {
         if (!isMockingLocation.get()) {
-            lastMockLocation = createMockLocation();
             isMockingLocation.set(true);
 
-            mockLocationSubscription = Observable.interval(15, 15, TimeUnit.SECONDS)
+            mockLocationSubscription = Observable.interval(2, 15, TimeUnit.SECONDS)
                     .startWith(-1l)
                     .subscribe(time -> {
                         lastMockLocation = createMockLocation();
@@ -123,9 +122,8 @@ public class LocationProvider {
 
     public static class MapboxMockLocationSource implements LocationEngine {
 
-        private CompositeDisposable mockLocationSubs;
+        private CompositeDisposable mockLocationSubs = new CompositeDisposable();
         private boolean areUpdatesRequested = false;
-        private Location lastLocation;
 
         public MapboxMockLocationSource() {
             super();
@@ -133,18 +131,12 @@ public class LocationProvider {
 
         public void activate() {
             Timber.d("activate mock location provider");
+            mockLocationSubs = new CompositeDisposable();
             mockCurrentLocation();
 
             deactivate();
 
             areUpdatesRequested = true;
-            Disposable lastLocationSub = mockLocationSubject
-                    .takeWhile(ignored -> areUpdatesRequested)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(location -> {
-                        lastLocation = location;
-                    });
-            mockLocationSubs = new CompositeDisposable(lastLocationSub);
             // "Connection" is immediate here
         }
 
@@ -190,7 +182,9 @@ public class LocationProvider {
                     .subscribe(location -> {
                         result.onSuccess(LocationEngineResult.create(location));
                     });
-            mockLocationSubs.add(requestLocationSub);
+            if (mockLocationSubs != null) {
+                mockLocationSubs.add(requestLocationSub);
+            }
         }
 
         public void removeLocationUpdates(PendingIntent intent) {
