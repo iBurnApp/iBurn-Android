@@ -2,8 +2,10 @@ package com.gaiagps.iburn.activity;
 
 import android.content.Context;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -60,7 +62,9 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
         resultList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
         resultList.setAdapter(adapter);
 
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        binding.search.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(binding.search, InputMethodManager.SHOW_IMPLICIT);
 
         binding.search.addTextChangedListener(new TextWatcher() {
             @Override
@@ -80,8 +84,8 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
 
         binding.search.setOnEditorActionListener((view, actionId, event) -> {
             getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(binding.search.getWindowToken(), 0);
+            ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE))
+                    .hideSoftInputFromWindow(binding.search.getWindowToken(), 0);
             return true;
         });
 
