@@ -42,6 +42,7 @@
             android:id="@+id/search"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:focusableInTouchMode="true"
             android:layout_alignBottom="@id/search"
             android:layout_alignParentTop="true"
             android:layout_toEndOf="@id/search_cancel"
