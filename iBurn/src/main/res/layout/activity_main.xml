@@ -13,6 +13,7 @@
         android:layout_height="60dp"
         android:layout_alignParentBottom="true"
         android:layout_gravity="bottom"
+        app:labelVisibilityMode="unlabeled"
         app:layout_anchor="@id/content"
         app:layout_anchorGravity="bottom"
         app:menu="@menu/bottom_bar_items" />
