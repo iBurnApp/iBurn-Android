@@ -141,7 +141,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     }
 
     private void setupBottomBar(BottomNavigationView bottomBar) {
-        bottomBar.setOnItemReselectedListener(menuItem -> { /* ignore re-selection */});
         bottomBar.setOnItemSelectedListener(menuItem -> {
             Fragment frag = null;
             final int selectedId = menuItem.getItemId();
@@ -165,6 +164,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             return true;
         });
         bottomBar.setSelectedItemId(R.id.tab_map);
+        bottomBar.setOnItemReselectedListener(menuItem -> { /* ignore re-selection */});
     }
 
     private void setCurrentFragment(@NonNull Fragment fragment) {
