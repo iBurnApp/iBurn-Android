@@ -6,6 +6,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.BitmapFactory
 import android.graphics.PointF
 import android.os.Bundle
@@ -572,6 +573,14 @@ class MapboxMapFragment : Fragment() {
         super.onResume()
         mapView?.onResume()
         keepScreenOn(true)
+
+        // TODO: Toggle Map style for Day/Night mode
+        val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+            /* Apply night style */
+        } else {
+            /* Apply day style  */
+        }
     }
 
     override fun onPause() {
