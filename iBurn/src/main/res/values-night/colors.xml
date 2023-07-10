@@ -24,39 +24,39 @@
     <color name="iburn_color_dark">#EF6C00</color>
     <color name="iburn_color_accent">@color/icon_fire_red</color>
     <color name="iburn_color_accent_yel">#ffd600</color>
-    <color name="window_background">#FFFFFF</color>
-    <color name="window_background_translucent">#2FFFFFFF</color>
+    <color name="window_background">#FF303030</color>
+    <color name="window_background_translucent">#2F303030</color>
 
 
     <!-- ActionBar -->
-    <color name="ab_bg">@color/dull_white</color>
+    <color name="ab_bg">@color/off_blk_2</color>
 
     <!-- ListView -->
     <color name="background">@android:color/transparent</color>
     <color name="list_item_bg_pressed">@color/map_highlight</color>
-    <color name="regular_text">@color/off_blk</color>
-    <color name="sub_text">@color/off_blk_2</color>
-    <color name="sub_sub_text">@color/off_blk_3</color>
+    <color name="regular_text">@color/white</color>
+    <color name="sub_text">@color/dull_white</color>
+    <color name="sub_sub_text">@color/dull_white_3</color>
     <color name="green_text">#51ce4e</color>
     <color name="orange_text">@color/highlight_comp</color>
 
     <!-- Map, Camp, Art, Events Tabs -->
-    <color name="tab_bg">@color/white</color>
-    <color name="tab_text">@color/off_blk</color>
+    <color name="tab_bg">@color/off_blk_2</color>
+    <color name="tab_text">@color/white</color>
     <color name="tab_selector">#ffffe0c6</color><!--@color/map_highlight-->
     <color name="tab_pressed">@color/map_bg</color>
     <color name="tab_selected">@color/map_highlight</color>
     <color name="tab_divider">@color/off_blk_3</color>
 
     <!-- Art, Camps Events Header Tabs -->
-    <color name="sub_tab_bg">@color/white</color>
-    <color name="sub_tab_text">@color/off_blk</color>
+    <color name="sub_tab_bg">@color/off_blk</color>
+    <color name="sub_tab_text">@color/white</color>
     <color name="sub_tab_pressed">@color/off_blk_4</color>
     <color name="sub_tab_selected">@color/off_blk_3</color>
 
     <!-- Types, Days Header tabs -->
-    <color name="sub_sub_tab_bg">@color/white</color>
-    <color name="sub_sub_tab_text">@color/off_blk</color>
+    <color name="sub_sub_tab_bg">@color/off_blk_2</color>
+    <color name="sub_sub_tab_text">@color/white</color>
     <color name="sub_sub_tab_pressed">@color/off_blk_4</color>
     <color name="sub_sub_tab_selected">@color/off_blk_35</color>
 
