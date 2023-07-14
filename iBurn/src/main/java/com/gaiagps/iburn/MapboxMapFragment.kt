@@ -750,6 +750,8 @@ class MapboxMapFragment : Fragment() {
             .withLatLng(pos)
             .withTextField(item.name)
             .withTextSize(12f)
+            .withTextHaloColor("#EBDED1")
+            .withTextHaloWidth(2.0F)
 
         if (item is UserPoi) {
             symbolOptions.withIconImage(item.icon)
@@ -1006,6 +1008,8 @@ class MapboxMapFragment : Fragment() {
             .withTextField(title)
             .withIconImage(UserPoi.ICON_STAR)
             .withTextSize(12f)
+            .withTextHaloColor("#EBDED1")
+            .withTextHaloWidth(2.0F)
             .withTextOffset(floatArrayOf(0f, 2.5f).toTypedArray())
         val symbol = symbolManager?.create(symbolOptions)
 

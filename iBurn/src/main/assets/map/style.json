@@ -19,7 +19,7 @@
     {
       "id": "background",
       "type": "background",
-      "paint": {"background-color": "#E8E0D8"}
+      "paint": {"background-color": "#000000"}
     },
     {
       "id": "toilets-outline",
