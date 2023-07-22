@@ -8,11 +8,10 @@
     "mapbox:sdk-support": {"js": "0.54.0", "android": "7.4.0", "ios": "4.11.0"},
     "maputnik:renderer": "mbgljs"
   },
-  "center": [-119.19469787766286, 40.78675505232937],
+  "center": [-119.203500, 40.786400],
   "zoom": 14.23063189341901,
   "bearing": 0,
   "pitch": 3.5,
-  "sprite": "asset://map/sprites/sprite",
   "glyphs": "asset://map/glyphs/{range}.pbf",
   "sources": {},
   "layers": [
