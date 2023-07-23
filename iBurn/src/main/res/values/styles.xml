@@ -4,16 +4,30 @@
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="Theme.Iburn.Base" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.Iburn.Base" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/iburn_color</item>
-        <item name="colorPrimaryDark">@color/off_blk</item>
-        <item name="colorAccent">@color/iburn_color</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/iburn_color</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
+        <item name="colorSecondary">@color/iburn_color</item>
+        <item name="colorSecondaryContainer">@color/iburn_color</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorTertiary">@color/iburn_color</item>
+        <item name="colorTertiaryContainer">@color/iburn_color</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorOnSurfaceVariant">@color/iburn_color</item>
+        <item name="colorOnSurface">@color/iburn_color</item>
+        <item name="colorOnPrimarySurface">@color/iburn_color</item>
+        <item name="colorOnSurfaceInverse">@color/iburn_color</item>
         <item name="android:windowBackground">@color/window_background</item>
 
     </style>
 
-    <style name="Theme.Iburn.Dialog" parent="Theme.AppCompat.Dialog">
-        <item name="colorAccent">@color/iburn_color</item>
+    <style name="Theme.Iburn.Dialog" parent="Theme.Material3.DayNight.Dialog">
+        <item name="colorPrimary">@color/iburn_color</item>
+        <item name="colorSecondary">@color/iburn_color</item>
+        <item name="colorTertiary">@color/iburn_color</item>
+        <item name="colorOnSurfaceVariant">@color/iburn_color</item>
     </style>
 
     <!-- MainActivity theme -->
@@ -67,7 +81,7 @@
     </style>
 
     <!-- Pre Lollipop the FAB provides its own padding -->
-    <style name="FloatingActionButton">
+    <style name="FloatingActionButton" parent="@style/Widget.MaterialComponents.FloatingActionButton">
         <item name="android:layout_marginLeft">0dp</item>
         <item name="android:layout_marginTop">0dp</item>
         <item name="android:layout_marginRight">0dp</item>

@@ -334,10 +334,10 @@ class DataProvider private constructor(private val context: Context, private val
         // TODO : Honor upgradeLock
 
         // Warning: The following is very ethnocentric to Earth C-137 North-Western ... Quadrasphere(?)
-        val maxLat = region.farRight.latitude.toFloat()
-        val minLat = region.nearRight.latitude.toFloat()
-        val maxLon = region.farRight.longitude.toFloat()
-        val minLon = region.farLeft.longitude.toFloat()
+        val maxLat = region.farRight!!.latitude.toFloat()
+        val minLat = region.nearRight!!.latitude.toFloat()
+        val maxLon = region.farRight!!.longitude.toFloat()
+        val minLon = region.farLeft!!.longitude.toFloat()
 
         return Flowables.combineLatest(
                 db.artDao().favorites,

@@ -38,8 +38,8 @@ public class AdapterUtils {
     public static final SimpleDateFormat dayLabelFormatter = new SimpleDateFormat("EE M/d", Locale.US);
     public static final SimpleDateFormat dayAbbrevFormatter = new SimpleDateFormat("M/d", Locale.US);
 
-    public static final Date EVENT_START_DATE = new GregorianCalendar(2022, Calendar.AUGUST, 28, 0, 0).getTime();
-    public static final Date EVENT_END_DATE = new GregorianCalendar(2022, Calendar.SEPTEMBER, 5, 0, 0).getTime();
+    public static final Date EVENT_START_DATE = new GregorianCalendar(2023, Calendar.AUGUST, 27, 0, 0).getTime();
+    public static final Date EVENT_END_DATE = new GregorianCalendar(2023, Calendar.SEPTEMBER, 4, 0, 0).getTime();
 
     public static final String EVENT_TYPE_ABBREVIATION_UNKNOWN = "unknwn";
     public static final String EVENT_TYPE_NAME_UNKNOWN = "Uncategorized";

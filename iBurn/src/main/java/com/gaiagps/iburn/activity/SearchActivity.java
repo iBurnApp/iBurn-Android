@@ -2,8 +2,10 @@ package com.gaiagps.iburn.activity;
 
 import android.content.Context;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -19,12 +21,11 @@ import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.adapters.MultiTypePlayaItemAdapter;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaItem;
+import com.gaiagps.iburn.databinding.ActivitySearchBinding;
 import com.tonicartos.superslim.LayoutManager;
 
 import java.util.Locale;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -35,6 +36,9 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
     private MultiTypePlayaItemAdapter adapter;
     private Disposable searchSubscription;
 
+    private ActivitySearchBinding binding;
+
+    /*
     @BindView(R.id.results)
     RecyclerView resultList;
 
@@ -43,22 +47,26 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
 
     @BindView(R.id.results_summary)
     TextView resultsSummary;
+    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search);
-        ButterKnife.bind(this);
+        binding = ActivitySearchBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         adapter = new MultiTypePlayaItemAdapter(this, this);
 
+        RecyclerView resultList = binding.results;
         resultList.setLayoutManager(new LayoutManager(this));
         resultList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
         resultList.setAdapter(adapter);
 
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        binding.search.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(binding.search, InputMethodManager.SHOW_IMPLICIT);
 
-        searchEntry.addTextChangedListener(new TextWatcher() {
+        binding.search.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -74,10 +82,10 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
             }
         });
 
-        searchEntry.setOnEditorActionListener((view, actionId, event) -> {
+        binding.search.setOnEditorActionListener((view, actionId, event) -> {
             getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(searchEntry.getWindowToken(), 0);
+            ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE))
+                    .hideSoftInputFromWindow(binding.search.getWindowToken(), 0);
             return true;
         });
 
@@ -94,7 +102,7 @@ public class SearchActivity extends AppCompatActivity implements AdapterListener
                 .flatMap(dataProvider -> dataProvider.observeNameQuery(query).toObservable()) // TODO : rm toObservable
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(sectionedPlayaItems -> {
-                    resultsSummary.setText(describeResults(sectionedPlayaItems));
+                    binding.resultsSummary.setText(describeResults(sectionedPlayaItems));
                     adapter.setSectionedItems(sectionedPlayaItems);
                 });
 

@@ -8,17 +8,18 @@
     "mapbox:sdk-support": {"js": "0.54.0", "android": "7.4.0", "ios": "4.11.0"},
     "maputnik:renderer": "mbgljs"
   },
-  "center": [-119.203500, 40.786400],
+  "center": [-119.19469787766286, 40.78675505232937],
   "zoom": 14.23063189341901,
   "bearing": 0,
   "pitch": 3.5,
+  "sprite": "asset://map/sprites/sprite",
   "glyphs": "asset://map/glyphs/{range}.pbf",
   "sources": {},
   "layers": [
     {
       "id": "background",
       "type": "background",
-      "paint": {"background-color": "#E8E0D8"}
+      "paint": {"background-color": "#1C1B1B"}
     },
     {
       "id": "toilets-outline",

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">iBurn 2022</string>
+    <string name="app_name">iBurn 2023</string>
 
     <!-- MainActivity Tabs -->
     <string name="fav_tab">Faves️</string>
@@ -61,7 +61,7 @@
         <item>2018 THEME: TURNKEY CAMPS</item>
     </string-array>
 
-    <string name="also_at">Other Occurrences</string>
+    <string name="also_at">Also at:</string>
     <string name="hosted_events">Hosted Events</string>
     <string name="send_feedback">Send Feedback</string>
     <string name="we_love_feedback">We ❤ Feedback</string>
@@ -82,6 +82,6 @@
     <string name="pause_audio_tour">Pause Audio Tour</string>
     <string name="camp_location_unknown">Sorry, we don\'t have location data for that camp. You can add a marker later from the app\'s map view.</string>
     <string name="place_marker">Move the map, then tap marker to place it</string>
-    <string name="current_year">2022</string>
+    <string name="current_year">2023</string>
 
 </resources>

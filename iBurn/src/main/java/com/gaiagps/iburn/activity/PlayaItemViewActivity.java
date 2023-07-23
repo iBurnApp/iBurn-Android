@@ -11,6 +11,8 @@ import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.RemoteException;
+
+import com.gaiagps.iburn.databinding.ActivityPlayaItemViewBinding;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import android.support.v4.media.MediaBrowserCompat;
@@ -62,8 +64,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -94,6 +94,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     private boolean didPopulateViews;
     private TextView audioTourToggle;
 
+    private ActivityPlayaItemViewBinding binding;
+    /*
     @BindView(R.id.toolbar)
     Toolbar toolbar;
 
@@ -129,6 +131,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
     @BindView(R.id.appbar)
     AppBarLayout appbarLayout;
+    */
 
     Disposable autoShowArtDisposable;
     boolean loadedArtImage;
@@ -139,14 +142,14 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_playa_item_view);
-        ButterKnife.bind(this);
+        binding = ActivityPlayaItemViewBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         didPopulateViews = false;
 
         Intent i = getIntent();
         item = (PlayaItem) i.getSerializableExtra(EXTRA_PLAYA_ITEM);
 
-        setSupportActionBar(toolbar);
+        setSupportActionBar(binding.toolbar);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -162,7 +165,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         fadeAnimation.setStartOffset(250);
         fadeAnimation.setFillAfter(true);
         fadeAnimation.setFillEnabled(true);
-        mapContainer.startAnimation(fadeAnimation);
+        binding.mapContainer.startAnimation(fadeAnimation);
 
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
@@ -170,10 +173,10 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
             onCreateMediaController();
         }
 
-        appbarLayout.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
+        binding.appbar.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
 
-            int collapsingTriggerHeight = collapsingToolbarLayout.getScrimVisibleHeightTrigger();
-            int collapsingOffsetTrigger = -(collapsingToolbarLayout.getHeight() - collapsingTriggerHeight);
+            int collapsingTriggerHeight = binding.collapsingToolbar.getScrimVisibleHeightTrigger();
+            int collapsingOffsetTrigger = -(binding.collapsingToolbar.getHeight() - collapsingTriggerHeight);
             if (verticalOffset <= collapsingOffsetTrigger) {
                 // Collapsed
                 if (showingLocation && showingArt && imageMenuItem != null && imageMenuItem.isVisible() && loadedArtImage) {
@@ -328,7 +331,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
             } else {
 
-                Timber.e("Unable to handle audio tour playback toggle. MediaController in unknown state %d", pbState);
+                Timber.e("Unable to handle audio tour playback toggle. MediaController in unknown state %s", pbState);
 
             }
             setAudioTourToggleStateWithPlaybackState(mediaController, item);
@@ -378,7 +381,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         display.getSize(size);
         int height = size.y;
 
-        int[] textSizeAttr = new int[]{R.attr.actionBarSize};
+        int[] textSizeAttr = new int[]{android.R.attr.actionBarSize};
         int indexOfAttrTextSize = 0;
         TypedArray a = obtainStyledAttributes(textSizeAttr);
         int abHeight = a.getDimensionPixelSize(indexOfAttrTextSize, -1);
@@ -387,7 +390,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         Resources r = getResources();
         int statusBarPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, r.getDisplayMetrics());
 
-        textContainer.setMinimumHeight(height - abHeight - statusBarPx);
+        binding.textContainer.setMinimumHeight(height - abHeight - statusBarPx);
     }
 
     @Override
@@ -412,33 +415,30 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            // Respond to the action bar's Up/Home button
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-            case R.id.favorite_menu:
-                setFavorite(!isFavorite, true);
-                return true;
-
-            case R.id.image_menu:
-                if (artImageView != null) {
-                    boolean isVisible = artImageView.getVisibility() == View.VISIBLE && (artImageView.getAlpha() == 1f);
-                    boolean willBeVisible = !isVisible;
-                    if (willBeVisible) {
-                        artImageView.bringToFront();
-                    }
-                    Timber.d("Fading %s art view", willBeVisible ? "in" : "out");
-                    fadeView(artImageView, willBeVisible, null);
-
-                    setImageMenuToggle(willBeVisible);
-
-                    if (autoShowArtDisposable != null) {
-                        autoShowArtDisposable.dispose();
-                    }
+        final int selectedId = item.getItemId();
+        if (android.R.id.home == selectedId) {
+            onBackPressed();
+            return true;
+        } else if (R.id.favorite_menu == selectedId) {
+            setFavorite(!isFavorite, true);
+            return true;
+        } else if (R.id.image_menu == selectedId) {
+            if (artImageView != null) {
+                boolean isVisible = artImageView.getVisibility() == View.VISIBLE && (artImageView.getAlpha() == 1f);
+                boolean willBeVisible = !isVisible;
+                if (willBeVisible) {
+                    artImageView.bringToFront();
                 }
-                return true;
+                Timber.d("Fading %s art view", willBeVisible ? "in" : "out");
+                fadeView(artImageView, willBeVisible, null);
 
+                setImageMenuToggle(willBeVisible);
+
+                if (autoShowArtDisposable != null) {
+                    autoShowArtDisposable.dispose();
+                }
+            }
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -448,7 +448,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         showingLocation = (item.hasLocation() && !embargoActive) || item.hasUnofficialLocation();
 
         if (showingLocation) {
-            favoriteButton.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            binding.fab.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
                 if (favoriteMenuItem != null)
                     favoriteMenuItem.setVisible(v.getVisibility() == View.GONE);
             });
@@ -472,25 +472,25 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
             // Adjust the margin / padding show the heart icon doesn't
             // overlap title + descrition
             findViewById(R.id.map_container).setVisibility(View.GONE);
-            collapsingToolbarLayout.setBackgroundResource(android.R.color.transparent);
+            binding.collapsingToolbar.setBackgroundResource(android.R.color.transparent);
             CollapsingToolbarLayout.LayoutParams parms = new CollapsingToolbarLayout.LayoutParams(CollapsingToolbarLayout.LayoutParams.MATCH_PARENT, 24);
-            mapContainer.setLayoutParams(parms);
-            favoriteButton.setVisibility(View.GONE);
+            binding.mapContainer.setLayoutParams(parms);
+            binding.fab.setVisibility(View.GONE);
             //favoriteMenuItem.setVisible(true);
         }
 
-        titleTextView.setText(item.name);
+        binding.title.setText(item.name);
         setFavorite(item.isFavorite, false);
-        favoriteButton.setOnClickListener(favoriteButtonOnClickListener);
+        binding.fab.setOnClickListener(favoriteButtonOnClickListener);
 
-        setTextOrHideIfEmpty(item.description, bodyTextView);
+        setTextOrHideIfEmpty(item.description, binding.body);
 
         if (!embargoActive) {
-            setTextOrHideIfEmpty(item.playaAddress, subItem1TextView);
+            setTextOrHideIfEmpty(item.playaAddress, binding.subitem1);
         } else if (item.hasUnofficialLocation()) {
-            setTextOrHideIfEmpty("BurnerMap: " + item.playaAddressUnofficial, subItem1TextView);
+            setTextOrHideIfEmpty("BurnerMap: " + item.playaAddressUnofficial, binding.subitem1);
         } else {
-            subItem1TextView.setVisibility(View.GONE);
+            binding.subitem1.setVisibility(View.GONE);
         }
 
         DataProvider.Companion.getInstance(getApplicationContext())
@@ -507,8 +507,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
     private void populateArtViews(Art art, DataProvider provider) {
 
-        setTextOrHideIfEmpty(art.artist, subItem2TextView);
-        setTextOrHideIfEmpty(art.artistLocation, subItem3TextView);
+        setTextOrHideIfEmpty(art.artist, binding.subitem2);
+        setTextOrHideIfEmpty(art.artistLocation, binding.subitem3);
 
         if (art.hasImage()) {
             artImageView = new ImageView(this);
@@ -517,7 +517,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
             artImageView.setLayoutParams(params);
             artImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             artImageView.setAlpha(.99f); // Hack - Can't seem to properly add view if it's visibility is not VISIBLE or alpha 0. This lets us know that the view isn't technically visible (it's not at the front)
-            mapContainer.addView(artImageView);
+            binding.mapContainer.addView(artImageView);
 
             loadArtImage(art, artImageView, new com.gaiagps.iburn.Callback() {
 
@@ -560,8 +560,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     }
 
     private void populateCampViews(Camp camp, DataProvider provider) {
-        setTextOrHideIfEmpty(camp.hometown, subItem2TextView);
-        subItem3TextView.setVisibility(View.GONE);
+        setTextOrHideIfEmpty(camp.hometown, binding.subitem2);
+        binding.subitem3.setVisibility(View.GONE);
 
         // Display hosted events
         PlayaItemAdapter adapter = new PlayaItemAdapter(getApplicationContext(), this);
@@ -573,7 +573,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                     int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
 
 
-                    overflowContainer.removeAllViews();
+                    binding.overflowContainer.removeAllViews();
 
                     if (events.size() > 0) {
                         ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
@@ -581,15 +581,15 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                         hostedEventsTitle.setText(R.string.hosted_events);
                         hostedEventsTitle.setTextSize(32);
                         hostedEventsTitle.setPadding(pad, pad, pad, pad);
-                        overflowContainer.addView(hostedEventsTitle);
+                        binding.overflowContainer.addView(hostedEventsTitle);
                     }
 
                     adapter.setItems(events);
 
                     for (int idx = 0; idx < events.size(); idx++) {
-                        PlayaItemAdapter.ViewHolder holder = (PlayaItemAdapter.ViewHolder) adapter.createViewHolder(overflowContainer, 0);
+                        PlayaItemAdapter.ViewHolder holder = (PlayaItemAdapter.ViewHolder) adapter.createViewHolder(binding.overflowContainer, 0);
                         adapter.bindViewHolder(holder, idx);
-                        overflowContainer.addView(holder.itemView);
+                        binding.overflowContainer.addView(holder.itemView);
                     }
                 });
     }
@@ -611,14 +611,14 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                     event.startTimePretty,
                     endDate,
                     event.endTimePretty);
-            subItem2TextView.setText(dateDescription);
+            binding.subitem2.setText(dateDescription);
 
         } catch (ParseException e) {
             Timber.e(e, "Failed to parse event dates");
-            subItem2TextView.setText(event.startTimePretty);
+            binding.subitem2.setText(event.startTimePretty);
         }
 
-        subItem3TextView.setVisibility(View.GONE);
+        binding.subitem3.setVisibility(View.GONE);
 
         // Display Hosted-By-Camp
         final ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.PlayaTextItem);
@@ -639,7 +639,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                         hostedByCamp.setOnClickListener(new RelatedItemOnClickListener(camp));
                         String campName = camp.name;
                         hostedByCamp.setText("Hosted by " + campName);
-                        overflowContainer.addView(hostedByCamp);
+                        binding.overflowContainer.addView(hostedByCamp);
                     });
 
         }
@@ -657,7 +657,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                         occurrencesTitle.setTypeface(condensed);
                         occurrencesTitle.setTextSize(32);
                         occurrencesTitle.setPadding(pad, pad, pad, 0);
-                        overflowContainer.addView(occurrencesTitle);
+                        binding.overflowContainer.addView(occurrencesTitle);
                     }
 
                     final SimpleDateFormat timeDayFormatter = new SimpleDateFormat("EEEE, M/d 'at' h:mm a", Locale.US);
@@ -679,7 +679,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                         TypedValue outValue = new TypedValue();
                         getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
                         eventTv.setBackgroundResource(outValue.resourceId);
-                        overflowContainer.addView(eventTv);
+                        binding.overflowContainer.addView(eventTv);
                     }
                 });
     }
@@ -760,7 +760,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
         int newMenuDrawableResId = isFavorite ? R.drawable.ic_heart_full_white_24dp : R.drawable.ic_heart_empty_white_24dp;
 
-        favoriteButton.setSelectedState(isFavorite, save);
+        binding.fab.setSelectedState(isFavorite, save);
         if (favoriteMenuItem != null) favoriteMenuItem.setIcon(newMenuDrawableResId);
         if (save) {
             DataProvider.Companion.getInstance(getApplicationContext())
