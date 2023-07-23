@@ -47,13 +47,12 @@ public class AdapterUtils {
     static {
 
         populateDayRanges(EVENT_START_DATE, EVENT_END_DATE);
-
         sEventTypeAbbreviations.add("work");
         sEventTypeNames.add("Class/Workshop");
         sEventTypeAbbreviations.add("perf");
         sEventTypeNames.add("Performance");
         sEventTypeAbbreviations.add("care");
-        sEventTypeNames.add("Care/Support");
+        sEventTypeNames.add("Self Care");
         sEventTypeAbbreviations.add("prty");
         sEventTypeNames.add("Gathering/Party");
         sEventTypeAbbreviations.add("cere");
@@ -65,31 +64,23 @@ public class AdapterUtils {
         sEventTypeAbbreviations.add("adlt");
         sEventTypeNames.add("Mature Audiences");
         sEventTypeAbbreviations.add("kid");
-        sEventTypeNames.add("Kid-friendly");
-        sEventTypeAbbreviations.add("para");
-        sEventTypeNames.add("Parade");
+        sEventTypeNames.add("For Kids");
         sEventTypeAbbreviations.add("food");
-        sEventTypeNames.add("Food");
+        sEventTypeNames.add("Food & Drink");
         sEventTypeAbbreviations.add("othr");
-        sEventTypeNames.add("Unknown");
+        sEventTypeNames.add("Miscellaneous");
         sEventTypeAbbreviations.add("arts");
-        sEventTypeNames.add("Arts/Crafts/Making");
-        sEventTypeAbbreviations.add("tea");
-        sEventTypeNames.add("Coffee/Tea");
-        sEventTypeAbbreviations.add("heal");
-        sEventTypeNames.add("Healing/Massage/Spa");
-        sEventTypeAbbreviations.add("LGBT");
-        sEventTypeNames.add("LGBTQIA2S+");
+        sEventTypeNames.add("Arts & Crafts");
         sEventTypeAbbreviations.add("live");
         sEventTypeNames.add("Live Music");
         sEventTypeAbbreviations.add("RIDE");
-        sEventTypeNames.add("Radical Inclusion, Diversity and Equity");
+        sEventTypeNames.add("Diversity & Inclusion");
         sEventTypeAbbreviations.add("repr");
         sEventTypeNames.add("Repair");
         sEventTypeAbbreviations.add("sust");
         sEventTypeNames.add("Sustainability/Greening Your Burn");
         sEventTypeAbbreviations.add("yoga");
-        sEventTypeNames.add("Meditation/Movement/Yoga");
+        sEventTypeNames.add("Yoga/Movement/Fitness");
         // Initial 2017 data had uncategorized events but first update with official location
         // has all events categorized
 //        sEventTypeAbbreviations.add(EVENT_TYPE_ABBREVIATION_UNKNOWN);
