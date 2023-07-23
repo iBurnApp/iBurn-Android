@@ -355,8 +355,16 @@ class MapboxMapFragment : Fragment() {
     private fun setupMap(mapView: MapView) {
         mapView?.getMapAsync { map ->
             val tilesPath = copyAssets()
-            val style = Style.Builder().fromUri("asset://map/style.json")
-                .withSource(VectorSource("composite", "mbtiles://$tilesPath"))
+            val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+            var style = Style.Builder()
+            if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+                style = style.fromUri("asset://map/style-dark.json")
+                     .withSource(VectorSource("composite", "mbtiles://$tilesPath"))
+
+             } else {
+                 style = style.fromUri("asset://map/style.json")
+                     .withSource(VectorSource("composite", "mbtiles://$tilesPath"))
+             }
 
             map.setStyle(style) {
                 this.map = map
@@ -573,14 +581,6 @@ class MapboxMapFragment : Fragment() {
         super.onResume()
         mapView?.onResume()
         keepScreenOn(true)
-
-        // TODO: Toggle Map style for Day/Night mode
-        val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
-            /* Apply night style */
-        } else {
-            /* Apply day style  */
-        }
     }
 
     override fun onPause() {
@@ -750,6 +750,8 @@ class MapboxMapFragment : Fragment() {
             .withLatLng(pos)
             .withTextField(item.name)
             .withTextSize(12f)
+            .withTextHaloColor("#EBDED1")
+            .withTextHaloWidth(2.0F)
 
         if (item is UserPoi) {
             symbolOptions.withIconImage(item.icon)
@@ -1006,6 +1008,8 @@ class MapboxMapFragment : Fragment() {
             .withTextField(title)
             .withIconImage(UserPoi.ICON_STAR)
             .withTextSize(12f)
+            .withTextHaloColor("#EBDED1")
+            .withTextHaloWidth(2.0F)
             .withTextOffset(floatArrayOf(0f, 2.5f).toTypedArray())
         val symbol = symbolManager?.create(symbolOptions)
 

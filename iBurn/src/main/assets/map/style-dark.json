@@ -1,0 +1,124 @@
+{
+  "version": 8,
+  "name": "iburn-2023",
+  "metadata": {
+    "mapbox:autocomposite": false,
+    "mapbox:type": "template",
+    "mapbox:trackposition": true,
+    "mapbox:sdk-support": {"js": "0.54.0", "android": "7.4.0", "ios": "4.11.0"},
+    "maputnik:renderer": "mbgljs"
+  },
+  "center": [-119.19469787766286, 40.78675505232937],
+  "zoom": 14.23063189341901,
+  "bearing": 0,
+  "pitch": 3.5,
+  "sprite": "asset://map/sprites/sprite",
+  "glyphs": "asset://map/glyphs/{range}.pbf",
+  "sources": {},
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {"background-color": "#1C1B1B"}
+    },
+    {
+      "id": "toilets-outline",
+      "type": "fill",
+      "source": "composite",
+      "source-layer": "toilets",
+      "layout": {"visibility": "visible"},
+      "paint": {"fill-color": "#00AFD4"}
+    },
+    {
+      "id": "fence",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "fence",
+      "layout": {"visibility": "visible", "line-join": "bevel"},
+      "paint": {"line-color": "#D9CCBE", "line-width": 2}
+    },
+    {
+      "id": "outline",
+      "type": "fill",
+      "source": "composite",
+      "source-layer": "outline",
+      "layout": {"visibility": "visible"},
+      "paint": {"fill-color": "#C3B8AB"}
+    },
+    {
+      "id": "streets",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "streets",
+      "filter": ["in", "$type", "LineString", "Point", "Polygon"],
+      "layout": {
+        "text-field": "{name}",
+        "symbol-placement": "line",
+        "text-size": 14,
+        "text-font": ["Open Sans Regular"]
+      },
+      "paint": {
+        "text-halo-color": "#EBDED1",
+        "text-halo-width": 2,
+        "text-color": "#3F3F3F",
+        "text-halo-blur": 1
+      }
+    },
+    {
+      "id": "points",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "points",
+      "filter": ["!in", "ref", "center", "rangerHQ"],
+      "layout": {
+        "icon-image": "{ref}",
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+        "icon-size": {
+          "base": 1,
+          "stops": [[0, 1], [13, 1], [15, 1.5], [22, 1.5]]
+        },
+        "text-font": ["Open Sans Regular"]
+      },
+      "paint": {}
+    },
+    {
+      "id": "man",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "points",
+      "filter": ["==", "ref", "center"],
+      "layout": {
+        "icon-image": "center",
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+        "icon-size": {"base": 1.76, "stops": [[13, 0.02], [22, 6]]},
+        "text-font": ["Open Sans Regular"]
+      },
+      "paint": {}
+    },
+    {
+      "id": "rangerHQ",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "points",
+      "minzoom": 4,
+      "filter": ["in", "ref", "", "rangerHQ"],
+      "layout": {
+        "icon-image": "ranger",
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+        "icon-size": {"base": 1, "stops": [[0, 1], [13, 1], [15, 2], [22, 2]]},
+        "text-font": ["Open Sans Regular"]
+      },
+      "paint": {}
+    }
+  ],
+  "created": "2019-08-06T02:29:24.313Z",
+  "modified": "2019-08-06T02:29:24.313Z",
+  "id": "cjyz7gkw90wrj1cqyoovu28a4",
+  "owner": "chrisballinger",
+  "visibility": "private",
+  "protected": false,
+  "draft": false
+}
