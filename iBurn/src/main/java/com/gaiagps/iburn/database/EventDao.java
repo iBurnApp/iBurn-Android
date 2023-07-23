@@ -32,10 +32,10 @@ public interface EventDao {
     @Query("SELECT * FROM " + TABLE_NAME)
     Flowable<List<Event>> getAll();
 
-    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1")
+    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1 ORDER BY " + START_TIME)
     Flowable<List<Event>> getFavorites();
 
-    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1 AND " + END_TIME + " >= :now")
+    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1 AND " + END_TIME + " >= :now ORDER BY " + START_TIME)
     Flowable<List<Event>> getNonExpiredFavorites(String now);
 
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + NAME + " LIKE :name GROUP BY " + NAME)
