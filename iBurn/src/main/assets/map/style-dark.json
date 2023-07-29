@@ -19,7 +19,7 @@
     {
       "id": "background",
       "type": "background",
-      "paint": {"background-color": "#1C1B1B"}
+      "paint": {"background-color": "#232323"}
     },
     {
       "id": "toilets-outline",
@@ -35,7 +35,7 @@
       "source": "composite",
       "source-layer": "fence",
       "layout": {"visibility": "visible", "line-join": "bevel"},
-      "paint": {"line-color": "#D9CCBE", "line-width": 2}
+      "paint": {"line-color": "#574e26", "line-width": 2}
     },
     {
       "id": "outline",
@@ -43,7 +43,7 @@
       "source": "composite",
       "source-layer": "outline",
       "layout": {"visibility": "visible"},
-      "paint": {"fill-color": "#C3B8AB"}
+      "paint": {"fill-color": "#574e26"}
     },
     {
       "id": "streets",
@@ -58,9 +58,9 @@
         "text-font": ["Open Sans Regular"]
       },
       "paint": {
-        "text-halo-color": "#EBDED1",
+        "text-halo-color": "#202426",
         "text-halo-width": 2,
-        "text-color": "#3F3F3F",
+        "text-color": "#fdf1b9",
         "text-halo-blur": 1
       }
     },

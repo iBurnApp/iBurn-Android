@@ -412,6 +412,7 @@ class MapboxMapFragment : Fragment() {
                     "centerCamp",
                     BitmapFactory.decodeResource(this.resources, R.drawable.center_camp)
                 )
+                it.addImage("center", BitmapFactory.decodeResource(this.resources, R.drawable.center))
                 it.addImage("info", BitmapFactory.decodeResource(this.resources, R.drawable.info))
                 it.addImage(
                     "ranger",
