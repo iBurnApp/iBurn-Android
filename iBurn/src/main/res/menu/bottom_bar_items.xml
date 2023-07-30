@@ -19,4 +19,9 @@
         android:id="@+id/tab_favorites"
         android:icon="@drawable/ic_favorite_black_24dp"
         android:title="@string/fav_tab" />
+
+        <item
+        android:id="@+id/tab_search"
+        android:icon="@drawable/ic_search_black"
+        android:title="@string/search_title" />
 </menu>

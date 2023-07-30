@@ -39,6 +39,7 @@ import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
 import com.gaiagps.iburn.fragment.FavoritesListViewFragment;
 import com.gaiagps.iburn.fragment.MapPlaceHolderFragment;
+import com.gaiagps.iburn.fragment.SearchFragment;
 import com.gaiagps.iburn.service.DataUpdateService;
 import com.gaiagps.iburn.view.BottomTickerView;
 import com.google.android.gms.common.ConnectionResult;
@@ -92,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             int nightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
             controller.setAppearanceLightStatusBars(nightMode != Configuration.UI_MODE_NIGHT_YES);
             getWindow().setStatusBarColor(Color.TRANSPARENT);
+            getWindow().setNavigationBarColor(Color.TRANSPARENT);
         } else {
             getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         }
@@ -173,6 +175,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                 frag = new BrowseListViewFragment();
             } else if (R.id.tab_favorites == selectedId) {
                 frag = new FavoritesListViewFragment();
+            } else if (R.id.tab_search == selectedId) {
+                frag = new SearchFragment();
             }
 
             if (frag != null) {
@@ -192,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     }
 
     public void onSearchClick(View view) {
-        startActivity(new Intent(this, SearchActivity.class));
+        startActivity(new Intent(this, SearchFragment.class));
     }
 
     @Override
@@ -383,12 +387,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         ticker.setCallback(new BottomTickerView.Callback() {
             @Override
             public void onShown() {
-                binding.fab.hide();
+                // no-op
             }
 
             @Override
             public void onDismissed() {
-                binding.fab.show();
+                // no-op
             }
 
             @Override
@@ -411,12 +415,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         ticker.setCallback(new BottomTickerView.Callback() {
             @Override
             public void onShown() {
-                binding.fab.hide();
+                // no-op
             }
 
             @Override
             public void onDismissed() {
-                binding.fab.show();
+                // no-op
             }
 
             @Override

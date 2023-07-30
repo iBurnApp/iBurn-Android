@@ -38,7 +38,8 @@
             android:exported="true"
             android:label="@string/app_name"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -49,7 +50,7 @@
             android:name=".activity.PlayaItemViewActivity"
             android:screenOrientation="portrait"></activity>
         <activity
-            android:name=".activity.SearchActivity"
+            android:name=".fragment.SearchFragment"
             android:label="@string/title_activity_search"
             android:screenOrientation="portrait"></activity>
 
