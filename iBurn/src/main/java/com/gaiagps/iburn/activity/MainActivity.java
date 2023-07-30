@@ -5,6 +5,7 @@ import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
 import android.Manifest;
 import android.app.SearchManager;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -88,7 +89,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             getWindow().setDecorFitsSystemWindows(false);
             WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
-            controller.setAppearanceLightStatusBars(false);
+            int nightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            controller.setAppearanceLightStatusBars(nightMode != Configuration.UI_MODE_NIGHT_YES);
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         } else {
             getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
