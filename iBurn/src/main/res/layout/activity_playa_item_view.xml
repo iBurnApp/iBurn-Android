@@ -50,7 +50,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@color/off_blk_2">
+            android:background="@color/window_background">
 
             <LinearLayout
                 android:id="@+id/content_container"
@@ -118,6 +118,7 @@
                 android:id="@+id/overflow_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@color/window_background"
                 android:orientation="vertical" />
 
         </LinearLayout>
