@@ -4,18 +4,20 @@ import android.Manifest;
 import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
@@ -41,6 +43,7 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
     private Button skip;
     private Button done;
     private ImageButton next;
+    private Drawable nextDrawable;
     private boolean isOpaque = true;
 
     private boolean performedEntranceAnimation;
@@ -54,9 +57,16 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         setContentView(R.layout.activity_welcome);
         skip = Button.class.cast(findViewById(R.id.skip));
         skip.setOnClickListener(v -> endTutorial());
+        // Start bottom nav controls as white over black video
+        int navColor = getColor(android.R.color.white);
+        skip.setTextColor(navColor);
 
         next = ImageButton.class.cast(findViewById(R.id.next));
         next.setOnClickListener(v -> pager.setCurrentItem(pager.getCurrentItem() + 1, true));
+        // Intercept the button drawable for dynamic tinting of just this button
+        nextDrawable = next.getDrawable().mutate();
+        nextDrawable.setTint(navColor);
+        next.setImageDrawable(nextDrawable);
 
         done = Button.class.cast(findViewById(R.id.done));
         done.setOnClickListener(v -> endTutorial());
@@ -69,7 +79,6 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
         pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
                 if (position == NUM_PAGES - 2 && positionOffset > 0) {
                     if (isOpaque) {
                         pager.setBackgroundColor(Color.TRANSPARENT);
@@ -77,7 +86,7 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
                     }
                 } else {
                     if (!isOpaque) {
-                        pager.setBackgroundColor(getResources().getColor(R.color.off_blk_2));
+                        pager.setBackgroundColor(getResources().getColor(R.color.window_background));
                         isOpaque = true;
                     }
                 }
@@ -85,6 +94,17 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
 
             @Override
             public void onPageSelected(int position) {
+                if (position == 0) {
+                    // The first page is a video that starts black
+                    int navColor = getColor(android.R.color.white);
+                    skip.setTextColor(navColor);
+                    nextDrawable.setTint(navColor);
+                } else {
+                    // All other pages should use the regular text color
+                    int navColor = getColor(R.color.regular_text);
+                    skip.setTextColor(navColor);
+                    nextDrawable.setTint(navColor);
+                }
                 if (position == NUM_PAGES - 2) {
                     skip.setVisibility(View.GONE);
                     next.setVisibility(View.GONE);
