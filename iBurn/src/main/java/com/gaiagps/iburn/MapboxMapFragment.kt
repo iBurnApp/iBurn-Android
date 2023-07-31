@@ -369,66 +369,62 @@ class MapboxMapFragment : Fragment() {
             map.setStyle(style) {
                 this.map = map
 
-                it.addImage(
+                it.addImageAsync(
                     UserPoi.ICON_HEART,
                     BitmapFactory.decodeResource(this.resources, R.drawable.puck_heart)
                 )
-                it.addImage(
+                it.addImageAsync(
                     UserPoi.ICON_HOME,
                     BitmapFactory.decodeResource(this.resources, R.drawable.puck_home)
                 )
-                it.addImage(
+                it.addImageAsync(
                     UserPoi.ICON_STAR,
                     BitmapFactory.decodeResource(this.resources, R.drawable.puck_star)
                 )
-                it.addImage(
+                it.addImageAsync(
                     UserPoi.ICON_BIKE,
                     BitmapFactory.decodeResource(this.resources, R.drawable.puck_bicycle)
                 )
-                it.addImage(
+                it.addImageAsync(
                     iconEvent,
                     BitmapFactory.decodeResource(this.resources, R.drawable.event_pin)
                 )
-                it.addImage(
+                it.addImageAsync(
                     iconCamp,
                     BitmapFactory.decodeResource(this.resources, R.drawable.camp_pin)
                 )
-                it.addImage(
+                it.addImageAsync(
                     iconArt,
                     BitmapFactory.decodeResource(this.resources, R.drawable.art_pin)
                 )
-                it.addImage("pin", BitmapFactory.decodeResource(this.resources, R.drawable.pin))
-                it.addImage("ice", BitmapFactory.decodeResource(this.resources, R.drawable.ice))
-                it.addImage(
+                it.addImageAsync("pin", BitmapFactory.decodeResource(this.resources, R.drawable.pin))
+                it.addImageAsync("ice", BitmapFactory.decodeResource(this.resources, R.drawable.ice))
+                it.addImageAsync(
                     "firstAid",
                     BitmapFactory.decodeResource(this.resources, R.drawable.first_aid)
                 )
-                it.addImage("bus", BitmapFactory.decodeResource(this.resources, R.drawable.bus))
-                it.addImage(
+                it.addImageAsync("bus", BitmapFactory.decodeResource(this.resources, R.drawable.bus))
+                it.addImageAsync(
                     "airport",
                     BitmapFactory.decodeResource(this.resources, R.drawable.airport)
                 )
-                it.addImage(
+                it.addImageAsync(
                     "centerCamp",
                     BitmapFactory.decodeResource(this.resources, R.drawable.center_camp)
                 )
-                it.addImage("center", BitmapFactory.decodeResource(this.resources, R.drawable.center))
-                it.addImage("info", BitmapFactory.decodeResource(this.resources, R.drawable.info))
-                it.addImage(
+                it.addImageAsync("center", BitmapFactory.decodeResource(this.resources, R.drawable.center))
+                it.addImageAsync("info", BitmapFactory.decodeResource(this.resources, R.drawable.info))
+                it.addImageAsync(
                     "ranger",
                     BitmapFactory.decodeResource(this.resources, R.drawable.ranger)
                 )
-                it.addImage(
+                it.addImageAsync(
                     "recycle",
                     BitmapFactory.decodeResource(this.resources, R.drawable.recycle)
                 )
-                it.addImage(
+                it.addImageAsync(
                     "temple",
                     BitmapFactory.decodeResource(this.resources, R.drawable.temple)
-                )
-                it.addImage(
-                    "toilet",
-                    BitmapFactory.decodeResource(this.resources, R.drawable.toilet)
                 )
 
                 symbolManager = SymbolManager(mapView, map, it)
