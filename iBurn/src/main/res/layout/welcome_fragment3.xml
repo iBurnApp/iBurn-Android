@@ -84,7 +84,7 @@
         android:layout_marginBottom="64dp"
         android:layout_marginLeft="@dimen/welcome_text_margin"
         android:layout_marginRight="@dimen/welcome_text_margin"
-        android:drawableLeft="@drawable/ic_pin_drop_white_24dp"
+        android:drawableLeft="@drawable/ic_pin_drop_24dp"
         android:drawablePadding="8dp"
         android:text="@string/place_custom_markers_tip"
         android:textSize="@dimen/welcome_content" />

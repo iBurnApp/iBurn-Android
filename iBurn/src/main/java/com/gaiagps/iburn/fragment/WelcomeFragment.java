@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.SurfaceTexture;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
@@ -17,6 +18,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.R;
@@ -70,6 +72,10 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
         }} if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment3) {
             // Set Home location
+            ImageView brcView = rootView.findViewById(R.id.parallax0);
+            Drawable brcMap = brcView.getDrawable().mutate();
+            brcMap.setTint(rootView.getContext().getColor(R.color.regular_text));
+            brcView.setImageDrawable(brcMap);
             campSearchView = rootView.findViewById(R.id.campNameSearch);
             campSearchView.setAdapter(new CampAutoCompleteAdapter(getActivity()));
             campSearchView.setOnItemClickListener((parent, view, position, id) -> {

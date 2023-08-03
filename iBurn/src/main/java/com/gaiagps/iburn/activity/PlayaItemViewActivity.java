@@ -167,8 +167,6 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         fadeAnimation.setFillEnabled(true);
         binding.mapContainer.startAnimation(fadeAnimation);
 
-        getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-
         if (item instanceof Art && ((Art) item).hasAudioTour(getApplicationContext())) {
             onCreateMediaController();
         }
