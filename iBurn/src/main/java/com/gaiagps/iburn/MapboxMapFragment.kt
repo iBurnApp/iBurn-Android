@@ -358,11 +358,10 @@ class MapboxMapFragment : Fragment() {
             val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
             var style = Style.Builder()
             if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
-                style = style.fromUri("asset://map/style-dark.json")
+                style = style.fromUri("asset://map/iburn-dark.json")
                      .withSource(VectorSource("composite", "mbtiles://$tilesPath"))
-
              } else {
-                 style = style.fromUri("asset://map/style.json")
+                 style = style.fromUri("asset://map/iburn-light.json")
                      .withSource(VectorSource("composite", "mbtiles://$tilesPath"))
              }
 

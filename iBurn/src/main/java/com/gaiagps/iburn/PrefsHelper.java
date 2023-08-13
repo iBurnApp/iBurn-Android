@@ -71,11 +71,11 @@ public class PrefsHelper {
      * @return whether the application successfully registered a {@link com.gaiagps.iburn.service.DataUpdateService} task
      */
     public boolean didScheduleUpdate() {
-        return sharedPrefs.getBoolean(SCHEDULED_UPDATE, false);
+        return sharedPrefs.getBoolean(getAnnualKey(SCHEDULED_UPDATE), false);
     }
 
     public void setDidScheduleUpdate(boolean didScheduleUpdate) {
-        editor.putBoolean(SCHEDULED_UPDATE, didScheduleUpdate).apply();
+        editor.putBoolean(getAnnualKey(SCHEDULED_UPDATE), didScheduleUpdate).apply();
     }
 
     public void setBaseResourcesVersion(long version) {

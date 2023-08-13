@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "iburn-2023",
+  "name": "iburn-dark",
   "metadata": {
     "mapbox:autocomposite": false,
     "mapbox:type": "template",
@@ -8,17 +8,20 @@
     "mapbox:sdk-support": {"js": "0.54.0", "android": "7.4.0", "ios": "4.11.0"},
     "maputnik:renderer": "mbgljs"
   },
-  "center": [-119.203500, 40.786400],
+  "center": [-119.19469787766286, 40.78675505232937],
   "zoom": 14.23063189341901,
   "bearing": 0,
   "pitch": 3.5,
-  "glyphs": "asset://map/glyphs/{range}.pbf",
-  "sources": {},
+  "sources": {
+    "composite": {"url": "mbtiles://{{mbtiles_path}}", "type": "vector"}
+  },
+  "sprite": "asset://Map/sprites",
+  "glyphs": "asset://Map/glyphs/{fontstack}/{range}.pbf",
   "layers": [
     {
       "id": "background",
       "type": "background",
-      "paint": {"background-color": "#E8E0D8"}
+      "paint": {"background-color": "#232323"}
     },
     {
       "id": "toilets-outline",
@@ -34,7 +37,7 @@
       "source": "composite",
       "source-layer": "fence",
       "layout": {"visibility": "visible", "line-join": "bevel"},
-      "paint": {"line-color": "#D9CCBE", "line-width": 2}
+      "paint": {"line-color": "#574e26", "line-width": 2}
     },
     {
       "id": "outline",
@@ -42,7 +45,7 @@
       "source": "composite",
       "source-layer": "outline",
       "layout": {"visibility": "visible"},
-      "paint": {"fill-color": "#C3B8AB"}
+      "paint": {"fill-color": "#574e26"}
     },
     {
       "id": "streets",
@@ -57,9 +60,9 @@
         "text-font": ["Open Sans Regular"]
       },
       "paint": {
-        "text-halo-color": "#EBDED1",
+        "text-halo-color": "#202426",
         "text-halo-width": 2,
-        "text-color": "#3F3F3F",
+        "text-color": "#fdf1b9",
         "text-halo-blur": 1
       }
     },

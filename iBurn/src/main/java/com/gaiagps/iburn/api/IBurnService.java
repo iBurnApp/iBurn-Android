@@ -240,6 +240,7 @@ public class IBurnService {
     }
 
     public Single<Boolean> updateData() {
+        Timber.d("Attempting data update...");
         // Check local update dates for each endpoint, update those that are stale
         final PrefsHelper storage = new PrefsHelper(context);
 
@@ -259,7 +260,7 @@ public class IBurnService {
                             dataManifest.art.updated, dataManifest.camps.updated, dataManifest.events.updated);
 
                     ResourceManifest[] resources = new ResourceManifest[]
-                            {dataManifest.art, dataManifest.camps, dataManifest.events, dataManifest.points};
+                            {dataManifest.art, dataManifest.camps, dataManifest.events};
 
                     return Observable.fromArray(resources).map(resource ->
                             new UpdateDataDependencies((DataProvider) dataProvider, dataManifest, resource));
