@@ -13,7 +13,6 @@
   "bearing": 0,
   "pitch": 3.5,
   "sources": {
-    "composite": {"url": "mbtiles://{{mbtiles_path}}", "type": "vector"}
   },
   "sprite": "asset://Map/sprites",
   "glyphs": "asset://Map/glyphs/{fontstack}/{range}.pbf",

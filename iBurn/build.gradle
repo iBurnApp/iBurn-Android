@@ -230,6 +230,11 @@ task updateData {
             include 'iburn-light.json'
             include 'iburn-dark.json'
             into "$projectDir/src/main/assets/map/"
+            // Filter out map style templating. Mapbox provides an API
+            // for attaching a source to styles, which I think is less fragile.
+            filter { line ->
+                !line.contains('"composite": {"url": "mbtiles://{{mbtiles_path}}", "type": "vector"') ? line : null
+            }
         }
 
         // Art images
