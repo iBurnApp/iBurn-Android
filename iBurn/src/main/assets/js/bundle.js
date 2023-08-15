@@ -8,10 +8,10 @@ module.exports={
     },
     "geometry": {
       "type": "Point",
-      "coordinates": [-119.20274, 40.78703]
+      "coordinates": [-119.2035, 40.7864]
     }
   },
-  "fence_distance": 8491,
+  "fence_distance": 8430,
   "bearing": 45,
   "road_width": 40,
   "entrance_road": {
@@ -46,67 +46,67 @@ module.exports={
       "distance":2940,
       "segments":[["2:00","6:00"],["6:00","10:00"]],
       "ref":"a",
-      "name": "A"
+      "name": "Afanc"
     },
     {
       "distance":3230,
       "segments":[["2:00","5:30"],["6:30","10:00"]],
       "ref":"b",
-      "name": "B"
+      "name": "Bigfoot"
     },
     {
       "distance":3520,
       "segments":[["2:00","6:00"],["6:00","10:00"]],
       "ref":"c",
-      "name": "C"
+      "name": "Chupacabra"
     },
     {
       "distance":3810,
       "segments":[["2:00","6:00"],["6:00","10:00"]],
       "ref":"d",
-      "name": "D"
+      "name": "Dingbat"
     },
     {
       "distance":4100,
       "segments":[["2:00","10:00"]],
       "ref":"e",
-      "name": "E"
+      "name": "Encantado"
     },
     {
       "distance":4590,
       "segments":[["2:00","10:00"]],
       "ref":"f",
-      "name": "F"
+      "name": "Frogbat"
     },
     {
       "distance":4880,
       "segments":[["2:00","10:00"]],
       "ref":"g",
-      "name": "G"
+      "name": "Grootslang"
     },
     {
       "distance":5170,
       "segments":[["2:00","10:00"]],
       "ref":"h",
-      "name": "H"
+      "name": "Hodag"
     },
     {
       "distance":5460,
       "segments":[["2:00","10:00"]],
       "ref":"i",
-      "name": "I"
+      "name": "Igopogo"
     },
     {
       "distance":5650,
       "segments":[["2:00","10:00"]],
       "ref":"j",
-      "name": "J"
+      "name": "Jackalope"
     },
     {
       "distance":5845,
       "segments":[["2:00","10:00"]],
       "ref":"k",
-      "name": "K",
+      "name": "Kraken",
       "width": 50
     }
   ],
@@ -175,57 +175,57 @@ module.exports={
   ],
   "plazas":[
     {
-      "name":"9:00 Civic Plaza",
+      "name":"9:00 B Plaza",
       "time":"9:00",
       "distance":"b",
       "diameter": 200
     },
     {
-      "name":"3:00 Civic Plaza",
+      "name":"3:00 B Plaza",
       "time":"3:00",
       "distance":"b",
       "diameter": 200
     },
     {
-      "name":"4:30 Civic Plaza",
+      "name":"4:30 B Plaza",
       "time":"4:30",
       "distance":"b",
       "diameter": 200
     },
     {
-      "name":"7:30 Civic Plaza",
+      "name":"7:30 B Plaza",
       "time":"7:30",
       "distance":"b",
       "diameter": 200
     },
     {
-      "name":"3:00 Art Plaza",
+      "name":"3:00 G Plaza",
       "time":"3:00",
       "distance":"g",
       "diameter": 200
     },
     {
-      "name":"4:30 Art Plaza",
+      "name":"4:30 G Plaza",
       "time":"4:30",
       "distance":"g",
       "diameter": 200
     },
     {
-      "name":"7:30 Art Plaza",
+      "name":"7:30 G Plaza",
       "time":"7:30",
       "distance":"g",
       "diameter": 200
     },
     {
-      "name":"9:00 Public Plaza",
+      "name":"9:00 G Plaza",
       "time":"9:00",
       "distance":"g",
       "diameter": 200
     },
     {
-      "name":"6:00 Public Plaza",
+      "name":"6:00 G Plaza",
       "time":"6:00",
-      "distance":"i",
+      "distance":"g",
       "diameter": 200
     },
     {
@@ -8858,8 +8858,8 @@ Geocoder.prototype.fuzzyMatchFeatures = function(keys, value) {
     });
   });
 
-  results.sort(function(first,second) {
-    return first.properties.match < second.properties.match;
+  results.sort(function(first, second) {
+    return first.properties.match - second.properties.match;
   });
 
   return results;
@@ -8930,7 +8930,9 @@ var parseDistanceString = function(distanceString) {
 var parseFeatureString = function(featureString) {
   //featureRegEx captures streets A-L Rod's road and plazas when they begin the string and are followed by ' &' or are at the end
   var featureRegEx = new RegExp("(^[a-l|rod|p].*)|(^.*plaza.*$)|(^.*portal.*$)");
-  var featureArray = featureRegEx.exec(featureString)
+  // Lower case string to handle A & a street names
+  let lowerCaseFeatureString = featureString.toLowerCase();
+  var featureArray = featureRegEx.exec(lowerCaseFeatureString);
   var feature;
   if (featureArray != null && featureArray.length > 0) {
     feature = featureArray[0];
@@ -9055,7 +9057,7 @@ module.exports = Geocoder;
 },{"./forward.js":94,"./prepare.js":98,"./reverse.js":99}],97:[function(require,module,exports){
 (function (global){(function (){
 var Geocoder = require('./geocoder.js');
-var layoutFile = require('../../../../data/2022/layouts/layout-single-letter.json');
+var layoutFile = require('../../../../data/2023/layouts/layout.json');
 
 /**
  * This can take a few seconds to setup all the necessary geo files.
@@ -9075,7 +9077,7 @@ global.forwardGeocode = function(coder, locationString) {
 }
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../../../data/2022/layouts/layout-single-letter.json":1,"./geocoder.js":96}],98:[function(require,module,exports){
+},{"../../../../data/2023/layouts/layout.json":1,"./geocoder.js":96}],98:[function(require,module,exports){
 var turf = require('turf')
 var polygons = require('../polygons.js');
 var points = require('../points.js');
@@ -9200,7 +9202,7 @@ var streetResult = function(point,features) {
 reverseGeocoder.prototype.playaResult = function(point, polygon) {
   var bearing = turf.bearing(this.cityCenter,point);
   var time = utils.degreesToTime(bearing,this.cityBearing);
-  var distance = turf.distance(point,this.cityCenter);
+  var distance = turf.distance(point,this.cityCenter, 'miles');
   var feet = utils.milesToFeet(distance);
 
   return time +" & "+ Math.round(feet) +'\' ' + polygon.properties.name;

@@ -48,7 +48,7 @@ in iBurn/src/main/assets/json. Start app and observe data import succeeds with l
  `MainActivity: Update result success: true`.
 
 Copy the generated database from your device. Depending on the value of the database name
-set in PlayaDatabase2.kt the file will be located somewhere like `/data/data/com.iburnapp.iburn2.debug/databases/playaDatabase2018.db`.
+set in PlayaDatabase2.kt the file will be located somewhere like `/data/data/com.iburnapp.iburn3.debug/databases/playaDatabase2023.db`.
 You can use Android Studio's "Device File Explorer" to conveniently copy this, or use `adb pull` from
 the command line. Place the saved database in `iBurn/src/main/assets/databases`, and toggle
 the value of `USE_BUNDLED_DB` in PlayaDatabase2.kt back to true.

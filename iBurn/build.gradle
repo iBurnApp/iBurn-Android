@@ -212,7 +212,7 @@ task updateData {
         logger.info("Updating assets from IBurn-Data")
         // Reverse Geocoder
         copy {
-            from "$projectDir/../../iBurn-Data/data/$versionYear/"
+            from "$projectDir/../../iBurn-Data/data/$versionYear/geocoder/"
             include 'bundle.js'
             into "$projectDir/src/main/assets/js/"
         }
