@@ -43,14 +43,14 @@ public class MockIBurnApi implements IBurnApi {
                 .create();
 
         // Don't trigger an update
-        ResourceManifest map = new ResourceManifest("map.mbtiles.jar", new Date(0));
+        //ResourceManifest map = new ResourceManifest("map.mbtiles.jar", new Date(0));
 
         // Do trigger an update
         ResourceManifest art = new ResourceManifest("art.json", new Date());
         ResourceManifest camp = new ResourceManifest("camp.json", new Date());
         ResourceManifest event = new ResourceManifest("event.json", new Date());
 
-        manifest = new DataManifest(art, camp, event, map);
+        manifest = new DataManifest(art, camp, event);
     }
 
     @Override

@@ -18,16 +18,16 @@ import retrofit2.http.Streaming;
  */
 public interface IBurnApi {
 
-    @GET("update.json.js")
+    @GET("update.json")
     Observable<DataManifest> getDataManifest();
 
-    @GET("camps.json.js")
+    @GET("camp.json")
     Observable<List<Camp>> getCamps();
 
-    @GET("art.json.js")
+    @GET("art.json")
     Observable<List<Art>> getArt();
 
-    @GET("events.json.js")
+    @GET("event.json")
     Observable<List<Event>> getEvents();
 
     @GET("iburn.mbtiles.jar")

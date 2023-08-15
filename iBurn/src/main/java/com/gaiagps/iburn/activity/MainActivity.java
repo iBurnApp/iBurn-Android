@@ -127,9 +127,11 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
 
         if (!prefs.didScheduleUpdate()) {
-            DataUpdateService.scheduleAutoUpdate(this);
+            DataUpdateService.Companion.scheduleAutoUpdate(this);
             prefs.setDidScheduleUpdate(true);
         }
+        // For testing data update live
+        //DataUpdateService.Companion.updateNow(this);
 
         if (Embargo.isEmbargoActive(prefs)) {
             Flowable.timer(1, TimeUnit.SECONDS)
