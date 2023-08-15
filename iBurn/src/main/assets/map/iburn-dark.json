@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "iburn-dark",
+  "name": "iburn-2023",
   "metadata": {
     "mapbox:autocomposite": false,
     "mapbox:type": "template",
@@ -12,10 +12,9 @@
   "zoom": 14.23063189341901,
   "bearing": 0,
   "pitch": 3.5,
-  "sources": {
-  },
-  "sprite": "asset://Map/sprites",
-  "glyphs": "asset://Map/glyphs/{fontstack}/{range}.pbf",
+  "sprite": "asset://map/sprites/sprite",
+  "glyphs": "asset://map/glyphs/{range}.pbf",
+  "sources": {},
   "layers": [
     {
       "id": "background",
