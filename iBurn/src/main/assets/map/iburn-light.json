@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "iburn-2023",
+  "name": "iburn-light",
   "metadata": {
     "mapbox:autocomposite": false,
     "mapbox:type": "template",
@@ -8,12 +8,14 @@
     "mapbox:sdk-support": {"js": "0.54.0", "android": "7.4.0", "ios": "4.11.0"},
     "maputnik:renderer": "mbgljs"
   },
-  "center": [-119.203500, 40.786400],
+  "center": [-119.19469787766286, 40.78675505232937],
   "zoom": 14.23063189341901,
   "bearing": 0,
   "pitch": 3.5,
-  "glyphs": "asset://map/glyphs/{range}.pbf",
-  "sources": {},
+  "sources": {
+  },
+  "sprite": "asset://map/sprites",
+  "glyphs": "asset://map/glyphs/{fontstack}/{range}.pbf",
   "layers": [
     {
       "id": "background",

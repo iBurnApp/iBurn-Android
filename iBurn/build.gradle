@@ -230,11 +230,23 @@ task updateData {
             include 'iburn-light.json'
             include 'iburn-dark.json'
             into "$projectDir/src/main/assets/map/"
+
+            // Adjust asset path for Android
+            filter { line ->
+                line.replaceAll('asset://Map', 'asset://map')
+            }
             // Filter out map style templating. Mapbox provides an API
             // for attaching a source to styles, which I think is less fragile.
             filter { line ->
                 !line.contains('"composite": {"url": "mbtiles://{{mbtiles_path}}", "type": "vector"') ? line : null
             }
+        }
+
+        // Map glyphs
+        copy {
+            from "$projectDir/../../iBurn-Data/data/$versionYear/Map/glyphs/"
+            include '**/*.pbf'
+            into "$projectDir/src/main/assets/map/glyphs"
         }
 
         // Art images
