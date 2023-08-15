@@ -23,6 +23,14 @@
       "paint": {"background-color": "#E8E0D8"}
     },
     {
+      "id": "dmz",
+      "type": "fill",
+      "source": "composite",
+      "source-layer": "dmz",
+      "layout": {"visibility": "visible"},
+      "paint": {"fill-color": "#D9CCBE"}
+    },
+    {
       "id": "toilets-outline",
       "type": "fill",
       "source": "composite",
