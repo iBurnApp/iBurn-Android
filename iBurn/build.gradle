@@ -235,6 +235,13 @@ task updateData {
             filter { line ->
                 line.replaceAll('asset://Map', 'asset://map')
             }
+            // Remove fontstack path variable glyph definition.
+            // Workaround for user POI icons (sprites?) not displaying.
+            // The cause here is not yet understood. If this is resolved, you can
+            // also preserve the fontstack path in the Map glyphs copy step that follows.
+            filter { line ->
+                line.replaceAll('asset://map/glyphs/\\{fontstack\\}/\\{range\\}.pbf', 'asset://map/glyphs/\\{range\\}.pbf')
+            }
             // Filter out map style templating. Mapbox provides an API
             // for attaching a source to styles, which I think is less fragile.
             filter { line ->
@@ -244,7 +251,7 @@ task updateData {
 
         // Map glyphs
         copy {
-            from "$projectDir/../../iBurn-Data/data/$versionYear/Map/glyphs/"
+            from "$projectDir/../../iBurn-Data/data/$versionYear/Map/glyphs/Open Sans Regular/"
             include '**/*.pbf'
             into "$projectDir/src/main/assets/map/glyphs"
         }

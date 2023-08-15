@@ -15,7 +15,7 @@
   "sources": {
   },
   "sprite": "asset://map/sprites",
-  "glyphs": "asset://map/glyphs/{fontstack}/{range}.pbf",
+  "glyphs": "asset://map/glyphs/{range}.pbf",
   "layers": [
     {
       "id": "background",
