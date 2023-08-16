@@ -36,7 +36,7 @@ object Geocoder {
 
                     init(context)
 
-                    Timber.d("Reverse geocoding...")
+                    Timber.d("Reverse geocoding... $lat / $lon")
                     // Call into the JavaScript object to decode a string.
                     try {
                         val playaAddress = v8?.executeStringScript("coder.reverse($lat, $lon)")

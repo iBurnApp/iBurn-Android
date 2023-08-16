@@ -26,7 +26,6 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 
-import com.gaiagps.iburn.MapboxBundledMapKt;
 import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.PermissionManager;
 import com.gaiagps.iburn.PrefsHelper;
@@ -123,7 +122,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         Timber.d("onCreate");
         if (!prefs.didShowWelcome()) {
             showWelcome();
-            MapboxBundledMapKt.copyBundledMap(getApplicationContext());
         }
 
         if (!prefs.didScheduleUpdate()) {

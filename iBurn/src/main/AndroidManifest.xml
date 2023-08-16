@@ -49,10 +49,6 @@
         <activity
             android:name=".activity.PlayaItemViewActivity"
             android:screenOrientation="portrait"></activity>
-        <activity
-            android:name=".fragment.SearchFragment"
-            android:label="@string/title_activity_search"
-            android:screenOrientation="portrait"></activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"

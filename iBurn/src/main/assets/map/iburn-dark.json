@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "iburn-2023",
+  "name": "iburn-dark",
   "metadata": {
     "mapbox:autocomposite": false,
     "mapbox:type": "template",
@@ -12,14 +12,23 @@
   "zoom": 14.23063189341901,
   "bearing": 0,
   "pitch": 3.5,
-  "sprite": "asset://map/sprites/sprite",
+  "sources": {
+  },
+  "sprite": "asset://map/sprites",
   "glyphs": "asset://map/glyphs/{range}.pbf",
-  "sources": {},
   "layers": [
     {
       "id": "background",
       "type": "background",
       "paint": {"background-color": "#232323"}
+    },
+    {
+      "id": "dmz",
+      "type": "fill",
+      "source": "composite",
+      "source-layer": "dmz",
+      "layout": {"visibility": "visible"},
+      "paint": {"fill-color": "#574e26"}
     },
     {
       "id": "toilets-outline",

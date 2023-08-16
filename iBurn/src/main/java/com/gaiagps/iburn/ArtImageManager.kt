@@ -137,7 +137,7 @@ private fun postResult(callback: Callback, succcess: Boolean = true) {
  * If caching art images from remote url serving
  */
 private fun getCachedArtImageFile(context: Context, mediaPath: String): File {
-    Timber.d("Getting cached art for $mediaPath")
+    //Timber.d("Getting cached art for $mediaPath")
     return File(getArtImagesDirectory(context), mediaPath.substring(mediaPath.lastIndexOf(File.separator), mediaPath.length))
 }
 
@@ -145,7 +145,7 @@ private fun getCachedArtImageFile(context: Context, mediaPath: String): File {
  * If pulling art images directly from bundled app assets
  */
 private fun getArtImageAssetPath(art: Art): String {
-    Timber.d("Getting bundled art for ${art.name}")
+    //Timber.d("Getting bundled art for ${art.name}")
     return "file:///android_asset/art_images/${art.playaId}.jpg"
 }
 
