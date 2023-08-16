@@ -78,7 +78,7 @@ object LocationProvider {
         init(context)
         return if (BuildConfig.MOCK) {
             flow {
-                lastMockLocation
+                emit(lastMockLocation)
             }
         } else {
             if (!PermissionManager.hasLocationPermissions(context)) {
