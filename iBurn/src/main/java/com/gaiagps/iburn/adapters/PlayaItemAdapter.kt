@@ -51,7 +51,9 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
 
     init {
         // TODO : Trigger re-draw when location available / changed?
-        LocationProvider.getLastLocation(context.applicationContext).subscribe({ lastLocation -> deviceLocation = lastLocation }, {error -> Timber.e(error, "Failed to get last location")})
+        LocationProvider.getLastLocation(context.applicationContext).subscribe({
+                lastLocation -> deviceLocation = lastLocation
+       }, {error -> Timber.e(error, "Failed to get last location")})
 
         normalPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16f, context.resources.displayMetrics).toInt()
         lastItemPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, context.resources.displayMetrics).toInt()
