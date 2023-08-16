@@ -16,6 +16,8 @@ public class PrefsHelper {
     private static final String POPULATED_DB_VERSION = "db_populated_ver";  // long
     private static final String SCHEDULED_UPDATE = "sched_update";          // boolean
 
+
+    private static final String COPIED_MBTILES_VERSION = "copied_tiles";    // long
     private static final String DEFAULT_RESOURCE_VERSION = "resver";        // long
     private static final String RESOURCE_VERSION_PREFIX = "res-";           // long
 
@@ -57,6 +59,14 @@ public class PrefsHelper {
 
     public void setDidShowWelcome(boolean didShow) {
         editor.putBoolean(getAnnualKey(SHOWED_WELCOME), didShow).commit();
+    }
+
+    public void setCopiedMbtilesVersion(long version) {
+        editor.putLong(COPIED_MBTILES_VERSION, version).commit();
+    }
+
+    public long getCopiedMbtilesVersion() {
+        return sharedPrefs.getLong(COPIED_MBTILES_VERSION, 0);
     }
 
     public void setDatabaseVersion(long version) {

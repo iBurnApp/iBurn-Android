@@ -56,6 +56,8 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.set
 
+// Track MBTiles versions to avoid unnecessary copies from assets
+const val MBTILES_VERSION = 1L
 
 class MapboxMapFragment : Fragment() {
 
@@ -339,6 +341,10 @@ class MapboxMapFragment : Fragment() {
     private fun copyAssets(): String {
         val tilesInput = requireContext().assets.open("map/map.mbtiles")
         val tilesOutput = File(requireContext().getExternalFilesDir(null), "map.mbtiles")
+        val prefs = PrefsHelper(requireContext())
+        if (tilesOutput.exists() && prefs.copiedMbtilesVersion == MBTILES_VERSION) {
+            return tilesOutput.path
+        }
         val tilesOutputStream = tilesOutput.outputStream()
         val buffer = ByteArray(1024)
         var read: Int
@@ -348,6 +354,7 @@ class MapboxMapFragment : Fragment() {
         tilesInput.close()
         tilesOutputStream.flush()
         tilesOutputStream.close()
+        prefs.copiedMbtilesVersion = MBTILES_VERSION
         return tilesOutput.path
     }
 
