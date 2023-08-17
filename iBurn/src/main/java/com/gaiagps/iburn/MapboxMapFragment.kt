@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.BitmapFactory
 import android.graphics.PointF
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.Gravity
@@ -18,6 +19,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.fragment.app.Fragment
@@ -184,14 +186,6 @@ class MapboxMapFragment : Fragment() {
                         ), 3 * 1000
                     )
                 }
-        }
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-
-        mapView?.let { mapView ->
-            setupMap(mapView)
         }
     }
 
@@ -371,67 +365,28 @@ class MapboxMapFragment : Fragment() {
                  style = style.fromUri("asset://map/iburn-light.json")
                      .withSource(VectorSource("composite", "mbtiles://$tilesPath"))
              }
+            val context = requireContext()
+            style.withImage(UserPoi.ICON_HEART, AppCompatResources.getDrawable(context, R.drawable.puck_heart)!!)
+            style.withImage(UserPoi.ICON_HOME, AppCompatResources.getDrawable(context, R.drawable.puck_home)!!)
+            style.withImage(UserPoi.ICON_STAR, AppCompatResources.getDrawable(context, R.drawable.puck_star)!!)
+            style.withImage(UserPoi.ICON_BIKE, AppCompatResources.getDrawable(context, R.drawable.puck_bicycle)!!)
+            style.withImage(iconEvent, AppCompatResources.getDrawable(context, R.drawable.event_pin)!!)
+            style.withImage(iconCamp, AppCompatResources.getDrawable(context, R.drawable.camp_pin)!!)
+            style.withImage(iconArt, AppCompatResources.getDrawable(context, R.drawable.art_pin)!!)
+            style.withImage("pin", AppCompatResources.getDrawable(context, R.drawable.pin)!!)
+            style.withImage("ice", AppCompatResources.getDrawable(context, R.drawable.ice)!!)
+            style.withImage("firstAid", AppCompatResources.getDrawable(context, R.drawable.first_aid)!!)
+            style.withImage("bus", AppCompatResources.getDrawable(context, R.drawable.bus)!!)
+            style.withImage("airport", AppCompatResources.getDrawable(context, R.drawable.airport)!!)
+            style.withImage("centerCamp", AppCompatResources.getDrawable(context, R.drawable.center_camp)!!)
+            style.withImage("center", AppCompatResources.getDrawable(context, R.drawable.center)!!)
+            style.withImage("info", AppCompatResources.getDrawable(context, R.drawable.info)!!)
+            style.withImage("ranger", AppCompatResources.getDrawable(context, R.drawable.ranger)!!)
+            style.withImage("recycle", AppCompatResources.getDrawable(context, R.drawable.recycle)!!)
+            style.withImage("temple", AppCompatResources.getDrawable(context, R.drawable.temple)!!)
 
             map.setStyle(style) {
                 this.map = map
-
-                it.addImageAsync(
-                    UserPoi.ICON_HEART,
-                    BitmapFactory.decodeResource(this.resources, R.drawable.puck_heart)
-                )
-                it.addImageAsync(
-                    UserPoi.ICON_HOME,
-                    BitmapFactory.decodeResource(this.resources, R.drawable.puck_home)
-                )
-                it.addImageAsync(
-                    UserPoi.ICON_STAR,
-                    BitmapFactory.decodeResource(this.resources, R.drawable.puck_star)
-                )
-                it.addImageAsync(
-                    UserPoi.ICON_BIKE,
-                    BitmapFactory.decodeResource(this.resources, R.drawable.puck_bicycle)
-                )
-                it.addImageAsync(
-                    iconEvent,
-                    BitmapFactory.decodeResource(this.resources, R.drawable.event_pin)
-                )
-                it.addImageAsync(
-                    iconCamp,
-                    BitmapFactory.decodeResource(this.resources, R.drawable.camp_pin)
-                )
-                it.addImageAsync(
-                    iconArt,
-                    BitmapFactory.decodeResource(this.resources, R.drawable.art_pin)
-                )
-                it.addImageAsync("pin", BitmapFactory.decodeResource(this.resources, R.drawable.pin))
-                it.addImageAsync("ice", BitmapFactory.decodeResource(this.resources, R.drawable.ice))
-                it.addImageAsync(
-                    "firstAid",
-                    BitmapFactory.decodeResource(this.resources, R.drawable.first_aid)
-                )
-                it.addImageAsync("bus", BitmapFactory.decodeResource(this.resources, R.drawable.bus))
-                it.addImageAsync(
-                    "airport",
-                    BitmapFactory.decodeResource(this.resources, R.drawable.airport)
-                )
-                it.addImageAsync(
-                    "centerCamp",
-                    BitmapFactory.decodeResource(this.resources, R.drawable.center_camp)
-                )
-                it.addImageAsync("center", BitmapFactory.decodeResource(this.resources, R.drawable.center))
-                it.addImageAsync("info", BitmapFactory.decodeResource(this.resources, R.drawable.info))
-                it.addImageAsync(
-                    "ranger",
-                    BitmapFactory.decodeResource(this.resources, R.drawable.ranger)
-                )
-                it.addImageAsync(
-                    "recycle",
-                    BitmapFactory.decodeResource(this.resources, R.drawable.recycle)
-                )
-                it.addImageAsync(
-                    "temple",
-                    BitmapFactory.decodeResource(this.resources, R.drawable.temple)
-                )
 
                 symbolManager = SymbolManager(mapView, map, it)
                 symbolManager?.iconAllowOverlap = true
@@ -564,6 +519,9 @@ class MapboxMapFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mapView?.onCreate(savedInstanceState)
+        mapView?.let { mapView ->
+            setupMap(mapView)
+        }
     }
 
     override fun onStart() {
