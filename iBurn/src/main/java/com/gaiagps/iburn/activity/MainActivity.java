@@ -146,6 +146,16 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 //        service.updateData().subscribe(success -> Timber.d("Update result success: %b", success));
     }
 
+    @Override
+    public void onBackPressed() {
+        // First back press should return to map, if not already visible
+        if (bottomBar.getSelectedItemId() != R.id.tab_map) {
+            bottomBar.setSelectedItemId(R.id.tab_map);
+            return;
+        }
+        super.onBackPressed();
+    }
+
     private void setAwaitingLocationPermission(boolean awaitingPermission) {
         this.awaitingLocationPermission = awaitingPermission;
 
@@ -193,10 +203,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                 .beginTransaction()
                 .replace(R.id.content, fragment)
                 .commitAllowingStateLoss();
-    }
-
-    public void onSearchClick(View view) {
-        startActivity(new Intent(this, SearchFragment.class));
     }
 
     @Override
