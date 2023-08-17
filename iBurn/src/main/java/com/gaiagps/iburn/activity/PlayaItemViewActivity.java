@@ -488,6 +488,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         }
 
         DataProvider.Companion.getInstance(getApplicationContext())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(provider -> {
                     if (item instanceof Art) {
                         populateArtViews((Art) item, provider);
