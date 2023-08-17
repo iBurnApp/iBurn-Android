@@ -41,6 +41,10 @@ Fortunately, you can still run and test the app with the previous year's data.
 * Update `EVENT_START_DATE` and `EVENT_END_DATE` in AdapterUtils.java
 * Update `EMBARGO_DATE` in Embargo.java
 
+#### Art Images/Audio Tour
+
+The art images and audio can be pulled from the iburn-Data library and should be put in `./assets/art_images` and `./assets/audio_tour` respectively.
+
 #### Update data
 
 Follow instructions in "Working with mock data" below, placing art, camp, and event json

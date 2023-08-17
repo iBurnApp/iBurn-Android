@@ -173,6 +173,7 @@ dependencies {
     implementation 'com.tonicartos:superslim:0.4.13'
     implementation 'xyz.danoz:recyclerviewfastscroller:0.1.3'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.media:media:1.6.0'
     implementation 'com.eclipsesource.j2v8:j2v8:4.8.5@aar'
     implementation 'org.maplibre.gl:android-sdk:10.2.0'
     implementation 'org.maplibre.gl:android-plugin-annotation-v9:1.0.0'
