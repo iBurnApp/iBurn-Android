@@ -234,25 +234,21 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         @Override
         public void onConnected() {
             Timber.d("Connected to media service");
-            try {
-                // Get the token for the MediaSession
-                MediaSessionCompat.Token token = mediaBrowser.getSessionToken();
+            // Get the token for the MediaSession
+            MediaSessionCompat.Token token = mediaBrowser.getSessionToken();
 
-                // Create a MediaControllerCompat
-                MediaControllerCompat mediaController =
-                        new MediaControllerCompat(
-                                PlayaItemViewActivity.this,
-                                token);
+            // Create a MediaControllerCompat
+            MediaControllerCompat mediaController =
+                    new MediaControllerCompat(
+                            PlayaItemViewActivity.this,
+                            token);
 
-                // Save the controller
-                MediaControllerCompat.setMediaController(PlayaItemViewActivity.this, mediaController);
+            // Save the controller
+            MediaControllerCompat.setMediaController(PlayaItemViewActivity.this, mediaController);
 
-                // Finish building the UI
-                setupMediaTransportControls();
+            // Finish building the UI
+            setupMediaTransportControls();
 
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
         }
 
         public void onConnectionFailed() {
