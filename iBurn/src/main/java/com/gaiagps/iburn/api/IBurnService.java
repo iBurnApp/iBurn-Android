@@ -327,7 +327,7 @@ public class IBurnService {
         timeDayFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
         // Date format for human-readable all-day
         final SimpleDateFormat dayFormatter = new SimpleDateFormat("EE M/d", Locale.US);
-        timeDayFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
+        dayFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
 
         final String tableName = com.gaiagps.iburn.database.Event.TABLE_NAME;
         return updateTable(provider, service.getEvents(), tableName, new EventLifeboat(), (item, values, database) -> {
