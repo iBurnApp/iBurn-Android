@@ -42,6 +42,10 @@ public class MockIBurnApi implements IBurnApi {
                 .registerTypeAdapter(Date.class, new PlayaDateTypeAdapter())
                 .create();
 
+        manifest = buildManifest();
+    }
+
+    protected DataManifest buildManifest() {
         // Don't trigger an update
         //ResourceManifest map = new ResourceManifest("map.mbtiles.jar", new Date(0));
 
@@ -49,8 +53,7 @@ public class MockIBurnApi implements IBurnApi {
         ResourceManifest art = new ResourceManifest("art.json", new Date());
         ResourceManifest camp = new ResourceManifest("camp.json", new Date());
         ResourceManifest event = new ResourceManifest("event.json", new Date());
-
-        manifest = new DataManifest(art, camp, event);
+        return new DataManifest(art, camp, event);
     }
 
     @Override

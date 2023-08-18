@@ -31,7 +31,8 @@ import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ID;
 public interface EventDao {
     @Query("SELECT * FROM " + TABLE_NAME)
     Flowable<List<Event>> getAll();
-
+    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + PLAYA_ID + " = :id")
+    Flowable<Event> getByPlayaId(String id);
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1 ORDER BY " + START_TIME)
     Flowable<List<Event>> getFavorites();
 

@@ -128,6 +128,10 @@ class DataProvider private constructor(private val context: Context, private val
         //        if (result != null) result.close();
     }
 
+    fun observeEventByPlayaId(id: String): Flowable<Event> {
+        return db.eventDao().getByPlayaId(id)
+    }
+
     fun observeEventsOnDayOfTypes(day: String,
                                   types: ArrayList<String>?,
                                   includeExpired: Boolean,

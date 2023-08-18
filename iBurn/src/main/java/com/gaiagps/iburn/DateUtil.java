@@ -18,6 +18,10 @@ public class DateUtil {
 
     private static SimpleDateFormat TIME_FORMATTER = new SimpleDateFormat("h:mm a", Locale.US);
 
+    static {
+        TIME_FORMATTER.setTimeZone(PLAYA_TIME_ZONE);
+    }
+
     /**
      * Get a human description of an event's state
      * (e.g: Starts in XX, Ends in XX)

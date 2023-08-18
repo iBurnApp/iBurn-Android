@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.core.util.Pair;
 import android.text.TextUtils;
 
+import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.adapters.AdapterUtils;
 import com.gaiagps.iburn.api.response.Art;
@@ -323,8 +324,10 @@ public class IBurnService {
         //final SimpleDateFormat mahineDateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssX", Locale.US);
         // Date format for human-readable specific-time
         final SimpleDateFormat timeDayFormatter = new SimpleDateFormat("EE M/d h:mm a", Locale.US);
+        timeDayFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
         // Date format for human-readable all-day
         final SimpleDateFormat dayFormatter = new SimpleDateFormat("EE M/d", Locale.US);
+        timeDayFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
 
         final String tableName = com.gaiagps.iburn.database.Event.TABLE_NAME;
         return updateTable(provider, service.getEvents(), tableName, new EventLifeboat(), (item, values, database) -> {

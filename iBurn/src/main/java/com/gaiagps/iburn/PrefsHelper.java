@@ -17,6 +17,8 @@ public class PrefsHelper {
     private static final String SCHEDULED_UPDATE = "sched_update";          // boolean
 
 
+    // Initial 2023 bundled db had pretty event times formatted in EDT
+    private static final String FIXED_EVENTS_TABLE = "23-event-time-fix";   // boolean
     private static final String COPIED_MBTILES_VERSION = "copied_tiles";    // long
     private static final String DEFAULT_RESOURCE_VERSION = "resver";        // long
     private static final String RESOURCE_VERSION_PREFIX = "res-";           // long
@@ -40,6 +42,14 @@ public class PrefsHelper {
      */
     private String getAnnualKey(String baseKey) {
         return String.format("%s_%s", baseKey, context.getString(R.string.current_year));
+    }
+
+    public boolean fixedEventTimes() {
+        return sharedPrefs.getBoolean(FIXED_EVENTS_TABLE, false);
+    }
+
+    public void setFixedEventTimes(boolean didEnter) {
+        editor.putBoolean(FIXED_EVENTS_TABLE, didEnter).commit();
     }
 
     /**
