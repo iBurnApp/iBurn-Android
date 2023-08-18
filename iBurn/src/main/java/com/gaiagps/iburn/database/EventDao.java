@@ -1,14 +1,5 @@
 package com.gaiagps.iburn.database;
 
-import androidx.room.Dao;
-import androidx.room.Insert;
-import androidx.room.Query;
-import androidx.room.Update;
-
-import java.util.List;
-
-import io.reactivex.Flowable;
-
 import static com.gaiagps.iburn.database.Event.ALL_DAY;
 import static com.gaiagps.iburn.database.Event.CAMP_PLAYA_ID;
 import static com.gaiagps.iburn.database.Event.END_TIME;
@@ -23,6 +14,16 @@ import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE;
 import static com.gaiagps.iburn.database.PlayaItem.NAME;
 import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ID;
 
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.Query;
+import androidx.room.Update;
+
+import java.util.List;
+
+import io.reactivex.Flowable;
+import io.reactivex.Single;
+
 /**
  * Created by dbro on 6/8/17.
  */
@@ -32,7 +33,7 @@ public interface EventDao {
     @Query("SELECT * FROM " + TABLE_NAME)
     Flowable<List<Event>> getAll();
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + PLAYA_ID + " = :id")
-    Flowable<Event> getByPlayaId(String id);
+    Single<Event> getByPlayaId(String id);
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1 ORDER BY " + START_TIME)
     Flowable<List<Event>> getFavorites();
 

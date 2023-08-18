@@ -4,17 +4,18 @@ import android.content.ContentValues
 import android.content.Context
 import com.gaiagps.iburn.AudioTourManager
 import com.gaiagps.iburn.CurrentDateProvider
+import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.view.Utils
-import com.gaiagps.iburn.DateUtil
 import com.mapbox.mapboxsdk.geometry.VisibleRegion
 import io.reactivex.Flowable
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.rxkotlin.Flowables
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
-import java.util.*
+import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -128,7 +129,7 @@ class DataProvider private constructor(private val context: Context, private val
         //        if (result != null) result.close();
     }
 
-    fun observeEventByPlayaId(id: String): Flowable<Event> {
+    fun observeEventByPlayaId(id: String): Single<Event> {
         return db.eventDao().getByPlayaId(id)
     }
 

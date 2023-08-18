@@ -7,6 +7,7 @@ import com.gaiagps.iburn.api.response.ResourceManifest;
 import com.gaiagps.iburn.database.DataProvider;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The initial 2023 bundled db had 'pretty' time columns in EDT instead of PDT.
@@ -22,7 +23,9 @@ public class EventUpdater extends MockIBurnApi {
         // "Thu 8/31 9:30 AM", but was recorded as "Thu 8/31 9:30 AM" in the initial borked DB
         return DataProvider.Companion.getInstance(context)
                 .flatMap(dataProvider -> dataProvider.observeEventByPlayaId("3y6Fs46vcvfYCVdmR8kU").toObservable())
+                .timeout(1, TimeUnit.SECONDS)
                 .map(event -> event.startTimePretty.equals("Thu 8/31 12:30 PM"))
+                .onErrorReturnItem(false)
                 .blockingFirst();
 
     }
