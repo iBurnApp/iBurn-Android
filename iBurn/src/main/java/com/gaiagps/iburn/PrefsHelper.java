@@ -48,8 +48,8 @@ public class PrefsHelper {
         return sharedPrefs.getBoolean(FIXED_EVENTS_TABLE, false);
     }
 
-    public void setFixedEventTimes(boolean didEnter) {
-        editor.putBoolean(FIXED_EVENTS_TABLE, didEnter).commit();
+    public void setFixedEventTimes(boolean didFix) {
+        editor.putBoolean(FIXED_EVENTS_TABLE, didFix).commit();
     }
 
     /**
