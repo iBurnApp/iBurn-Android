@@ -20,7 +20,7 @@ public class EventUpdater extends MockIBurnApi {
 
     public static boolean needsFix(Context context) {
         // As a test, use Black Rock City 5k event, which should have a formatted start time of
-        // "Thu 8/31 9:30 AM", but was recorded as "Thu 8/31 9:30 AM" in the initial borked DB
+        // "Thu 8/31 9:30 AM", but was recorded as "Thu 8/31 12:30 PM" in the initial borked DB
         return DataProvider.Companion.getInstance(context)
                 .flatMap(dataProvider -> dataProvider.observeEventByPlayaId("3y6Fs46vcvfYCVdmR8kU").toObservable())
                 .timeout(1, TimeUnit.SECONDS)
