@@ -106,7 +106,7 @@
     <TextView
         android:id="@+id/type"
         style="@style/PlayaTextItem"
-        android:layout_width="wrap_content"
+        android:layout_width="105dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:gravity="center_vertical"
@@ -114,9 +114,10 @@
         android:singleLine="true"
         android:textColor="@color/sub_text"
         android:textSize="14sp"
+        android:ellipsize="end"
         app:layout_constraintStart_toStartOf="@id/title"
         app:layout_constraintTop_toBottomOf="@id/description"
-        tools:text="Celebration" />
+        tools:text="Yoga/Movement/Fitness" />
 
     <TextView
         android:id="@+id/walk_time"
@@ -171,7 +172,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1"
         app:layout_constraintStart_toEndOf="@id/type"
-        tools:text="All Sun 8/30" />
+        tools:text="Sun 8/27 6:00 PM - Mon 8/28 7:00 PM" />
 
     <TextView
         android:id="@+id/address"
