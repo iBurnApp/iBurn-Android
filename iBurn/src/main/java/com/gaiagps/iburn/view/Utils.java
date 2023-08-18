@@ -5,6 +5,7 @@ import com.gaiagps.iburn.DateUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -22,7 +23,7 @@ public class Utils {
 
     public static String convertDateToString(Date datetime){
         TimeZone tz = DateUtil.PLAYA_TIME_ZONE;
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
         formatter.setTimeZone(tz);
         String datetime_string = formatter.format(datetime);
         return datetime_string;

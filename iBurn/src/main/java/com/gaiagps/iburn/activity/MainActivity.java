@@ -4,6 +4,7 @@ import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
 
 import android.Manifest;
 import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -31,6 +32,9 @@ import com.gaiagps.iburn.PermissionManager;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
+import com.gaiagps.iburn.api.EventUpdater;
+import com.gaiagps.iburn.api.IBurnService;
+import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.databinding.ActivityMainBinding;
@@ -140,6 +144,22 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
         handleIntent(getIntent());
 
+        if (!prefs.fixedEventTimes()) {
+            Context context = getApplicationContext();
+            if (EventUpdater.needsFix(context)) {
+                IBurnService service = new IBurnService(context, new EventUpdater(context));
+                service.updateData().subscribe(success -> {
+                    Timber.d("2023 Event time fix ran with success: %b", success);
+                    if (success) {
+                        prefs.setFixedEventTimes(true);
+                    }
+                });
+            } else {
+                // Fix not needed
+                Timber.d("2023 Event time fix not needed");
+                prefs.setFixedEventTimes(true);
+            }
+        }
         // uncomment these to load updated JSON
 //        Context context = getApplicationContext();
 //        IBurnService service = new IBurnService(context, new MockIBurnApi(context));
