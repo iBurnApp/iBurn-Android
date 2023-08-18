@@ -376,6 +376,7 @@ class MapboxMapFragment : Fragment() {
             style.withImage("pin", AppCompatResources.getDrawable(context, R.drawable.pin)!!)
             style.withImage("ice", AppCompatResources.getDrawable(context, R.drawable.ice)!!)
             style.withImage("firstAid", AppCompatResources.getDrawable(context, R.drawable.first_aid)!!)
+            style.withImage("EmergencyClinic", AppCompatResources.getDrawable(context, R.drawable.first_aid)!!)
             style.withImage("bus", AppCompatResources.getDrawable(context, R.drawable.bus)!!)
             style.withImage("airport", AppCompatResources.getDrawable(context, R.drawable.airport)!!)
             style.withImage("centerCamp", AppCompatResources.getDrawable(context, R.drawable.center_camp)!!)
