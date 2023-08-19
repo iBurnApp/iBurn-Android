@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.adapters
 
+import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.PlayaItem
 import com.gaiagps.iburn.database.Event
@@ -19,6 +20,10 @@ class EventStartTimeSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSe
 
     private var sections: ArrayList<String>? = null
     private var sectionPositions: ArrayList<Int>? = null
+
+    init {
+        humanDateFormat.timeZone = DateUtil.PLAYA_TIME_ZONE
+    }
 
     override fun getSections(): Array<Any> {
         if (sections == null && items != null) {

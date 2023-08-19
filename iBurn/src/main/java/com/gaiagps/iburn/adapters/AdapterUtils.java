@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.gaiagps.iburn.CurrentDateProvider;
+import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
@@ -45,6 +46,9 @@ public class AdapterUtils {
     public static final String EVENT_TYPE_NAME_UNKNOWN = "Uncategorized";
 
     static {
+
+        dayLabelFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
+        dayAbbrevFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
 
         populateDayRanges(EVENT_START_DATE, EVENT_END_DATE);
         sEventTypeAbbreviations.add("work");

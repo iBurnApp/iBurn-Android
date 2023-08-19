@@ -656,6 +656,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                     }
 
                     final SimpleDateFormat timeDayFormatter = new SimpleDateFormat("EEEE, M/d 'at' h:mm a", Locale.US);
+                    timeDayFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
 
                     for (Event occurrence : eventOccurrences) {
                         TextView eventTv = new TextView(wrapper);

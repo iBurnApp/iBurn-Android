@@ -34,48 +34,7 @@ public class DateUtil {
      * @param prettyEndDateStr   A 'prettified' end date string
      */
     public static String getDateString(Context context, Date nowDate, Date startDate, String prettyStartDateStr, Date endDate, String prettyEndDateStr) {
-
-
-            Calendar startCal = Calendar.getInstance();
-            Calendar endCal = Calendar.getInstance();
-
-            startCal.setTime(startDate);
-            endCal.setTime(endDate);
-
-            startCal.setTimeZone(TimeZone.getTimeZone("PST"));
-            endCal.setTimeZone(TimeZone.getTimeZone("PST"));
-            final SimpleDateFormat timeFormatter = new SimpleDateFormat("h:mm a", Locale.US);
-
             return prettyStartDateStr + " - " + prettyEndDateStr;
-
-
-
-            /*
-            // The date before which to use relative date descriptors. e.g: (in 2 minutes)
-            Calendar relativeTimeCutoff = Calendar.getInstance();
-            relativeTimeCutoff.setTime(nowDate);
-            relativeTimeCutoff.add(Calendar.HOUR, 1);
-            if (nowDate.before(startDate)) {
-                // Has not yet started
-                if (relativeTimeCutoff.after(startDate)) {
-                    return context.getString(R.string.starts) + " " + DateUtils.getRelativeTimeSpanString(startDate.getTime(), nowDate.getTime(), DateUtils.MINUTE_IN_MILLIS).toString();
-                }
-                return context.getString(R.string.starts) + " " + prettyStartDateStr;
-            } else {
-                // Already started
-                if (endDate.before(nowDate)) {
-                    if (relativeTimeCutoff.after(endDate)) {
-                        return context.getString(R.string.ended) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime(), nowDate.getTime(), DateUtils.MINUTE_IN_MILLIS).toString();
-                    }
-                    return context.getString(R.string.ended) + " " + prettyEndDateStr;
-                } else {
-                    if (relativeTimeCutoff.after(endDate)) {
-                        return context.getString(R.string.ends) + " " + DateUtils.getRelativeTimeSpanString(endDate.getTime(), nowDate.getTime(), DateUtils.MINUTE_IN_MILLIS).toString();
-                    }
-                    return context.getString(R.string.ends) + " " + prettyEndDateStr;
-                }
-
-            }*/
     }
 
     public static String getStartDateString(Date startDate, Date nowDate) {

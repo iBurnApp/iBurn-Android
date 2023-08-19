@@ -21,6 +21,7 @@ import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.Camp;
 import com.gaiagps.iburn.database.DataProvider;
@@ -67,6 +68,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
         } else if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment2) { {
 
             final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE MMMM d", Locale.US);
+            dayFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
             String embargoDate = dayFormatter.format(Embargo.EMBARGO_DATE);
             ((TextView) rootView.findViewById(R.id.content)).setText(getString(R.string.location_data_notice, embargoDate));
 

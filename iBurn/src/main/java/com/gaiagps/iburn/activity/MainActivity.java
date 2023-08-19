@@ -27,6 +27,7 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 
+import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.MapboxMapFragment;
 import com.gaiagps.iburn.PermissionManager;
 import com.gaiagps.iburn.PrefsHelper;
@@ -393,6 +394,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         ViewGroup parent = findViewById(R.id.parent);
 
         final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE M/d", Locale.US);
+        dayFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
 
         String[] messages =
                 new String[]{
