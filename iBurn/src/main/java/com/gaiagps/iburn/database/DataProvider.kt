@@ -453,7 +453,7 @@ class DataProvider private constructor(private val context: Context, private val
 
             // TODO : This ain't thread safe
 
-            if (provider != null) return Observable.just(provider!!)
+            if (provider != null) return Observable.just(provider!!).subscribeOn(Schedulers.io())
 
             val prefs = PrefsHelper(context)
 
