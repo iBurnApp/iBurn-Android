@@ -36,8 +36,8 @@ android {
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 33
-        versionCode 46
-        versionName "$versionYear.0.0.5"
+        versionCode 47
+        versionName "$versionYear.0.0.6"
 
         applicationId "com.iburnapp.iburn3"
 
