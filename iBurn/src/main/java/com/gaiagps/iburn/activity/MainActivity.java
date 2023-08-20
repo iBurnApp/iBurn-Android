@@ -35,7 +35,6 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.api.EventUpdater;
 import com.gaiagps.iburn.api.IBurnService;
-import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.databinding.ActivityMainBinding;
@@ -51,7 +50,6 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.text.SimpleDateFormat;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Flowable;
@@ -145,20 +143,20 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
         handleIntent(getIntent());
 
-        if (!prefs.fixedEventTimes()) {
+        if (!prefs.fixedEventTimesAndLocations()) {
             Context context = getApplicationContext();
             if (EventUpdater.needsFix(context)) {
                 IBurnService service = new IBurnService(context, new EventUpdater(context));
                 service.updateData().subscribe(success -> {
                     Timber.d("2023 Event time fix ran with success: %b", success);
                     if (success) {
-                        prefs.setFixedEventTimes(true);
+                        prefs.setFixedEventTimesAndLocations(true);
                     }
                 });
             } else {
                 // Fix not needed
                 Timber.d("2023 Event time fix not needed");
-                prefs.setFixedEventTimes(true);
+                prefs.setFixedEventTimesAndLocations(true);
             }
         }
         // uncomment these to load updated JSON

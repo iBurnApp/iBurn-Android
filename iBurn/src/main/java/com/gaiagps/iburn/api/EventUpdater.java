@@ -12,6 +12,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * The initial 2023 bundled db had 'pretty' time columns in EDT instead of PDT.
  * Fix this colossal bug by re-creating event table from JSON for affected installs.
+ *
+ * Then, that initial fix which bundled only event json ended up wiping all event locations,
+ * since those are cross referenced from camp and art locations.
  */
 public class EventUpdater extends MockIBurnApi {
     public EventUpdater(Context context) {
@@ -24,18 +27,22 @@ public class EventUpdater extends MockIBurnApi {
         return DataProvider.Companion.getInstance(context)
                 .flatMap(dataProvider -> dataProvider.observeEventByPlayaId("3y6Fs46vcvfYCVdmR8kU").toObservable())
                 .timeout(1, TimeUnit.SECONDS)
-                .map(event -> event.startTimePretty.equals("Thu 8/31 12:30 PM"))
+                .map(event -> {
+                    boolean hasWrongTime = event.startTimePretty.equals("Thu 8/31 12:30 PM");
+                    boolean hasMissingLocation = !event.hasLocation();
+                    return hasWrongTime || hasMissingLocation;
+                })
                 .onErrorReturnItem(false)
                 .blockingFirst();
-
     }
 
     @Override
     protected DataManifest buildManifest() {
-        // Only indicate new event data is available
+        // We'll update all data from JSON, even though it's only the event table that is
+        // problematic because I believe the lowest risk option is using the most tested (normal) update path
         ResourceManifest event = new ResourceManifest("event.json", new Date());
-        ResourceManifest art = new ResourceManifest("art.json", new Date(0));
-        ResourceManifest camp = new ResourceManifest("camp.json", new Date(0));
+        ResourceManifest art = new ResourceManifest("art.json", new Date());
+        ResourceManifest camp = new ResourceManifest("camp.json", new Date());
         return new DataManifest(art, camp, event);
     }
 }
