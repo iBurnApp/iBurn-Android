@@ -19,6 +19,8 @@ public class PrefsHelper {
 
     // Initial 2023 bundled db had pretty event times formatted in EDT
     private static final String FIXED_EVENTS_TABLE = "23-event-time-fix";   // boolean
+    // And then the fix for above issue broke event locations!
+    private static final String FIXED_EVENTS_TABLE_2 = "23-event-time-fix-2";// boolean
     private static final String COPIED_MBTILES_VERSION = "copied_tiles";    // long
     private static final String DEFAULT_RESOURCE_VERSION = "resver";        // long
     private static final String RESOURCE_VERSION_PREFIX = "res-";           // long
@@ -45,11 +47,11 @@ public class PrefsHelper {
     }
 
     public boolean fixedEventTimes() {
-        return sharedPrefs.getBoolean(FIXED_EVENTS_TABLE, false);
+        return sharedPrefs.getBoolean(FIXED_EVENTS_TABLE_2, false);
     }
 
     public void setFixedEventTimes(boolean didFix) {
-        editor.putBoolean(FIXED_EVENTS_TABLE, didFix).commit();
+        editor.putBoolean(FIXED_EVENTS_TABLE_2, didFix).commit();
     }
 
     /**
