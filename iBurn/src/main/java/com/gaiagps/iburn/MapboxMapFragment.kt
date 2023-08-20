@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.set
 
 // Track MBTiles versions to avoid unnecessary copies from assets
-const val MBTILES_VERSION = 1L
+const val MBTILES_VERSION = 2L
 
 class MapboxMapFragment : Fragment() {
 
