@@ -468,14 +468,15 @@ public class IBurnService {
             // Set and cache location for later use by events
 
             if (item.location != null) {
+                // https://github.com/iBurnApp/BlackRockCityPlanner/issues/6
+                if (!TextUtils.isEmpty(item.location.string)) {
+                    item.location.string = item.location.string.replace("None None", "");
+                }
 
                 Location location = new Location();
                 location.gps_latitude = item.location.gps_latitude;
                 location.gps_longitude = item.location.gps_longitude;
                 location.string = item.location.string;
-                // https://github.com/iBurnApp/BlackRockCityPlanner/issues/6
-                if (!TextUtils.isEmpty(location.string))
-                        location.string = location.string.replace("None None", "");
 
                 if (!TextUtils.isEmpty(location.string) &&
                         !(location.string.equals("Mobile")) &&
