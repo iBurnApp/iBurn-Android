@@ -1,10 +1,37 @@
 package com.gaiagps.iburn.api;
 
+import static com.gaiagps.iburn.SECRETSKt.IBURN_API_URL;
+import static com.gaiagps.iburn.database.Art.ARTIST;
+import static com.gaiagps.iburn.database.Art.ARTIST_LOCATION;
+import static com.gaiagps.iburn.database.Art.IMAGE_URL;
+import static com.gaiagps.iburn.database.Camp.HOMETOWN;
+import static com.gaiagps.iburn.database.Event.ALL_DAY;
+import static com.gaiagps.iburn.database.Event.CAMP_PLAYA_ID;
+import static com.gaiagps.iburn.database.Event.CHECK_LOC;
+import static com.gaiagps.iburn.database.Event.END_TIME;
+import static com.gaiagps.iburn.database.Event.END_TIME_PRETTY;
+import static com.gaiagps.iburn.database.Event.START_TIME;
+import static com.gaiagps.iburn.database.Event.START_TIME_PRETTY;
+import static com.gaiagps.iburn.database.Event.TYPE;
+import static com.gaiagps.iburn.database.PlayaItem.CONTACT;
+import static com.gaiagps.iburn.database.PlayaItem.DESC;
+import static com.gaiagps.iburn.database.PlayaItem.FAVORITE;
+import static com.gaiagps.iburn.database.PlayaItem.LATITUDE;
+import static com.gaiagps.iburn.database.PlayaItem.LATITUDE_UNOFFICIAL;
+import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE;
+import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE_UNOFFICIAL;
+import static com.gaiagps.iburn.database.PlayaItem.NAME;
+import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ADDR;
+import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ADDR_UNOFFICIAL;
+import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ID;
+import static com.gaiagps.iburn.database.PlayaItem.URL;
+
 import android.content.ContentValues;
 import android.content.Context;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.core.util.Pair;
-import android.text.TextUtils;
 
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.PrefsHelper;
@@ -31,7 +58,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -47,32 +73,6 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import timber.log.Timber;
-
-import static com.gaiagps.iburn.SECRETSKt.IBURN_API_URL;
-import static com.gaiagps.iburn.database.Art.ARTIST;
-import static com.gaiagps.iburn.database.Art.ARTIST_LOCATION;
-import static com.gaiagps.iburn.database.Art.IMAGE_URL;
-import static com.gaiagps.iburn.database.Camp.HOMETOWN;
-import static com.gaiagps.iburn.database.Event.ALL_DAY;
-import static com.gaiagps.iburn.database.Event.CAMP_PLAYA_ID;
-import static com.gaiagps.iburn.database.Event.CHECK_LOC;
-import static com.gaiagps.iburn.database.Event.END_TIME;
-import static com.gaiagps.iburn.database.Event.END_TIME_PRETTY;
-import static com.gaiagps.iburn.database.Event.START_TIME;
-import static com.gaiagps.iburn.database.Event.START_TIME_PRETTY;
-import static com.gaiagps.iburn.database.Event.TYPE;
-import static com.gaiagps.iburn.database.PlayaItem.CONTACT;
-import static com.gaiagps.iburn.database.PlayaItem.DESC;
-import static com.gaiagps.iburn.database.PlayaItem.FAVORITE;
-import static com.gaiagps.iburn.database.PlayaItem.LATITUDE;
-import static com.gaiagps.iburn.database.PlayaItem.LATITUDE_UNOFFICIAL;
-import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE;
-import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE_UNOFFICIAL;
-import static com.gaiagps.iburn.database.PlayaItem.NAME;
-import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ADDR;
-import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ADDR_UNOFFICIAL;
-import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ID;
-import static com.gaiagps.iburn.database.PlayaItem.URL;
 
 /**
  * A monolithic iBurn data updater. Handles fetching IBurn update data and update the database while
@@ -473,6 +473,9 @@ public class IBurnService {
                 location.gps_latitude = item.location.gps_latitude;
                 location.gps_longitude = item.location.gps_longitude;
                 location.string = item.location.string;
+                // https://github.com/iBurnApp/BlackRockCityPlanner/issues/6
+                if (!TextUtils.isEmpty(location.string))
+                        location.string = location.string.replace("None None", "");
 
                 if (!TextUtils.isEmpty(location.string) &&
                         !(location.string.equals("Mobile")) &&

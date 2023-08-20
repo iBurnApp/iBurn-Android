@@ -9,4 +9,12 @@ public class Location {
     public double gps_latitude;
     public double gps_longitude;
 
+    @Override
+    public String toString() {
+        return "Location{" +
+                "string='" + string + '\'' +
+                ", gps_latitude=" + gps_latitude +
+                ", gps_longitude=" + gps_longitude +
+                '}';
+    }
 }

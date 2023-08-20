@@ -35,6 +35,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
 import com.gaiagps.iburn.api.EventUpdater;
 import com.gaiagps.iburn.api.IBurnService;
+import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.databinding.ActivityMainBinding;
@@ -133,8 +134,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             prefs.setDidScheduleUpdate(true);
         }
         // For testing data update live
-        //DataUpdateService.Companion.updateNow(this);
-
+        // DataUpdateService.Companion.updateNow(this);
         if (Embargo.isEmbargoActive(prefs)) {
             Flowable.timer(1, TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
@@ -160,10 +160,11 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                 prefs.setFixedEventTimesAndLocations(true);
             }
         }
-        // uncomment these to load updated JSON
+//        uncomment to load JSON assets immediately for testing
 //        Context context = getApplicationContext();
+//        long startTime = System.currentTimeMillis();
 //        IBurnService service = new IBurnService(context, new MockIBurnApi(context));
-//        service.updateData().subscribe(success -> Timber.d("Update result success: %b", success));
+//        service.updateData().subscribe(success -> Timber.d("Update result success: %b in %d ms", success, System.currentTimeMillis() - startTime));
     }
 
     @Override

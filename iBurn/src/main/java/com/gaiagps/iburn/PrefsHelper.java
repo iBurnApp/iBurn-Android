@@ -21,6 +21,9 @@ public class PrefsHelper {
     private static final String FIXED_EVENTS_TABLE = "23-event-time-fix";   // boolean
     // And then the fix for above issue broke event locations!
     private static final String FIXED_EVENTS_TABLE_2 = "23-event-time-fix-2";// boolean
+    // And then realized we need to strip "None" from playa address fields due to an issue in
+    // geocoder. This prevented items located within plazas from getting geocoded.
+    private static final String FIXED_EVENTS_TABLE_3 = "23-event-time-fix-3";// boolean
     private static final String COPIED_MBTILES_VERSION = "copied_tiles";    // long
     private static final String DEFAULT_RESOURCE_VERSION = "resver";        // long
     private static final String RESOURCE_VERSION_PREFIX = "res-";           // long
@@ -47,11 +50,11 @@ public class PrefsHelper {
     }
 
     public boolean fixedEventTimesAndLocations() {
-        return sharedPrefs.getBoolean(FIXED_EVENTS_TABLE_2, false);
+        return sharedPrefs.getBoolean(FIXED_EVENTS_TABLE_3, false);
     }
 
     public void setFixedEventTimesAndLocations(boolean didFix) {
-        editor.putBoolean(FIXED_EVENTS_TABLE_2, didFix).commit();
+        editor.putBoolean(FIXED_EVENTS_TABLE_3, didFix).commit();
     }
 
     /**

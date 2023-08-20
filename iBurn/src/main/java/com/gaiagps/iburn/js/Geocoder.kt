@@ -58,14 +58,14 @@ object Geocoder {
                     init(context)
 
                     val result = LatLng()
-                    Timber.d("Forward geocoding '$playaAddress'...")
+//                    Timber.d("Forward geocoding '$playaAddress'...")
                     if (playaAddress.length < 8) {
                         Timber.w("Invalid playa address $playaAddress, not geocoding")
                     } else {
                         // Call into the JavaScript object to decode a string.
                         try {
                             val latLon = v8?.executeObjectScript("coder.forward(\"$playaAddress\")")
-                            Timber.d("Forward geocode result %s", latLon)
+//                            Timber.d("Forward geocode result %s", latLon)
 
                             latLon?.let {
                                 if (it.toString() == "undefined") {
@@ -79,7 +79,7 @@ object Geocoder {
                                         item = item.getArray(0)
                                     }
                                     val coords = item.getDoubles(0, 2)
-                                    Timber.d("Got coords! ${coords[0]}, ${coords[1]}")
+//                                    Timber.d("Got coords! ${coords[0]}, ${coords[1]}")
                                     result.latitude = coords[1]
                                     result.longitude = coords[0]
                                 }
@@ -90,6 +90,7 @@ object Geocoder {
                     }
                     result
                 }
+            .onErrorReturnItem(LatLng(0.0, 0.0))
     }
 
     private fun init(context: Context) {
