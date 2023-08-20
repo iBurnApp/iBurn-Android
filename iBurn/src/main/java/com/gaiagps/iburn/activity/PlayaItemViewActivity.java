@@ -655,7 +655,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                         binding.overflowContainer.addView(occurrencesTitle);
                     }
 
-                    final SimpleDateFormat timeDayFormatter = new SimpleDateFormat("EEEE, M/d 'at' h:mm a", Locale.US);
+                    final SimpleDateFormat timeDayFormatter = DateUtil.getPlayaTimeFormat("EEEE, M/d 'at' h:mm a");
 
                     for (Event occurrence : eventOccurrences) {
                         TextView eventTv = new TextView(wrapper);
