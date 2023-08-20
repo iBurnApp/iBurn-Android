@@ -2,12 +2,9 @@ package com.gaiagps.iburn.adapters
 
 import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
-import com.gaiagps.iburn.database.PlayaItem
 import com.gaiagps.iburn.database.Event
+import com.gaiagps.iburn.database.PlayaItem
 import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.collections.ArrayList
 
 
 /**
@@ -16,7 +13,7 @@ import kotlin.collections.ArrayList
 class EventStartTimeSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSectionIndxer(items) {
 
     private val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
-    private val humanDateFormat = SimpleDateFormat("E h a", Locale.US)
+    private val humanDateFormat = DateUtil.getPlayaTimeFormat("E h a")
 
     private var sections: ArrayList<String>? = null
     private var sectionPositions: ArrayList<Int>? = null

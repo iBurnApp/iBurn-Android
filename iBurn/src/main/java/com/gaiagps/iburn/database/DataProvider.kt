@@ -7,7 +7,6 @@ import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
-import com.gaiagps.iburn.view.Utils
 import com.mapbox.mapboxsdk.geometry.VisibleRegion
 import io.reactivex.Flowable
 import io.reactivex.Observable
@@ -139,12 +138,13 @@ class DataProvider private constructor(private val context: Context, private val
                                   eventTiming: String): Flowable<List<Event>> {
 
         // TODO : Honor upgradeLock?
+        val isoDateFormat = DateUtil.getIso8601Format()
         val wildDay = addWildcardsToQuery(day)
         val nowDate = CurrentDateProvider.getCurrentDate()
-        val now = Utils.convertDateToString(nowDate)
-        val allDayStart = Utils.convertDateToString(
+        val now = isoDateFormat.format(nowDate)
+        val allDayStart = isoDateFormat.format(
                 DateUtil.getAllDayStartDateTime(day))
-        val allDayEnd = Utils.convertDateToString(
+        val allDayEnd = isoDateFormat.format(
                 DateUtil.getAllDayEndDateTime(day))
 
         if (types == null || types.isEmpty()) {
@@ -365,7 +365,7 @@ class DataProvider private constructor(private val context: Context, private val
     fun observeUserAddedMapItemsOnly(): Flowable<List<PlayaItem>> {
         // TODO : Honor upgradeLock
         val nowDate = CurrentDateProvider.getCurrentDate()
-        val now = Utils.convertDateToString(nowDate)
+        val now = DateUtil.getIso8601Format().format(nowDate)
 
         return Flowables.combineLatest(
                 db.artDao().favorites,

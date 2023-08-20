@@ -22,6 +22,17 @@ public class DateUtil {
         TIME_FORMATTER.setTimeZone(PLAYA_TIME_ZONE);
     }
 
+    public static SimpleDateFormat getPlayaTimeFormat(String pattern) {
+        SimpleDateFormat result = new SimpleDateFormat(pattern, Locale.US);
+        result.setTimeZone(PLAYA_TIME_ZONE);
+        return result;
+    }
+
+    // Handy for querying database by event start / end time
+    public static SimpleDateFormat getIso8601Format() {
+        return getPlayaTimeFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    }
+
     /**
      * Get a human description of an event's state
      * (e.g: Starts in XX, Ends in XX)

@@ -393,8 +393,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private void showEmbargoBanner() {
         ViewGroup parent = findViewById(R.id.parent);
 
-        final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE M/d", Locale.US);
-        dayFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
+        final SimpleDateFormat dayFormatter = DateUtil.getPlayaTimeFormat("EEEE M/d");
 
         String[] messages =
                 new String[]{

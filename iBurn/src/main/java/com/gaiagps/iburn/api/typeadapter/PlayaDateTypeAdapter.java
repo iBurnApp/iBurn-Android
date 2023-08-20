@@ -34,10 +34,10 @@ public final class PlayaDateTypeAdapter extends TypeAdapter<Date> {
 
     private final DateFormat iso8601Format = buildIso8601Format();
 
+    // Useful when generating date strings for use in database queries of
+    // event start and end times
     public static DateFormat buildIso8601Format() {
-        DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
-        iso8601Format.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
-        return iso8601Format;
+        return DateUtil.getPlayaTimeFormat("yyyy-MM-dd'T'HH:mm:ssZ");
     }
 
     @Override public Date read(JsonReader in) throws IOException {

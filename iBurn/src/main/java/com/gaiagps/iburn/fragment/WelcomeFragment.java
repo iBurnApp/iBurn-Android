@@ -7,7 +7,6 @@ import android.graphics.SurfaceTexture;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
@@ -21,6 +20,8 @@ import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.fragment.app.Fragment;
+
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.Camp;
@@ -30,7 +31,6 @@ import com.gaiagps.iburn.database.Embargo;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Locale;
 
 import timber.log.Timber;
 
@@ -67,7 +67,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
         } else if (getArguments().getInt(LAYOUT_ID, -1) == R.layout.welcome_fragment2) { {
 
-            final SimpleDateFormat dayFormatter = new SimpleDateFormat("EEEE MMMM d", Locale.US);
+            final SimpleDateFormat dayFormatter = DateUtil.getPlayaTimeFormat("EEEE MMMM d");
             dayFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
             String embargoDate = dayFormatter.format(Embargo.EMBARGO_DATE);
             ((TextView) rootView.findViewById(R.id.content)).setText(getString(R.string.location_data_notice, embargoDate));
