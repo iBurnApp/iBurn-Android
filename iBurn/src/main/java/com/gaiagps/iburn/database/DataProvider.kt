@@ -40,6 +40,10 @@ class DataProvider private constructor(private val context: Context, private val
         upgradeLock.set(true)
     }
 
+    fun inUpgrade(): Boolean {
+        return upgradeLock.get();
+    }
+
     fun endUpgrade() {
         upgradeLock.set(false)
 
@@ -439,7 +443,7 @@ class DataProvider private constructor(private val context: Context, private val
         /**
          * Version of database data and mbtiles. This is basically the unix time at which bundled data was provided to this build.
          */
-        val RESOURCES_VERSION: Long = 1692384330152L // Unix time of creation
+        val RESOURCES_VERSION: Long = 1692570508202L // Unix time of creation
 
         private var provider: DataProvider? = null
 
@@ -449,7 +453,7 @@ class DataProvider private constructor(private val context: Context, private val
 
             // TODO : This ain't thread safe
 
-            if (provider != null) return Observable.just(provider!!)
+            if (provider != null) return Observable.just(provider!!).subscribeOn(Schedulers.io())
 
             val prefs = PrefsHelper(context)
 

@@ -8,6 +8,7 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.gaiagps.iburn.api.IBurnService
+import com.gaiagps.iburn.database.DataProvider
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
@@ -39,6 +40,9 @@ class DataUpdateService(context: Context, workerParams: WorkerParameters) :
     }
 
     override fun doWork(): Result {
+        val dataProvider = DataProvider.getInstance(applicationContext).onErrorReturn { null }.blockingFirst()
+        if (dataProvider?.inUpgrade() == true) return Result.retry()
+
         val service = IBurnService(applicationContext)
         val success = service.updateData().blockingGet()
         Timber.d("Update task finished with success: $success")
