@@ -65,6 +65,7 @@ import timber.log.Timber;
 public class MainActivity extends AppCompatActivity implements SearchQueryProvider {
 
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
+    private static final String BUNDLE_SELECTED_TAB = "IBURN_SELECTED_TAB";
     private boolean googlePlayServicesMissing = false;
     private boolean awaitingLocationPermission = false;
 
@@ -106,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         bottomBar = findViewById(R.id.bottomBar);
-        setupBottomBar(bottomBar);
+        setupBottomBar(bottomBar, savedInstanceState);
 
         prefs = new PrefsHelper(this);
 
@@ -168,6 +169,14 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     }
 
     @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (bottomBar != null) {
+            outState.putInt(BUNDLE_SELECTED_TAB, bottomBar.getSelectedItemId());
+        }
+    }
+
+    @Override
     public void onBackPressed() {
         // First back press should return to map, if not already visible
         if (bottomBar.getSelectedItemId() != R.id.tab_map) {
@@ -190,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
     }
 
-    private void setupBottomBar(BottomNavigationView bottomBar) {
+    private void setupBottomBar(BottomNavigationView bottomBar, Bundle savedInstanceState) {
         bottomBar.setOnItemSelectedListener(menuItem -> {
             Fragment frag = null;
             final int selectedId = menuItem.getItemId();
@@ -215,7 +224,11 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             }
             return true;
         });
-        bottomBar.setSelectedItemId(R.id.tab_map);
+        if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_SELECTED_TAB)) {
+            bottomBar.setSelectedItemId(savedInstanceState.getInt(BUNDLE_SELECTED_TAB));
+        } else {
+            bottomBar.setSelectedItemId(R.id.tab_map);
+        }
         bottomBar.setOnItemReselectedListener(menuItem -> { /* ignore re-selection */});
     }
 
