@@ -46,11 +46,11 @@ public class PrefsHelper {
         return String.format("%s_%s", baseKey, context.getString(R.string.current_year));
     }
 
-    public boolean fixedEventTimes() {
+    public boolean fixedEventTimesAndLocations() {
         return sharedPrefs.getBoolean(FIXED_EVENTS_TABLE_2, false);
     }
 
-    public void setFixedEventTimes(boolean didFix) {
+    public void setFixedEventTimesAndLocations(boolean didFix) {
         editor.putBoolean(FIXED_EVENTS_TABLE_2, didFix).commit();
     }
 
