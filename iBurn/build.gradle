@@ -5,7 +5,7 @@ buildscript {
         dependencies {
 
             // Add the Crashlytics Gradle plugin
-            classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.8'
+            classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.1'
 
         }
         google()
@@ -32,10 +32,10 @@ android {
         buildConfig = true
         viewBinding = true
     }
-    compileSdkVersion 33
     defaultConfig {
+        compileSdk 34
         minSdkVersion 23
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 47
         versionName "$versionYear.0.0.6"
 
@@ -122,7 +122,6 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     namespace 'com.gaiagps.iburn'
-
 }
 
 // Read Signing key from gradle.properties located in project root
@@ -144,18 +143,18 @@ def PLAY_SERVICES_VERSION = "17.0.0"
 dependencies {
 
     // Android Support libraries
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.legacy:legacy-support-v13:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.recyclerview:recyclerview:1.3.1'
-    implementation 'androidx.annotation:annotation:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.annotation:annotation:1.8.0'
     implementation 'androidx.dynamicanimation:dynamicanimation:1.0.0'
-    implementation "androidx.work:work-runtime:2.8.1"
+    implementation "androidx.work:work-runtime:2.9.0"
 
     // Google Play Services
     implementation "com.google.android.gms:play-services-gcm:$PLAY_SERVICES_VERSION"
-    implementation "com.google.android.gms:play-services-location:21.0.1"
+    implementation "com.google.android.gms:play-services-location:21.3.0"
 
     // 3rd Party libraries
     implementation 'com.google.code.gson:gson:2.10.1'
@@ -173,22 +172,22 @@ dependencies {
     implementation 'com.tonicartos:superslim:0.4.13'
     implementation 'xyz.danoz:recyclerviewfastscroller:0.1.3'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.media:media:1.6.0'
+    implementation 'androidx.media:media:1.7.0'
     implementation 'com.eclipsesource.j2v8:j2v8:6.2.1@aar'
     implementation 'org.maplibre.gl:android-sdk:10.2.0'
     implementation 'org.maplibre.gl:android-plugin-annotation-v9:1.0.0'
 
-    implementation 'com.squareup.picasso:picasso:2.8'
+    implementation 'com.squareup.picasso:picasso:2.71828'
 
     implementation 'com.github.permissions-dispatcher:permissionsdispatcher:4.9.2'
     kapt "com.github.permissions-dispatcher:permissionsdispatcher-processor:4.9.2"
 
-    implementation 'com.google.firebase:firebase-crashlytics:18.4.0'
-    implementation 'com.google.firebase:firebase-analytics:21.3.0'
+    implementation 'com.google.firebase:firebase-crashlytics:19.0.1'
+    implementation 'com.google.firebase:firebase-analytics:22.0.1'
 
-    implementation 'androidx.room:room-rxjava2:2.5.2'
-    implementation 'androidx.room:room-runtime:2.5.2'
-    kapt 'androidx.room:room-compiler:2.5.2'
+    implementation 'androidx.room:room-rxjava2:2.6.1'
+    implementation 'androidx.room:room-runtime:2.6.1'
+    kapt 'androidx.room:room-compiler:2.6.1'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
@@ -199,7 +198,7 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.5.2'
     androidTestImplementation 'androidx.test:rules:1.5.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation 'androidx.annotation:annotation:1.6.0'
+    androidTestImplementation 'androidx.annotation:annotation:1.8.0'
 
 }
 
