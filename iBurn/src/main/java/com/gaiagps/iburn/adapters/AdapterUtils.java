@@ -36,8 +36,8 @@ public class AdapterUtils {
     public static final SimpleDateFormat dayLabelFormatter = DateUtil.getPlayaTimeFormat("EE M/d");
     public static final SimpleDateFormat dayAbbrevFormatter = DateUtil.getPlayaTimeFormat("M/d");
 
-    public static final Date EVENT_START_DATE = createPlayaData(2023, Calendar.AUGUST, 27);
-    public static final Date EVENT_END_DATE = createPlayaData(2023, Calendar.SEPTEMBER, 4);
+    public static final Date EVENT_START_DATE = createPlayaData(2024, Calendar.AUGUST, 25);
+    public static final Date EVENT_END_DATE = createPlayaData(2024, Calendar.SEPTEMBER, 2);
 
     public static final String EVENT_TYPE_ABBREVIATION_UNKNOWN = "unknwn";
     public static final String EVENT_TYPE_NAME_UNKNOWN = "Uncategorized";

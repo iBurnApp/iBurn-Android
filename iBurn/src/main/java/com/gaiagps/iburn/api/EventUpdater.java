@@ -21,37 +21,6 @@ public class EventUpdater extends MockIBurnApi {
         super(context);
     }
 
-    public static boolean needsFix(Context context) {
-        // As a test, use Black Rock City 5k event, which should have a formatted start time of
-        // "Thu 8/31 9:30 AM", but was recorded as "Thu 8/31 12:30 PM" in the initial borked DB
-        boolean generalLocationOrTimeIssuesPresent = DataProvider.Companion.getInstance(context)
-                .flatMap(dataProvider -> dataProvider.observeEventByPlayaId("3y6Fs46vcvfYCVdmR8kU").toObservable())
-                .timeout(1, TimeUnit.SECONDS)
-                .map(event -> {
-                    boolean hasWrongTime = event.startTimePretty.equals("Thu 8/31 12:30 PM");
-                    boolean hasMissingLocation = !event.hasLocation();
-                    return hasWrongTime || hasMissingLocation;
-                })
-                .onErrorReturnItem(false)
-                .blockingFirst();
-        if (generalLocationOrTimeIssuesPresent) {
-            return true;
-        }
-        // Paranormal hour event has a location set by a camp in a plaza, which was not
-        // geocoded properly due to presence of 'None None' string in playa address. This is
-        // representative of a large group of events.
-        return DataProvider.Companion.getInstance(context)
-                .flatMap(dataProvider -> dataProvider.observeEventByPlayaId("5np2awDjcSkko2YXgprV").toObservable())
-                .timeout(1, TimeUnit.SECONDS)
-                .map(event -> {
-                    boolean hasBadPlayaAddress = event.playaAddress.contains("None None");
-                    boolean hasMissingLocation = !event.hasLocation();
-                    return hasBadPlayaAddress || hasMissingLocation;
-                })
-                .onErrorReturnItem(false)
-                .blockingFirst();
-    }
-
     @Override
     protected DataManifest buildManifest() {
         // We'll update all data from JSON, even though it's only the event table that is

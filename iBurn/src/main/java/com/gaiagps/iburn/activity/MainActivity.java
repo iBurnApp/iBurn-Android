@@ -33,7 +33,6 @@ import com.gaiagps.iburn.PermissionManager;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
-import com.gaiagps.iburn.api.EventUpdater;
 import com.gaiagps.iburn.api.IBurnService;
 import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
@@ -144,27 +143,18 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
         handleIntent(getIntent());
 
-        if (!prefs.fixedEventTimesAndLocations()) {
-            Context context = getApplicationContext();
-            if (EventUpdater.needsFix(context)) {
-                IBurnService service = new IBurnService(context, new EventUpdater(context));
-                service.updateData().subscribe(success -> {
-                    Timber.d("2023 Event time fix ran with success: %b", success);
-                    if (success) {
-                        prefs.setFixedEventTimesAndLocations(true);
-                    }
-                });
-            } else {
-                // Fix not needed
-                Timber.d("2023 Event time fix not needed");
-                prefs.setFixedEventTimesAndLocations(true);
-            }
-        }
 //        uncomment to load JSON assets immediately for testing
-//        Context context = getApplicationContext();
-//        long startTime = System.currentTimeMillis();
-//        IBurnService service = new IBurnService(context, new MockIBurnApi(context));
-//        service.updateData().subscribe(success -> Timber.d("Update result success: %b in %d ms", success, System.currentTimeMillis() - startTime));
+//        bootstrapDatabaseFromJson();
+    }
+
+    /**
+     * Generate database from JSON bundled in assets/json
+     */
+    private void bootstrapDatabaseFromJson() {
+        Context context = getApplicationContext();
+        long startTime = System.currentTimeMillis();
+        IBurnService service = new IBurnService(context, new MockIBurnApi(context));
+        service.updateData().subscribe(success -> Timber.d("Bootstrap success: %b in %d ms", success, System.currentTimeMillis() - startTime));
     }
 
     @Override

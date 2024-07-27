@@ -37,7 +37,7 @@ Fortunately, you can still run and test the app with the previous year's data.
 
 * Update `app_name` and `current_year` in iBurn/src/main/res/values/strings.xml
 * Update `MOCK_NOW_DATE` in CurrentDateProvider (Used when simulating event time during testing)
-* Update `versionName` and `versionCode` in `iBurn/build.gradle`
+* Update `versionYear`, `versionName` and `versionCode` in `iBurn/build.gradle`
 * Update `EVENT_START_DATE` and `EVENT_END_DATE` in AdapterUtils.java
 * Update `EMBARGO_DATE` in Embargo.java
 
@@ -47,15 +47,18 @@ The art images and audio can be pulled from the iburn-Data library and should be
 
 #### Update data
 
-Follow instructions in "Working with mock data" below, placing art, camp, and event json
-in iBurn/src/main/assets/json. Start app and observe data import succeeds with log line:
- `MainActivity: Update result success: true`.
-
-Copy the generated database from your device. Depending on the value of the database name
+1. Check out iBurn-Data into a directory adjacent to this repository's root, and point iBurn-Data to the branch appropriate for the current year.
+2. `./gradlew updateData`. This will copy updated map, geocoder, art images, and api (camp, art, event) json files to this repo.
+3. Update `DATABASE_NAME` in `PlayaDatabase2.kt` to represent the current year. Commit this change.
+3. Make these temporary changes to app to generate a database file from JSON. Do not commit:
+      *  Set `USE_BUNDLED_DB` to `false` in `PlayaDatabase2.kt`
+      *  Uncomment the call to `bootstrapDatabaseFromJson` in `MainActivity`'s `onCreate`
+4. Launch the app and confirm database bootstrap completion with logline `MainActivity: Bootstrap success: true`.
+5. Copy the generated database from your device. Depending on the value of the database name
 set in PlayaDatabase2.kt the file will be located somewhere like `/data/data/com.iburnapp.iburn3.debug/databases/playaDatabase2023.db`.
 You can use Android Studio's "Device File Explorer" to conveniently copy this, or use `adb pull` from
-the command line. Place the saved database in `iBurn/src/main/assets/databases`, and toggle
-the value of `USE_BUNDLED_DB` in PlayaDatabase2.kt back to true.
+the command line. Place the saved database in `iBurn/src/main/assets/databases`
+6. return the value of `USE_BUNDLED_DB` in PlayaDatabase2.kt to `true`, Comment out call to `bootstrapDatabaseFromJson` in `MainActivity`'s `onCreate`
 
 ## TODO
 
@@ -67,18 +70,6 @@ the value of `USE_BUNDLED_DB` in PlayaDatabase2.kt back to true.
 If bundled tiles are updated, you can change MapProvider.MBTILE_DESTINATION to force all upgrades to copy the bundled tiles.
 
 Put bundled database in `./iBurn/main/assets/databases`, make sure PlayaDatabase2.kt filename is up to date, and bump version to force a dump-and-recopy.
-
-## Working with mock data
-
-First, disable using any bundled db by changing `USE_BUNDLED_DB` to false in PlayaDatabase2.kt
-Place `art.json`, `camp.json`, `event.json` in ./iBurn/src/main/assets/json, and add
-the following code somewhere on app start, like MainActivity#onCreate ~L#130:
-
-```java
-Context context = getApplicationContext();
-IBurnService service = new IBurnService(context, new MockIBurnApi(context));
-service.updateData().subscribe(success -> Timber.d("Update result success: %b", success));
-```
 
 ## Releasing
 Make sure you've:
