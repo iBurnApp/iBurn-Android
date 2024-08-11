@@ -22,6 +22,7 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.rx2.asObservable
 import timber.log.Timber
 import java.util.Date
@@ -77,9 +78,7 @@ object LocationProvider {
     private fun currentLocationFlow(context: Context, request: LocationRequest): Flow<Location> {
         init(context)
         return if (BuildConfig.MOCK) {
-            flow {
-                emit(lastMockLocation)
-            }
+            mockLocationSubject.asFlow()
         } else {
             if (!PermissionManager.hasLocationPermissions(context)) {
                 flow {

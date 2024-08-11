@@ -12,7 +12,7 @@ import java.util.Date
 
 
 // Changing this will trigger a force reload of the bundled database from assets
-private const val DATABASE_NAME = "playaDatabase2024.1.db"
+private const val DATABASE_NAME = "playaDatabase2024.2.db"
 
 /**
  * If true, use a bundled pre-populated database. Else start with a fresh database.
