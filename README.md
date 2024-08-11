@@ -40,36 +40,33 @@ Fortunately, you can still run and test the app with the previous year's data.
 * Update `versionYear`, `versionName` and `versionCode` in `iBurn/build.gradle`
 * Update `EVENT_START_DATE` and `EVENT_END_DATE` in AdapterUtils.java
 * Update `EMBARGO_DATE` in Embargo.java
+* Update `UNLOCK_CODE` in SECRETS.kt
 
 #### Art Images/Audio Tour
 
 The art images and audio can be pulled from the iburn-Data library and should be put in `./assets/art_images` and `./assets/audio_tour` respectively.
 
-#### Update data
+#### Update playa data
 
-1. Check out iBurn-Data into a directory adjacent to this repository's root, and point iBurn-Data to the branch appropriate for the current year.
+1. Check out iBurn-Data into a directory adjacent to this repository's root, and point iBurn-Data to the branch appropriate for the current year. Note this will usually be the private repo.
 2. `./gradlew updateData`. This will copy updated map, geocoder, art images, and api (camp, art, event) json files to this repo.
-3. Update `DATABASE_NAME` in `PlayaDatabase2.kt` to represent the current year. Commit this change.
-3. Make these temporary changes to app to generate a database file from JSON. Do not commit:
+3. If the map.mbtiles were updated, bump `MapboxMapFragment.MBTILES_VERSION`
+4 Update `DATABASE_NAME` in `PlayaDatabase2.kt` to represent the current year. Commit this change.
+5. Make these temporary changes to app to generate a database file from JSON. Do not commit:
       *  Set `USE_BUNDLED_DB` to `false` in `PlayaDatabase2.kt`
       *  Uncomment the call to `bootstrapDatabaseFromJson` in `MainActivity`'s `onCreate`
-4. Launch the app and confirm database bootstrap completion with logline `MainActivity: Bootstrap success: true`.
-5. Copy the generated database from your device. Depending on the value of the database name
+6. Launch the app and confirm database bootstrap completion with logline `MainActivity: Bootstrap success: true`.
+7. Copy the generated database from your device. Depending on the value of the database name
 set in PlayaDatabase2.kt the file will be located somewhere like `/data/data/com.iburnapp.iburn3.debug/databases/playaDatabase2023.db`.
 You can use Android Studio's "Device File Explorer" to conveniently copy this, or use `adb pull` from
 the command line. Place the saved database in `iBurn/src/main/assets/databases`
-6. return the value of `USE_BUNDLED_DB` in PlayaDatabase2.kt to `true`, Comment out call to `bootstrapDatabaseFromJson` in `MainActivity`'s `onCreate`
+8. return the value of `USE_BUNDLED_DB` in PlayaDatabase2.kt to `true`, Comment out call to `bootstrapDatabaseFromJson` in `MainActivity`'s `onCreate`
 
 ## TODO
 
 * Pretty up that item detail view.
 * Handle bundled database migrations so we allow app updates to use newer bundled data without using user modifications like favorites
 * Investigate Mapbox offline issues. Seems like it's possible Mapbox gets into a state where it stops displaying the map
-
-## Updating data
-If bundled tiles are updated, you can change MapProvider.MBTILE_DESTINATION to force all upgrades to copy the bundled tiles.
-
-Put bundled database in `./iBurn/main/assets/databases`, make sure PlayaDatabase2.kt filename is up to date, and bump version to force a dump-and-recopy.
 
 ## Releasing
 Make sure you've:

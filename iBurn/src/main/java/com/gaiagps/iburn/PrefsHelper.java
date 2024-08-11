@@ -12,19 +12,11 @@ public class PrefsHelper {
     // current event year.
     private static final String SHOWED_WELCOME = "welcomed";                // boolean
     private static final String VALID_UNLOCK_CODE = "unlocked";             // boolean
+    private static final String COPIED_MBTILES_VERSION = "copied_tiles";    // long
 
     private static final String POPULATED_DB_VERSION = "db_populated_ver";  // long
     private static final String SCHEDULED_UPDATE = "sched_update";          // boolean
 
-
-    // Initial 2023 bundled db had pretty event times formatted in EDT
-    private static final String FIXED_EVENTS_TABLE = "23-event-time-fix";   // boolean
-    // And then the fix for above issue broke event locations!
-    private static final String FIXED_EVENTS_TABLE_2 = "23-event-time-fix-2";// boolean
-    // And then realized we need to strip "None" from playa address fields due to an issue in
-    // geocoder. This prevented items located within plazas from getting geocoded.
-    private static final String FIXED_EVENTS_TABLE_3 = "23-event-time-fix-3";// boolean
-    private static final String COPIED_MBTILES_VERSION = "copied_tiles";    // long
     private static final String DEFAULT_RESOURCE_VERSION = "resver";        // long
     private static final String RESOURCE_VERSION_PREFIX = "res-";           // long
 
@@ -49,14 +41,6 @@ public class PrefsHelper {
         return String.format("%s_%s", baseKey, context.getString(R.string.current_year));
     }
 
-    public boolean fixedEventTimesAndLocations() {
-        return sharedPrefs.getBoolean(FIXED_EVENTS_TABLE_3, false);
-    }
-
-    public void setFixedEventTimesAndLocations(boolean didFix) {
-        editor.putBoolean(FIXED_EVENTS_TABLE_3, didFix).commit();
-    }
-
     /**
      * @return whether a valid unlock code has been presented for this year
      */
@@ -77,7 +61,7 @@ public class PrefsHelper {
     }
 
     public void setCopiedMbtilesVersion(long version) {
-        editor.putLong(COPIED_MBTILES_VERSION, version).commit();
+        editor.putLong(getAnnualKey(getAnnualKey(COPIED_MBTILES_VERSION)), version).commit();
     }
 
     public long getCopiedMbtilesVersion() {
