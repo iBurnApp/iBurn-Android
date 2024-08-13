@@ -139,6 +139,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(tick -> {
                         showEmbargoBanner();
+                    }, throwable -> {
+                        Timber.e(throwable, "Error occurred while showing embargo banner");
                     });
         }
         handleIntent(getIntent());
