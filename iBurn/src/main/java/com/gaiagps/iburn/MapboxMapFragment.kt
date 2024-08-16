@@ -7,9 +7,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.BitmapFactory
 import android.graphics.PointF
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.Gravity
@@ -17,14 +15,26 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.*
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.fragment.app.Fragment
 import com.gaiagps.iburn.activity.PlayaItemViewActivity
-import com.gaiagps.iburn.database.*
+import com.gaiagps.iburn.database.Art
+import com.gaiagps.iburn.database.Camp
+import com.gaiagps.iburn.database.DataProvider
+import com.gaiagps.iburn.database.Embargo
+import com.gaiagps.iburn.database.Event
+import com.gaiagps.iburn.database.PlayaItem
+import com.gaiagps.iburn.database.UserPoi
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
 import com.google.android.gms.location.LocationRequest
@@ -54,12 +64,13 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import timber.log.Timber
 import java.io.File
-import java.util.*
+import java.util.ArrayDeque
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.collections.set
 
 // Track MBTiles versions to avoid unnecessary copies from assets
-const val MBTILES_VERSION = 2L
+const val MBTILES_VERSION = 3L
 
 class MapboxMapFragment : Fragment() {
 
