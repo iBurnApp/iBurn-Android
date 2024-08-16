@@ -92,11 +92,30 @@
       }
     },
     {
+        "id": "toilet-icon",
+        "type": "symbol",
+        "source": "composite",
+        "source-layer": "toilets",
+        "minzoom": 15,
+        "layout": {
+          "icon-image": "toilet",
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
+          "icon-size": {
+            "base": 1,
+            "stops": [[0, 0.20], [13, 0.25], [15, 0.5], [22, 1]]
+          }
+        },
+        "paint": {
+            "icon-opacity": 0.8
+        }
+    },
+    {
       "id": "points",
       "type": "symbol",
       "source": "composite",
       "source-layer": "points",
-      "filter": ["!in", "NAME", "The Man"],
+      "filter": ["!in", "NAME", "The Man", "Will Call Lot", "D Lot", "Media Mecca", "DMV", "DMZ", "HEaT", "Station 6"],
       "layout": {
         "icon-image": "{NAME}",
         "icon-allow-overlap": true,
@@ -105,9 +124,25 @@
           "base": 1,
           "stops": [[0, 1], [13, 1], [15, 1.5], [22, 1.5]]
         },
-        "text-font": ["Open Sans Regular"]
+        "text-field": "{NAME}",
+        "text-font": ["Open Sans Regular"],
+        "text-optional": true,
+        "text-size": {
+          "base": 1,
+          "stops": [[0, 0], [13, 0], [14, 10], [22, 10]]
+        },
+        "text-offset": [0, 1.7]
       },
-      "paint": {}
+      "paint": {
+        "text-halo-color": "#202426",
+        "text-halo-width": 2,
+        "text-color": "#fdf1b9",
+        "text-halo-blur": 1,
+        "text-opacity": {
+          "base": 1,
+          "stops": [[0, 0], [14, 0], [15, 1], [22, 1]]
+        }
+      }
     },
     {
       "id": "man",

@@ -13,7 +13,7 @@ module.exports={
   },
   "fence_distance": 8430,
   "bearing": 45,
-  "road_width": 40,
+  "road_width": 30,
   "entrance_road": {
     "distance": 390,
     "angle": 108
@@ -24,7 +24,7 @@ module.exports={
     "segments": [["10:45","11:15"]]
   },
   "center_camp":{
-    "distance": 3026,
+    "distance": 2999,
     "cafe_plaza_radius":320,
     "cafe_radius":110,
     "frontage_arc": {
@@ -36,9 +36,10 @@ module.exports={
   "cStreets":[
     {
       "distance":2500,
-      "segments":[["2:00","5:45"],["6:15","10:00"]],
+      "segments":[["2:00","5:45"],["6:14","10:00"]],
       "ref":"esplanade",
-      "name":"Esplanade"
+      "name":"Esplanade",
+      "width": 40
     },
     {
       "distance":2940,
@@ -47,61 +48,61 @@ module.exports={
       "name": "Agog"
     },
     {
-      "distance":3230,
+      "distance":3220,
       "segments":[["2:00","6:00"],["6:00","10:00"]],
       "ref":"b",
       "name": "Baffle"
     },
     {
-      "distance":3520,
+      "distance":3500,
       "segments":[["2:00","6:00"],["6:00","10:00"]],
       "ref":"c",
       "name": "Captivate"
     },
     {
-      "distance":3810,
+      "distance":3780,
       "segments":[["2:00","6:00"],["6:00","10:00"]],
       "ref":"d",
       "name": "Delight"
     },
     {
-      "distance":4100,
+      "distance":4060,
       "segments":[["2:00","10:00"]],
       "ref":"e",
       "name": "Enchant"
     },
     {
-      "distance":4590,
+      "distance":4540,
       "segments":[["2:00","10:00"]],
       "ref":"f",
       "name": "Fascinate"
     },
     {
-      "distance":4880,
+      "distance":4820,
       "segments":[["2:00","10:00"]],
       "ref":"g",
       "name": "Gobsmack"
     },
     {
-      "distance":5170,
+      "distance":5100,
       "segments":[["2:00","10:00"]],
       "ref":"h",
       "name": "Hypnotic"
     },
     {
-      "distance":5460,
+      "distance":5380,
       "segments":[["2:00","10:00"]],
       "ref":"i",
       "name": "Intrigue"
     },
     {
-      "distance":5650,
+      "distance":5560,
       "segments":[["2:00","10:00"]],
       "ref":"j",
       "name": "Jabberwock"
     },
     {
-      "distance":5845,
+      "distance":5740,
       "segments":[["2:00","10:00"]],
       "ref":"k",
       "name": "Kelter",
