@@ -31,6 +31,24 @@
       "paint": {"fill-color": "#574e26"}
     },
     {
+      "id": "dmz-name",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "dmz",
+      "layout": {
+          "text-field": "Deep-Playa Music Zone",
+          "symbol-placement": "line",
+          "text-size": 14,
+          "text-font": ["Open Sans Regular"]
+        },
+        "paint": {
+          "text-halo-color": "#202426",
+          "text-halo-width": 2,
+          "text-color": "#fdf1b9",
+          "text-halo-blur": 1
+        }
+    },
+    {
       "id": "toilets-outline",
       "type": "fill",
       "source": "composite",
@@ -78,9 +96,9 @@
       "type": "symbol",
       "source": "composite",
       "source-layer": "points",
-      "filter": ["!in", "ref", "center", "rangerHQ"],
+      "filter": ["!in", "NAME", "The Man"],
       "layout": {
-        "icon-image": "{ref}",
+        "icon-image": "{NAME}",
         "icon-allow-overlap": true,
         "icon-ignore-placement": true,
         "icon-size": {
@@ -96,28 +114,12 @@
       "type": "symbol",
       "source": "composite",
       "source-layer": "points",
-      "filter": ["==", "ref", "center"],
+      "filter": ["==", "NAME", "The Man"],
       "layout": {
         "icon-image": "center",
         "icon-allow-overlap": true,
         "icon-ignore-placement": true,
         "icon-size": {"base": 1.76, "stops": [[13, 0.02], [22, 6]]},
-        "text-font": ["Open Sans Regular"]
-      },
-      "paint": {}
-    },
-    {
-      "id": "rangerHQ",
-      "type": "symbol",
-      "source": "composite",
-      "source-layer": "points",
-      "minzoom": 4,
-      "filter": ["in", "ref", "", "rangerHQ"],
-      "layout": {
-        "icon-image": "ranger",
-        "icon-allow-overlap": true,
-        "icon-ignore-placement": true,
-        "icon-size": {"base": 1, "stops": [[0, 1], [13, 1], [15, 2], [22, 2]]},
         "text-font": ["Open Sans Regular"]
       },
       "paint": {}
