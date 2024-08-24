@@ -511,8 +511,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                     FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
             artImageView.setLayoutParams(params);
             artImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            artImageView.setAlpha(.001f); // Hack - Can't seem to properly add view if it's visibility is not VISIBLE or alpha 0. This lets us know that the view isn't technically visible
-            binding.mapContainer.addView(artImageView);
+            artImageView.setAlpha(.99f); // Hack - Can't seem to properly add view if it's visibility is not VISIBLE or alpha 0. This lets us know that the view isn't technically visible
+            binding.mapContainer.addView(artImageView, 0);
 
             loadArtImage(art, artImageView, new com.gaiagps.iburn.Callback() {
 
