@@ -397,9 +397,18 @@ class DataProvider private constructor(private val context: Context, private val
     fun insertUserPoi(poi: UserPoi) {
         db.userPoiDao().insert(poi)
     }
+    fun insertUserPois(poi: List<UserPoi>) {
+        db.userPoiDao().insert(*poi.toTypedArray())
+    }
 
     fun deleteUserPoi(poi: UserPoi) {
         db.userPoiDao().delete(poi)
+    }
+
+    fun updateFavorites(playaIds: List<String>, isFavorite: Boolean) {
+        db.artDao().updateFavorites(playaIds, isFavorite)
+        db.eventDao().updateFavorites(playaIds, isFavorite)
+        db.campDao().updateFavorites(playaIds, isFavorite)
     }
 
     fun update(item: PlayaItem) {
