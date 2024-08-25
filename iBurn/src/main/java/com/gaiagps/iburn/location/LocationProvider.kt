@@ -10,10 +10,6 @@ import android.os.SystemClock
 import com.gaiagps.iburn.BuildConfig
 import com.gaiagps.iburn.PermissionManager
 import com.google.android.gms.location.LocationRequest
-import com.mapbox.mapboxsdk.location.engine.LocationEngine
-import com.mapbox.mapboxsdk.location.engine.LocationEngineCallback
-import com.mapbox.mapboxsdk.location.engine.LocationEngineRequest
-import com.mapbox.mapboxsdk.location.engine.LocationEngineResult
 import com.patloew.colocation.CoLocation
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -24,6 +20,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.rx2.asObservable
+import org.maplibre.android.location.engine.LocationEngine
+import org.maplibre.android.location.engine.LocationEngineCallback
+import org.maplibre.android.location.engine.LocationEngineRequest
+import org.maplibre.android.location.engine.LocationEngineResult
 import timber.log.Timber
 import java.util.Date
 import java.util.concurrent.TimeUnit

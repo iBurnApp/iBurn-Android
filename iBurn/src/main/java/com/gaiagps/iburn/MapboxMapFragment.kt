@@ -38,30 +38,30 @@ import com.gaiagps.iburn.database.UserPoi
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
 import com.google.android.gms.location.LocationRequest
-import com.mapbox.geojson.Point
-import com.mapbox.mapboxsdk.camera.CameraPosition
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
-import com.mapbox.mapboxsdk.exceptions.InvalidLatLngBoundsException
-import com.mapbox.mapboxsdk.geometry.LatLng
-import com.mapbox.mapboxsdk.geometry.LatLngBounds
-import com.mapbox.mapboxsdk.geometry.VisibleRegion
-import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
-import com.mapbox.mapboxsdk.location.modes.CameraMode
-import com.mapbox.mapboxsdk.location.modes.RenderMode
-import com.mapbox.mapboxsdk.maps.MapView
-import com.mapbox.mapboxsdk.maps.MapboxMap
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
-import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.mapboxsdk.plugins.annotation.Symbol
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
-import com.mapbox.mapboxsdk.style.sources.VectorSource
-import com.mapbox.mapboxsdk.utils.MapFragmentUtils
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.camera.CameraUpdateFactory
+import org.maplibre.android.exceptions.InvalidLatLngBoundsException
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.geometry.LatLngBounds
+import org.maplibre.android.geometry.VisibleRegion
+import org.maplibre.android.location.LocationComponentActivationOptions
+import org.maplibre.android.location.modes.CameraMode
+import org.maplibre.android.location.modes.RenderMode
+import org.maplibre.android.maps.MapLibreMap
+import org.maplibre.android.maps.MapView
+import org.maplibre.android.maps.OnMapReadyCallback
+import org.maplibre.android.maps.Style
+import org.maplibre.android.plugins.annotation.Symbol
+import org.maplibre.android.plugins.annotation.SymbolManager
+import org.maplibre.android.plugins.annotation.SymbolOptions
+import org.maplibre.android.style.sources.VectorSource
+import org.maplibre.android.utils.MapFragmentUtils
+import org.maplibre.geojson.Point
 import timber.log.Timber
 import java.io.File
 import java.util.ArrayDeque
@@ -120,7 +120,7 @@ class MapboxMapFragment : Fragment() {
     private var userPoiButton: ImageView? = null
     private var addressLabel: TextView? = null
     private var mapView: MapView? = null
-    private var map: MapboxMap? = null
+    private var map: MapLibreMap? = null
     private var onMapReadyCallback: OnMapReadyCallback? = null
 
     private var showcaseMarker: SymbolOptions? = null
@@ -499,7 +499,7 @@ class MapboxMapFragment : Fragment() {
             }, { error -> Timber.e(error, "Failed to get device location") })
     }
 
-    private fun setupCameraUpdateSub(map: MapboxMap) {
+    private fun setupCameraUpdateSub(map: MapLibreMap) {
         val prefsHelper = PrefsHelper(requireActivity().applicationContext)
         Timber.d("Subscribing to camera updates")
         cameraUpdateSubscription?.dispose()
@@ -830,7 +830,7 @@ class MapboxMapFragment : Fragment() {
             .toTypedArray()[1])
     }
 
-    private fun resetMapView(map: MapboxMap) {
+    private fun resetMapView(map: MapLibreMap) {
         map.animateCamera(
             CameraUpdateFactory.newLatLngZoom(
                 LatLng(Geo.MAN_LAT, Geo.MAN_LON),
@@ -969,7 +969,7 @@ class MapboxMapFragment : Fragment() {
      * Adds a custom pin to the current map and database
      */
     private fun addCustomPin(
-        map: MapboxMap,
+        map: MapLibreMap,
         latLng: LatLng?,
         title: String,
         @UserPoi.Icon poiIcon: String,

@@ -12,7 +12,9 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.RemoteException;
 
+import com.gaiagps.iburn.ArtImageManagerKt;
 import com.gaiagps.iburn.databinding.ActivityPlayaItemViewBinding;
+import com.gaiagps.iburn.service.AudioPlayerServiceKt;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import android.support.v4.media.MediaBrowserCompat;
@@ -55,7 +57,6 @@ import com.gaiagps.iburn.database.Event;
 import com.gaiagps.iburn.database.PlayaItem;
 import com.gaiagps.iburn.service.AudioPlayerService;
 import com.gaiagps.iburn.view.AnimatedFloatingActionButton;
-import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -69,8 +70,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
-import static com.gaiagps.iburn.ArtImageManagerKt.loadArtImage;
-import static com.gaiagps.iburn.service.AudioPlayerServiceKt.MediaMetadataKeyArtPlayaId;
+
+import org.maplibre.android.geometry.LatLng;
 
 /**
  * Show the detail view for a Camp, Art installation, or Event
@@ -514,7 +515,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
             artImageView.setAlpha(.99f); // Hack - Can't seem to properly add view if it's visibility is not VISIBLE or alpha 0. This lets us know that the view isn't technically visible
             binding.mapContainer.addView(artImageView, 0);
 
-            loadArtImage(art, artImageView, new com.gaiagps.iburn.Callback() {
+            ArtImageManagerKt.loadArtImage(art, artImageView, new com.gaiagps.iburn.Callback() {
 
                 @Override
                 public void onSuccess() {
@@ -694,7 +695,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         MediaMetadataCompat metadata = mediaControllerCompat.getMetadata();
         if (metadata == null) return false;
 
-        String currentlyPlayingArtPlayaId = metadata.getString(MediaMetadataKeyArtPlayaId);
+        String currentlyPlayingArtPlayaId = metadata.getString(AudioPlayerServiceKt.MediaMetadataKeyArtPlayaId);
 
         return (currentlyPlayingArtPlayaId != null && currentlyPlayingArtPlayaId.equals(item.playaId));
     }
