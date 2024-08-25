@@ -116,6 +116,9 @@ public interface EventDao {
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1 OR ((" + LATITUDE + " BETWEEN :minLat AND :maxLat) AND (" + LONGITUDE + " BETWEEN :minLon AND :maxLon))")
     Flowable<List<Event>> findInRegionOrFavorite(float minLat, float maxLat, float minLon, float maxLon);
 
+    @Query("UPDATE " + TABLE_NAME + " SET " + FAVORITE + " = :isFavorite WHERE " + PLAYA_ID + " in (:playaIds)")
+    void updateFavorites(List<String> playaIds, boolean isFavorite);
+
     @Insert
     void insert(Event... arts);
 

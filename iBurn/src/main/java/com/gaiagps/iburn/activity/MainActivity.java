@@ -37,6 +37,7 @@ import com.gaiagps.iburn.api.IBurnService;
 import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
+import com.gaiagps.iburn.database.PlayaDatabase2Kt;
 import com.gaiagps.iburn.databinding.ActivityMainBinding;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
@@ -131,6 +132,18 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         if (!prefs.didScheduleUpdate()) {
             DataUpdateService.Companion.scheduleAutoUpdate(this);
             prefs.setDidScheduleUpdate(true);
+        }
+
+        if (!prefs.rescuedLostFaves()) {
+            PlayaDatabase2Kt.migrateOldFavorites(this)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(numRescued -> {
+                        Timber.d("Rescued %s favorites and userPois!", numRescued);
+                        showRescuedFavesDialog(numRescued);
+                        prefs.setDidScheduleUpdate(true);
+                    }, throwable -> {
+                        Timber.e(throwable, "Rescue failed");
+                    });
         }
         // For testing data update live
         // DataUpdateService.Companion.updateNow(this);
@@ -304,6 +317,16 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     .show();
             return false;
         }
+    }
+
+    private void showRescuedFavesDialog(int numRescued) {
+        new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
+                .setTitle(getString(R.string.dialog_data_rescue_title))
+                .setMessage(getString(R.string.dialog_data_rescue_body, numRescued))
+                .setPositiveButton(getString(R.string.lets_burn), (dialog1, which) -> {
+                    // no-op
+                })
+                .show();
     }
 
     @Override

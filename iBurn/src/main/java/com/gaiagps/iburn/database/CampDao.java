@@ -41,6 +41,9 @@ public interface CampDao {
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1 OR ((" + LATITUDE + " BETWEEN :minLat AND :maxLat) AND (" + LONGITUDE + " BETWEEN :minLon AND :maxLon))")
     Flowable<List<Camp>> findInRegionOrFavorite(float maxLat, float minLat, float maxLon, float minLon);
 
+    @Query("UPDATE " + TABLE_NAME + " SET " + FAVORITE + " = :isFavorite WHERE " + PLAYA_ID + " in (:playaIds)")
+    void updateFavorites(List<String> playaIds, boolean isFavorite);
+
     @Insert
     void insert(Camp... camps);
 
