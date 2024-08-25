@@ -49,7 +49,7 @@
     <string name="enter_unlock_code">Enter Unlock Code</string>
     <string name="unlock_description">Location info is hidden until gates open.</string>
     <string name="dialog_data_rescue_title">Data Rescued!</string>
-    <string name="dialog_data_rescue_body">We recovered %d favorites lost in a prior app update. Sorry to make you sweat!</string>
+    <string name="dialog_data_rescue_body">We recovered %d favorites and custom map pins lost in a prior app update. Sorry to make you sweat!</string>
     <string name="title_activity_search">SearchActivity</string>
 
     <string name="action_settings">Settings</string>

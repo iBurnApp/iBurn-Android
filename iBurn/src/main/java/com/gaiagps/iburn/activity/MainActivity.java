@@ -139,7 +139,9 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(numRescued -> {
                         Timber.d("Rescued %s favorites and userPois!", numRescued);
-                        showRescuedFavesDialog(numRescued);
+                        if (numRescued > 0) {
+                            showRescuedFavesDialog(numRescued);
+                        }
                         prefs.setRescuedLostFaves(true);
                     }, throwable -> {
                         Timber.e(throwable, "Rescue failed");
