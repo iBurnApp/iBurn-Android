@@ -14,6 +14,7 @@ import static com.gaiagps.iburn.database.PlayaItem.FAVORITE;
 import static com.gaiagps.iburn.database.PlayaItem.LATITUDE;
 import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE;
 import static com.gaiagps.iburn.database.PlayaItem.NAME;
+import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ID;
 
 /**
  * Created by dbro on 6/8/17.
@@ -36,6 +37,9 @@ public interface ArtDao {
 
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1 OR ((" + LATITUDE + " BETWEEN :minLat AND :maxLat) AND (" + LONGITUDE + " BETWEEN :minLon AND :maxLon))")
     Flowable<List<Art>> findInRegionOrFavorite(float maxLat, float minLat, float maxLon, float minLon);
+
+    @Query("UPDATE " + TABLE_NAME + " SET " + FAVORITE + " = :isFavorite WHERE " + PLAYA_ID + " in (:playaIds)")
+    void updateFavorites(List<String> playaIds, boolean isFavorite);
 
 //    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + AUDIO_TOUR_URL + " IS NOT NULL")
 //    Flowable<List<Art>> getAllWithAudioTour();

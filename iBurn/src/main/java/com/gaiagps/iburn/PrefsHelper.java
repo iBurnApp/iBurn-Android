@@ -10,6 +10,7 @@ public class PrefsHelper {
 
     // Year specific preferences: These keys should be combined with the
     // current event year.
+    private static final String RESCUED_LOST_FAVS = "rescued_lost_faves";   // boolean
     private static final String SHOWED_WELCOME = "welcomed";                // boolean
     private static final String VALID_UNLOCK_CODE = "unlocked";             // boolean
     private static final String COPIED_MBTILES_VERSION = "copied_tiles";    // long
@@ -39,6 +40,14 @@ public class PrefsHelper {
      */
     private String getAnnualKey(String baseKey) {
         return String.format("%s_%s", baseKey, context.getString(R.string.current_year));
+    }
+
+    public boolean rescuedLostFaves() {
+        return sharedPrefs.getBoolean(getAnnualKey(RESCUED_LOST_FAVS), false);
+    }
+
+    public void setRescuedLostFaves(boolean didRescue) {
+        editor.putBoolean(getAnnualKey(RESCUED_LOST_FAVS), didRescue).apply();
     }
 
     /**
