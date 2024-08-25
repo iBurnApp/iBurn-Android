@@ -3,9 +3,9 @@ package com.gaiagps.iburn.js
 import android.content.Context
 import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.V8Array
-import com.mapbox.mapboxsdk.geometry.LatLng
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
+import org.maplibre.android.geometry.LatLng
 import timber.log.Timber
 import java.util.concurrent.Executors
 

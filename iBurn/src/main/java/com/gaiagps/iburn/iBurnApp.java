@@ -1,11 +1,12 @@
 package com.gaiagps.iburn;
 
-import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.WellKnownTileServer;
 
 import timber.log.Timber;
 
 import static com.gaiagps.iburn.SECRETSKt.MAPBOX_API_KEY;
+
+import org.maplibre.android.MapLibre;
+import org.maplibre.android.WellKnownTileServer;
 
 /**
  * Created by davidbrodsky on 6/12/15.
@@ -20,7 +21,7 @@ public class iBurnApp extends android.app.Application {
             Timber.plant(new Timber.DebugTree());
         }
 
-        Mapbox.getInstance(getApplicationContext(), MAPBOX_API_KEY, WellKnownTileServer.MapTiler);
+        MapLibre.getInstance(getApplicationContext(), MAPBOX_API_KEY, WellKnownTileServer.MapLibre);
 
         // If we abandon Timber logging in this app, enable below line
         // to enable Timber logging in any library modules that use it

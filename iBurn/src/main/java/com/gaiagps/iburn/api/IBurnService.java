@@ -50,7 +50,8 @@ import com.gaiagps.iburn.js.Geocoder;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mapbox.mapboxsdk.geometry.LatLng;
+
+import org.maplibre.android.geometry.LatLng;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

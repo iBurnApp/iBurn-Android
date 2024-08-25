@@ -7,12 +7,12 @@ import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
-import com.mapbox.mapboxsdk.geometry.VisibleRegion
 import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.rxkotlin.Flowables
 import io.reactivex.schedulers.Schedulers
+import org.maplibre.android.geometry.VisibleRegion
 import timber.log.Timber
 import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean

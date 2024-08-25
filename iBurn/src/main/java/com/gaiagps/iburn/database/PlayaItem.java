@@ -3,7 +3,7 @@ package com.gaiagps.iburn.database;
 import androidx.room.ColumnInfo;
 import androidx.room.PrimaryKey;
 
-import com.mapbox.mapboxsdk.geometry.LatLng;
+import org.maplibre.android.geometry.LatLng;
 
 import java.io.Serializable;
 
