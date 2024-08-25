@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                     .subscribe(numRescued -> {
                         Timber.d("Rescued %s favorites and userPois!", numRescued);
                         showRescuedFavesDialog(numRescued);
-                        prefs.setDidScheduleUpdate(true);
+                        prefs.setRescuedLostFaves(true);
                     }, throwable -> {
                         Timber.e(throwable, "Rescue failed");
                     });

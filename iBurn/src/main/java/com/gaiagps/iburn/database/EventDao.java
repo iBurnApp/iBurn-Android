@@ -7,6 +7,7 @@ import static com.gaiagps.iburn.database.Event.START_TIME;
 import static com.gaiagps.iburn.database.Event.START_TIME_PRETTY;
 import static com.gaiagps.iburn.database.Event.TABLE_NAME;
 import static com.gaiagps.iburn.database.Event.TYPE;
+import static com.gaiagps.iburn.database.PlayaItem.DESC;
 import static com.gaiagps.iburn.database.PlayaItem.FAVORITE;
 import static com.gaiagps.iburn.database.PlayaItem.ID;
 import static com.gaiagps.iburn.database.PlayaItem.LATITUDE;
@@ -40,7 +41,7 @@ public interface EventDao {
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + FAVORITE + " = 1 AND " + END_TIME + " >= :now ORDER BY " + START_TIME)
     Flowable<List<Event>> getNonExpiredFavorites(String now);
 
-    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + NAME + " LIKE :name GROUP BY " + NAME)
+    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + NAME + " LIKE :name OR " + DESC + " LIKE :name GROUP BY " + NAME)
     Flowable<List<Event>> findByName(String name);
 
     @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + CAMP_PLAYA_ID + " = :campPlayaId GROUP BY " + NAME)
