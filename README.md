@@ -42,16 +42,13 @@ Fortunately, you can still run and test the app with the previous year's data.
 * Update `EMBARGO_DATE` in Embargo.java
 * Update `UNLOCK_CODE` in SECRETS.kt
 
-#### Art Images/Audio Tour
-
-The art images and audio can be pulled from the iburn-Data library and should be put in `./assets/art_images` and `./assets/audio_tour` respectively.
 
 #### Update playa data
 
 1. Check out iBurn-Data into a directory adjacent to this repository's root, and point iBurn-Data to the branch appropriate for the current year. Note this will usually be the private repo.
-2. `./gradlew updateData`. This will copy updated map, geocoder, art images, and api (camp, art, event) json files to this repo.
+2. `./gradlew updateData`. This will copy updated map, geocoder, art images, art audio tour, and api json (camp, art, event) files to this repo.
 3. If the map.mbtiles were updated, bump `MapboxMapFragment.MBTILES_VERSION`
-4 Update `DATABASE_NAME` in `PlayaDatabase2.kt` to represent the current year. Commit this change.
+4. Update `DATABASE_NAME` in `PlayaDatabase2.kt` to represent the current year. Commit this change.
 5. Make these temporary changes to app to generate a database file from JSON. Do not commit:
       *  Set `USE_BUNDLED_DB` to `false` in `PlayaDatabase2.kt`
       *  Uncomment the call to `bootstrapDatabaseFromJson` in `MainActivity`'s `onCreate`
@@ -62,11 +59,16 @@ You can use Android Studio's "Device File Explorer" to conveniently copy this, o
 the command line. Place the saved database in `iBurn/src/main/assets/databases`
 8. return the value of `USE_BUNDLED_DB` in PlayaDatabase2.kt to `true`, Comment out call to `bootstrapDatabaseFromJson` in `MainActivity`'s `onCreate`
 
+#### Art Images/Audio Tour
+
+The `./gradlew updateData` will copy art images and tour audio from the iBurn-Data repo to `./assets/art_images` and `./assets/audio_tour` respectively.
+
 ## TODO
 
 * Pretty up that item detail view.
-* Handle bundled database migrations so we allow app updates to use newer bundled data without using user modifications like favorites
-* Investigate Mapbox offline issues. Seems like it's possible Mapbox gets into a state where it stops displaying the map
+* Separate playa API from user database.
+* Investigate Mapbox offline and SIGABRT issues. Seems like it's possible Mapbox gets into a state where it stops displaying the map
+* Populate playa db from gradle task.
 
 ## Releasing
 Make sure you've:
