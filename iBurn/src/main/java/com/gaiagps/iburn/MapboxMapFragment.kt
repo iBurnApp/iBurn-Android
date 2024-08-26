@@ -343,6 +343,7 @@ class MapboxMapFragment : Fragment() {
         return markerPlaceView
     }
 
+    @Synchronized
     private fun copyAssets(): String {
         val tilesInput = requireContext().assets.open("map/map.mbtiles")
         val tilesOutput = File(requireContext().getExternalFilesDir(null), "map.mbtiles")
@@ -351,14 +352,11 @@ class MapboxMapFragment : Fragment() {
             return tilesOutput.path
         }
         val tilesOutputStream = tilesOutput.outputStream()
-        val buffer = ByteArray(1024)
-        var read: Int
-        while (tilesInput.read(buffer).also { read = it } != -1) {
-            tilesOutputStream.write(buffer, 0, read)
+        tilesInput.use { input ->
+            tilesOutputStream.use { output ->
+                input.copyTo(output)
+            }
         }
-        tilesInput.close()
-        tilesOutputStream.flush()
-        tilesOutputStream.close()
         prefs.copiedMbtilesVersion = MBTILES_VERSION
         return tilesOutput.path
     }
