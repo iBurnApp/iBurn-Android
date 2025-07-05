@@ -4,11 +4,10 @@ import androidx.annotation.NonNull;
 
 import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.CurrentDateProvider;
+import com.gaiagps.iburn.EventInfo;
 import com.gaiagps.iburn.PrefsHelper;
 
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Iterator;
 
 import static com.gaiagps.iburn.database.PlayaItem.LATITUDE;
@@ -23,8 +22,8 @@ import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ADDR;
  */
 public class Embargo implements DataProvider.QueryInterceptor {
 
-    // 2024 Embargo date is August 25
-    public  static final Date   EMBARGO_DATE   = new GregorianCalendar(2024, Calendar.AUGUST, 25, 0, 0).getTime();
+    // Embargo date is the day gates open
+    public static final Date EMBARGO_DATE = EventInfo.EMBARGO_DATE;
 
     // For mock builds, force user to enter unlock code
     private static final boolean FORCE_EMBARGO = BuildConfig.MOCK;

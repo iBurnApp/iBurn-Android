@@ -35,11 +35,10 @@ Fortunately, you can still run and test the app with the previous year's data.
 
 #### Update code and text resources
 
-* Update `app_name` and `current_year` in iBurn/src/main/res/values/strings.xml
+* Update event year and dates in `EventInfo.kt`
 * Update `MOCK_NOW_DATE` in CurrentDateProvider (Used when simulating event time during testing)
 * Update `versionYear`, `versionName` and `versionCode` in `iBurn/build.gradle`
-* Update `EVENT_START_DATE` and `EVENT_END_DATE` in AdapterUtils.java
-* Update `EMBARGO_DATE` in Embargo.java
+* `versionYear` also populates the `app_name` and `current_year` string resources
 * Update `UNLOCK_CODE` in SECRETS.kt
 
 
@@ -72,9 +71,8 @@ The `./gradlew updateData` will copy art images and tour audio from the iBurn-Da
 
 ## Releasing
 Make sure you've:
-
-+ Set embargo date correctly in `Embargo.java`, and set `EVENT_START_DATE` and `EVENT_STOP_DATE` in `AdapterUtils`
-+ Incremented the version code and name in ./iBurn/build.grade
+* Set event dates correctly in `EventInfo.kt`
+* Incremented the version code and name in ./iBurn/build.grade
 The final pre-signed store release should be built with:
 
 ```

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">iBurn 2024</string>
+    <!-- Application name and year are provided by build.gradle -->
 
     <!-- MainActivity Tabs -->
     <string name="fav_tab">Faves️</string>
@@ -84,6 +84,6 @@
     <string name="pause_audio_tour">Pause Audio Tour</string>
     <string name="camp_location_unknown">Sorry, we don\'t have location data for that camp. You can add a marker later from the app\'s map view.</string>
     <string name="place_marker">Move the map, then tap marker to place it</string>
-    <string name="current_year">2024</string>
+    <!-- provided by build.gradle -->
 
 </resources>

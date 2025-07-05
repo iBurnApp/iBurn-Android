@@ -42,6 +42,10 @@ android {
 
         applicationId "com.iburnapp.iburn3"
 
+        // Provide year-specific resources for use in XML
+        resValue "string", "app_name", "iBurn $versionYear"
+        resValue "string", "current_year", "$versionYear"
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         archivesBaseName = "iburn-$versionName-$versionCode"
 

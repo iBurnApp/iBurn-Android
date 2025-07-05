@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.DateUtil;
+import com.gaiagps.iburn.EventInfo;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
@@ -19,7 +20,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Locale;
 
 /**
@@ -36,8 +36,8 @@ public class AdapterUtils {
     public static final SimpleDateFormat dayLabelFormatter = DateUtil.getPlayaTimeFormat("EE M/d");
     public static final SimpleDateFormat dayAbbrevFormatter = DateUtil.getPlayaTimeFormat("M/d");
 
-    public static final Date EVENT_START_DATE = createPlayaData(2024, Calendar.AUGUST, 25);
-    public static final Date EVENT_END_DATE = createPlayaData(2024, Calendar.SEPTEMBER, 2);
+    public static final Date EVENT_START_DATE = EventInfo.EVENT_START_DATE;
+    public static final Date EVENT_END_DATE = EventInfo.EVENT_END_DATE;
 
     public static final String EVENT_TYPE_ABBREVIATION_UNKNOWN = "unknwn";
     public static final String EVENT_TYPE_NAME_UNKNOWN = "Uncategorized";
@@ -86,12 +86,6 @@ public class AdapterUtils {
         // has all events categorized
 //        sEventTypeAbbreviations.add(EVENT_TYPE_ABBREVIATION_UNKNOWN);
 //        sEventTypeNames.add(EVENT_TYPE_NAME_UNKNOWN);
-    }
-
-    private static Date createPlayaData(int year, int month, int dayOfMonth) {
-        GregorianCalendar cal = new GregorianCalendar(year, month, dayOfMonth);
-        cal.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
-        return cal.getTime();
     }
 
     private static void populateDayRanges(Date start, Date end) {
