@@ -18,7 +18,6 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
-
 repositories {
     mavenCentral()
 }
@@ -26,6 +25,11 @@ repositories {
 ext {
     versionYear = 2024
 }
+
+kotlin {
+    jvmToolchain(17)
+}
+
 
 android {
     buildFeatures {
