@@ -35,10 +35,10 @@ Fortunately, you can still run and test the app with the previous year's data.
 
 #### Update code and text resources
 
-* Update event year and dates in `EventInfo.kt`
-* Update `MOCK_NOW_DATE` in CurrentDateProvider (Used when simulating event time during testing)
-* Update `versionYear`, `versionName` and `versionCode` in `iBurn/build.gradle`
-* `versionYear` also populates the `app_name` and `current_year` string resources
+* Update event year as `versionYear` `iBurn/build.gradle`
+* Update `versionCode` and `versionName` in `iBurn/build.gradle`
+    * Increment `versionCode` by 1, and set `versionName` to "$versionYear.1" for first release.
+* Update event dates in `EventInfo.kt` (Event start, end, and embargo dates)
 * Update `UNLOCK_CODE` in SECRETS.kt
 
 
