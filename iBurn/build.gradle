@@ -24,7 +24,7 @@ repositories {
 }
 
 ext {
-    versionYear = 2024
+    versionYear = 2025
 }
 
 // Generate a Kotlin file containing the current event year for use in code
