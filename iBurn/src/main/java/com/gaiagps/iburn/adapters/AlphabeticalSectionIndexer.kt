@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.adapters
 
 import com.gaiagps.iburn.database.PlayaItem
+import java.util.Locale
 
 /**
  * Created by dbro on 8/18/15.
@@ -34,6 +35,6 @@ class AlphabeticalSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSect
     }
 
     private fun getSectionIndexForName(title: String): Int {
-        return Math.max(0, sections.indexOf(title.first().toString().toUpperCase()))
+        return Math.max(0, sections.indexOf(title.first().toString().uppercase(Locale.getDefault())))
     }
 }

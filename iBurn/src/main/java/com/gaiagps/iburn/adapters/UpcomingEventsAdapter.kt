@@ -7,6 +7,7 @@ import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.*
+import java.util.Locale
 
 /**
  * Created by dbro on 6/13/17.
@@ -35,8 +36,8 @@ class UpcomingEventsAdapter(context: Context, listener: AdapterListener) :
         val item = items?.get(firstSectionItem) as Event
 
         val headerTitle = DateUtil.getStartDateString(
-                apiDateFormat.parse(item.startTime),
-                CurrentDateProvider.getCurrentDate()).toUpperCase()
+                    apiDateFormat.parse(item.startTime),
+                    CurrentDateProvider.getCurrentDate()).uppercase(Locale.getDefault())
 
         // SectionedPlayaItemAdapter sets header layout to a single TextView
         (viewHolder.itemView as TextView).text = headerTitle
