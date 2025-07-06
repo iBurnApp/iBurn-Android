@@ -27,12 +27,33 @@ ext {
     versionYear = 2024
 }
 
+// Generate a Kotlin file containing the current event year for use in code
+def generatedSrcDir = "${buildDir}/generated/source/eventyear"
+tasks.register('generateEventYear') {
+    outputs.dir generatedSrcDir
+    doLast {
+        def packageDir = new File(generatedSrcDir, 'com/gaiagps/iburn')
+        packageDir.mkdirs()
+        def outFile = new File(packageDir, 'EventYear.kt')
+        outFile.text = """
+package com.gaiagps.iburn
+
+object EventYear {
+    const val YEAR = ${versionYear}
+}
+""".trim()
+    }
+}
+
 kotlin {
     jvmToolchain(17)
 }
 
 
 android {
+    sourceSets {
+        main.java.srcDir(generatedSrcDir)
+    }
     buildFeatures {
         buildConfig = true
         viewBinding = true
@@ -291,4 +312,9 @@ task updateData {
             into "$projectDir/src/main/assets/json/"
         }
     }
+}
+
+// Ensure generated source is available before compiling
+tasks.named('preBuild') {
+    dependsOn(generateEventYear)
 }

@@ -4,8 +4,10 @@ import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 
+import com.gaiagps.iburn.EventYear
+
 object EventInfo {
-    const val CURRENT_YEAR = 2024
+    const val CURRENT_YEAR = EventYear.YEAR
 
     private fun createDate(year: Int, month: Int, day: Int): Date {
         val cal = GregorianCalendar(year, month, day)
