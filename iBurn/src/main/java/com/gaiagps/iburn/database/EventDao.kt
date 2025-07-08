@@ -31,6 +31,16 @@ interface EventDao {
     )
     fun getByPlayaId(id: String?): Single<EventWithUserData>
 
+    @Query(
+        "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
+            " WHERE e." + PlayaItem.ID + " = :id"
+    )
+    fun getById(id: Int): Single<EventWithUserData>
+
     @get:Query(
         "SELECT e.*, 1 AS " + UserData.FAVORITE +
             " FROM " + Event.TABLE_NAME + " e INNER JOIN " + Favorite.TABLE_NAME +

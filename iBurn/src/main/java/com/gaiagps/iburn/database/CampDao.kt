@@ -51,6 +51,15 @@ interface CampDao {
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
             " FROM " + Camp.TABLE_NAME + " c LEFT JOIN " + Favorite.TABLE_NAME +
             " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE c." + PlayaItem.ID + " = :id"
+    )
+    fun findById(id: Int): Flowable<CampWithUserData>
+
+    @Query(
+        "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Camp.TABLE_NAME + " c LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
             " WHERE (c." + PlayaItem.LATITUDE + " BETWEEN :minLat AND :maxLat) " +
             "AND (c." + PlayaItem.LONGITUDE + " BETWEEN :minLon AND :maxLon)"
     )

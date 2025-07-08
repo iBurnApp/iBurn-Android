@@ -21,8 +21,8 @@ public class IntentUtil {
 
     public static void viewItemDetail(@NonNull Activity host, PlayaItem item) {
         Intent i = new Intent(host, PlayaItemViewActivity.class);
-        String playaId = item.playaId;
-        i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ID, playaId);
+        int id = item.id;
+        i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ID, id);
         if (item instanceof Camp) {
             i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM_TYPE, EXTRA_PLAYA_ITEM_CAMP);
         } else if (item instanceof Art) {
