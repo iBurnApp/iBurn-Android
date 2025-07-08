@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.SkipQueryVerification
 import io.reactivex.Flowable
 
 /**
@@ -34,6 +35,16 @@ interface ArtDao {
             " WHERE a." + PlayaItem.NAME + " LIKE :name"
     )
     fun findByName(name: String?): Flowable<List<ArtWithUserData>>
+
+    @SkipQueryVerification
+    @Query(
+        "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Art.TABLE_NAME + " a LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE a." + PlayaItem.ID + " IN (SELECT rowid FROM arts_fts WHERE arts_fts MATCH :query)"
+    )
+    fun searchFts(query: String?): Flowable<List<ArtWithUserData>>
 
     @Query(
         "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +

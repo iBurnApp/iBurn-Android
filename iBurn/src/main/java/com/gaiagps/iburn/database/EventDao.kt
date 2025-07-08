@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.SkipQueryVerification
 import io.reactivex.Flowable
 import io.reactivex.Single
 
@@ -68,6 +69,17 @@ interface EventDao {
             " WHERE e." + PlayaItem.NAME + " LIKE :name OR e." + PlayaItem.DESC + " LIKE :name GROUP BY e." + PlayaItem.NAME
     )
     fun findByName(name: String?): Flowable<List<EventWithUserData>>
+
+    @SkipQueryVerification
+    @Query(
+        "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
+            " WHERE e." + PlayaItem.ID + " IN (SELECT rowid FROM events_fts WHERE events_fts MATCH :query)"
+    )
+    fun searchFts(query: String?): Flowable<List<EventWithUserData>>
 
 
     @Query(

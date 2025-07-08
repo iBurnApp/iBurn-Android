@@ -1,10 +1,10 @@
 package com.gaiagps.iburn.database
 
 import androidx.room.Dao
-import androidx.room.Fts4
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.SkipQueryVerification
 import io.reactivex.Flowable
 
 /**
@@ -36,6 +36,16 @@ interface CampDao {
             " WHERE c." + PlayaItem.NAME + " LIKE :name"
     )
     fun findByName(name: String?): Flowable<List<CampWithUserData>>
+
+    @SkipQueryVerification
+    @Query(
+        "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Camp.TABLE_NAME + " c LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE c." + PlayaItem.ID + " IN (SELECT rowid FROM camps_fts WHERE camps_fts MATCH :query)"
+    )
+    fun searchFts(query: String?): Flowable<List<CampWithUserData>>
 
     @Query(
         "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
