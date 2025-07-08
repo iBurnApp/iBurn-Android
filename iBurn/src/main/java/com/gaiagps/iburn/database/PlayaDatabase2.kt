@@ -46,22 +46,52 @@ abstract class AppDatabase : RoomDatabase() {
 private var sharedDb: AppDatabase? = null
 
 fun copyDatabaseFromAssets(context: Context, assetPath: String, dbName: String) {
-    val dbPath = context.getDatabasePath(dbName).absolutePath
+    val dbFile = context.getDatabasePath(dbName)
+    val dbPath = dbFile.absolutePath
 
-    val dbFile = File(dbPath)
-    if (!dbFile.exists()) {
-        Timber.d("Copying bundled db $dbName from assets")
-        dbFile.parentFile?.mkdirs()
+    dbFile.parentFile?.mkdirs()
 
-        context.assets.open(assetPath).use { input ->
-            FileOutputStream(dbPath).use { output ->
-                val buffer = ByteArray(1024)
-                var length: Int
-                while (input.read(buffer).also { length = it } > 0) {
-                    output.write(buffer, 0, length)
-                }
+    // Copy the bundled database to a temporary file first
+    val tmpDb = File.createTempFile("iburn", ".db", context.cacheDir)
+    context.assets.open(assetPath).use { input ->
+        FileOutputStream(tmpDb).use { output ->
+            val buffer = ByteArray(1024)
+            var length: Int
+            while (input.read(buffer).also { length = it } > 0) {
+                output.write(buffer, 0, length)
             }
         }
+    }
+
+    if (!dbFile.exists()) {
+        Timber.d("Copying bundled db $dbName from assets")
+        tmpDb.copyTo(dbFile, overwrite = true)
+    } else {
+        Timber.d("Updating db $dbName from bundled assets")
+        updateDatabaseTablesFromSource(
+            sourceDbPath = tmpDb.absolutePath,
+            destDbPath = dbPath,
+            tables = listOf(Art.TABLE_NAME, Camp.TABLE_NAME, Event.TABLE_NAME)
+        )
+    }
+
+    tmpDb.delete()
+}
+
+fun updateDatabaseTablesFromSource(sourceDbPath: String, destDbPath: String, tables: List<String>) {
+    val db = SQLiteDatabase.openDatabase(destDbPath, null, SQLiteDatabase.OPEN_READWRITE)
+    db.execSQL("ATTACH DATABASE '$sourceDbPath' AS newdb")
+    try {
+        db.beginTransaction()
+        tables.forEach { table ->
+            db.execSQL("DELETE FROM $table")
+            db.execSQL("INSERT INTO $table SELECT * FROM newdb.$table")
+        }
+        db.setTransactionSuccessful()
+    } finally {
+        db.endTransaction()
+        db.execSQL("DETACH DATABASE newdb")
+        db.close()
     }
 }
 
