@@ -47,16 +47,10 @@ Fortunately, you can still run and test the app with the previous year's data.
 1. Check out iBurn-Data into a directory adjacent to this repository's root, and point iBurn-Data to the branch appropriate for the current year. Note this will usually be the private repo.
 2. `./gradlew updateData`. This will copy updated map, geocoder, art images, art audio tour, and api json (camp, art, event) files to this repo.
 3. If the map.mbtiles were updated, bump `MapboxMapFragment.MBTILES_VERSION`
-4. Update `DATABASE_NAME` in `PlayaDatabase2.kt` to represent the current year. Commit this change.
-5. Make these temporary changes to app to generate a database file from JSON. Do not commit:
-      *  Set `USE_BUNDLED_DB` to `false` in `PlayaDatabase2.kt`
-      *  Uncomment the call to `bootstrapDatabaseFromJson` in `MainActivity`'s `onCreate`
-6. Launch the app and confirm database bootstrap completion with logline `MainActivity: Bootstrap success: true`.
-7. Copy the generated database from your device. Depending on the value of the database name
-set in PlayaDatabase2.kt the file will be located somewhere like `/data/data/com.iburnapp.iburn3.debug/databases/playaDatabase2023.db`.
-You can use Android Studio's "Device File Explorer" to conveniently copy this, or use `adb pull` from
-the command line. Place the saved database in `iBurn/src/main/assets/databases`
-8. return the value of `USE_BUNDLED_DB` in PlayaDatabase2.kt to `true`, Comment out call to `bootstrapDatabaseFromJson` in `MainActivity`'s `onCreate`
+4. Update the `databaseName` property in `iBurn/build.gradle` to represent the current year and commit this change.
+5. Run `./gradlew :iBurn:bootstrapDatabase` to install the debug build, trigger database generation,
+   and copy the resulting file to `iBurn/src/main/assets/databases`.
+6. Return the value of `USE_BUNDLED_DB` in `PlayaDatabase2.kt` to `true`.
 
 #### Art Images/Audio Tour
 

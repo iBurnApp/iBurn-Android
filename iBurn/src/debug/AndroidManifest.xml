@@ -1,0 +1,12 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.gaiagps.iburn">
+    <application>
+        <receiver
+            android:name=".DatabaseBootstrapReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.gaiagps.iburn.BOOTSTRAP_DB" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

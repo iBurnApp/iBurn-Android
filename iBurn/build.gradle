@@ -26,6 +26,7 @@ repositories {
 
 ext {
     versionYear = 2025
+    databaseName = "playaDatabase${versionYear}.1.db"
 }
 
 // Generate a Kotlin file containing the current event year for use in code
@@ -73,6 +74,7 @@ android {
         // Provide year-specific resources for use in XML
         resValue "string", "app_name", "iBurn $versionYear"
         resValue "string", "current_year", "$versionYear"
+        buildConfigField "String", "DATABASE_NAME", "\"${databaseName}\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         archivesBaseName = "iburn-$versionName-$versionCode"
@@ -313,6 +315,25 @@ task updateData {
             include 'art.json'
             include 'event.json'
             into "$projectDir/src/main/assets/json/"
+        }
+    }
+}
+
+tasks.register('bootstrapDatabase') {
+    // Install the debug build, trigger DB bootstrap, and pull the resulting file.
+    dependsOn(tasks.named('installRegularDebug'))
+    doLast {
+        def pkg = "com.iburnapp.iburn3.debug"
+        def databaseName = project.ext.databaseName
+        def bootstrapName = "bootstrap"
+
+        exec {
+            commandLine 'adb', 'shell', 'am', 'broadcast', '-a', 'com.gaiagps.iburn.BOOTSTRAP_DB', '--es', 'com.gaiagps.iburn.EXTRA_DB_NAME', bootstrapName
+        }
+
+        exec {
+            commandLine 'adb', 'pull', "/data/data/${pkg}/databases/${bootstrapName}",
+                    "$projectDir/src/main/assets/databases/${databaseName}"
         }
     }
 }

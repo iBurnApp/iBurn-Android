@@ -138,35 +138,29 @@ public class IBurnService {
         this.context = context;
         this.service = service;
     }
-
     public Single<Boolean> updateData() {
+        return DataProvider.Companion.getInstance(context)
+                .flatMap(provider -> updateData(provider).toObservable())
+                .firstOrError();
+    }
+
+    public Single<Boolean> updateData(DataProvider provider) {
         Timber.d("Attempting data update...");
-        // Check local update dates for each endpoint, update those that are stale
         final PrefsHelper storage = new PrefsHelper(context);
 
-        return DataProvider.Companion.getInstance(context)
+        return service.getDataManifest()
                 .observeOn(upgradeScheduler)
-                .flatMap(dataProvider -> service.getDataManifest().map(dataManifest -> new Pair<>(dataProvider, dataManifest)))
-                .flatMap(depBundle -> {
-
+                .flatMap(dataManifest -> {
                     cachedLocations.clear();
                     cachedUnofficialLocations.clear();
-
-                    Timber.d("Got depBundle");
-                    DataProvider dataProvider = depBundle.first;
-                    DataManifest dataManifest = depBundle.second;
-
                     Timber.d("Got Data Manifest. art : %s, camps : %s, events : %s",
                             dataManifest.art.updated, dataManifest.camps.updated, dataManifest.events.updated);
-
-                    ResourceManifest[] resources = new ResourceManifest[]
-                            {dataManifest.art, dataManifest.camps, dataManifest.events};
-
+                    ResourceManifest[] resources = new ResourceManifest[]{dataManifest.art, dataManifest.camps, dataManifest.events};
                     return Observable.fromArray(resources).map(resource ->
-                            new UpdateDataDependencies((DataProvider) dataProvider, dataManifest, resource));
+                            new UpdateDataDependencies(provider, dataManifest, resource));
                 })
                 .filter(dependencies -> shouldUpdateResource(storage, dependencies.resourceManifest))
-                .doOnNext(dependencies -> dependencies.dataProvider.beginUpgrade()) // We really should only do this the first time
+                .doOnNext(dependencies -> dependencies.dataProvider.beginUpgrade())
                 .flatMap(dependencies ->
                         updateResource(dependencies)
                                 .map(itemsUpdated -> {
@@ -186,9 +180,10 @@ public class IBurnService {
                         cachedUnofficialLocations.clear();
                     }
                 })
-                .map(dependencies -> true); // TODO : More granular success / failure?
-//                .subscribe(totalUpdated -> Timber.d("Update complete"), throwable -> Timber.e(throwable, "Update error"));
+                .map(dependencies -> true);
     }
+
+
 
     private Single<Long> updateArt(DataProvider provider) {
         Timber.d("Updating art");
