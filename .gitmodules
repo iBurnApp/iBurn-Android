@@ -1,0 +1,3 @@
+[submodule "iBurn-Data"]
+	path = iBurn-Data
+	url = https://github.com/iBurnApp/iBurn-Data.git

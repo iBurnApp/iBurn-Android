@@ -41,9 +41,11 @@ iBurn/regular/release/output.json
 iBurn/regular
 
 iBurn/output.json
-iBurn-Data/
 
 *.aab
 
 fabric.properties
 
+android-commandlinetools.zip
+
+.kotlin

@@ -506,6 +506,13 @@ class DataProvider private constructor(private val context: Context, private val
                     .doOnNext { dataProvider -> provider = dataProvider }
         }
 
+        fun getNewInstance(context: Context, name: String): Observable<DataProvider> {
+            val prefs = PrefsHelper(context)
+            return Observable.fromCallable { newDatabase(context, name) }
+                .subscribeOn(Schedulers.io())
+                .map { db -> DataProvider(context, db, Embargo(prefs)) }
+        }
+
         fun makeProjectionString(projection: Array<String>): String {
             val builder = StringBuilder()
             for (column in projection) {

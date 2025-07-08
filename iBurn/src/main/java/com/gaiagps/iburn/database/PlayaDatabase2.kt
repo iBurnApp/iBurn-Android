@@ -7,6 +7,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import com.gaiagps.iburn.BuildConfig
 import io.reactivex.Single
 import timber.log.Timber
 import java.io.File
@@ -14,11 +15,9 @@ import java.io.FileOutputStream
 import java.util.Date
 
 
-// Changing this will trigger a force reload of the bundled database from assets
-private const val DATABASE_NAME = "playaDatabase2025.1.db"
-
 /**
  * If true, use a bundled pre-populated database. Else start with a fresh database.
+ * The database file name is provided via BuildConfig.DATABASE_NAME.
  */
 private const val USE_BUNDLED_DB = true
 
@@ -102,21 +101,28 @@ fun getSharedDb(context: Context): AppDatabase {
 
     val db = sharedDb
     if (db == null) {
-        val builder = androidx.room.Room.databaseBuilder(
-            context,
-            AppDatabase::class.java, DATABASE_NAME
-        )
-
-        if (USE_BUNDLED_DB) {
-            copyDatabaseFromAssets(context, "databases/$DATABASE_NAME", DATABASE_NAME)
-        }
-        val newDb = builder.build()
-
+        val newDb = buildDatabase(context, BuildConfig.DATABASE_NAME, USE_BUNDLED_DB)
         sharedDb = newDb
         return newDb
     } else {
         return db
     }
+}
+
+fun buildDatabase(context: Context, name: String, copyBundled: Boolean): AppDatabase {
+    val builder = androidx.room.Room.databaseBuilder(
+        context,
+        AppDatabase::class.java, name
+    )
+
+    if (copyBundled) {
+        copyDatabaseFromAssets(context, "databases/$name", name)
+    }
+    return builder.build()
+}
+
+fun newDatabase(context: Context, name: String): AppDatabase {
+    return buildDatabase(context, name, false)
 }
 
 /**

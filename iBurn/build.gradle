@@ -26,6 +26,7 @@ repositories {
 
 ext {
     versionYear = 2025
+    databaseName = "playaDatabase${versionYear}.1.db"
 }
 
 // Generate a Kotlin file containing the current event year for use in code
@@ -73,6 +74,7 @@ android {
         // Provide year-specific resources for use in XML
         resValue "string", "app_name", "iBurn $versionYear"
         resValue "string", "current_year", "$versionYear"
+        buildConfigField "String", "DATABASE_NAME", "\"${databaseName}\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         archivesBaseName = "iburn-$versionName-$versionCode"
@@ -237,13 +239,18 @@ dependencies {
 }
 
 task updateData {
-    // Copy items from an 'iBurn-Data' repo checked out into a
-    // directory with that name adjacent to this repo's root 'iBurn-Android' directory.
+    // Copy items from an 'iBurn-Data' submodule.
     // Usage: `./gradlew :iBurn:updateData`
 
     // doLast ensures copying is only run when this task is
     // invoked by name, and not during general gradle configuration
+    // TODO - allow checking out a custom branch
     doLast {
+        // Update the iBurn-Data submodule before copying
+        exec {
+            workingDir "$projectDir/../.."
+            commandLine 'git', 'submodule', 'update', '--init', '--remote', 'iBurn-Data'
+        }
         logger.info("Updating assets from IBurn-Data")
         // Reverse Geocoder
         copy {
@@ -313,6 +320,36 @@ task updateData {
             include 'art.json'
             include 'event.json'
             into "$projectDir/src/main/assets/json/"
+        }
+    }
+}
+
+tasks.register('bootstrapDatabase') {
+    // Install the debug build, trigger DB bootstrap, and pull the resulting file.
+    dependsOn(tasks.named('installRegularDebug'))
+    doLast {
+        def pkg = "com.iburnapp.iburn3.debug"
+        def databaseName = project.ext.databaseName
+        def bootstrapName = "bootstrap"
+
+        // Ensure the app is fully installed
+        exec {
+            commandLine 'adb', 'shell', 'sleep', '1'
+        }
+
+        exec {
+            commandLine 'adb', 'shell', 'am', 'broadcast', '-a',
+                    'com.gaiagps.iburn.BOOTSTRAP_DB', '--es',
+                    'com.gaiagps.iburn.EXTRA_DB_NAME', bootstrapName,
+                    '-n', "${pkg}/com.gaiagps.iburn.DatabaseBootstrapReceiver"
+        }
+
+        def outFile = file("$projectDir/src/main/assets/databases/${databaseName}")
+        outFile.parentFile.mkdirs()
+        exec {
+            commandLine 'adb', 'exec-out', 'run-as', pkg,
+                    'cat', "/data/data/${pkg}/databases/${bootstrapName}"
+            standardOutput = new FileOutputStream(outFile)
         }
     }
 }
