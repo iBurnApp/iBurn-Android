@@ -48,8 +48,10 @@ Fortunately, you can still run and test the app with the previous year's data.
 2. `./gradlew updateData`. This will copy updated map, geocoder, art images, art audio tour, and api json (camp, art, event) files to this repo.
 3. If the map.mbtiles were updated, bump `MapboxMapFragment.MBTILES_VERSION`
 4. Update the `databaseName` property in `iBurn/build.gradle` to represent the current year and commit this change.
-5. Run `./gradlew :iBurn:bootstrapDatabase` to install the debug build, trigger database generation,
-   and copy the resulting file to `iBurn/src/main/assets/databases`.
+5. Run `./gradlew :iBurn:bootstrapDatabase` to install the debug build, trigger
+   database generation, and copy the resulting file to
+   `iBurn/src/main/assets/databases`. The task uses `adb run-as` so a connected
+   device with developer mode enabled is required.
 6. Return the value of `USE_BUNDLED_DB` in `PlayaDatabase2.kt` to `true`.
 
 #### Art Images/Audio Tour
