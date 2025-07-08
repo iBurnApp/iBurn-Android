@@ -3,14 +3,16 @@ package com.gaiagps.iburn.adapters
 import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.Event
+import com.gaiagps.iburn.database.EventWithUserData
 import com.gaiagps.iburn.database.PlayaItem
+import com.gaiagps.iburn.database.PlayaItemWithUserData
 import java.text.ParseException
 
 
 /**
  * Created by dbro on 6/14/17.
  */
-class EventStartTimeSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSectionIndxer(items) {
+class EventStartTimeSectionIndexer(items: List<PlayaItemWithUserData>? = null) : PlayaItemSectionIndxer(items) {
 
     private val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
     private val humanDateFormat = DateUtil.getPlayaTimeFormat("E h a")
@@ -29,8 +31,11 @@ class EventStartTimeSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSe
             val newSectionPositions = ArrayList<Int>()
 
             var lastSection = ""
-            items?.forEachIndexed { index, event ->
+            items?.forEachIndexed { index, eventWithUserData ->
+                // These items should all have start times
+                val event = eventWithUserData.item
                 val thisSection = getSectionStringForEvent(event as Event)
+                requireNotNull(thisSection) { "Event start time cannot be null" }
                 if (thisSection != lastSection) {
                     newSections.add(thisSection)
                     newSectionPositions.add(index)
@@ -61,7 +66,7 @@ class EventStartTimeSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSe
         return 0
     }
 
-    private fun getSectionStringForEvent(event: Event): String {
+    private fun getSectionStringForEvent(event: Event): String? {
         if (event.allDay) {
             return "All ${event.startTimePretty}"
         } else {

@@ -21,7 +21,7 @@ const val ViewTypeContent = 1
 abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterListener) :
         PlayaItemAdapter<androidx.recyclerview.widget.RecyclerView.ViewHolder>(context, listener) {
 
-    override var items: List<PlayaItem>? = null
+    override var items: List<PlayaItemWithUserData>? = null
         set(value) {
             field = value
 
@@ -74,7 +74,7 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
 
     //<editor-fold desc="Client Provided Implementation">
 
-    abstract fun createHeaderPositionsForItems(items: List<PlayaItem>): Set<Int>
+    abstract fun createHeaderPositionsForItems(items: List<PlayaItemWithUserData>): Set<Int>
 
     protected open fun onBindContentViewHolder(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int, dataPosition: Int) {
         super.onBindViewHolder(viewHolder, dataPosition)

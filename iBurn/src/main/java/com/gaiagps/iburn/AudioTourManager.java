@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 
 import com.gaiagps.iburn.database.Art;
+import com.gaiagps.iburn.database.ArtWithUserData;
 import com.gaiagps.iburn.service.AudioPlayerService;
 
 import java.io.File;

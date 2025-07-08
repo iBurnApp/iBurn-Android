@@ -15,17 +15,23 @@ import java.util.Date
 
 
 // Changing this will trigger a force reload of the bundled database from assets
-private const val DATABASE_NAME = "playaDatabase2024.3.db"
+private const val DATABASE_NAME = "playaDatabase2025.1.db"
 
 /**
  * If true, use a bundled pre-populated database. Else start with a fresh database.
  */
-private const val USE_BUNDLED_DB = true
+private const val USE_BUNDLED_DB = false
 
 private const val DATABASE_V1 = 1
 
 @Database(
-    entities = arrayOf(Art::class, Camp::class, Event::class, UserPoi::class),
+    entities = arrayOf(
+        Art::class,
+        Camp::class,
+        Event::class,
+        UserPoi::class,
+        Favorite::class
+    ),
     version = DATABASE_V1
 )
 @TypeConverters(Converters::class)
@@ -34,6 +40,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun campDao(): CampDao
     abstract fun eventDao(): EventDao
     abstract fun userPoiDao(): UserPoiDao
+    abstract fun favoriteDao(): FavoriteDao
 }
 
 private var sharedDb: AppDatabase? = null
@@ -155,10 +162,10 @@ fun extractUserPoi(cursor: Cursor): List<UserPoi> {
         do {
             val poi = UserPoi().apply {
                 icon = cursor.getString(cursor.getColumnIndexOrThrow(UserPoi.ICON))
-                name = cursor.getString(cursor.getColumnIndexOrThrow(UserPoi.NAME))
-                latitude = cursor.getFloat(cursor.getColumnIndexOrThrow(UserPoi.LATITUDE))
-                longitude = cursor.getFloat(cursor.getColumnIndexOrThrow(UserPoi.LONGITUDE))
-                playaId = cursor.getString(cursor.getColumnIndexOrThrow(UserPoi.PLAYA_ID))
+                name = cursor.getString(cursor.getColumnIndexOrThrow(PlayaItem.NAME))
+                latitude = cursor.getFloat(cursor.getColumnIndexOrThrow(PlayaItem.LATITUDE))
+                longitude = cursor.getFloat(cursor.getColumnIndexOrThrow(PlayaItem.LONGITUDE))
+                playaId = cursor.getString(cursor.getColumnIndexOrThrow(PlayaItem.PLAYA_ID))
             }
             userPois.add(poi)
         } while (cursor.moveToNext())

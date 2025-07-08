@@ -15,12 +15,13 @@ import java.util.Locale
 class UpcomingEventsAdapter(context: Context, listener: AdapterListener) :
         SectionedPlayaItemAdapter(context, listener) {
 
-    override fun createHeaderPositionsForItems(items: List<PlayaItem>): Set<Int> {
+    override fun createHeaderPositionsForItems(items: List<PlayaItemWithUserData>): Set<Int> {
         val set = HashSet<Int>()
         var headerCount = 0
         var lastStartTime = ""
         items.forEachIndexed { index, playaItem ->
             val thisStartTime = (playaItem as Event).startTime
+            requireNotNull(thisStartTime) { "Event start time cannot be null" }
             if (thisStartTime != lastStartTime) {
                 set.add(index + headerCount++)
             }

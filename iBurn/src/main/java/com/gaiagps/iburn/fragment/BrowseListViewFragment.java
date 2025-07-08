@@ -17,6 +17,7 @@ import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.adapters.EventStartTimeSectionIndexer;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaItem;
+import com.gaiagps.iburn.database.PlayaItemWithUserData;
 import com.gaiagps.iburn.view.ArtListHeader;
 import com.gaiagps.iburn.view.BrowseListHeader;
 import com.gaiagps.iburn.view.EventListHeader;
@@ -58,7 +59,7 @@ public final class BrowseListViewFragment extends PlayaListViewFragment implemen
     protected Disposable createDisposable() {
 
         Observable<DataProvider> dataProvider = DataProvider.Companion.getInstance(getActivity().getApplicationContext());
-        Observable<List<? extends PlayaItem>> playaItems = null;
+        Observable<List<? extends PlayaItemWithUserData>> playaItems = null;
 
         switch (categorySelection) {
 

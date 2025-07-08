@@ -11,33 +11,60 @@ import io.reactivex.Flowable
  */
 @Dao
 interface ArtDao {
-    @get:Query("SELECT * FROM " + Art.TABLE_NAME + " ORDER BY " + PlayaItem.NAME)
-    val all: Flowable<List<Art>>
+    @get:Query(
+        "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Art.TABLE_NAME + " a LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " ORDER BY " + PlayaItem.NAME
+    )
+    val all: Flowable<List<ArtWithUserData>>
+    @get:Query(
+        "SELECT a.*, 1 AS " + UserData.FAVORITE +
+            " FROM " + Art.TABLE_NAME + " a INNER JOIN " + Favorite.TABLE_NAME +
+            " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID
+    )
+    val favorites: Flowable<List<ArtWithUserData>>
 
-    @get:Query("SELECT * FROM " + Art.TABLE_NAME + " WHERE " + PlayaItem.FAVORITE + " = 1")
-    val favorites: Flowable<List<Art>>
+    @Query(
+        "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Art.TABLE_NAME + " a LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE a." + PlayaItem.NAME + " LIKE :name"
+    )
+    fun findByName(name: String?): Flowable<List<ArtWithUserData>>
 
-    @Query("SELECT * FROM " + Art.TABLE_NAME + " WHERE " + PlayaItem.NAME + " LIKE :name")
-    fun findByName(name: String?): Flowable<List<Art>>
-
-    @Query("SELECT * FROM " + Art.TABLE_NAME + " WHERE (" + PlayaItem.LATITUDE + " BETWEEN :minLat AND :maxLat) AND (" + PlayaItem.LONGITUDE + " BETWEEN :minLon AND :maxLon)")
+    @Query(
+        "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Art.TABLE_NAME + " a LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE (a." + PlayaItem.LATITUDE + " BETWEEN :minLat AND :maxLat) " +
+            "AND (a." + PlayaItem.LONGITUDE + " BETWEEN :minLon AND :maxLon)"
+    )
     fun findInRegion(
         maxLat: Float,
         minLat: Float,
         maxLon: Float,
         minLon: Float
-    ): Flowable<List<Art>>
+    ): Flowable<List<ArtWithUserData>>
 
-    @Query("SELECT * FROM " + Art.TABLE_NAME + " WHERE " + PlayaItem.FAVORITE + " = 1 OR ((" + PlayaItem.LATITUDE + " BETWEEN :minLat AND :maxLat) AND (" + PlayaItem.LONGITUDE + " BETWEEN :minLon AND :maxLon))")
+    @Query(
+        "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Art.TABLE_NAME + " a LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE f." + Favorite.PLAYA_ID + " IS NOT NULL OR ((a." + PlayaItem.LATITUDE +
+            " BETWEEN :minLat AND :maxLat) AND (a." + PlayaItem.LONGITUDE +
+            " BETWEEN :minLon AND :maxLon))"
+    )
     fun findInRegionOrFavorite(
         maxLat: Float,
         minLat: Float,
         maxLon: Float,
         minLon: Float
-    ): Flowable<List<Art>>
-
-    @Query("UPDATE " + Art.TABLE_NAME + " SET " + PlayaItem.FAVORITE + " = :isFavorite WHERE " + PlayaItem.PLAYA_ID + " in (:playaIds)")
-    fun updateFavorites(playaIds: List<String?>?, isFavorite: Boolean)
+    ): Flowable<List<ArtWithUserData>>
 
     //    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + AUDIO_TOUR_URL + " IS NOT NULL")
     //    Flowable<List<Art>> getAllWithAudioTour();
@@ -46,4 +73,13 @@ interface ArtDao {
 
     @Update
     fun update(vararg arts: Art?)
+
+    @Query(
+        "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Art.TABLE_NAME + " a LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE a." + PlayaItem.PLAYA_ID + " = :playaId"
+    )
+    fun findByPlayaId(playaId: String): Flowable<ArtWithUserData>
 }

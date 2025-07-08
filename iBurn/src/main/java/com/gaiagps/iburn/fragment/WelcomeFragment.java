@@ -25,6 +25,7 @@ import androidx.fragment.app.Fragment;
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.database.Camp;
+import com.gaiagps.iburn.database.CampWithUserData;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 
@@ -264,7 +265,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
                 if (constraint != null) {
                     String query = constraint.toString();// '%' + constraint.toString() + '%';
-                    List<Camp> camps = dataProvider.observeCampsByName(query).blockingFirst();
+                    List<CampWithUserData> camps = dataProvider.observeCampsByName(query).blockingFirst();
 
                     r.values = camps;
                     r.count = camps.size();

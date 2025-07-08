@@ -1,94 +1,60 @@
 package com.gaiagps.iburn.database
 
-//import com.gaiagps.iburn.database.Event.Companion.ColCampPlayaId
-//import com.gaiagps.iburn.database.Event.Companion.ColStartTime
-//import com.gaiagps.iburn.database.Event.Companion.ColStartTimePretty
-//import com.gaiagps.iburn.database.Event.Companion.ColType
-//import com.gaiagps.iburn.database.Event.Companion.TableName
-//import com.gaiagps.iburn.database.PlayaItem.Companion.ColName
+import android.os.Parcelable
+import android.text.TextUtils
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import kotlinx.parcelize.Parcelize
 
 /**
- * Created by dbro on 6/6/17.
+ * Created by dbro on 6/8/17.
  */
+@Parcelize
+@Entity(tableName = Event.TABLE_NAME)
+class Event : PlayaItem(), Parcelable {
+    @ColumnInfo(name = TYPE)
+    var type: String? = null
 
-//@Entity(tableName = TableName)
-//class Event(
-//        id:             Int = 0,
-//        name:           String,
-//        description:    String,
-//        url:            String,
-//        contact:        String,
-//        playaAddress:   String,
-//        playaId:        String,
-//        location:       Location,
-//        isFavorite:     Boolean,
-//
-//        @ColumnInfo(name = ColType)              val type: String,
-//        @ColumnInfo(name = ColAllDay)            val allDay: Boolean,
-//        @ColumnInfo(name = ColCheckLocation)     val checkLocation: Boolean,
-//        @ColumnInfo(name = ColCampPlayaId)       val campPlayaId: Int,
-//        @ColumnInfo(name = ColStartTime)         val startTime: Date,
-//        @ColumnInfo(name = ColStartTimePretty)   val startTimePretty: String,
-//        @ColumnInfo(name = ColEndTime)           val endTime: Date,
-//        @ColumnInfo(name = ColEndTimePretty)     val endTimePretty: String)
-//
-//    : PlayaItem(id, name, description, url, contact, playaAddress, playaId, location, isFavorite) {
-//
-//    companion object {
-//        const val TableName = "events"
-//
-//        const val ColType = "type"
-//        const val ColAllDay = "all_day"
-//        const val ColCheckLocation = "check_location"
-//        const val ColCampPlayaId = "camp_playa_id"
-//        const val ColStartTime = "start_time"
-//        const val ColStartTimePretty = "start_time_pretty"
-//        const val ColEndTime = "end_time"
-//        const val ColEndTimePretty = "end_time_pretty"
-//    }
-//}
+    @ColumnInfo(name = ALL_DAY)
+    var allDay: Boolean = false
 
-//@Dao
-//interface EventDao {
-//    // TODO : 'p0' is used vs 'name' b/c Kotlin isn't preserving function parameter names properly
-//    // https://youtrack.jetbrains.com/issue/KT-17959
-//
-//    @Query("SELECT * FROM $TableName")
-//    fun getAll(): Flowable<List<Event>>
-//
-//    @Query("SELECT * FROM $TableName")
-//    fun getFavorites(): Flowable<List<Event>>
-//
-//    @Query("SELECT * FROM $TableName WHERE $ColCampPlayaId = :p0 ORDER BY $ColStartTime")
-//    fun findByCampPlayaId(campPlayaId: Int): Flowable<List<Event>>
-//
-//    @Query("SELECT * FROM $TableName WHERE $ColStartTimePretty LIKE :p0 ORDER BY $ColStartTime")
-//    fun findByDay(day: String): Flowable<List<Event>>
-//
-//    @Query("SELECT * FROM $TableName WHERE ( start_time_pretty LIKE :day% AND $ColType IN (:types) )  ORDER BY $ColStartTime")
-//    fun findByDayAndType(day: String, types: List<String>): Flowable<List<Event>>
-//
-//    @Query("SELECT * FROM $TableName WHERE $ColName LIKE :p0 GROUP BY $ColName") // GROUP_BY name eliminates duplicate entries for separate occurrences
-//    fun findByName(name: String): Flowable<List<Event>>
-//
-//    @Insert
-//    fun insert(vararg event: Event)
-//
-//    @Update
-//    fun update(vararg events: Event)
-//
-//    @Delete
-//    fun delete(event: Event)
-//}
-//
-//class Converters {
-//    @TypeConverter
-//    fun fromTimestamp(value: Long?): Date? {
-//        return if (value == null) null else Date(value)
-//    }
-//
-//    @TypeConverter
-//    fun dateToTimestamp(date: Date?): Long? {
-//        return date?.time
-//    }
-//}
+    @ColumnInfo(name = CHECK_LOC)
+    var checkLocation: Boolean = false
+
+    @JvmField
+    @ColumnInfo(name = CAMP_PLAYA_ID)
+    var campPlayaId: String? = null
+
+    @JvmField
+    @ColumnInfo(name = START_TIME)
+    var startTime: String? = null
+
+    @JvmField
+    @ColumnInfo(name = START_TIME_PRETTY)
+    var startTimePretty: String? = null
+
+    @JvmField
+    @ColumnInfo(name = END_TIME)
+    var endTime: String? = null
+
+    @JvmField
+    @ColumnInfo(name = END_TIME_PRETTY)
+    var endTimePretty: String? = null
+
+    fun hasCampHost(): Boolean {
+        return !TextUtils.isEmpty(campPlayaId)
+    }
+
+    companion object {
+        const val TABLE_NAME: String = "events"
+
+        const val TYPE: String = "e_type"
+        const val ALL_DAY: String = "all_day"
+        const val CHECK_LOC: String = "check_loc"
+        const val CAMP_PLAYA_ID: String = "c_id"
+        const val START_TIME: String = "s_time"
+        const val START_TIME_PRETTY: String = "s_time_p"
+        const val END_TIME: String = "e_time"
+        const val END_TIME_PRETTY: String = "e_time_p"
+    }
+}

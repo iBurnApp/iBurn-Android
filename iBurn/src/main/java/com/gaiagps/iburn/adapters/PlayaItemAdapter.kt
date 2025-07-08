@@ -34,7 +34,7 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
 
     var sectionIndexer: PlayaItemSectionIndxer? = null
 
-    open var items: List<PlayaItem>? = null
+    open var items: List<PlayaItemWithUserData>? = null
         set(value) {
             field = value
             sectionIndexer?.items = value
@@ -75,7 +75,8 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
     override fun onBindViewHolder(viewHolder: T, position: Int) {
         val item = items?.get(position)
 
-        item?.let { item ->
+        item?.let { itemWithUserData ->
+            val item = itemWithUserData.item
             val holder = (viewHolder as ViewHolder)
 
             var startDate: Date? = null
@@ -170,13 +171,14 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
                 }
             }
 
-            if (item.isFavorite) {
+            Timber.d("Binding item: ${item.playaId} favorite ${itemWithUserData.userData.isFavorite}")
+            if (itemWithUserData.userData.isFavorite) {
                 holder.favoriteView.setImageResource(R.drawable.ic_heart_full)
             } else {
                 holder.favoriteView.setImageResource(R.drawable.ic_heart_empty)
             }
 
-            holder.itemView.tag = item
+            holder.itemView.tag = itemWithUserData
 
             if (position == items?.lastIndex) {
                 // Set footer padding
@@ -201,14 +203,16 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
     protected fun setupClickListeners(viewHolder: ViewHolder) {
         viewHolder.itemView.setOnClickListener({ view ->
             if (viewHolder.itemView.tag != null) {
-                listener.onItemSelected(view.tag as PlayaItem)
+                listener.onItemSelected(view.tag as PlayaItemWithUserData)
             }
         })
 
         viewHolder.favoriteView.setOnClickListener({ view ->
-            Timber.d("Favorite btn clicked")
             if (viewHolder.itemView.tag != null) {
-                listener.onItemFavoriteButtonSelected(viewHolder.itemView.tag as PlayaItem)
+                Timber.d("Favorite btn clicked")
+                listener.onItemFavoriteButtonSelected((viewHolder.itemView.tag as PlayaItemWithUserData).item)
+            } else {
+                Timber.e("Favorite btn clicked, but itemView.tag is null")
             }
         })
     }

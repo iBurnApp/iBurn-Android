@@ -12,14 +12,34 @@ import io.reactivex.Flowable
  */
 @Dao
 interface UserPoiDao {
-    @get:Query("SELECT * FROM " + UserPoi.TABLE_NAME)
-    val all: Flowable<List<UserPoi>>
+    @Query(
+        "SELECT u.*, " +
+                "CASE WHEN f.${Favorite.PLAYA_ID} IS NOT NULL THEN 1 ELSE 0 END AS ${UserData.FAVORITE} " +
+                "FROM ${UserPoi.TABLE_NAME} u " +
+                "LEFT JOIN ${Favorite.TABLE_NAME} f " +
+                "ON u.${PlayaItem.PLAYA_ID} = f.${Favorite.PLAYA_ID}"
+    )
+    fun getAll(): Flowable<List<UserPoiWithUserData>>
 
-    @Query("SELECT * FROM " + UserPoi.TABLE_NAME + " WHERE " + PlayaItem.NAME + " LIKE :name")
-    fun findByName(name: String?): Flowable<List<UserPoi>>
+    @Query(
+        "SELECT u.*, " +
+                "CASE WHEN f.${Favorite.PLAYA_ID} IS NOT NULL THEN 1 ELSE 0 END AS ${UserData.FAVORITE} " +
+                "FROM ${UserPoi.TABLE_NAME} u " +
+                "LEFT JOIN ${Favorite.TABLE_NAME} f " +
+                "ON u.${PlayaItem.PLAYA_ID} = f.${Favorite.PLAYA_ID} " +
+                "WHERE u.${PlayaItem.NAME} LIKE :name"
+    )
+    fun findByName(name: String?): Flowable<List<UserPoiWithUserData>>
 
-    @Query("SELECT * FROM " + UserPoi.TABLE_NAME + " WHERE " + PlayaItem.PLAYA_ID + " LIKE :playaId")
-    fun findByPlayaId(playaId: String?): Flowable<UserPoi>
+    @Query(
+        "SELECT u.*, " +
+                "CASE WHEN f.${Favorite.PLAYA_ID} IS NOT NULL THEN 1 ELSE 0 END AS ${UserData.FAVORITE} " +
+                "FROM ${UserPoi.TABLE_NAME} u " +
+                "LEFT JOIN ${Favorite.TABLE_NAME} f " +
+                "ON u.${PlayaItem.PLAYA_ID} = f.${Favorite.PLAYA_ID} " +
+                "WHERE u.${PlayaItem.PLAYA_ID} LIKE :playaId"
+    )
+    fun findByPlayaId(playaId: String?): Flowable<UserPoiWithUserData>
 
     @Insert
     fun insert(vararg poi: UserPoi?)
