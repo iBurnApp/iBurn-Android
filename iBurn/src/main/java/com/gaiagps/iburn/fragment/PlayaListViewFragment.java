@@ -20,6 +20,7 @@ import com.gaiagps.iburn.adapters.MultiTypePlayaItemAdapter;
 import com.gaiagps.iburn.adapters.PlayaItemAdapter;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaItem;
+import com.gaiagps.iburn.database.PlayaItemWithUserData;
 import com.tonicartos.superslim.LayoutManager;
 
 import java.util.List;
@@ -98,7 +99,7 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
      * Handle notifications that the data corresponding to our query changed,
      * and we should update UI
      */
-    protected void onDataChanged(List<? extends PlayaItem> newData) {
+    protected void onDataChanged(List<? extends PlayaItemWithUserData> newData) {
         if (newData == null) {
             Timber.w("Got null data onDataChanged");
             return;
@@ -130,7 +131,7 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
         restoreScrollPosition();
     }
 
-    private void prepareForNewData(List<? extends PlayaItem> newData) {
+    private void prepareForNewData(List<? extends PlayaItemWithUserData> newData) {
         // Also save the scroll position here so updating a data list doesn't lose position
         lastScrollPos = getScrollPosition();
 
@@ -215,13 +216,13 @@ public abstract class PlayaListViewFragment extends Fragment implements AdapterL
     }
 
     @Override
-    public void onItemSelected(PlayaItem item) {
-        IntentUtil.viewItemDetail(getActivity(), item);
+    public void onItemSelected(PlayaItemWithUserData item) {
+        IntentUtil.viewItemDetail(getActivity(), item.getItem());
     }
 
     @Override
     public void onItemFavoriteButtonSelected(PlayaItem item) {
-        Timber.d("onItemFavoriteButtonSelected for %s", item);
+        Timber.d("onItemFavoriteButtonSelected for %s", item.playaId);
         DataProvider.Companion.getInstance(getActivity().getApplicationContext())
                 .observeOn(Schedulers.io())
                 .subscribe(dataProvider -> {

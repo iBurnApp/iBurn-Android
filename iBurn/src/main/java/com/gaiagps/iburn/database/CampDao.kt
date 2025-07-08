@@ -1,6 +1,7 @@
 package com.gaiagps.iburn.database
 
 import androidx.room.Dao
+import androidx.room.Fts4
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -11,36 +12,71 @@ import io.reactivex.Flowable
  */
 @Dao
 interface CampDao {
-    @get:Query("SELECT * FROM " + Camp.TABLE_NAME + " ORDER BY " + PlayaItem.NAME)
-    val all: Flowable<List<Camp>>
+    @get:Query(
+        "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Camp.TABLE_NAME + " c LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " ORDER BY " + PlayaItem.NAME
+    )
+    val all: Flowable<List<CampWithUserData>>
 
-    @get:Query("SELECT * FROM " + Camp.TABLE_NAME + " WHERE " + PlayaItem.FAVORITE + " = 1")
-    val favorites: Flowable<List<Camp>>
+    @get:Query(
+        "SELECT c.*, 1 AS " + UserData.FAVORITE +
+            " FROM " + Camp.TABLE_NAME + " c INNER JOIN " + Favorite.TABLE_NAME +
+            " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID
+    )
+    val favorites: Flowable<List<CampWithUserData>>
 
-    @Query("SELECT * FROM " + Camp.TABLE_NAME + " WHERE " + PlayaItem.NAME + " LIKE :name")
-    fun findByName(name: String?): Flowable<List<Camp>>
+    @Fts4
+    @Query(
+        "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Camp.TABLE_NAME + " c LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE c." + PlayaItem.NAME + " LIKE :name"
+    )
+    fun findByName(name: String?): Flowable<List<CampWithUserData>>
 
-    @Query("SELECT * FROM " + Camp.TABLE_NAME + " WHERE " + PlayaItem.PLAYA_ID + " = :playaId")
-    fun findByPlayaId(playaId: String?): Flowable<Camp>
+    @Query(
+        "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Camp.TABLE_NAME + " c LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE c." + PlayaItem.PLAYA_ID + " = :playaId"
+    )
+    fun findByPlayaId(playaId: String?): Flowable<CampWithUserData>
 
-    @Query("SELECT * FROM " + Camp.TABLE_NAME + " WHERE (" + PlayaItem.LATITUDE + " BETWEEN :minLat AND :maxLat) AND (" + PlayaItem.LONGITUDE + " BETWEEN :minLon AND :maxLon)")
+    @Query(
+        "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Camp.TABLE_NAME + " c LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE (c." + PlayaItem.LATITUDE + " BETWEEN :minLat AND :maxLat) " +
+            "AND (c." + PlayaItem.LONGITUDE + " BETWEEN :minLon AND :maxLon)"
+    )
     fun findInRegion(
         maxLat: Float,
         minLat: Float,
         maxLon: Float,
         minLon: Float
-    ): Flowable<List<Camp>>
+    ): Flowable<List<CampWithUserData>>
 
-    @Query("SELECT * FROM " + Camp.TABLE_NAME + " WHERE " + PlayaItem.FAVORITE + " = 1 OR ((" + PlayaItem.LATITUDE + " BETWEEN :minLat AND :maxLat) AND (" + PlayaItem.LONGITUDE + " BETWEEN :minLon AND :maxLon))")
+    @Query(
+        "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Camp.TABLE_NAME + " c LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE f." + Favorite.PLAYA_ID + " IS NOT NULL OR ((c." + PlayaItem.LATITUDE +
+            " BETWEEN :minLat AND :maxLat) AND (c." + PlayaItem.LONGITUDE +
+            " BETWEEN :minLon AND :maxLon))"
+    )
     fun findInRegionOrFavorite(
         maxLat: Float,
         minLat: Float,
         maxLon: Float,
         minLon: Float
-    ): Flowable<List<Camp>>
-
-    @Query("UPDATE " + Camp.TABLE_NAME + " SET " + PlayaItem.FAVORITE + " = :isFavorite WHERE " + PlayaItem.PLAYA_ID + " in (:playaIds)")
-    fun updateFavorites(playaIds: List<String?>?, isFavorite: Boolean)
+    ): Flowable<List<CampWithUserData>>
 
     @Insert
     fun insert(vararg camps: Camp?)

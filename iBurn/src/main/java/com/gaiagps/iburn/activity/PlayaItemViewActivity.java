@@ -9,21 +9,27 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.RemoteException;
 
 import com.gaiagps.iburn.ArtImageManagerKt;
+import com.gaiagps.iburn.IntentUtil;
+import com.gaiagps.iburn.database.ArtWithUserData;
+import com.gaiagps.iburn.database.CampWithUserData;
+import com.gaiagps.iburn.database.EventWithUserData;
+import com.gaiagps.iburn.database.PlayaItemWithUserData;
 import com.gaiagps.iburn.databinding.ActivityPlayaItemViewBinding;
 import com.gaiagps.iburn.service.AudioPlayerServiceKt;
-import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
+
+import android.os.Parcelable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
@@ -56,13 +62,11 @@ import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.database.Event;
 import com.gaiagps.iburn.database.PlayaItem;
 import com.gaiagps.iburn.service.AudioPlayerService;
-import com.gaiagps.iburn.view.AnimatedFloatingActionButton;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -79,9 +83,13 @@ import org.maplibre.android.geometry.LatLng;
  */
 public class PlayaItemViewActivity extends AppCompatActivity implements AdapterListener {
 
-    public static final String EXTRA_PLAYA_ITEM = "playa-item";
+    public static final String EXTRA_PLAYA_ITEM_ID = "playa-id";
+    public static final String EXTRA_PLAYA_ITEM_TYPE = "playa-type";
+    public static final String EXTRA_PLAYA_ITEM_CAMP = "playa-camp";
+    public static final String EXTRA_PLAYA_ITEM_ART = "playa-art";
+    public static final String EXTRA_PLAYA_ITEM_EVENT = "playa-event";
 
-    PlayaItem item;
+    PlayaItemWithUserData itemWithUserData;
     LatLng latLng;
 
     boolean isFavorite;
@@ -96,44 +104,6 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     private TextView audioTourToggle;
 
     private ActivityPlayaItemViewBinding binding;
-    /*
-    @BindView(R.id.toolbar)
-    Toolbar toolbar;
-
-    @BindView(R.id.map_container)
-    FrameLayout mapContainer;
-
-    @BindView(R.id.overflow_container)
-    LinearLayout overflowContainer;
-
-    @BindView(R.id.text_container)
-    LinearLayout textContainer;
-
-    @BindView(R.id.title)
-    TextView titleTextView;
-
-    @BindView(R.id.body)
-    TextView bodyTextView;
-
-    @BindView(R.id.fab)
-    AnimatedFloatingActionButton favoriteButton;
-
-    @BindView(R.id.subitem_1)
-    TextView subItem1TextView;
-
-    @BindView(R.id.subitem_2)
-    TextView subItem2TextView;
-
-    @BindView(R.id.subitem_3)
-    TextView subItem3TextView;
-
-    @BindView(R.id.collapsing_toolbar)
-    CollapsingToolbarLayout collapsingToolbarLayout;
-
-    @BindView(R.id.appbar)
-    AppBarLayout appbarLayout;
-    */
-
     Disposable autoShowArtDisposable;
     boolean loadedArtImage;
     ImageView artImageView;
@@ -141,39 +111,77 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     private MediaBrowserCompat mediaBrowser;
     private MediaControllerCompat.Callback mediaControllerCallback;
 
+    // New: Hold onto the subscription for DB lookup
+    private io.reactivex.disposables.Disposable playaItemDisposable;
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityPlayaItemViewBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         didPopulateViews = false;
 
-        Intent i = getIntent();
-        item = (PlayaItem) i.getSerializableExtra(EXTRA_PLAYA_ITEM);
+        loadPlayaItemFromIntent(getIntent());
 
         setSupportActionBar(binding.toolbar);
-
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("");
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_white_on_orange_24dp);
         }
-
-        // Need to defer populating views until AudioTourManagerReady
         setTextContainerMinHeight();
-
         AlphaAnimation fadeAnimation = new AlphaAnimation(0, 1);
         fadeAnimation.setDuration(1000);
         fadeAnimation.setStartOffset(250);
         fadeAnimation.setFillAfter(true);
         fadeAnimation.setFillEnabled(true);
         binding.mapContainer.startAnimation(fadeAnimation);
+        // The rest of onCreate will be called after item is loaded
+    }
 
-        if (item instanceof Art && ((Art) item).hasAudioTour(getApplicationContext())) {
+    private void loadPlayaItemFromIntent(Intent i) {
+        String playaId = i.getStringExtra(EXTRA_PLAYA_ITEM_ID);
+        String type = i.getStringExtra(EXTRA_PLAYA_ITEM_TYPE);
+        if (playaId == null || type == null) {
+            throw new IllegalArgumentException("Missing playaId or type in Intent");
+        }
+        // Use DataProvider to fetch the item
+        DataProvider.Companion.getInstance(getApplicationContext())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(dataProvider -> {
+                if (EXTRA_PLAYA_ITEM_CAMP.equals(type)) {
+                    playaItemDisposable = dataProvider.observeCampByPlayaId(playaId)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(item -> {
+                            itemWithUserData = item;
+                            onPlayaItemLoaded();
+                        }, throwable -> finishWithError(throwable));
+                } else if (EXTRA_PLAYA_ITEM_ART.equals(type)) {
+                    playaItemDisposable = dataProvider.observeArtByPlayaId(playaId)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(item -> {
+                            itemWithUserData = item;
+                            onPlayaItemLoaded();
+                        }, throwable -> finishWithError(throwable));
+                } else if (EXTRA_PLAYA_ITEM_EVENT.equals(type)) {
+                    playaItemDisposable = dataProvider.observeEventByPlayaId(playaId)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(item -> {
+                            itemWithUserData = item;
+                            onPlayaItemLoaded();
+                        }, throwable -> finishWithError(throwable));
+                } else {
+                    finishWithError(new IllegalArgumentException("Unknown PlayaItem type " + type));
+                }
+            }, this::finishWithError);
+    }
+
+    private void onPlayaItemLoaded() {
+        // Continue with the rest of onCreate logic that depends on itemWithUserData
+        if (itemWithUserData instanceof ArtWithUserData && ((ArtWithUserData) itemWithUserData).getItem().hasAudioTour(getApplicationContext())) {
             onCreateMediaController();
         }
-
         binding.appbar.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
-
             int collapsingTriggerHeight = binding.collapsingToolbar.getScrimVisibleHeightTrigger();
             int collapsingOffsetTrigger = -(binding.collapsingToolbar.getHeight() - collapsingTriggerHeight);
             if (verticalOffset <= collapsingOffsetTrigger) {
@@ -190,26 +198,23 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                 }
             }
         });
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (item instanceof Art && ((Art) item).hasAudioTour(getApplicationContext())) {
-            onStartMediaController();
+        if (!didPopulateViews && itemWithUserData != null) {
+            populateViews(itemWithUserData);
+            didPopulateViews = true;
         }
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (item instanceof Art && ((Art) item).hasAudioTour(getApplicationContext())) {
-            onStopMediaController();
-        }
+    private void finishWithError(Throwable throwable) {
+        // Optionally show error to user
+        finish();
+    }
 
-        if (autoShowArtDisposable != null) {
-            autoShowArtDisposable.dispose();
+    @Override
+    protected void onDestroy() {
+        if (playaItemDisposable != null && !playaItemDisposable.isDisposed()) {
+            playaItemDisposable.dispose();
         }
+        super.onDestroy();
     }
 
     private void onCreateMediaController() {
@@ -267,7 +272,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
             int playbackState = state.getState();
             Timber.d("onPlaybackStateChanged to %d", playbackState);
             MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(PlayaItemViewActivity.this);
-            setAudioTourToggleStateWithPlaybackState(mediaController, item);
+            setAudioTourToggleStateWithPlaybackState(mediaController, itemWithUserData.getItem());
         }
 
         @Override
@@ -277,7 +282,6 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     }
 
     private void setupMediaTransportControls() {
-
         // Find or create Audio Tour Playback Toggle View
         ViewGroup contentContainer = findViewById(R.id.content_container);
         TextView audioTourToggle = contentContainer.findViewById(R.id.audio_tour_toggle);
@@ -302,6 +306,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         MediaMetadataCompat metadata = mediaController.getMetadata();
         PlaybackStateCompat pbState = mediaController.getPlaybackState();
 
+        PlayaItem item = itemWithUserData.getItem();
         audioTourToggle.setOnClickListener(view -> {
 
             MediaMetadataCompat currentMetadata = mediaController.getMetadata();
@@ -358,8 +363,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     public void onResume() {
         super.onResume();
         audioTourManager = new AudioTourManager(this);
-        if (!didPopulateViews && item != null) {
-            populateViews(item);
+        if (!didPopulateViews && itemWithUserData != null) {
+            populateViews(itemWithUserData);
             didPopulateViews = true;
         }
     }
@@ -438,7 +443,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         return super.onOptionsItemSelected(item);
     }
 
-    private void populateViews(PlayaItem item) {
+    private void populateViews(PlayaItemWithUserData itemWithUserData) {
+        PlayaItem item = itemWithUserData.getItem();
         boolean embargoActive = Embargo.isEmbargoActive(new PrefsHelper(getApplicationContext()));
         showingLocation = (item.hasLocation() && !embargoActive) || item.hasUnofficialLocation();
 
@@ -475,7 +481,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         }
 
         binding.title.setText(item.name);
-        setFavorite(item.isFavorite, false);
+        setFavorite(itemWithUserData.getUserData().isFavorite(), false);
         binding.fab.setOnClickListener(favoriteButtonOnClickListener);
 
         setTextOrHideIfEmpty(item.description, binding.body);
@@ -497,6 +503,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                         populateCampViews((Camp) item, provider);
                     } else if (item instanceof Event) {
                         populateEventViews((Event) item, provider);
+                    } else {
+                        Timber.e("Unknown PlayaItem type %s", item.getClass().getSimpleName());
                     }
                 });
     }
@@ -633,7 +641,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(camp -> {
                         hostedByCamp.setOnClickListener(new RelatedItemOnClickListener(camp));
-                        String campName = camp.name;
+                        String campName = camp.getItem().name;
                         hostedByCamp.setText("Hosted by " + campName);
                         binding.overflowContainer.addView(hostedByCamp);
                     });
@@ -658,13 +666,13 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
                     final SimpleDateFormat timeDayFormatter = DateUtil.getPlayaTimeFormat("EEEE, M/d 'at' h:mm a");
 
-                    for (Event occurrence : eventOccurrences) {
+                    for (EventWithUserData occurrence : eventOccurrences) {
                         TextView eventTv = new TextView(wrapper);
                         eventTv.setTypeface(condensed);
                         eventTv.setTextSize(20);
                         eventTv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                         try {
-                            eventTv.setText(timeDayFormatter.format(apiDateFormat.parse(occurrence.startTime)));
+                            eventTv.setText(timeDayFormatter.format(apiDateFormat.parse(occurrence.getItem().startTime)));
                         } catch (ParseException e) {
                             Timber.w(e, "Unable to parse date, using pre-computed");
                             eventTv.setText(event.startTimePretty.toUpperCase());
@@ -714,10 +722,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     }
 
     @Override
-    public void onItemSelected(PlayaItem item) {
-        Intent intent = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
-        intent.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM, item);
-        startActivity(intent);
+    public void onItemSelected(PlayaItemWithUserData item) {
+        IntentUtil.viewItemDetail(this, item.getItem());
     }
 
     @Override
@@ -729,17 +735,15 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
     class RelatedItemOnClickListener implements View.OnClickListener {
 
-        PlayaItem item;
+        PlayaItemWithUserData item;
 
-        public RelatedItemOnClickListener(PlayaItem item) {
+        public RelatedItemOnClickListener(PlayaItemWithUserData item) {
             this.item = item;
         }
 
         @Override
         public void onClick(View v) {
-            Intent i = new Intent(PlayaItemViewActivity.this, PlayaItemViewActivity.class);
-            i.putExtra(EXTRA_PLAYA_ITEM, item);
-            startActivity(i);
+            IntentUtil.viewItemDetail(PlayaItemViewActivity.this, item.getItem());
         }
 
     }
@@ -749,7 +753,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     };
 
     private void setFavorite(boolean isFavorite, boolean save) {
-        if (item == null) {
+        if (itemWithUserData == null) {
             Timber.w("setFavorite called before model data ready. Ignoring");
             return;
         }
@@ -761,7 +765,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         if (save) {
             DataProvider.Companion.getInstance(getApplicationContext())
                     .observeOn(SchedulersKt.getIoScheduler())
-                    .subscribe(dataProvider -> dataProvider.toggleFavorite(item),
+                    .subscribe(dataProvider -> dataProvider.toggleFavorite(itemWithUserData.getItem()),
                             throwable -> Timber.e(throwable, "Failed to save"));
         }
         this.isFavorite = isFavorite;
@@ -789,3 +793,4 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         fade.start();
     }
 }
+

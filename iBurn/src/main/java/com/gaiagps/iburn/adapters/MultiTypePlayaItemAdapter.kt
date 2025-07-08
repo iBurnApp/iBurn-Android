@@ -38,7 +38,7 @@ class MultiTypePlayaItemAdapter(context: Context, listener: AdapterListener) :
         (viewHolder.itemView as TextView).text = headerText
     }
 
-    override fun createHeaderPositionsForItems(items: List<PlayaItem>): Set<Int> {
+    override fun createHeaderPositionsForItems(items: List<PlayaItemWithUserData>): Set<Int> {
         val set = HashSet<Int>()
         var headerCount = 0
         sectionedItems?.ranges?.forEach { range ->

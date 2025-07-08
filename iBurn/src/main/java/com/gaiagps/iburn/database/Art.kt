@@ -1,67 +1,49 @@
 package com.gaiagps.iburn.database
 
-//import android.arch.persistence.room.*
-//import com.gaiagps.iburn.database.Art.Companion.ColAudioTourUrl
-//import com.gaiagps.iburn.database.Art.Companion.TableName
-//import com.gaiagps.iburn.database.PlayaItem.Companion.ColFavorite
-//import com.gaiagps.iburn.database.PlayaItem.Companion.ColName
-//import io.reactivex.Flowable
-//import io.reactivex.Observable
+import android.content.Context
+import android.os.Parcelable
+import android.text.TextUtils
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import com.gaiagps.iburn.AudioTourManager
+import kotlinx.parcelize.Parcelize
 
 /**
- * Created by dbro on 6/6/17.
+ * Created by dbro on 6/8/17.
  */
-//@Entity(tableName = TableName)
-//class Art(
-//        id:             Int = 0,
-//        name:           String,
-//        description:    String,
-//        url:            String,
-//        contact:        String,
-//        playaAddress:   String,
-//        playaId:        String,
-//        location:       Location,
-//        isFavorite:     Boolean,
-//
-//        @ColumnInfo(name = ColArtist)           val artist: String,
-//        @ColumnInfo(name = ColArtistLocation)   val artistLocation: String,
-//        @ColumnInfo(name = ColImageUrl)         val imageUrl: String,
-//        @ColumnInfo(name = ColAudioTourUrl)     val audioTourUrl: String)
-//
-//    : PlayaItem(id, name, description, url, contact, playaAddress, playaId, location, isFavorite) {
-//
-//    companion object {
-//        const val TableName = "arts"
-//        const val ColArtist = "artist"
-//        const val ColArtistLocation = "artist_location"
-//        const val ColImageUrl = "image_url"
-//        const val ColAudioTourUrl = "audio_tour_url"
-//    }
-//}
+@Parcelize
+@Entity(tableName = Art.TABLE_NAME)
+class Art : PlayaItem(), Parcelable {
+    //    public static final String AUDIO_TOUR_URL = "a_url";
+    @JvmField
+    @ColumnInfo(name = ARTIST)
+    var artist: String? = null
 
-//@Dao
-//interface ArtDao {
-//
-//    @Query("SELECT * FROM $TableName")
-//    fun getAll(): Flowable<List<Art>>
-//
-//    @Query("SELECT * FROM $TableName WHERE $ColAudioTourUrl IS NOT NULL")
-//    fun getAllWithAudioTour(): Flowable<List<Art>>
-//
-//    @Query("SELECT * FROM $TableName WHERE $ColFavorite = 1")
-//    fun getFavorites(): Flowable<List<Art>>
-//
-//    // TODO : 'p0' is used vs 'name' b/c Kotlin isn't preserving function parameter names properly
-//    // https://youtrack.jetbrains.com/issue/KT-17959
-//    @Query("SELECT * FROM $TableName WHERE $ColName LIKE :p0")
-//    fun findByName(p0: String): Flowable<List<Art>>
-//
-//    @Insert
-//    fun insert(vararg art: Art)
-//
-//    @Update
-//    fun update(vararg art: Art)
-//
-//    @Delete
-//    fun delete(art: Art)
-//}
+    @JvmField
+    @ColumnInfo(name = ARTIST_LOCATION)
+    var artistLocation: String? = null
+
+    @JvmField
+    @ColumnInfo(name = IMAGE_URL)
+    var imageUrl: String? = null
+
+    //    @ColumnInfo(name = AUDIO_TOUR_URL)
+    //    public String audioTourUrl;
+    fun hasAudioTour(context: Context): Boolean {
+//        return !TextUtils.isEmpty(audioTourUrl);
+        val pId = playaId ?: return false
+        return AudioTourManager.hasAudioTour(context, pId)
+    }
+
+    fun hasImage(): Boolean {
+        return !TextUtils.isEmpty(imageUrl)
+    }
+
+    companion object {
+        const val TABLE_NAME: String = "arts"
+
+        const val ARTIST: String = "artist"
+        const val ARTIST_LOCATION: String = "a_loc"
+        const val IMAGE_URL: String = "i_url"
+    }
+}

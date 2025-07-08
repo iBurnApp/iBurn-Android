@@ -30,6 +30,10 @@ public class BottomTickerView(val viewParent: ViewGroup,
                               val tickerDisplayTimeS: Int = 11,
                               val tickerMessageDisplayTimeS: Int = 4) {
 
+    companion object {
+        const val debugLog = false
+    }
+
     var callback: Callback? = null
 
     fun show() {
@@ -80,7 +84,9 @@ public class BottomTickerView(val viewParent: ViewGroup,
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { numSecs ->
                     val messageIdx = (numSecs / tickerMessageDisplayTimeS).toInt() % tickerMessages.size
-                    Timber.d("Embargo counter %d messageIdx %d", numSecs, messageIdx)
+                    if (debugLog) {
+                        Timber.d("Embargo counter %d messageIdx %d", numSecs, messageIdx)
+                    }
                     if (numSecs == 0L) {
                         callback?.onShown()
                         alphaAnimator.start()

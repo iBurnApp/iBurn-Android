@@ -11,12 +11,19 @@ public class Event extends PlayaItem {
     // Events JSON uses "title" instead of "name"
     public String title;
 
-    public int allDay; // 1 (true) or 0 (false)
-    public int checkLocation;  // 1 (true) or 0 (false)
+    // JSON now provides booleans instead of 0/1 integers
+    public boolean allDay;
+    public boolean checkLocation;
+
+    // unique id for the event in the PlayaEvents feed
+    public int eventId;
     public EventType eventType;
 
     public String hostedByCamp; // playaId
     public String locatedAtArt; // playaId
+    public String otherLocation;
+    public String printDescription;
+    public String slug;
 
     public List<EventOccurrence> occurrenceSet;
 

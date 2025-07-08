@@ -34,6 +34,7 @@ import com.gaiagps.iburn.database.DataProvider
 import com.gaiagps.iburn.database.Embargo
 import com.gaiagps.iburn.database.Event
 import com.gaiagps.iburn.database.PlayaItem
+import com.gaiagps.iburn.database.PlayaItemWithUserData
 import com.gaiagps.iburn.database.UserPoi
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
@@ -410,12 +411,13 @@ class MapboxMapFragment : Fragment() {
                 symbolManager?.addClickListener { symbol ->
                     if (markerIdToItem.containsKey(symbol.id)) {
                         val item = markerIdToItem[symbol.id]!!
-                        val i = Intent(
-                            requireActivity().applicationContext,
-                            PlayaItemViewActivity::class.java
-                        )
-                        i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM, item)
-                        activity?.startActivity(i)
+                        IntentUtil.viewItemDetail(requireActivity(), item)
+//                        val i = Intent(
+//                            requireActivity().applicationContext,
+//                            PlayaItemViewActivity::class.java
+//                        )
+//                        i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ID, item.playaId)
+//                        activity?.startActivity(i)
                     } else if (mappedCustomMarkerIds.containsKey(symbol.id)) {
                         showEditPinDialog(symbol)
                     }
@@ -526,7 +528,7 @@ class MapboxMapFragment : Fragment() {
                 }
             }
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { items: List<PlayaItem> ->
+            .subscribe { items: List<PlayaItemWithUserData> ->
                 processMapItemResult(items)
             }
     }
@@ -631,7 +633,7 @@ class MapboxMapFragment : Fragment() {
      */
     private var mResultBounds: LatLngBounds.Builder? = null
 
-    private fun processMapItemResult(items: List<PlayaItem>) {
+    private fun processMapItemResult(items: List<PlayaItemWithUserData>) {
 
         mResultBounds = LatLngBounds.Builder()
 
@@ -640,9 +642,10 @@ class MapboxMapFragment : Fragment() {
 
             val currentZoom = map.cameraPosition.zoom
 
-            val itemsWithLocation = items.filter { it.latitude != 0f }
+            val itemsWithLocation = items.filter { it.item.latitude != 0f }
             itemsWithLocation
-                .forEach { item ->
+                .forEach { itemWithUserData ->
+                    val item = itemWithUserData.item
                     if (mappedItems.contains(item)) return@forEach // continue to next item
 
                     if (item is UserPoi) {
@@ -651,9 +654,9 @@ class MapboxMapFragment : Fragment() {
                         val marker = addNewMarkerForItem(item)
                         mappedItems.add(item)
                         mappedCustomMarkerIds[marker.id] = item
-                    } else if (item.isFavorite) {
+                    } else if (itemWithUserData.userData.isFavorite) {
                         // Favorites are always-visible, but not editable
-                        val marker = addNewMarkerForItem(item)
+                        val marker = addNewMarkerForItem(itemWithUserData.item)
                         markerIdToItem[marker.id] = item
                         mappedItems.add(item)
                         permanentMarkers.add(marker)
@@ -1006,7 +1009,8 @@ class MapboxMapFragment : Fragment() {
                 }
                 .firstElement() // Inserting can cause the get query to refresh
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { userPoi ->
+                .subscribe { userPoiWithUserData ->
+                    val userPoi = userPoiWithUserData.item
                     Timber.d("After inserting, userPoi has id ${userPoi.id}")
                     // Make sure UserPoi is added to mappedItems before being inserted as this will
                     // trigger a map items update

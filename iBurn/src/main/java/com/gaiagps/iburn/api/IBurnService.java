@@ -15,7 +15,6 @@ import static com.gaiagps.iburn.database.Event.START_TIME_PRETTY;
 import static com.gaiagps.iburn.database.Event.TYPE;
 import static com.gaiagps.iburn.database.PlayaItem.CONTACT;
 import static com.gaiagps.iburn.database.PlayaItem.DESC;
-import static com.gaiagps.iburn.database.PlayaItem.FAVORITE;
 import static com.gaiagps.iburn.database.PlayaItem.LATITUDE;
 import static com.gaiagps.iburn.database.PlayaItem.LATITUDE_UNOFFICIAL;
 import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE;
@@ -57,9 +56,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -76,113 +73,14 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import timber.log.Timber;
 
 /**
- * A monolithic iBurn data updater. Handles fetching IBurn update data and update the database while
- * preserving user favorites
+ * A monolithic iBurn data updater. Handles fetching iBurn update data and updating the database
  * <p>
  * TODO : The API data fetching and Database interaction should be pulled out as deps for better testing
  * Created by davidbrodsky on 6/26/15.
  */
 public class IBurnService {
 
-    /**
-     * A mechanism for migrating internal app data not defined by the iBurn API.
-     */
-    public interface UpgradeLifeboat {
 
-        /**
-         * Save any database data not represented by the iBurn API
-         *
-         * @param database the internal app database
-         */
-        Observable<Boolean> saveData(DataProvider database);
-
-        /**
-         * @param row the row of refreshsed data from the iBurn API.
-         *            Add any internal data captured in {@link #saveData(DataProvider)}.
-         *            Be explicit and do not make assumptions about default values, as
-         *            row may be recycled from a previous item.
-         */
-        void restoreData(ContentValues row);
-    }
-
-    /**
-     * Persist user-defined favorites based on {@link PlayaItem.PLAYA_ID}.
-     * This is suitable for {@link com.gaiagps.iburn.database.Art} and {@link com.gaiagps.iburn.database.Camp} collections.
-     * <p>
-     * It *cannot* be used with {@link com.gaiagps.iburn.database.Event} because there may be multiple Event entries
-     * sharing the same playaId but having differing start and end times
-     */
-    private static class SimpleLifeboat implements UpgradeLifeboat {
-        enum Table {Camp, Art}
-
-        private Table table;
-
-        public SimpleLifeboat(@NonNull Table table) {
-            this.table = table;
-        }
-
-        private Set<String> favoritePlayaIds = new HashSet<>();
-
-        @Override
-        public Observable<Boolean> saveData(DataProvider provider) {
-            Flowable<? extends List<? extends com.gaiagps.iburn.database.PlayaItem>> items = null;
-
-            if (table == Table.Camp) {
-                items = provider.observeCampFavorites();
-
-            } else if (table == Table.Art) {
-                items = provider.observeArtFavorites();
-            } else {
-                throw new IllegalStateException("Unknown table type " + table);
-            }
-
-            return items
-                    .firstOrError()
-                    .map(favorites -> {
-                        Timber.d("Found %d favorites", favorites.size());
-                        for (com.gaiagps.iburn.database.PlayaItem fav : favorites) {
-                            favoritePlayaIds.add(fav.playaId);
-                        }
-                        return true;
-                    })
-                    .toObservable();
-        }
-
-        @Override
-        public void restoreData(ContentValues row) {
-            row.put(FAVORITE, favoritePlayaIds.contains(row.getAsString(PLAYA_ID)));
-        }
-    }
-
-    private static class EventLifeboat implements UpgradeLifeboat {
-
-        private HashMap<String, HashSet<String>> favoriteIds = new HashMap<>();
-
-        @Override
-        public Observable<Boolean> saveData(DataProvider provider) {
-            return provider.observeEventFavorites()
-                    .firstOrError()
-                    .map(favorites -> {
-                        Timber.d("Found %d event favorites", favorites.size());
-                        String favoriteId;
-                        for (com.gaiagps.iburn.database.Event favEvent : favorites) {
-                            favoriteId = favEvent.playaId;
-                            if (!favoriteIds.containsKey(favoriteId))
-                                favoriteIds.put(favoriteId, new HashSet<>());
-                            favoriteIds.get(favoriteId).add(favEvent.startTime);
-                        }
-                        return true;
-                    })
-                    .toObservable();
-        }
-
-        @Override
-        public void restoreData(ContentValues row) {
-            String playaId = row.getAsString(PLAYA_ID);
-            row.put(FAVORITE, favoriteIds.containsKey(playaId) &&
-                    favoriteIds.get(playaId).contains(row.getAsString(START_TIME)));
-        }
-    }
 
     /**
      * Class to represent state needed to update an iBurn collection
@@ -296,7 +194,7 @@ public class IBurnService {
         Timber.d("Updating art");
 
         final String tableName = com.gaiagps.iburn.database.Art.TABLE_NAME;
-        return updateTable(provider, service.getArt(), tableName, new SimpleLifeboat(SimpleLifeboat.Table.Art), (item, values, database) -> {
+        return updateTable(provider, service.getArt(), tableName, (item, values, database) -> {
             Art art = (Art) item;
             values.put(ARTIST, art.artist);
             values.put(ARTIST_LOCATION, art.artistLocation);
@@ -312,7 +210,7 @@ public class IBurnService {
         Timber.d("Updating Camps");
 
         final String tableName = com.gaiagps.iburn.database.Camp.TABLE_NAME;
-        return updateTable(provider, service.getCamps(), tableName, new SimpleLifeboat(SimpleLifeboat.Table.Camp), (item, values, database) -> {
+        return updateTable(provider, service.getCamps(), tableName, (item, values, database) -> {
             values.put(HOMETOWN, ((Camp) item).hometown);
             database.insert(values);
         });
@@ -329,7 +227,7 @@ public class IBurnService {
         final SimpleDateFormat dayFormatter = DateUtil.getPlayaTimeFormat("EE M/d");
 
         final String tableName = com.gaiagps.iburn.database.Event.TABLE_NAME;
-        return updateTable(provider, service.getEvents(), tableName, new EventLifeboat(), (item, values, database) -> {
+        return updateTable(provider, service.getEvents(), tableName, (item, values, database) -> {
 
             Event event = (Event) item;
 
@@ -356,11 +254,13 @@ public class IBurnService {
 
             for (EventOccurrence occurrence : event.occurrenceSet) {
                 values.put(START_TIME, apiDateFormat.format(occurrence.startTime));
-                values.put(START_TIME_PRETTY, (event.allDay == 1) ? dayFormatter.format(occurrence.startTime) :
+                values.put(START_TIME_PRETTY, event.allDay ?
+                        dayFormatter.format(occurrence.startTime) :
                         timeDayFormatter.format(occurrence.startTime));
 
                 values.put(END_TIME, apiDateFormat.format(occurrence.endTime));
-                values.put(END_TIME_PRETTY, (event.allDay == 1) ? dayFormatter.format(occurrence.endTime) :
+                values.put(END_TIME_PRETTY, event.allDay ?
+                        dayFormatter.format(occurrence.endTime) :
                         timeDayFormatter.format(occurrence.endTime));
 
                 database.insert(values);
@@ -371,21 +271,11 @@ public class IBurnService {
     private Single<Long> updateTable(DataProvider provider,
                                      Observable<? extends Iterable<? extends PlayaItem>> items,
                                      String tableName,
-                                     UpgradeLifeboat lifeboat,
                                      BindObjectToContentValues binder) {
 
         final AtomicBoolean initializedInsert = new AtomicBoolean(false);
         final android.content.ContentValues values = new android.content.ContentValues();
-        // Fetch remote JSON and all existing internal records that are favorites, simultaneously
-        return Observable.zip(
-                items.doOnNext(resp -> Timber.d("Got %s API Response", tableName)),
-                lifeboat.saveData(provider).doOnNext(result -> Timber.d("Backed up %s data", tableName)),
-                (playaItems, lifeboatSuccess) -> {
-                    if (!lifeboatSuccess)
-                        throw new IllegalStateException("Lifeboat did not complete successfully!");
-                    return playaItems;
-                })
-
+        return items.doOnNext(resp -> Timber.d("Got %s API Response", tableName))
                 .flatMap(Observable::fromIterable)
 
                 .map(item -> {
@@ -398,10 +288,7 @@ public class IBurnService {
 
                     values.clear();
                     bindBaseValues(item, values);
-                    binder.bindAndInsertValues(item, values, finalValues -> {
-                        lifeboat.restoreData(finalValues);
-                        provider.insert(tableName, finalValues);
-                    });
+                    binder.bindAndInsertValues(item, values, finalValues -> provider.insert(tableName, finalValues));
                     return true;
                 })
 
@@ -438,7 +325,7 @@ public class IBurnService {
 
     /**
      * Bind {@link com.gaiagps.iburn.database.PlayaItem} values described by the iBurn API. This does not include
-     * internal data columns like {@link PlayaItem.FAVORITE}
+     * internal user data such as favorites
      */
     private void bindBaseValues(PlayaItem item, android.content.ContentValues values) {
 

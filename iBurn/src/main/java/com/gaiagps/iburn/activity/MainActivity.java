@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         handleIntent(getIntent());
 
 //        uncomment to load JSON assets immediately for testing
-//        bootstrapDatabaseFromJson();
+        bootstrapDatabaseFromJson();
     }
 
     /**

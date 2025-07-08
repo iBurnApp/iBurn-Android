@@ -22,6 +22,7 @@ import com.gaiagps.iburn.adapters.DividerItemDecoration;
 import com.gaiagps.iburn.adapters.MultiTypePlayaItemAdapter;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.PlayaItem;
+import com.gaiagps.iburn.database.PlayaItemWithUserData;
 import com.gaiagps.iburn.databinding.ActivitySearchBinding;
 import com.tonicartos.superslim.LayoutManager;
 
@@ -110,8 +111,8 @@ public class SearchFragment extends Fragment implements AdapterListener {
     }
 
     @Override
-    public void onItemSelected(PlayaItem item) {
-        IntentUtil.viewItemDetail(getActivity(), item);
+    public void onItemSelected(PlayaItemWithUserData item) {
+        IntentUtil.viewItemDetail(getActivity(), item.getItem());
     }
 
     @Override

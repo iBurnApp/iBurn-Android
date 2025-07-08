@@ -25,6 +25,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.res.AssetFileDescriptor
+import android.os.Parcelable
 import android.support.v4.media.MediaMetadataCompat
 import com.gaiagps.iburn.getAssetPathFromAssetUri
 import com.gaiagps.iburn.isAssetUri
@@ -56,7 +57,7 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
                           art: Art,
                           albumArtUri: Uri) {
             val intent = Intent(context, AudioPlayerService::class.java)
-            intent.putExtra(ExtraArtItem, art)
+            intent.putExtra(ExtraArtItem, art as Parcelable)
             intent.putExtra(ExtraAlbumArtUri, albumArtUri.toString())
             intent.putExtra(ExtraLocalMediaUri, localMediaUrl.toString())
             context.startService(intent)

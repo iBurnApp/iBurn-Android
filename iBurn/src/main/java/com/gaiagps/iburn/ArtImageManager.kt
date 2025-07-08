@@ -27,7 +27,8 @@ fun getArtImageLocalPath(context: Context, art: Art): String? {
     if (useBundledArtImages) {
         return getArtImageAssetPath(art)
     } else {
-        val cachedArt = getCachedArtImageFile(context, art.imageUrl)
+        val artUrl = art.imageUrl ?: return null
+        val cachedArt = getCachedArtImageFile(context, artUrl)
         if (!cachedArt.exists()) return null
 
         return cachedArt.absolutePath
@@ -36,7 +37,8 @@ fun getArtImageLocalPath(context: Context, art: Art): String? {
 
 fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
 
-    if (!art.hasImage()) {
+    val artUrl = art.imageUrl
+    if (artUrl == null) {
         callback?.onError()
         return
     }
@@ -61,7 +63,7 @@ fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
                 })
     } else {
         // Load and cache art images from Internet
-        val cachedFile = getCachedArtImageFile(context, art.imageUrl)
+        val cachedFile = getCachedArtImageFile(context, artUrl)
 
         val picasso = Picasso.get()
         if (cachedFile.exists()) {
@@ -95,6 +97,12 @@ fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
 
 private fun cacheArtImageFile(context: Context, art: Art, callback: Callback) {
     val imageUrl = art.imageUrl
+    if (imageUrl == null) {
+        Timber.e("Art image URL is null for ${art.name}")
+        postResult(callback, succcess = false)
+        return
+    }
+
     val request = Request.Builder()
             .url(imageUrl)
             .build()

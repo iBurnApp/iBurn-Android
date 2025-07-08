@@ -1,13 +1,14 @@
 package com.gaiagps.iburn.adapters
 
 import com.gaiagps.iburn.database.PlayaItem
+import com.gaiagps.iburn.database.PlayaItemWithUserData
 import java.util.Locale
 
 /**
  * Created by dbro on 8/18/15.
  */
 
-class AlphabeticalSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSectionIndxer(items) {
+class AlphabeticalSectionIndexer(items: List<PlayaItemWithUserData>? = null) : PlayaItemSectionIndxer(items) {
 
     val sections: Array<String> = arrayOf("!", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z") as Array<String>
 
@@ -21,11 +22,11 @@ class AlphabeticalSectionIndexer(items: List<PlayaItem>? = null) : PlayaItemSect
         
         if (position == items?.size) return sections.lastIndex
 
-        val name = items?.get(position)?.name
-        if (name == null) {
-            return sections.lastIndex
+        val name = items?.get(position)?.item?.name
+        return if (name == null) {
+            sections.lastIndex
         } else {
-            return getSectionIndexForName(name)
+            getSectionIndexForName(name)
         }
     }
 
