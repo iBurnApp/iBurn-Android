@@ -20,7 +20,7 @@ private const val DATABASE_NAME = "playaDatabase2025.1.db"
 /**
  * If true, use a bundled pre-populated database. Else start with a fresh database.
  */
-private const val USE_BUNDLED_DB = false
+private const val USE_BUNDLED_DB = true
 
 private const val DATABASE_V1 = 1
 

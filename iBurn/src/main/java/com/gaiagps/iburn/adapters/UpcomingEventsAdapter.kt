@@ -19,7 +19,8 @@ class UpcomingEventsAdapter(context: Context, listener: AdapterListener) :
         val set = HashSet<Int>()
         var headerCount = 0
         var lastStartTime = ""
-        items.forEachIndexed { index, playaItem ->
+        items.forEachIndexed { index, playaItemWithUserData ->
+            val playaItem = playaItemWithUserData.item
             val thisStartTime = (playaItem as Event).startTime
             requireNotNull(thisStartTime) { "Event start time cannot be null" }
             if (thisStartTime != lastStartTime) {
@@ -34,7 +35,7 @@ class UpcomingEventsAdapter(context: Context, listener: AdapterListener) :
         setLinearSlimParameters(viewHolder, position)
 
         val firstSectionItem = getDataPositionForPosition(position + 1)
-        val item = items?.get(firstSectionItem) as Event
+        val item = items?.get(firstSectionItem)?.item as Event
 
         val headerTitle = DateUtil.getStartDateString(
                     apiDateFormat.parse(item.startTime),
