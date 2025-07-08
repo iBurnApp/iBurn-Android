@@ -28,7 +28,6 @@ interface CampDao {
     )
     val favorites: Flowable<List<CampWithUserData>>
 
-    @Fts4
     @Query(
         "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
