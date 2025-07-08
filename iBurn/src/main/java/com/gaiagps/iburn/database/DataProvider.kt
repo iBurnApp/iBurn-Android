@@ -301,21 +301,20 @@ class DataProvider private constructor(private val context: Context, private val
     }
 
     /**
-     * Observe all results for a name query.
-     *
+     * Observe all results for a full text search query.
      *
      * Note: This query automatically adds in Event.startTime (and 0 values for all non-events),
      * since we always want to show this data for an event.
      */
-    fun observeNameQuery(query: String): Flowable<SectionedPlayaItems> {
+    fun observeFtsQuery(query: String): Flowable<SectionedPlayaItems> {
 
         // TODO : Honor upgradeLock
         // TODO : Return structure with metadata on how many art, camps, events etc?
         val wildQuery = addWildcardsToQuery(query)
         return Flowables.combineLatest(
-                db.artDao().findByName(wildQuery),
-                db.campDao().findByName(wildQuery),
-                db.eventDao().findByName(wildQuery),
+                db.artDao().searchFts(query),
+                db.campDao().searchFts(query),
+                db.eventDao().searchFts(query),
                 db.userPoiDao().findByName(wildQuery))
         { arts, camps, events, userpois ->
             val sections = ArrayList<IntRange>(4)

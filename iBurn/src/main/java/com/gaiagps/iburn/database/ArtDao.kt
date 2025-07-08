@@ -40,6 +40,17 @@ interface ArtDao {
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
             " FROM " + Art.TABLE_NAME + " a LEFT JOIN " + Favorite.TABLE_NAME +
             " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " JOIN " + ArtFts.TABLE_NAME +
+            " ON a." + PlayaItem.ID + " = " + ArtFts.TABLE_NAME + ".rowid" +
+            " WHERE " + ArtFts.TABLE_NAME + " MATCH :query"
+    )
+    fun searchFts(query: String?): Flowable<List<ArtWithUserData>>
+
+    @Query(
+        "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Art.TABLE_NAME + " a LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
             " WHERE (a." + PlayaItem.LATITUDE + " BETWEEN :minLat AND :maxLat) " +
             "AND (a." + PlayaItem.LONGITUDE + " BETWEEN :minLon AND :maxLon)"
     )

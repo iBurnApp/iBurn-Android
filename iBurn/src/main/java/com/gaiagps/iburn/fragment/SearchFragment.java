@@ -96,7 +96,7 @@ public class SearchFragment extends Fragment implements AdapterListener {
             searchSubscription.dispose();
 
         searchSubscription = DataProvider.Companion.getInstance(getContext().getApplicationContext())
-                .flatMap(dataProvider -> dataProvider.observeNameQuery(query).toObservable()) // TODO : rm toObservable
+                .flatMap(dataProvider -> dataProvider.observeFtsQuery(query).toObservable()) // TODO : rm toObservable
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(sectionedPlayaItems -> {
                     binding.resultsSummary.setText(describeResults(sectionedPlayaItems));
