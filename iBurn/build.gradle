@@ -239,13 +239,18 @@ dependencies {
 }
 
 task updateData {
-    // Copy items from an 'iBurn-Data' repo checked out into a
-    // directory with that name adjacent to this repo's root 'iBurn-Android' directory.
+    // Copy items from an 'iBurn-Data' submodule.
     // Usage: `./gradlew :iBurn:updateData`
 
     // doLast ensures copying is only run when this task is
     // invoked by name, and not during general gradle configuration
+    // TODO - allow checking out a custom branch
     doLast {
+        // Update the iBurn-Data submodule before copying
+        exec {
+            workingDir "$projectDir/../.."
+            commandLine 'git', 'submodule', 'update', '--init', '--remote', 'iBurn-Data'
+        }
         logger.info("Updating assets from IBurn-Data")
         // Reverse Geocoder
         copy {

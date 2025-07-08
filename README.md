@@ -44,15 +44,12 @@ Fortunately, you can still run and test the app with the previous year's data.
 
 #### Update playa data
 
-1. Check out iBurn-Data into a directory adjacent to this repository's root, and point iBurn-Data to the branch appropriate for the current year. Note this will usually be the private repo.
-2. `./gradlew updateData`. This will copy updated map, geocoder, art images, art audio tour, and api json (camp, art, event) files to this repo.
+1. Run `./gradlew updateData`. This will update the iBurn-Data submodule, copy updated map, geocoder, art images, art audio tour, and api json (camp, art, event) files to this repo.
 3. If the map.mbtiles were updated, bump `MapboxMapFragment.MBTILES_VERSION`
-4. Update the `databaseName` property in `iBurn/build.gradle` to represent the current year and commit this change.
-5. Run `./gradlew :iBurn:bootstrapDatabase` to install the debug build, trigger
+4. Update the `databaseName` property in `iBurn/build.gradle` by bumping the version number. This will trigger a copy of the playa api database tables on next app run.
+5. Connect an Android device with developer mode enabled and run `./gradlew :iBurn:bootstrapDatabase` to install the debug build, trigger
    database generation, and copy the resulting file to
-   `iBurn/src/main/assets/databases`. The task uses `adb run-as` so a connected
-   device with developer mode enabled is required.
-6. Return the value of `USE_BUNDLED_DB` in `PlayaDatabase2.kt` to `true`.
+   `iBurn/src/main/assets/databases/$databaseName`.
 
 #### Art Images/Audio Tour
 
@@ -61,9 +58,7 @@ The `./gradlew updateData` will copy art images and tour audio from the iBurn-Da
 ## TODO
 
 * Pretty up that item detail view.
-* Separate playa API from user database.
 * Investigate Mapbox offline and SIGABRT issues. Seems like it's possible Mapbox gets into a state where it stops displaying the map
-* Populate playa db from gradle task.
 
 ## Releasing
 Make sure you've:
