@@ -336,7 +336,7 @@ tasks.register('bootstrapDatabase') {
             commandLine 'adb', 'shell', 'am', 'broadcast', '-a',
                     'com.gaiagps.iburn.BOOTSTRAP_DB', '--es',
                     'com.gaiagps.iburn.EXTRA_DB_NAME', bootstrapName,
-                    '-n', "${pkg}/.DatabaseBootstrapReceiver"
+                    '-n', "${pkg}/com.gaiagps.iburn.DatabaseBootstrapReceiver"
         }
 
         def outFile = file("$projectDir/src/main/assets/databases/${databaseName}")
