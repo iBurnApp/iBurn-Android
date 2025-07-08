@@ -29,7 +29,6 @@ build
 *.ipr
 *~
 *.swp
-gradle.properties
 local.properties
 *.apk
 libraries/google-play-services_lib/build/*
