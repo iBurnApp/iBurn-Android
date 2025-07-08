@@ -89,6 +89,10 @@ class DataProvider private constructor(private val context: Context, private val
         return db.campDao().findByPlayaId(playaId)
     }
 
+    fun observeCampById(id: Int): Flowable<CampWithUserData> {
+        return db.campDao().findById(id)
+    }
+
     fun beginTransaction() {
         db.beginTransaction()
         //        BriteDatabase.Transaction t = db.newTransaction();
@@ -136,6 +140,10 @@ class DataProvider private constructor(private val context: Context, private val
 
     fun observeEventByPlayaId(id: String): Single<EventWithUserData> {
         return db.eventDao().getByPlayaId(id)
+    }
+
+    fun observeEventById(id: Int): Single<EventWithUserData> {
+        return db.eventDao().getById(id)
     }
 
     fun observeEventsOnDayOfTypes(day: String,
@@ -239,6 +247,10 @@ class DataProvider private constructor(private val context: Context, private val
 
     fun observeArtByPlayaId(playaId: String): Flowable<ArtWithUserData> {
         return db.artDao().findByPlayaId(playaId)
+    }
+
+    fun observeArtById(id: Int): Flowable<ArtWithUserData> {
+        return db.artDao().findById(id)
     }
 
     /**

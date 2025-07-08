@@ -82,4 +82,13 @@ interface ArtDao {
             " WHERE a." + PlayaItem.PLAYA_ID + " = :playaId"
     )
     fun findByPlayaId(playaId: String): Flowable<ArtWithUserData>
+
+    @Query(
+        "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Art.TABLE_NAME + " a LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " WHERE a." + PlayaItem.ID + " = :id"
+    )
+    fun findById(id: Int): Flowable<ArtWithUserData>
 }

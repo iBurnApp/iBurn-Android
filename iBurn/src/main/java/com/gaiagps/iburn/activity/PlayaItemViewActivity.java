@@ -83,7 +83,8 @@ import org.maplibre.android.geometry.LatLng;
  */
 public class PlayaItemViewActivity extends AppCompatActivity implements AdapterListener {
 
-    public static final String EXTRA_PLAYA_ITEM_ID = "playa-id";
+    // Database primary key for the item to display
+    public static final String EXTRA_PLAYA_ITEM_ID = "playa-item-id";
     public static final String EXTRA_PLAYA_ITEM_TYPE = "playa-type";
     public static final String EXTRA_PLAYA_ITEM_CAMP = "playa-camp";
     public static final String EXTRA_PLAYA_ITEM_ART = "playa-art";
@@ -140,31 +141,31 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     }
 
     private void loadPlayaItemFromIntent(Intent i) {
-        String playaId = i.getStringExtra(EXTRA_PLAYA_ITEM_ID);
+        int itemId = i.getIntExtra(EXTRA_PLAYA_ITEM_ID, -1);
         String type = i.getStringExtra(EXTRA_PLAYA_ITEM_TYPE);
-        if (playaId == null || type == null) {
-            throw new IllegalArgumentException("Missing playaId or type in Intent");
+        if (itemId == -1 || type == null) {
+            throw new IllegalArgumentException("Missing itemId or type in Intent");
         }
         // Use DataProvider to fetch the item
         DataProvider.Companion.getInstance(getApplicationContext())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(dataProvider -> {
                 if (EXTRA_PLAYA_ITEM_CAMP.equals(type)) {
-                    playaItemDisposable = dataProvider.observeCampByPlayaId(playaId)
+                    playaItemDisposable = dataProvider.observeCampById(itemId)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(item -> {
                             itemWithUserData = item;
                             onPlayaItemLoaded();
                         }, throwable -> finishWithError(throwable));
                 } else if (EXTRA_PLAYA_ITEM_ART.equals(type)) {
-                    playaItemDisposable = dataProvider.observeArtByPlayaId(playaId)
+                    playaItemDisposable = dataProvider.observeArtById(itemId)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(item -> {
                             itemWithUserData = item;
                             onPlayaItemLoaded();
                         }, throwable -> finishWithError(throwable));
                 } else if (EXTRA_PLAYA_ITEM_EVENT.equals(type)) {
-                    playaItemDisposable = dataProvider.observeEventByPlayaId(playaId)
+                    playaItemDisposable = dataProvider.observeEventById(itemId)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(item -> {
                             itemWithUserData = item;
