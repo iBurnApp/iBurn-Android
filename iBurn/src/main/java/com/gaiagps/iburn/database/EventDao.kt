@@ -69,6 +69,18 @@ interface EventDao {
     )
     fun findByName(name: String?): Flowable<List<EventWithUserData>>
 
+    @Query(
+        "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
+            " JOIN " + EventFts.TABLE_NAME +
+            " ON e." + PlayaItem.ID + " = " + EventFts.TABLE_NAME + ".rowid" +
+            " WHERE " + EventFts.TABLE_NAME + " MATCH :query"
+    )
+    fun searchFts(query: String?): Flowable<List<EventWithUserData>>
+
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +

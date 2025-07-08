@@ -33,8 +33,7 @@ The content fragments are all self-contained and independent of `MainActivity`.
 
 There's currently a persistent search Floating Action Button (yuck!) that
 directs the user to [`SearchActivity`](https://github.com/Burning-Man-Earth/iBurn-Android/blob/8cb6414628959b16531f108778781e7a8c51795b/iBurn/src/main/java/com/gaiagps/iburn/activity/SearchActivity.java).
-Search is currently based on a name column query via [`DataProvider.observeNameQuery()`](https://github.com/Burning-Man-Earth/iBurn-Android/blob/5f99b17e70c3080dc0780c74d7e7dc5933865293/iBurn/src/main/java/com/gaiagps/iburn/database/DataProvider.java#L305-L305),
-but we should change to also incorporate descriptions.
+Search is performed using SQLite full text search via [`DataProvider.observeFtsQuery()`](https://github.com/Burning-Man-Earth/iBurn-Android/blob/5f99b17e70c3080dc0780c74d7e7dc5933865293/iBurn/src/main/java/com/gaiagps/iburn/database/DataProvider.java#L305-L305).
 
 [`PlayaItemViewActivity`](https://github.com/Burning-Man-Earth/iBurn-Android/blob/44b30e369ef438df9899280c78688cbaed2a5d20/iBurn/src/main/java/com/gaiagps/iburn/activity/PlayaItemViewActivity.java) is used as a "detail view" of a Camp, Art, or Event
 anywhere that's necessary in the app. It's also probably the most embarrassing piece of shit in the app because it

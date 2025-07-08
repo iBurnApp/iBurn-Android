@@ -29,6 +29,9 @@ private const val DATABASE_V1 = 1
         Art::class,
         Camp::class,
         Event::class,
+        ArtFts::class,
+        CampFts::class,
+        EventFts::class,
         UserPoi::class,
         Favorite::class
     ),
