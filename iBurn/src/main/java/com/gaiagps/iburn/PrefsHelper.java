@@ -42,14 +42,6 @@ public class PrefsHelper {
         return String.format("%s_%s", baseKey, context.getString(R.string.current_year));
     }
 
-    public boolean rescuedLostFaves() {
-        return sharedPrefs.getBoolean(getAnnualKey(RESCUED_LOST_FAVS), false);
-    }
-
-    public void setRescuedLostFaves(boolean didRescue) {
-        editor.putBoolean(getAnnualKey(RESCUED_LOST_FAVS), didRescue).apply();
-    }
-
     /**
      * @return whether a valid unlock code has been presented for this year
      */

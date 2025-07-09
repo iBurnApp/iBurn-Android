@@ -134,19 +134,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             prefs.setDidScheduleUpdate(true);
         }
 
-        if (!prefs.rescuedLostFaves()) {
-            PlayaDatabase2Kt.migrateOldFavorites(this)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(numRescued -> {
-                        Timber.d("Rescued %s favorites and userPois!", numRescued);
-                        if (numRescued > 0) {
-                            showRescuedFavesDialog(numRescued);
-                        }
-                        prefs.setRescuedLostFaves(true);
-                    }, throwable -> {
-                        Timber.e(throwable, "Rescue failed");
-                    });
-        }
         // For testing data update live
         // DataUpdateService.Companion.updateNow(this);
         if (Embargo.isEmbargoActive(prefs)) {
