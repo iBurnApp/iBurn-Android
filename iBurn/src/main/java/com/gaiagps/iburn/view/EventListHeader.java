@@ -13,6 +13,7 @@ import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.adapters.AdapterUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A ListView header presenting filter options for day and type
@@ -35,7 +36,7 @@ public class EventListHeader extends RelativeLayout {
     protected ArrayList<String> mTypeSelection = new ArrayList<>();
     protected int mDaySelectionIndex =
             AdapterUtils.sDayAbbreviations.indexOf(mDaySelection);
-    protected boolean[] mTypeSelectionIndexes = new boolean[100];
+    protected boolean[] mTypeSelectionIndexes = new boolean[AdapterUtils.getEventTypeCount()];
 
 
     protected PlayaListViewHeaderReceiver mReceiver;
@@ -75,19 +76,22 @@ public class EventListHeader extends RelativeLayout {
                 if (v.getTag().equals("type")) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_Iburn_Dialog);
                     builder.setTitle(getContext().getString(R.string.filter_by_type));
-                    builder.setMultiChoiceItems(AdapterUtils.sEventTypeNames.toArray(new CharSequence[AdapterUtils.sEventTypeNames.size()]),
+                    final java.util.List<String> typeNames = AdapterUtils.getEventTypeNames();
+                    final java.util.List<String> typeAbbrevs = AdapterUtils.getEventTypeAbbreviations();
+                    builder.setMultiChoiceItems(typeNames.toArray(new CharSequence[0]),
                             mTypeSelectionIndexes,
                             (dialog, which, isChecked) -> {
-                                CharSequence selection = AdapterUtils.sEventTypeAbbreviations.toArray(new CharSequence[AdapterUtils.sEventTypeAbbreviations.size()])[which];
-                                String tabTitle = null;
+                                String selection = typeAbbrevs.get(which);
+                                String tabTitle;
                                 if (isChecked) {
                                     mTypeSelectionIndexes[which] = true;
-                                    mTypeSelection.add((selection == null) ? null : selection.toString());
-                                    tabTitle = (selection == null) ? getResources().getString(R.string.any_type) : AdapterUtils.sEventTypeNames.toArray(new CharSequence[AdapterUtils.sEventTypeNames.size()])[which].toString();
+                                    mTypeSelection.add(selection);
+                                    tabTitle = typeNames.get(which);
                                 } else {
                                     mTypeSelectionIndexes[which] = false;
-                                    mTypeSelection.remove((selection == null) ? null : selection.toString());
-                                    tabTitle = (mTypeSelection.size() == 0) ? getResources().getString(R.string.any_type) : AdapterUtils.sEventTypeNames.get(AdapterUtils.sEventTypeAbbreviations.indexOf(mTypeSelection.get(mTypeSelection.size() - 1)));
+                                    mTypeSelection.remove(selection);
+                                    tabTitle = (mTypeSelection.isEmpty()) ? getResources().getString(R.string.any_type)
+                                            : typeNames.get(typeAbbrevs.indexOf(mTypeSelection.get(mTypeSelection.size() - 1)));
                                 }
 
                                 if (mTypeSelection.size() > 1)

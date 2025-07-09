@@ -243,6 +243,95 @@ interface EventDao {
         maxLon: Float
     ): Flowable<List<EventWithUserData>>
 
+    // All days queries (for showing events across all days)
+    @Query(
+        "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
+            " WHERE not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd)" +
+            " ORDER BY " + Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
+    )
+    fun findAllDaysTimed(
+        allDayStart: String?,
+        allDayEnd: String?
+    ): Flowable<List<EventWithUserData>>
+
+    @Query(
+        "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
+            " WHERE (e." + Event.END_TIME + ">= :now AND " +
+            "not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd)) ORDER BY " +
+            Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
+    )
+    fun findAllDaysNoExpiredTimed(
+        now: String?,
+        allDayStart: String?,
+        allDayEnd: String?
+    ): Flowable<List<EventWithUserData>>
+
+    @Query(
+        "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
+            " WHERE (e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) ORDER BY " +
+            Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
+    )
+    fun findAllDaysAllDay(
+        allDayStart: String?,
+        allDayEnd: String?
+    ): Flowable<List<EventWithUserData>>
+
+    @Query(
+        "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
+            " WHERE (not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) AND e." + Event.TYPE + " IN (:types)) ORDER BY " +
+            Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
+    )
+    fun findAllDaysAndTypeTimed(
+        types: List<String?>?,
+        allDayStart: String?,
+        allDayEnd: String?
+    ): Flowable<List<EventWithUserData>>
+
+    @Query(
+        "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
+            " WHERE (e." + Event.END_TIME + ">= :now AND not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) AND e." + Event.TYPE + " IN (:types)) ORDER BY " +
+            Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
+    )
+    fun findAllDaysAndTypeNoExpiredTimed(
+        types: List<String?>?, now: String?,
+        allDayStart: String?, allDayEnd: String?
+    ): Flowable<List<EventWithUserData>>
+
+    @Query(
+        "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
+            " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
+            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
+            " WHERE (e." + Event.TYPE + " IN (:types) AND e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) ORDER BY " +
+            Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
+    )
+    fun findAllDaysAndTypeAllDay(
+        types: List<String?>?,
+        allDayStart: String?,
+        allDayEnd: String?
+    ): Flowable<List<EventWithUserData>>
+
     @Insert
     fun insert(vararg arts: Event?)
 
