@@ -146,16 +146,56 @@ class DataProvider private constructor(private val context: Context, private val
         return db.eventDao().getById(id)
     }
 
-    fun observeEventsOnDayOfTypes(day: String,
+    fun observeEventsOnDayOfTypes(day: String?,
                                   types: ArrayList<String>?,
                                   includeExpired: Boolean,
                                   eventTiming: String): Flowable<List<EventWithUserData>> {
 
         // TODO : Honor upgradeLock?
         val isoDateFormat = DateUtil.getIso8601Format()
-        val wildDay = addWildcardsToQuery(day)
         val nowDate = CurrentDateProvider.getCurrentDate()
         val now = isoDateFormat.format(nowDate)
+        
+        // Handle "all days" case when day is null or empty
+        if (day == null || day.isEmpty()) {
+            // For "all days", we use dummy values for allDayStart/allDayEnd since the query
+            // methods don't actually filter by day - they just use these to distinguish 
+            // between timed and all-day events
+            val dummyDay = "8/25" // Use a dummy day format that DateUtil can parse
+            val allDayStart = isoDateFormat.format(
+                    DateUtil.getAllDayStartDateTime(dummyDay))
+            val allDayEnd = isoDateFormat.format(
+                    DateUtil.getAllDayEndDateTime(dummyDay))
+            
+            if (types == null || types.isEmpty()) {
+                if(eventTiming=="timed"){
+                    if(includeExpired == true) {
+                        return db.eventDao().findAllDaysTimed(allDayStart, allDayEnd)
+                    }
+                    else{
+                        return db.eventDao().findAllDaysNoExpiredTimed(now, allDayStart, allDayEnd)
+                    }
+                }
+                else{
+                    return db.eventDao().findAllDaysAllDay(allDayStart, allDayEnd)
+                }
+            } else {
+                if(eventTiming=="timed"){
+                    if(includeExpired == true) {
+                        return db.eventDao().findAllDaysAndTypeTimed(types, allDayStart, allDayEnd)
+                    }
+                    else{
+                        return db.eventDao().findAllDaysAndTypeNoExpiredTimed(types, now, allDayStart, allDayEnd)
+                    }
+                }
+                else{
+                    return db.eventDao().findAllDaysAndTypeAllDay(types, allDayStart, allDayEnd)
+                }
+            }
+        }
+        
+        // Handle specific day filtering (existing logic)
+        val wildDay = addWildcardsToQuery(day)
         val allDayStart = isoDateFormat.format(
                 DateUtil.getAllDayStartDateTime(day))
         val allDayEnd = isoDateFormat.format(

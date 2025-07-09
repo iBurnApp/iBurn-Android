@@ -20,6 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -27,8 +29,11 @@ import java.util.Locale;
  */
 public class AdapterUtils {
 
-    public static final ArrayList<String> sEventTypeAbbreviations = new ArrayList<>();
-    public static final ArrayList<String> sEventTypeNames = new ArrayList<>();
+    /**
+     * Mapping of event type abbreviation to display name. The linked map
+     * preserves insertion order which is relied upon by UI components.
+     */
+    public static final LinkedHashMap<String, String> sEventTypes = new LinkedHashMap<>();
 
     public static final ArrayList<String> sDayAbbreviations = new ArrayList<>();
     public static final ArrayList<String> sDayNames = new ArrayList<>();
@@ -40,7 +45,6 @@ public class AdapterUtils {
     public static final Date EVENT_END_DATE = EventInfo.EVENT_END_DATE;
 
     public static final String EVENT_TYPE_ABBREVIATION_UNKNOWN = "unknwn";
-    public static final String EVENT_TYPE_NAME_UNKNOWN = "Uncategorized";
 
     static {
 
@@ -48,44 +52,33 @@ public class AdapterUtils {
         dayAbbrevFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE);
 
         populateDayRanges(EVENT_START_DATE, EVENT_END_DATE);
-        sEventTypeAbbreviations.add("work");
-        sEventTypeNames.add("Class/Workshop");
-        sEventTypeAbbreviations.add("perf");
-        sEventTypeNames.add("Performance");
-        sEventTypeAbbreviations.add("care");
-        sEventTypeNames.add("Self Care");
-        sEventTypeAbbreviations.add("prty");
-        sEventTypeNames.add("Gathering/Party");
-        sEventTypeAbbreviations.add("cere");
-        sEventTypeNames.add("Ritual/Ceremony");
-        sEventTypeAbbreviations.add("game");
-        sEventTypeNames.add("Games");
-        sEventTypeAbbreviations.add("fire");
-        sEventTypeNames.add("Fire/Spectacle");
-        sEventTypeAbbreviations.add("adlt");
-        sEventTypeNames.add("Mature Audiences");
-        sEventTypeAbbreviations.add("kid");
-        sEventTypeNames.add("For Kids");
-        sEventTypeAbbreviations.add("food");
-        sEventTypeNames.add("Food & Drink");
-        sEventTypeAbbreviations.add("othr");
-        sEventTypeNames.add("Miscellaneous");
-        sEventTypeAbbreviations.add("arts");
-        sEventTypeNames.add("Arts & Crafts");
-        sEventTypeAbbreviations.add("live");
-        sEventTypeNames.add("Live Music");
-        sEventTypeAbbreviations.add("RIDE");
-        sEventTypeNames.add("Diversity & Inclusion");
-        sEventTypeAbbreviations.add("repr");
-        sEventTypeNames.add("Repair");
-        sEventTypeAbbreviations.add("sust");
-        sEventTypeNames.add("Sustainability/Greening Your Burn");
-        sEventTypeAbbreviations.add("yoga");
-        sEventTypeNames.add("Yoga/Movement/Fitness");
+
+        // Event types sourced from the iOS EventType enum
+        sEventTypes.put("cere", "Ritual/Ceremony");
+        sEventTypes.put("prty", "Gathering/Party");
+        sEventTypes.put("work", "Class/Workshop");
+        sEventTypes.put("game", "Games");
+        sEventTypes.put("food", "Food & Drink");
+        sEventTypes.put("adlt", "Mature Audiences");
+        sEventTypes.put("perf", "Performance");
+        sEventTypes.put("care", "Self Care");
+        sEventTypes.put("fire", "Fire/Spectacle");
+        sEventTypes.put("para", "Parade");
+        sEventTypes.put("kid", "For Kids");
+        sEventTypes.put("none", "None");
+        sEventTypes.put("othr", "Miscellaneous");
+        sEventTypes.put("arts", "Arts & Crafts");
+        sEventTypes.put("tea", "Coffee/Tea");
+        sEventTypes.put("heal", "Healing/Massage/Spa");
+        sEventTypes.put("LGBT", "LGBTQIA2S+");
+        sEventTypes.put("live", "Live Music");
+        sEventTypes.put("RIDE", "Diversity & Inclusion");
+        sEventTypes.put("repr", "Repair");
+        sEventTypes.put("sust", "Sustainability/Greening Your Burn");
+        sEventTypes.put("yoga", "Yoga/Movement/Fitness");
+
         // Initial 2017 data had uncategorized events but first update with official location
         // has all events categorized
-//        sEventTypeAbbreviations.add(EVENT_TYPE_ABBREVIATION_UNKNOWN);
-//        sEventTypeNames.add(EVENT_TYPE_NAME_UNKNOWN);
     }
 
     private static void populateDayRanges(Date start, Date end) {
@@ -97,6 +90,10 @@ public class AdapterUtils {
         sDayNames.clear();
         sDayAbbreviations.clear();
 
+        // Add "All Days" option as the first item
+        sDayNames.add("All Days");
+        sDayAbbreviations.add("");
+
         for (Date date = startCal.getTime(); startCal.before(endCal); startCal.add(Calendar.DATE, 1), date = startCal.getTime()) {
             sDayNames.add(dayLabelFormatter.format(date));
             sDayAbbreviations.add(dayAbbrevFormatter.format(date));
@@ -105,22 +102,36 @@ public class AdapterUtils {
 
     private static final DateFormat apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format();
 
+    public static List<String> getEventTypeAbbreviations() {
+        return new ArrayList<>(sEventTypes.keySet());
+    }
+
+    public static List<String> getEventTypeNames() {
+        return new ArrayList<>(sEventTypes.values());
+    }
+
+    public static int getEventTypeCount() {
+        return sEventTypes.size();
+    }
+
     /**
-     * @return the abbreviation for the current day, if it's during the burn, else the first day of the burn
+     * @return the abbreviation for the current day, if it's during the burn, else "All Days"
      */
     public static String getCurrentOrFirstDayAbbreviation() {
         Date now = CurrentDateProvider.getCurrentDate();
         String todayAbbrev = dayAbbrevFormatter.format(now);
-        if (sDayAbbreviations.contains(todayAbbrev)) return todayAbbrev;
+        // Skip index 0 which is "All Days" (empty string) when checking for current day
+        if (sDayAbbreviations.size() > 1 && sDayAbbreviations.subList(1, sDayAbbreviations.size()).contains(todayAbbrev)) {
+            return todayAbbrev;
+        }
 
+        // Default to "All Days" (empty string at index 0)
         return sDayAbbreviations.get(0);
     }
 
     public static String getStringForEventType(String typeAbbreviation) {
         if (typeAbbreviation == null) return null;
-        if (sEventTypeAbbreviations.contains(typeAbbreviation))
-            return sEventTypeNames.get(sEventTypeAbbreviations.indexOf(typeAbbreviation));
-        return null;
+        return sEventTypes.get(typeAbbreviation);
     }
 
     public static void setDistanceText(Location deviceLocation, TextView walkTimeView, TextView bikeTimeView, float lat, float lon) {
