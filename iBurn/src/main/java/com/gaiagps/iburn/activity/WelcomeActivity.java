@@ -23,6 +23,7 @@ import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SchedulersKt;
 import com.gaiagps.iburn.database.Camp;
+import com.gaiagps.iburn.database.CampWithUserData;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.UserPoi;
 import com.gaiagps.iburn.fragment.WelcomeFragment;
@@ -36,7 +37,7 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
 
     private PrefsHelper prefs;
 
-    private Camp homeCampSelection;
+    private CampWithUserData homeCampSelection;
 
     private ViewPager pager;
     private PagerAdapter pagerAdapter;
@@ -160,13 +161,14 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
 
         if (homeCampSelection != null) {
             UserPoi poi = new UserPoi();
-            poi.name = homeCampSelection.name;
-            if (homeCampSelection.hasLocation()) {
-                poi.latitude = homeCampSelection.latitude;
-                poi.longitude = homeCampSelection.longitude;
+            Camp homeCamp = homeCampSelection.getItem();
+            poi.name = homeCamp.name;
+            if (homeCamp.hasLocation()) {
+                poi.latitude = homeCamp.latitude;
+                poi.longitude = homeCamp.longitude;
             } else {
-                poi.latitude = homeCampSelection.latitudeUnofficial;
-                poi.longitude = homeCampSelection.longitudeUnofficial;
+                poi.latitude = homeCamp.latitudeUnofficial;
+                poi.longitude = homeCamp.longitudeUnofficial;
             }
             poi.icon = UserPoi.ICON_HOME;
             DataProvider.Companion.getInstance(getApplicationContext())
@@ -201,7 +203,7 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
 //    }
 
     @Override
-    public void onHomeCampSelected(Camp homeCamp) {
+    public void onHomeCampSelected(CampWithUserData homeCamp) {
         homeCampSelection = homeCamp;
     }
 

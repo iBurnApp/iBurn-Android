@@ -44,6 +44,7 @@ object Geocoder {
 
                         playaAddress ?: "?"
                     } catch (e: Exception) {
+                        Timber.e(e, "Geocoder exception: $e")
                         "?"
                     }
                 }

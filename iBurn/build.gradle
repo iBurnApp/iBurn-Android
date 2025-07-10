@@ -238,7 +238,7 @@ dependencies {
 
 }
 
-task updateData {
+tasks.register('updateData') {
     // Copy items from an 'iBurn-Data' submodule.
     // Usage: `./gradlew :iBurn:updateData`
 
@@ -248,29 +248,41 @@ task updateData {
     doLast {
         // Update the iBurn-Data submodule before copying
         exec {
-            workingDir "$projectDir/../.."
+            workingDir "$projectDir/../"
             commandLine 'git', 'submodule', 'update', '--init', '--remote', 'iBurn-Data'
         }
-        logger.info("Updating assets from IBurn-Data")
+        println("Updating $versionYear assets from IBurn-Data")
+        
         // Reverse Geocoder
-        copy {
-            from "$projectDir/../../iBurn-Data/data/$versionYear/geocoder/"
+        def geocoderFiles = fileTree("$projectDir/../iBurn-Data/data/$versionYear/geocoder/") {
             include 'bundle.js'
+        }
+        def geocoderCount = geocoderFiles.files.size()
+        copy {
+            from geocoderFiles
             into "$projectDir/src/main/assets/js/"
         }
+        println("Copied ${geocoderCount} geocoder files")
 
         // Mapbox mbtiles
-        copy {
-            from "$projectDir/../../iBurn-Data/data/$versionYear/Map/"
+        def mbtilesFiles = fileTree("$projectDir/../iBurn-Data/data/$versionYear/Map/Map.bundle/") {
             include 'map.mbtiles'
+        }
+        def mbtilesCount = mbtilesFiles.files.size()
+        copy {
+            from mbtilesFiles
             into "$projectDir/src/main/assets/map/"
         }
+        println("Copied ${mbtilesCount} map tiles")
 
         // Map styles
-        copy {
-            from "$projectDir/../../iBurn-Data/data/$versionYear/Map/styles/"
+        def stylesFiles = fileTree("$projectDir/../iBurn-Data/data/$versionYear/Map/Map.bundle/styles/") {
             include 'iburn-light.json'
             include 'iburn-dark.json'
+        }
+        def stylesCount = stylesFiles.files.size()
+        copy {
+            from stylesFiles
             into "$projectDir/src/main/assets/map/"
 
             // Adjust asset path for Android
@@ -282,7 +294,7 @@ task updateData {
             // The cause here is not yet understood. If this is resolved, you can
             // also preserve the fontstack path in the Map glyphs copy step that follows.
             filter { line ->
-                line.replaceAll('asset://map/glyphs/\\{fontstack\\}/\\{range\\}.pbf', 'asset://map/glyphs/\\{range\\}.pbf')
+                line.replaceAll('asset://iBurnData_iBurn2025Map.bundle/Map.bundle/glyphs/\\{fontstack\\}/\\{range\\}.pbf', 'asset://map/glyphs/\\{range\\}.pbf')
             }
             // Filter out map style templating. Mapbox provides an API
             // for attaching a source to styles, which I think is less fragile.
@@ -290,37 +302,54 @@ task updateData {
                 !line.contains('"composite": {"url": "mbtiles://{{mbtiles_path}}", "type": "vector"') ? line : null
             }
         }
+        println("Copied ${stylesCount} map style files")
 
         // Map glyphs
-        copy {
-            from "$projectDir/../../iBurn-Data/data/$versionYear/Map/glyphs/Open Sans Regular/"
+        def glyphsFiles = fileTree("$projectDir/../iBurn-Data/data/$versionYear/Map/Map.bundle/glyphs/Open Sans Regular/") {
             include '**/*.pbf'
+        }
+        def glyphsCount = glyphsFiles.files.size()
+        copy {
+            from glyphsFiles
             into "$projectDir/src/main/assets/map/glyphs"
         }
+        println("Copied ${glyphsCount} glyph files")
 
         // Art images
-        copy {
-            from "$projectDir/../../iBurn-Data/data/$versionYear/MediaFiles/"
+        def artImagesFiles = fileTree("$projectDir/../iBurn-Data/data/$versionYear/MediaFiles/MediaFiles.bundle/") {
             include '*.jpg'
             include '*.webp'
+        }
+        def artImagesCount = artImagesFiles.files.size()
+        copy {
+            from artImagesFiles
             into "$projectDir/src/main/assets/art_images/"
         }
+        println("Copied ${artImagesCount} art image files")
 
         // Art audio tour
-        copy {
-            from "$projectDir/../../iBurn-Data/data/$versionYear/MediaFiles/"
+        def audioTourFiles = fileTree("$projectDir/../iBurn-Data/data/$versionYear/MediaFiles/MediaFiles.bundle/") {
             include '*.m4a'
+        }
+        def audioTourCount = audioTourFiles.files.size()
+        copy {
+            from audioTourFiles
             into "$projectDir/src/main/assets/audio_tour/"
         }
+        println("Copied ${audioTourCount} audio tour files")
 
         // Json
-        copy {
-            from "$projectDir/../../iBurn-Data/data/$versionYear/APIData/"
+        def jsonFiles = fileTree("$projectDir/../iBurn-Data/data/$versionYear/APIData/APIData.bundle/") {
             include 'camp.json'
             include 'art.json'
             include 'event.json'
+        }
+        def jsonCount = jsonFiles.files.size()
+        copy {
+            from jsonFiles
             into "$projectDir/src/main/assets/json/"
         }
+        println("Copied ${jsonCount} JSON files")
     }
 }
 
@@ -337,6 +366,7 @@ tasks.register('bootstrapDatabase') {
             commandLine 'adb', 'shell', 'sleep', '1'
         }
 
+        println("Broadcasting bootstrap intent to ${pkg} with name ${bootstrapName}")
         exec {
             commandLine 'adb', 'shell', 'am', 'broadcast', '-a',
                     'com.gaiagps.iburn.BOOTSTRAP_DB', '--es',
@@ -351,6 +381,7 @@ tasks.register('bootstrapDatabase') {
                     'cat', "/data/data/${pkg}/databases/${bootstrapName}"
             standardOutput = new FileOutputStream(outFile)
         }
+        println("Database bootstrap complete. Output written to ${outFile.absolutePath} (${outFile.length()} bytes)")
     }
 }
 

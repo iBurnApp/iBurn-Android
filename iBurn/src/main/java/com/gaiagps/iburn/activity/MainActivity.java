@@ -73,6 +73,15 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private PrefsHelper prefs;
     private String searchQuery;
     private BottomNavigationView bottomBar;
+    
+    // Fragment instances for reuse
+    private Fragment mapFragment;
+    private Fragment mapPlaceholderFragment;
+    private Fragment exploreFragment;
+    private Fragment browseFragment;
+    private Fragment favoritesFragment;
+    private Fragment searchFragment;
+    private Fragment currentFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,19 +143,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             prefs.setDidScheduleUpdate(true);
         }
 
-        if (!prefs.rescuedLostFaves()) {
-            PlayaDatabase2Kt.migrateOldFavorites(this)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(numRescued -> {
-                        Timber.d("Rescued %s favorites and userPois!", numRescued);
-                        if (numRescued > 0) {
-                            showRescuedFavesDialog(numRescued);
-                        }
-                        prefs.setRescuedLostFaves(true);
-                    }, throwable -> {
-                        Timber.e(throwable, "Rescue failed");
-                    });
-        }
         // For testing data update live
         // DataUpdateService.Companion.updateNow(this);
         if (Embargo.isEmbargoActive(prefs)) {
@@ -199,9 +195,17 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         int mapTabId = R.id.tab_map;
 
         if (currentTabId == mapTabId) {
-            setCurrentFragment(awaitingPermission ?
-                    new MapPlaceHolderFragment() :
-                    new MapboxMapFragment());
+            if (awaitingPermission) {
+                if (mapPlaceholderFragment == null) {
+                    mapPlaceholderFragment = new MapPlaceHolderFragment();
+                }
+                setCurrentFragment(mapPlaceholderFragment);
+            } else {
+                if (mapFragment == null) {
+                    mapFragment = new MapboxMapFragment();
+                }
+                setCurrentFragment(mapFragment);
+            }
         }
     }
 
@@ -211,18 +215,36 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             final int selectedId = menuItem.getItemId();
             if (R.id.tab_map == selectedId) {
                 if (awaitingLocationPermission) {
-                    frag = new MapPlaceHolderFragment();
+                    if (mapPlaceholderFragment == null) {
+                        mapPlaceholderFragment = new MapPlaceHolderFragment();
+                    }
+                    frag = mapPlaceholderFragment;
                 } else {
-                    frag = new MapboxMapFragment();
+                    if (mapFragment == null) {
+                        mapFragment = new MapboxMapFragment();
+                    }
+                    frag = mapFragment;
                 }
             } else if (R.id.tab_now == selectedId) {
-                frag = new ExploreListViewFragment();
+                if (exploreFragment == null) {
+                    exploreFragment = new ExploreListViewFragment();
+                }
+                frag = exploreFragment;
             } else if (R.id.tab_browse == selectedId) {
-                frag = new BrowseListViewFragment();
+                if (browseFragment == null) {
+                    browseFragment = new BrowseListViewFragment();
+                }
+                frag = browseFragment;
             } else if (R.id.tab_favorites == selectedId) {
-                frag = new FavoritesListViewFragment();
+                if (favoritesFragment == null) {
+                    favoritesFragment = new FavoritesListViewFragment();
+                }
+                frag = favoritesFragment;
             } else if (R.id.tab_search == selectedId) {
-                frag = new SearchFragment();
+                if (searchFragment == null) {
+                    searchFragment = new SearchFragment();
+                }
+                frag = searchFragment;
             }
 
             if (frag != null) {
@@ -239,10 +261,26 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     }
 
     private void setCurrentFragment(@NonNull Fragment fragment) {
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.content, fragment)
-                .commitAllowingStateLoss();
+        if (fragment == currentFragment) {
+            return; // Fragment is already displayed
+        }
+        
+        androidx.fragment.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        
+        // Hide current fragment if it exists
+        if (currentFragment != null) {
+            transaction.hide(currentFragment);
+        }
+        
+        // Show or add the new fragment
+        if (fragment.isAdded()) {
+            transaction.show(fragment);
+        } else {
+            transaction.add(R.id.content, fragment);
+        }
+        
+        transaction.commitAllowingStateLoss();
+        currentFragment = fragment;
     }
 
     @Override

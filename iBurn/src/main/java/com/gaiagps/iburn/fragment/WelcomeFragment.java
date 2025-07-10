@@ -82,9 +82,9 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
             campSearchView = rootView.findViewById(R.id.campNameSearch);
             campSearchView.setAdapter(new CampAutoCompleteAdapter(getActivity()));
             campSearchView.setOnItemClickListener((parent, view, position, id) -> {
-                Camp selectedCamp = ((Camp) campSearchView.getAdapter().getItem(position));
+                CampWithUserData selectedCamp = ((CampWithUserData) campSearchView.getAdapter().getItem(position));
 
-                if (!selectedCamp.hasLocation() && !selectedCamp.hasUnofficialLocation()) {
+                if (!selectedCamp.getItem().hasLocation() && !selectedCamp.getItem().hasUnofficialLocation()) {
                     rootView.findViewById(R.id.error).setVisibility(View.VISIBLE);
                     campSearchView.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
                     if (getActivity() instanceof HomeCampSelectionListener) {
@@ -196,7 +196,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
     private class CampAutoCompleteAdapter extends BaseAdapter implements Filterable {
 
-        private List<Camp> camps;
+        private List<CampWithUserData> camps;
         private DataProvider dataProvider;
         private CampNameFilter filter;
         LayoutInflater inflater;
@@ -207,7 +207,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
                     .subscribe(readyDataProvider -> this.dataProvider = readyDataProvider);
         }
 
-        public void changeData(List<Camp> camps) {
+        public void changeData(List<CampWithUserData> camps) {
             this.camps = camps;
         }
 
@@ -217,7 +217,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
         }
 
         @Override
-        public Camp getItem(int position) {
+        public CampWithUserData getItem(int position) {
             if (camps == null) return null;
             return camps.get(position);
         }
@@ -225,7 +225,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
         @Override
         public long getItemId(int position) {
             if (camps == null) return -1;
-            return camps.get(position).id;
+            return camps.get(position).getItem().id;
         }
 
         @Override
@@ -239,8 +239,8 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
             }
 
             if (camps != null) {
-                Camp camp = camps.get(position);
-                ((TextView) convertView).setText(camp.name);
+                CampWithUserData camp = camps.get(position);
+                ((TextView) convertView).setText(camp.getItem().name);
             }
 
             return convertView;
@@ -279,7 +279,7 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
                 if (results.values == null || results.count > 0) {
                     Timber.d("Publishing results to adapter");
-                    changeData((List<Camp>) results.values);
+                    changeData((List<CampWithUserData>) results.values);
                     notifyDataSetChanged();
                 } else {
                     notifyDataSetInvalidated();
@@ -288,8 +288,8 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
 
             @Override
             public CharSequence convertResultToString(Object result) {
-                if (result instanceof Camp) {
-                    return ((Camp) result).name;
+                if (result instanceof CampWithUserData) {
+                    return ((CampWithUserData) result).getItem().name;
                 }
                 return super.convertResultToString(result);
             }
@@ -297,6 +297,6 @@ public class WelcomeFragment extends Fragment implements TextureView.SurfaceText
     }
 
     public interface HomeCampSelectionListener {
-        void onHomeCampSelected(Camp homeCamp);
+        void onHomeCampSelected(CampWithUserData homeCamp);
     }
 }
