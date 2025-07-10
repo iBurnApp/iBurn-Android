@@ -1,11 +1,13 @@
 package com.gaiagps.iburn.adapters
 
 import android.content.Context
+import android.graphics.Rect
 import android.location.Location
 import androidx.recyclerview.widget.RecyclerView
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.TouchDelegate
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -16,7 +18,7 @@ import com.gaiagps.iburn.DateUtil.getDateString
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.location.LocationProvider
-import org.jetbrains.annotations.NotNull
+import com.gaiagps.iburn.view.animateScalePulse
 import timber.log.Timber
 import java.text.ParseException
 import java.util.*
@@ -64,12 +66,36 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
         val view = LayoutInflater.from(parent.context).inflate(R.layout.listview_playaitem, parent, false)
 
         val viewHolder = ViewHolder(view)
-        setupClickListeners(viewHolder)
+        // Only setup the main item click listener here (it's position-agnostic)
+        viewHolder.itemView.setOnClickListener({ view ->
+            if (viewHolder.itemView.tag != null) {
+                listener.onItemSelected(view.tag as PlayaItemWithUserData)
+            }
+        })
+
+
         return viewHolder as T
     }
 
     override fun getItemCount(): Int {
         return items?.size ?: 0
+    }
+
+    private fun expandFavButtonHitbox(viewHolder: ViewHolder) {
+        // For a visually pleasing layout the favorite button needs to be smaller
+        // then is comfortable for a touch hitbox, so manually expand that on the parent view
+        val delegateArea = Rect()
+        val favButton = viewHolder.itemView.findViewById<ImageView>(R.id.heart)
+        favButton.getHitRect(delegateArea)
+        favButton.bringToFront()
+
+        // Expand touch area by 40 pixels in all directions
+        delegateArea.top -= 40
+        delegateArea.bottom += 40
+        delegateArea.left -= 40
+        delegateArea.right += 40
+
+        viewHolder.itemView.touchDelegate = TouchDelegate(delegateArea, favButton)
     }
 
     override fun onBindViewHolder(viewHolder: T, position: Int) {
@@ -180,6 +206,21 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
 
             holder.itemView.tag = itemWithUserData
 
+            // Set up favorite button click listener here in onBindViewHolder
+            // This ensures it always references the correct item for this position
+            holder.favoriteView.setOnClickListener({ view ->
+                val willBeFavorite = !itemWithUserData.userData.isFavorite
+                if (willBeFavorite) {
+                    (view as ImageView).setImageResource(R.drawable.ic_heart_full)
+                    view.animateScalePulse {
+                        listener.onItemFavoriteButtonSelected(itemWithUserData.item)
+                    }
+                } else {
+                    (view as ImageView).setImageResource(R.drawable.ic_heart_empty)
+                    listener.onItemFavoriteButtonSelected(itemWithUserData.item)
+                }
+            })
+
             if (position == items?.lastIndex) {
                 // Set footer padding
                 holder.itemView.setPadding(normalPaddingBottom,
@@ -193,29 +234,12 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
                         normalPaddingBottom,
                         normalPaddingBottom)
             }
+            holder.itemView.post {
+                expandFavButtonHitbox(holder)
+            }
         }
     }
 
-    /**
-     * Convenience method to setup item click and favorite button click.
-     * Splendidly suitable for calling from [.onCreateViewHolder]
-     */
-    protected fun setupClickListeners(viewHolder: ViewHolder) {
-        viewHolder.itemView.setOnClickListener({ view ->
-            if (viewHolder.itemView.tag != null) {
-                listener.onItemSelected(view.tag as PlayaItemWithUserData)
-            }
-        })
-
-        viewHolder.favoriteView.setOnClickListener({ view ->
-            if (viewHolder.itemView.tag != null) {
-                Timber.d("Favorite btn clicked")
-                listener.onItemFavoriteButtonSelected((viewHolder.itemView.tag as PlayaItemWithUserData).item)
-            } else {
-                Timber.e("Favorite btn clicked, but itemView.tag is null")
-            }
-        })
-    }
 
     // <editor-fold desc="SectionIndexer">
 
