@@ -236,21 +236,40 @@ public class AnimatedFloatingActionButton extends FloatingActionButton {
             innerCircleAnimator.setStartDelay(200);
             innerCircleAnimator.setInterpolator(DECCELERATE_INTERPOLATOR);
 
+            // Double pulse animation matching ViewExtensions.animateScalePulse
+            // Total duration: 300ms, divided into 5 phases of 60ms each
+
+            // First pulse: up and down
             ObjectAnimator iconAnimator1 = ObjectAnimator.ofFloat(this, AnimatedFloatingActionButton.ICON_SCALE, 1f, 1.2f);
-            iconAnimator1.setDuration(200);
+            iconAnimator1.setDuration(60);  // duration/5
             iconAnimator1.setStartDelay(0);
-            iconAnimator1.setInterpolator(ACCELERATE_DECELERATE_INTERPOLATOR);
+            iconAnimator1.setInterpolator(DECCELERATE_INTERPOLATOR);
 
             ObjectAnimator iconAnimator2 = ObjectAnimator.ofFloat(this, AnimatedFloatingActionButton.ICON_SCALE, 1.2f, 1f);
-            iconAnimator2.setDuration(200);
-            iconAnimator2.setStartDelay(200);
-            iconAnimator2.setInterpolator(ACCELERATE_DECELERATE_INTERPOLATOR);
+            iconAnimator2.setDuration(60);  // duration/5
+            iconAnimator2.setStartDelay(60);
+            iconAnimator2.setInterpolator(DECCELERATE_INTERPOLATOR);
+
+            // Pause between pulses (60ms delay before second pulse)
+
+            // Second pulse: up and down (larger scale like ViewExtensions)
+            ObjectAnimator iconAnimator3 = ObjectAnimator.ofFloat(this, AnimatedFloatingActionButton.ICON_SCALE, 1f, 1.32f);
+            iconAnimator3.setDuration(60);  // duration/5
+            iconAnimator3.setStartDelay(180);  // After first pulse + pause
+            iconAnimator3.setInterpolator(DECCELERATE_INTERPOLATOR);
+
+            ObjectAnimator iconAnimator4 = ObjectAnimator.ofFloat(this, AnimatedFloatingActionButton.ICON_SCALE, 1.32f, 1f);
+            iconAnimator4.setDuration(60);  // duration/5
+            iconAnimator4.setStartDelay(240);
+            iconAnimator4.setInterpolator(DECCELERATE_INTERPOLATOR);
 
             animatorSet.playTogether(
                     outerCircleAnimator,
                     innerCircleAnimator,
                     iconAnimator1,
-                    iconAnimator2);
+                    iconAnimator2,
+                    iconAnimator3,
+                    iconAnimator4);
 
             animatorSet.start();
         }
