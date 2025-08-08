@@ -77,6 +77,10 @@
         <activity
             android:name=".activity.PlayaItemViewActivity"
             android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".activity.ShareActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Iburn"></activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"
