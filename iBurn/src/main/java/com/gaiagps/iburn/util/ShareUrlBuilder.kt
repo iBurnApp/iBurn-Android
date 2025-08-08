@@ -15,16 +15,22 @@ object ShareUrlBuilder {
             .scheme("https")
             .authority("iburnapp.com")
         
-        // Add path based on type
+        // Add path and uid based on type
         when (item) {
             is Art, is ArtWithUserData -> {
-                builder.appendPath("art").appendPath(item.playaId)
+                builder.appendPath("art")
+                    .appendPath("") // Creates /art/
+                    .appendQueryParameter("uid", item.playaId)
             }
             is Camp, is CampWithUserData -> {
-                builder.appendPath("camp").appendPath(item.playaId)
+                builder.appendPath("camp")
+                    .appendPath("") // Creates /camp/
+                    .appendQueryParameter("uid", item.playaId)
             }
             is Event, is EventWithUserData -> {
-                builder.appendPath("event").appendPath(item.playaId)
+                builder.appendPath("event")
+                    .appendPath("") // Creates /event/
+                    .appendQueryParameter("uid", item.playaId)
             }
             is UserPoi, is UserPoiWithUserData -> {
                 // User POIs could be handled as pins

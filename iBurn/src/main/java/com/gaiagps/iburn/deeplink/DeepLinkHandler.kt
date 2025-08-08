@@ -58,13 +58,13 @@ class DeepLinkHandler(
         val queryParams = extractQueryParams(uri)
         
         when {
-            // Handle https://iburnapp.com/art/123 or /camp/123 or /event/123
+            // Handle https://iburnapp.com/art/?uid=xxx or /camp/?uid=xxx or /event/?uid=xxx
             pathSegments.isNotEmpty() && pathSegments[0] in listOf(PATH_ART, PATH_CAMP, PATH_EVENT) -> {
                 val type = pathSegments[0]
-                val playaId = pathSegments.getOrNull(1)
+                val uid = queryParams["uid"]
                 
-                if (playaId != null) {
-                    handleDataObject(type, playaId, queryParams, callback)
+                if (uid != null) {
+                    handleDataObject(type, uid, queryParams, callback)
                 } else {
                     callback(null)
                 }
@@ -73,13 +73,13 @@ class DeepLinkHandler(
             pathSegments.isNotEmpty() && pathSegments[0] == PATH_PIN -> {
                 handleMapPin(queryParams, callback)
             }
-            // Handle iburn://art/123 style URLs (scheme-based)
+            // Handle iburn://art?uid=xxx style URLs (scheme-based)
             uri.scheme == "iburn" -> {
                 val host = uri.host
-                val path = uri.path?.removePrefix("/")
+                val uid = queryParams["uid"]
                 
-                if (host in listOf(PATH_ART, PATH_CAMP, PATH_EVENT) && !path.isNullOrEmpty()) {
-                    handleDataObject(host, path, queryParams, callback)
+                if (host in listOf(PATH_ART, PATH_CAMP, PATH_EVENT) && uid != null) {
+                    handleDataObject(host, uid, queryParams, callback)
                 } else if (host == PATH_PIN) {
                     handleMapPin(queryParams, callback)
                 } else {

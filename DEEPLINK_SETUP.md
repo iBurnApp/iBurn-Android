@@ -6,15 +6,15 @@ Deep linking has been implemented for the iBurn Android app, allowing users to s
 ## Supported URL Formats
 
 ### Custom Scheme
-- `iburn://art/{playaId}`
-- `iburn://camp/{playaId}`
-- `iburn://event/{playaId}`
+- `iburn://art?uid={playaId}&title={title}`
+- `iburn://camp?uid={playaId}&title={title}`
+- `iburn://event?uid={playaId}&title={title}`
 - `iburn://pin?lat={latitude}&lng={longitude}&title={title}`
 
 ### App Links (HTTPS)
-- `https://iburnapp.com/art/{playaId}`
-- `https://iburnapp.com/camp/{playaId}`
-- `https://iburnapp.com/event/{playaId}`
+- `https://iburnapp.com/art/?uid={playaId}&title={title}`
+- `https://iburnapp.com/camp/?uid={playaId}&title={title}`
+- `https://iburnapp.com/event/?uid={playaId}&title={title}`
 - `https://iburnapp.com/pin?lat={latitude}&lng={longitude}&title={title}`
 
 ## Setup Steps
@@ -61,12 +61,12 @@ Make sure the file is served with:
 
 Test custom scheme:
 ```bash
-adb shell am start -W -a android.intent.action.VIEW -d "iburn://art/a2Id0000000cbObEAI"
+adb shell am start -W -a android.intent.action.VIEW -d "iburn://art?uid=a2Id0000000cbObEAI&title=Test%20Art"
 ```
 
 Test app links:
 ```bash
-adb shell am start -W -a android.intent.action.VIEW -d "https://iburnapp.com/camp/a1XVI000001vN7N"
+adb shell am start -W -a android.intent.action.VIEW -d "https://iburnapp.com/camp/?uid=a1XVI000001vN7N&title=Test%20Camp"
 ```
 
 Test pin creation:
