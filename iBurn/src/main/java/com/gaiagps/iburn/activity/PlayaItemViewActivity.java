@@ -14,6 +14,7 @@ import android.os.Bundle;
 
 import com.gaiagps.iburn.ArtImageManagerKt;
 import com.gaiagps.iburn.IntentUtil;
+import com.gaiagps.iburn.activity.ShareActivity;
 import com.gaiagps.iburn.database.ArtWithUserData;
 import com.gaiagps.iburn.database.CampWithUserData;
 import com.gaiagps.iburn.database.EventWithUserData;
