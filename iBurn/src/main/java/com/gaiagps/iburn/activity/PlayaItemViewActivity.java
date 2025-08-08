@@ -14,6 +14,7 @@ import android.os.Bundle;
 
 import com.gaiagps.iburn.ArtImageManagerKt;
 import com.gaiagps.iburn.IntentUtil;
+import com.gaiagps.iburn.util.ShareUrlBuilder;
 import com.gaiagps.iburn.database.ArtWithUserData;
 import com.gaiagps.iburn.database.CampWithUserData;
 import com.gaiagps.iburn.database.EventWithUserData;
@@ -423,6 +424,9 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         } else if (R.id.favorite_menu == selectedId) {
             setFavorite(!isFavorite, true);
             return true;
+        } else if (R.id.share_menu == selectedId) {
+            shareItem();
+            return true;
         } else if (R.id.image_menu == selectedId) {
             if (artImageView != null) {
                 boolean isVisible = artImageView.getVisibility() == View.VISIBLE && (artImageView.getAlpha() == 1f);
@@ -772,6 +776,21 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         this.isFavorite = isFavorite;
     }
 
+    private void shareItem() {
+        if (itemWithUserData != null && itemWithUserData.getItem() != null) {
+            android.net.Uri shareUrl = ShareUrlBuilder.INSTANCE.buildShareUrl(itemWithUserData.getItem());
+            String itemName = itemWithUserData.getItem().name;
+            
+            Intent shareIntent = new Intent();
+            shareIntent.setAction(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, itemName + " at Burning Man\n" + shareUrl.toString());
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, itemName);
+            
+            startActivity(Intent.createChooser(shareIntent, "Share via"));
+        }
+    }
+    
     private void setImageMenuToggle(boolean isShowingImage) {
         if (isShowingImage) {
             imageMenuItem.setIcon(R.drawable.ic_map_white_on_orange_24dp);

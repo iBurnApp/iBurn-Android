@@ -46,6 +46,30 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            
+            <!-- Custom URL Scheme -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                
+                <data android:scheme="iburn" />
+            </intent-filter>
+            
+            <!-- App Links (auto-verified) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                
+                <data android:scheme="https" />
+                <data android:host="iburnapp.com" />
+                <data android:host="www.iburnapp.com" />
+                <data android:pathPrefix="/art/" />
+                <data android:pathPrefix="/camp/" />
+                <data android:pathPrefix="/event/" />
+                <data android:pathPattern="/pin" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".activity.PlayaItemViewActivity"

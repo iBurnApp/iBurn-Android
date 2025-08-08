@@ -38,6 +38,7 @@ import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.database.PlayaDatabase2Kt;
+import com.gaiagps.iburn.deeplink.DeepLinkHandler;
 import com.gaiagps.iburn.databinding.ActivityMainBinding;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private Fragment favoritesFragment;
     private Fragment searchFragment;
     private Fragment currentFragment;
+    private DeepLinkHandler deepLinkHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +120,9 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         setupBottomBar(bottomBar, savedInstanceState);
 
         prefs = new PrefsHelper(this);
+        
+        // Initialize deep link handler
+        deepLinkHandler = new DeepLinkHandler(this, DataProvider.getInstance(getApplicationContext()));
 
         if (checkPlayServices()) {
             boolean haveLocationPermission = PermissionManager.hasLocationPermissions(getApplicationContext());
@@ -376,7 +381,27 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     }
 
     private void handleIntent(Intent intent) {
-        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+        if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+            // Handle deep link
+            android.net.Uri uri = intent.getData();
+            if (uri != null && deepLinkHandler != null) {
+                deepLinkHandler.handle(uri, resultIntent -> {
+                    if (resultIntent != null) {
+                        if (DeepLinkHandler.ACTION_SHOW_MAP_PIN.equals(resultIntent.getAction())) {
+                            // Show map centered on pin
+                            double lat = resultIntent.getDoubleExtra(DeepLinkHandler.EXTRA_LATITUDE, 0.0);
+                            double lng = resultIntent.getDoubleExtra(DeepLinkHandler.EXTRA_LONGITUDE, 0.0);
+                            String pinId = resultIntent.getStringExtra(DeepLinkHandler.EXTRA_PIN_ID);
+                            
+                            showMapAtLocation(lat, lng, pinId);
+                        } else {
+                            // Start detail activity
+                            startActivity(resultIntent);
+                        }
+                    }
+                });
+            }
+        } else if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             String query = intent.getStringExtra(SearchManager.QUERY);
             //use the query to search your data somehow
 //            if (mPagerAdapter.getCurrentFragment() instanceof Searchable) {
@@ -395,6 +420,26 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 //            Timber.d("dispatch query '%s", query);
 //            ((Searchable) mPagerAdapter.getCurrentFragment()).onSearchQueryRequested(query);
 //        }
+    }
+    
+    private void showMapAtLocation(double latitude, double longitude, String pinId) {
+        // Navigate to map fragment
+        if (mapFragment == null) {
+            mapFragment = new MapboxMapFragment();
+        }
+        
+        // Switch to map tab
+        bottomBar.setSelectedItemId(R.id.navigation_map);
+        
+        // Center map on location
+        if (mapFragment instanceof MapboxMapFragment) {
+            MapboxMapFragment mapboxFragment = (MapboxMapFragment) mapFragment;
+            // This will need to be implemented in MapboxMapFragment
+            // mapboxFragment.centerOnLocation(latitude, longitude);
+            // if (pinId != null) {
+            //     mapboxFragment.selectPin(pinId);
+            // }
+        }
     }
 
     @Override
