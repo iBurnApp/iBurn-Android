@@ -38,6 +38,7 @@ import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
 import com.gaiagps.iburn.database.PlayaDatabase2Kt;
+import com.gaiagps.iburn.deeplink.DeepLinkHandler;
 import com.gaiagps.iburn.databinding.ActivityMainBinding;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
 import com.gaiagps.iburn.fragment.ExploreListViewFragment;
@@ -50,11 +51,14 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import org.maplibre.android.geometry.LatLng;
+
 import java.text.SimpleDateFormat;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
@@ -82,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     private Fragment favoritesFragment;
     private Fragment searchFragment;
     private Fragment currentFragment;
+    private DeepLinkHandler deepLinkHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +123,9 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         setupBottomBar(bottomBar, savedInstanceState);
 
         prefs = new PrefsHelper(this);
+        
+        // Initialize deep link handler
+        DataProvider.Companion.getInstance(getApplicationContext()).subscribe(dataProvider -> deepLinkHandler = new DeepLinkHandler(getApplicationContext(), dataProvider));
 
         if (checkPlayServices()) {
             boolean haveLocationPermission = PermissionManager.hasLocationPermissions(getApplicationContext());
@@ -376,8 +384,32 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     }
 
     private void handleIntent(Intent intent) {
-        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String query = intent.getStringExtra(SearchManager.QUERY);
+        if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+            // Handle deep link
+            android.net.Uri uri = intent.getData();
+            if (uri != null && deepLinkHandler != null) {
+                deepLinkHandler.handle(MainActivity.this, uri, resultIntent -> {
+                    if (resultIntent != null) {
+                        if (DeepLinkHandler.ACTION_SHOW_MAP_PIN.equals(resultIntent.getAction())) {
+                            // Show map centered on pin
+                            double lat = resultIntent.getDoubleExtra(DeepLinkHandler.EXTRA_LATITUDE, 0.0);
+                            double lng = resultIntent.getDoubleExtra(DeepLinkHandler.EXTRA_LONGITUDE, 0.0);
+                            String pinName = resultIntent.getStringExtra(DeepLinkHandler.EXTRA_PIN_TITLE);
+
+                            showMapAtLocation(lat, lng, pinName);
+                        } else {
+                            // Start detail activity
+                            startActivity(resultIntent);
+                        }
+                    }
+                    return null;
+                });
+            }
+        } else if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            // This is leftover from a previous implementation where every Fragment could handle search
+            // queries before the dedicated search fragment.
+            Timber.e("MainActivity search support not implemented");
+//            String query = intent.getStringExtra(SearchManager.QUERY);
             //use the query to search your data somehow
 //            if (mPagerAdapter.getCurrentFragment() instanceof Searchable) {
 //                dispatchSearchQuery(query);
@@ -395,6 +427,22 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 //            Timber.d("dispatch query '%s", query);
 //            ((Searchable) mPagerAdapter.getCurrentFragment()).onSearchQueryRequested(query);
 //        }
+    }
+    
+    private void showMapAtLocation(double latitude, double longitude, String pinName) {
+        // Navigate to map fragment
+        if (mapFragment == null) {
+            mapFragment = new MapboxMapFragment();
+        }
+        
+        // Switch to map tab
+        bottomBar.setSelectedItemId(R.id.tab_map);
+        
+        // Center map on location
+        if (mapFragment instanceof MapboxMapFragment) {
+            MapboxMapFragment mapboxFragment = (MapboxMapFragment) mapFragment;
+            mapboxFragment.showAddMarker(new LatLng(latitude, longitude), pinName);
+        }
     }
 
     @Override

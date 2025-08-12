@@ -25,6 +25,9 @@ class Event : PlayaItem(), Parcelable {
     @ColumnInfo(name = CAMP_PLAYA_ID)
     var campPlayaId: String? = null
 
+    @ColumnInfo(name = ART_PLAYA_ID)
+    var artPlayaId: String? = null
+
     @JvmField
     @ColumnInfo(name = START_TIME)
     var startTime: String? = null
@@ -52,6 +55,7 @@ class Event : PlayaItem(), Parcelable {
         const val ALL_DAY: String = "all_day"
         const val CHECK_LOC: String = "check_loc"
         const val CAMP_PLAYA_ID: String = "c_id"
+        const val ART_PLAYA_ID: String = "a_id"
         const val START_TIME: String = "s_time"
         const val START_TIME_PRETTY: String = "s_time_p"
         const val END_TIME: String = "e_time"

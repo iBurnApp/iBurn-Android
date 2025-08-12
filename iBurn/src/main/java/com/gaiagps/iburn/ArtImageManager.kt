@@ -107,7 +107,7 @@ private fun cacheArtImageFile(context: Context, art: Art, callback: Callback) {
             .url(imageUrl)
             .build()
 
-    Timber.d("Downloading image for ${art.name}")
+    Timber.d("Downloading image for ${art.name} at $imageUrl")
     httpClient.newCall(request).enqueue(object : okhttp3.Callback {
         override fun onResponse(call: Call, response: Response) {
             if (response?.isSuccessful == true) {
