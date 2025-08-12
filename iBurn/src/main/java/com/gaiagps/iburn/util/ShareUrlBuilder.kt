@@ -102,8 +102,13 @@ object ShareUrlBuilder {
         
         return builder.build()
     }
-    
-    fun buildPinShareUrl(pin: MapPin): Uri {
+
+    fun Uri.withDecodedColons(): Uri {
+        val fixed = toString().replace("%3A", ":").replace("%3a", ":")
+        return Uri.parse(fixed)
+    }
+
+   fun buildPinShareUrl(pin: MapPin): Uri {
         return buildPinShareUrl(
             latitude = pin.latitude.toDouble(),
             longitude = pin.longitude.toDouble(),

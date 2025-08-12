@@ -14,6 +14,7 @@ import com.gaiagps.iburn.database.CampWithUserData
 import com.gaiagps.iburn.database.EventWithUserData
 import com.gaiagps.iburn.databinding.ActivityShareBinding
 import com.gaiagps.iburn.util.ShareUrlBuilder
+import com.gaiagps.iburn.util.ShareUrlBuilder.withDecodedColons
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
@@ -101,7 +102,7 @@ class ShareActivity : AppCompatActivity() {
 
     private fun onPlayaItemLoaded(item: PlayaItem) {
         // Generate share URL
-        shareUrl = ShareUrlBuilder.buildShareUrl(item)
+        shareUrl = ShareUrlBuilder.buildShareUrl(item).withDecodedColons()
         itemName = item.name
 
         // Display item info

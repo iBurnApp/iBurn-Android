@@ -90,6 +90,7 @@
                 android:gravity="center"
                 android:maxLines="3"
                 android:ellipsize="end"
+                android:visibility="gone"
                 tools:text="https://iburnapp.com/art/?uid=a2Id0000000cbObEAI&amp;title=Amazing%20Art" />
 
             <!-- Action Buttons -->

@@ -28,13 +28,19 @@ public class DateUtil {
         return result;
     }
 
+    public static SimpleDateFormat getUtcTimeFormat(String pattern) {
+        SimpleDateFormat result = new SimpleDateFormat(pattern, Locale.US);
+        result.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return result;
+    }
+
     // Handy for querying database by event start / end time
     public static SimpleDateFormat getIso8601Format() {
         return getPlayaTimeFormat("yyyy-MM-dd'T'HH:mm:ssZ");
     }
 
     public static SimpleDateFormat getIso8601DeepLinkFormat() {
-        return getPlayaTimeFormat("yyyyMMdd'T'HH:mm:ssZ");
+        return getUtcTimeFormat("yyyyMMdd'T'HH:mm:ss");
     }
 
     /**
