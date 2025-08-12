@@ -257,10 +257,12 @@ class MapboxMapFragment : Fragment() {
                                 Timber.d("Placing marker")
                                 state = prePlaceUserPoiState
                                 mapView.removeView(markerPlaceView)
+                                val markerName = userPoiButton?.tag as? String?
+                                userPoiButton.setTag(null)
                                 addCustomPin(
                                     map,
                                     markerLatLng,
-                                    "Custom Marker",
+                                    markerName ?: "Custom Marker",
                                     UserPoi.ICON_STAR
                                 ) { symbol ->
                                     showEditPinDialog(symbol)
@@ -299,6 +301,17 @@ class MapboxMapFragment : Fragment() {
             return this.mapView
         }
         return null
+    }
+
+    fun showAddMarker(location: LatLng, name: String?) {
+        // Move map to location
+        map?.moveCamera(
+            CameraUpdateFactory.newLatLngZoom(
+                location, markerShowcaseZoom
+            )
+        )
+        userPoiButton?.setTag(name)
+        userPoiButton?.performClick()
     }
 
     private fun addMarkerPlaceOverlay(

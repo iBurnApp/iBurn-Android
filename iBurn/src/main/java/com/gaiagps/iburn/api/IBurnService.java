@@ -56,6 +56,8 @@ import org.maplibre.android.geometry.LatLng;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -253,7 +255,21 @@ public class IBurnService {
                 values.put(ART_PLAYA_ID, event.locatedAtArt);
             }
 
-            for (EventOccurrence occurrence : event.occurrenceSet) {
+            // Insert one row per occurrence, sorted by start time, with zero-based suffix
+            List<EventOccurrence> occurrences = new ArrayList<>(event.occurrenceSet);
+            // Pre-API24 compatible sort by startTime
+            Collections.sort(occurrences, (o1, o2) -> {
+                Date t1 = o1.startTime;
+                Date t2 = o2.startTime;
+                if (t1 == t2) return 0;
+                if (t1 == null) return -1;
+                if (t2 == null) return 1;
+                return t1.compareTo(t2);
+            });
+
+            int occurrenceIndex = 0;
+            for (EventOccurrence occurrence : occurrences) {
+                values.put(PLAYA_ID, event.uid + "-" + occurrenceIndex);
                 values.put(START_TIME, apiDateFormat.format(occurrence.startTime));
                 values.put(START_TIME_PRETTY, event.allDay ?
                         dayFormatter.format(occurrence.startTime) :
@@ -265,6 +281,7 @@ public class IBurnService {
                         timeDayFormatter.format(occurrence.endTime));
 
                 database.insert(values);
+                occurrenceIndex++;
             }
         });
     }

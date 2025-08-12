@@ -32,6 +32,7 @@ class DeepLinkHandler(
         // Intent extras for map pins
         const val ACTION_SHOW_MAP_PIN = "com.gaiagps.iburn.SHOW_MAP_PIN"
         const val EXTRA_PIN_ID = "pin_id"
+        const val EXTRA_PIN_TITLE = "pin_title"
         const val EXTRA_LATITUDE = "latitude"
         const val EXTRA_LONGITUDE = "longitude"
     }
@@ -81,13 +82,13 @@ class DeepLinkHandler(
                 val type = uri.host
                 val uid = queryParams["uid"]
 
-                if (type == null || uid == null) {
-                   Timber.e("Invalid iburn URL missing host or id: $uri")
+                if (type == null) {
+                    Timber.e("Invalid iburn URL missing type : $uri")
                     callback(null)
                     return
                 }
                 
-                if (type in listOf(PATH_ART, PATH_CAMP, PATH_EVENT)) {
+                if (type in listOf(PATH_ART, PATH_CAMP, PATH_EVENT) && uid != null) {
                     handleDataObject(host, type, uid, queryParams, callback)
                 } else if (type == PATH_PIN) {
                     handleMapPin(queryParams, callback)
@@ -129,7 +130,7 @@ class DeepLinkHandler(
                 disposable.subscribe(
                     { playaItem ->
                         if (playaItem != null) {
-                            val intent = IntentUtil.getViewItemDetailIntent(host, playaItem as PlayaItem)
+                            val intent = IntentUtil.getViewItemDetailIntent(host, playaItem.item as PlayaItem)
                             callback(intent)
                         } else {
                             Timber.w("Object not found: $type/$playaId")
@@ -187,6 +188,7 @@ class DeepLinkHandler(
                     // Create intent to show map centered on pin
                     val intent = Intent(ACTION_SHOW_MAP_PIN).apply {
                         putExtra(EXTRA_PIN_ID, pin.uid)
+                        putExtra(EXTRA_PIN_TITLE, pin.title)
                         putExtra(EXTRA_LATITUDE, lat)
                         putExtra(EXTRA_LONGITUDE, lng)
                     }

@@ -42,8 +42,4 @@ object IntentUtil {
         return i
     }
 
-//    fun loadPlayaItemFromIntent(i: Intent, cb: (PlayaItemWithUserData) -> Unit) {
-//
-//    }
-
 }

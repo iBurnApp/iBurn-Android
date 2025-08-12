@@ -394,9 +394,9 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                             // Show map centered on pin
                             double lat = resultIntent.getDoubleExtra(DeepLinkHandler.EXTRA_LATITUDE, 0.0);
                             double lng = resultIntent.getDoubleExtra(DeepLinkHandler.EXTRA_LONGITUDE, 0.0);
-                            String pinId = resultIntent.getStringExtra(DeepLinkHandler.EXTRA_PIN_ID);
-                            
-                            showMapAtLocation(lat, lng, pinId);
+                            String pinName = resultIntent.getStringExtra(DeepLinkHandler.EXTRA_PIN_TITLE);
+
+                            showMapAtLocation(lat, lng, pinName);
                         } else {
                             // Start detail activity
                             startActivity(resultIntent);
@@ -429,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 //        }
     }
     
-    private void showMapAtLocation(double latitude, double longitude, String pinId) {
+    private void showMapAtLocation(double latitude, double longitude, String pinName) {
         // Navigate to map fragment
         if (mapFragment == null) {
             mapFragment = new MapboxMapFragment();
@@ -441,7 +441,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         // Center map on location
         if (mapFragment instanceof MapboxMapFragment) {
             MapboxMapFragment mapboxFragment = (MapboxMapFragment) mapFragment;
-            mapboxFragment.showcaseLatLng(getApplicationContext(), new LatLng(latitude, longitude));
+            mapboxFragment.showAddMarker(new LatLng(latitude, longitude), pinName);
         }
     }
 

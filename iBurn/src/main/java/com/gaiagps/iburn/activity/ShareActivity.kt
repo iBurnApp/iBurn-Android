@@ -102,7 +102,7 @@ class ShareActivity : AppCompatActivity() {
 
     private fun onPlayaItemLoaded(item: PlayaItem) {
         // Generate share URL
-        shareUrl = ShareUrlBuilder.buildShareUrl(item).withDecodedColons()
+        shareUrl = ShareUrlBuilder.buildShareUrl(item)//.withDecodedColons()
         itemName = item.name
 
         // Display item info
