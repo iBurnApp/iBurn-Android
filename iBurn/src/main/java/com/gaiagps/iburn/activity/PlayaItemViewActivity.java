@@ -558,7 +558,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                 @Override
                 public void onError() {
                     // fuhgeddaboudit. Don't show image
-                    Timber.e("Failed to load image");
+                    Timber.e("Failed to load image %s", art.imageUrl);
                 }
             });
             // TODO : Add Placeholder and error images

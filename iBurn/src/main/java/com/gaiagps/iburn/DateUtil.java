@@ -33,6 +33,10 @@ public class DateUtil {
         return getPlayaTimeFormat("yyyy-MM-dd'T'HH:mm:ssZ");
     }
 
+    public static SimpleDateFormat getIso8601DeepLinkFormat() {
+        return getPlayaTimeFormat("yyyyMMdd'T'HH:mm:ssZ");
+    }
+
     /**
      * Get a human description of an event's state
      * (e.g: Starts in XX, Ends in XX)

@@ -7,7 +7,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.gaiagps.iburn.database.DataProvider
 import com.gaiagps.iburn.database.PlayaItem
+import com.gaiagps.iburn.database.ArtWithUserData
+import com.gaiagps.iburn.database.CampWithUserData
+import com.gaiagps.iburn.database.EventWithUserData
 import com.gaiagps.iburn.databinding.ActivityShareBinding
 import com.gaiagps.iburn.util.ShareUrlBuilder
 import com.google.zxing.BarcodeFormat
@@ -16,16 +20,25 @@ import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import timber.log.Timber
+import io.reactivex.android.schedulers.AndroidSchedulers
 
 class ShareActivity : AppCompatActivity() {
     
     companion object {
-        private const val EXTRA_PLAYA_ITEM = "playa_item"
+        // Match viewItemDetail scheme: pass type and a stable playaId
+        private const val EXTRA_PLAYA_ITEM_PLAYA_ID = "playa-id"
         private const val QR_CODE_SIZE = 512
         
         fun createIntent(context: Context, item: PlayaItem): Intent {
             return Intent(context, ShareActivity::class.java).apply {
-                putExtra(EXTRA_PLAYA_ITEM, item)
+                // Reuse PlayaItemViewActivity type constants for consistency
+                putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM_TYPE, when (item) {
+                    is com.gaiagps.iburn.database.Camp -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_CAMP
+                    is com.gaiagps.iburn.database.Art -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ART
+                    is com.gaiagps.iburn.database.Event -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_EVENT
+                    else -> null
+                })
+                putExtra(EXTRA_PLAYA_ITEM_PLAYA_ID, item.playaId)
             }
         }
     }
@@ -33,6 +46,7 @@ class ShareActivity : AppCompatActivity() {
     private lateinit var binding: ActivityShareBinding
     private var shareUrl: Uri? = null
     private var itemName: String? = null
+    private var playaItemDisposable: io.reactivex.disposables.Disposable? = null
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,19 +60,50 @@ class ShareActivity : AppCompatActivity() {
             setDisplayHomeAsUpEnabled(true)
             title = "Share"
         }
-        
-        // Get the item from intent
-        val item = intent.getParcelableExtra<PlayaItem>(EXTRA_PLAYA_ITEM)
-        if (item == null) {
+        // Load the item from intent extras (type + playaId) and then populate UI
+        loadPlayaItemFromIntent(intent)
+    }
+
+    private fun loadPlayaItemFromIntent(i: Intent) {
+        val type = i.getStringExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM_TYPE)
+        val playaId = i.getStringExtra(EXTRA_PLAYA_ITEM_PLAYA_ID)
+        if (type == null || playaId.isNullOrEmpty()) {
             Toast.makeText(this, "Error: No item to share", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
-        
+        DataProvider.getInstance(applicationContext)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ provider ->
+                playaItemDisposable = when (type) {
+                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_CAMP -> provider.observeCampByPlayaId(playaId)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({ itemWithUserData: CampWithUserData ->
+                            onPlayaItemLoaded(itemWithUserData.item)
+                        }, { throwable -> finishWithError(throwable) })
+                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ART -> provider.observeArtByPlayaId(playaId)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({ itemWithUserData: ArtWithUserData ->
+                            onPlayaItemLoaded(itemWithUserData.item)
+                        }, { throwable -> finishWithError(throwable) })
+                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_EVENT -> provider.observeEventByPlayaId(playaId)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({ itemWithUserData: EventWithUserData ->
+                            onPlayaItemLoaded(itemWithUserData.item)
+                        }, { throwable -> finishWithError(throwable) })
+                    else -> {
+                        finishWithError(IllegalArgumentException("Unknown PlayaItem type $type"))
+                        null
+                    }
+                }
+            }, { throwable -> finishWithError(throwable) })
+    }
+
+    private fun onPlayaItemLoaded(item: PlayaItem) {
         // Generate share URL
         shareUrl = ShareUrlBuilder.buildShareUrl(item)
         itemName = item.name
-        
+
         // Display item info
         binding.itemTitle.text = item.name
         binding.itemDescription.text = when {
@@ -66,22 +111,28 @@ class ShareActivity : AppCompatActivity() {
             item.playaAddressUnofficial != null -> item.playaAddressUnofficial
             else -> ""
         }
-        
+
         // Display URL
         binding.shareUrl.text = shareUrl.toString()
-        
+
         // Generate and display QR code
         generateQRCode(shareUrl.toString())
-        
+
         // Set up share button
         binding.shareButton.setOnClickListener {
             shareItem()
         }
-        
+
         // Set up copy URL button
         binding.copyUrlButton.setOnClickListener {
             copyUrlToClipboard()
         }
+    }
+
+    private fun finishWithError(throwable: Throwable) {
+        Timber.e(throwable, "Failed to load item for sharing")
+        Toast.makeText(this, "Error loading item", Toast.LENGTH_SHORT).show()
+        finish()
     }
     
     private fun generateQRCode(url: String) {
@@ -119,5 +170,10 @@ class ShareActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
+    }
+
+    override fun onDestroy() {
+        playaItemDisposable?.let { if (!it.isDisposed) it.dispose() }
+        super.onDestroy()
     }
 }
