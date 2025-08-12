@@ -105,4 +105,17 @@
         <item name="android:textColor">@color/regular_text</item>
     </style>
 
+    <style name="BottomNavShapeAppearanceOverlay">
+        <item name="cornerFamily">cut</item>
+        <item name="cornerSize">0dp</item>
+    </style>
+
+    <!-- Bottom Navigation -->
+    <style name="BottomNavActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+    <!-- Background drawable -->
+        <item name="android:color">@color/regular_text</item>
+        <item name="shapeAppearance">@style/BottomNavShapeAppearanceOverlay</item>
+    </style>
+
+
 </resources>
