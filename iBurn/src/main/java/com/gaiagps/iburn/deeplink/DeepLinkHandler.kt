@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.deeplink
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -48,7 +49,7 @@ class DeepLinkHandler(
         }
     }
     
-    fun handle(uri: Uri, callback: (Intent?) -> Unit) {
+    fun handle(host: Activity, uri: Uri, callback: (Intent?) -> Unit) {
         if (!canHandle(uri)) {
             callback(null)
             return
@@ -64,9 +65,11 @@ class DeepLinkHandler(
                 val uid = queryParams["uid"]
                 
                 if (uid != null) {
-                    handleDataObject(type, uid, queryParams, callback)
+                    handleDataObject(host, type, uid, queryParams, callback)
+                    return
                 } else {
                     callback(null)
+                    return
                 }
             }
             // Handle https://iburnapp.com/pin
@@ -75,12 +78,18 @@ class DeepLinkHandler(
             }
             // Handle iburn://art?uid=xxx style URLs (scheme-based)
             uri.scheme == "iburn" -> {
-                val host = uri.host
+                val type = uri.host
                 val uid = queryParams["uid"]
+
+                if (type == null || uid == null) {
+                   Timber.e("Invalid iburn URL missing host or id: $uri")
+                    callback(null)
+                    return
+                }
                 
-                if (host in listOf(PATH_ART, PATH_CAMP, PATH_EVENT) && uid != null) {
-                    handleDataObject(host, uid, queryParams, callback)
-                } else if (host == PATH_PIN) {
+                if (type in listOf(PATH_ART, PATH_CAMP, PATH_EVENT)) {
+                    handleDataObject(host, type, uid, queryParams, callback)
+                } else if (type == PATH_PIN) {
                     handleMapPin(queryParams, callback)
                 } else {
                     callback(null)
@@ -99,15 +108,16 @@ class DeepLinkHandler(
     }
     
     private fun handleDataObject(
+        host: Activity,
         type: String,
         playaId: String,
         metadata: Map<String, String>,
         callback: (Intent?) -> Unit
     ) {
         val disposable = when (type) {
-            PATH_ART -> dataProvider.observeArt(playaId)
-            PATH_CAMP -> dataProvider.observeCamp(playaId)
-            PATH_EVENT -> dataProvider.getEvent(playaId)
+            PATH_ART -> dataProvider.observeArtByPlayaId(playaId)
+            PATH_CAMP -> dataProvider.observeCampByPlayaId(playaId)
+            PATH_EVENT -> dataProvider.observeEventByPlayaId(playaId)
                 .toFlowable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -119,7 +129,7 @@ class DeepLinkHandler(
                 disposable.subscribe(
                     { playaItem ->
                         if (playaItem != null) {
-                            val intent = IntentUtil.viewItemDetail(context, playaItem as PlayaItem)
+                            val intent = IntentUtil.getViewItemDetailIntent(host, playaItem as PlayaItem)
                             callback(intent)
                         } else {
                             Timber.w("Object not found: $type/$playaId")

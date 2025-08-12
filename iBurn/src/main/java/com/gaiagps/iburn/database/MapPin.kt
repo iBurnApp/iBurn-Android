@@ -3,10 +3,14 @@ package com.gaiagps.iburn.database
 import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
-@Entity(tableName = MapPin.TABLE_NAME)
+@Entity(
+    tableName = MapPin.TABLE_NAME,
+    indices = [Index(value = [MapPin.UID], name = "index_map_pins_uid", unique = false)]
+)
 @Parcelize
 data class MapPin(
     @PrimaryKey(autoGenerate = true)

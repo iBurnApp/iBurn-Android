@@ -17,22 +17,22 @@ object ShareUrlBuilder {
         
         // Add path and uid based on type
         when (item) {
-            is Art, is ArtWithUserData -> {
+            is Art -> {
                 builder.appendPath("art")
                     .appendPath("") // Creates /art/
                     .appendQueryParameter("uid", item.playaId)
             }
-            is Camp, is CampWithUserData -> {
+            is Camp -> {
                 builder.appendPath("camp")
                     .appendPath("") // Creates /camp/
                     .appendQueryParameter("uid", item.playaId)
             }
-            is Event, is EventWithUserData -> {
+            is Event -> {
                 builder.appendPath("event")
                     .appendPath("") // Creates /event/
                     .appendQueryParameter("uid", item.playaId)
             }
-            is UserPoi, is UserPoiWithUserData -> {
+            is UserPoi -> {
                 // User POIs could be handled as pins
                 return buildPinShareUrl(
                     latitude = item.latitude.toDouble(),
@@ -64,31 +64,30 @@ object ShareUrlBuilder {
         }
         
         // Event-specific parameters
-        if (item is Event || item is EventWithUserData) {
-            val event = item as? Event ?: (item as EventWithUserData).event
-            
-            event?.startTime?.let { start ->
+        if (item is Event) {
+
+            item.startTime?.let { start ->
                 builder.appendQueryParameter("start", ISO_8601.format(Date(start)))
             }
-            event?.endTime?.let { end ->
+            item.endTime?.let { end ->
                 builder.appendQueryParameter("end", ISO_8601.format(Date(end)))
             }
-            
-            event?.campId?.let { campId ->
+
+            item.campPlayaId?.let { campId ->
                 builder.appendQueryParameter("host_id", campId)
                 builder.appendQueryParameter("host_type", "camp")
             }
-            
-            event?.artId?.let { artId ->
+
+            item.artPlayaId?.let { artId ->
                 builder.appendQueryParameter("host_id", artId)
                 builder.appendQueryParameter("host_type", "art")
             }
-            
-            event?.eventType?.let { type ->
+
+            item.type?.let { type ->
                 builder.appendQueryParameter("type", type)
             }
             
-            if (event?.allDay == true) {
+            if (item.allDay) {
                 builder.appendQueryParameter("all_day", "true")
             }
         }

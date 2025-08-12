@@ -51,11 +51,14 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import org.maplibre.android.geometry.LatLng;
+
 import java.text.SimpleDateFormat;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
@@ -122,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         prefs = new PrefsHelper(this);
         
         // Initialize deep link handler
-        deepLinkHandler = new DeepLinkHandler(this, DataProvider.getInstance(getApplicationContext()));
+        DataProvider.Companion.getInstance(getApplicationContext()).subscribe(dataProvider -> deepLinkHandler = new DeepLinkHandler(getApplicationContext(), dataProvider));
 
         if (checkPlayServices()) {
             boolean haveLocationPermission = PermissionManager.hasLocationPermissions(getApplicationContext());
@@ -385,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             // Handle deep link
             android.net.Uri uri = intent.getData();
             if (uri != null && deepLinkHandler != null) {
-                deepLinkHandler.handle(uri, resultIntent -> {
+                deepLinkHandler.handle(MainActivity.this, uri, resultIntent -> {
                     if (resultIntent != null) {
                         if (DeepLinkHandler.ACTION_SHOW_MAP_PIN.equals(resultIntent.getAction())) {
                             // Show map centered on pin
@@ -399,10 +402,14 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                             startActivity(resultIntent);
                         }
                     }
+                    return null;
                 });
             }
         } else if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String query = intent.getStringExtra(SearchManager.QUERY);
+            // This is leftover from a previous implementation where every Fragment could handle search
+            // queries before the dedicated search fragment.
+            Timber.e("MainActivity search support not implemented");
+//            String query = intent.getStringExtra(SearchManager.QUERY);
             //use the query to search your data somehow
 //            if (mPagerAdapter.getCurrentFragment() instanceof Searchable) {
 //                dispatchSearchQuery(query);
@@ -429,16 +436,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         }
         
         // Switch to map tab
-        bottomBar.setSelectedItemId(R.id.navigation_map);
+        bottomBar.setSelectedItemId(R.id.tab_map);
         
         // Center map on location
         if (mapFragment instanceof MapboxMapFragment) {
             MapboxMapFragment mapboxFragment = (MapboxMapFragment) mapFragment;
-            // This will need to be implemented in MapboxMapFragment
-            // mapboxFragment.centerOnLocation(latitude, longitude);
-            // if (pinId != null) {
-            //     mapboxFragment.selectPin(pinId);
-            // }
+            mapboxFragment.showcaseLatLng(getApplicationContext(), new LatLng(latitude, longitude));
         }
     }
 

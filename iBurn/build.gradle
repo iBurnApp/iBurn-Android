@@ -248,12 +248,15 @@ tasks.register('updateData') {
 
     // doLast ensures copying is only run when this task is
     // invoked by name, and not during general gradle configuration
-    // TODO - allow checking out a custom branch
     doLast {
         // Update the iBurn-Data submodule before copying
         exec {
             workingDir "$projectDir/../"
-            commandLine 'git', 'submodule', 'update', '--init', '--remote', 'iBurn-Data'
+            commandLine 'git', 'submodule', 'sync', '--recursive'
+        }
+        exec {
+            workingDir "$projectDir/../"
+            commandLine 'git', 'submodule', 'update', '--init', '--recursive', 'iBurn-Data'
         }
         println("Updating $versionYear assets from IBurn-Data")
         

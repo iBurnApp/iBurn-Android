@@ -6,6 +6,7 @@ import static com.gaiagps.iburn.database.Art.ARTIST_LOCATION;
 import static com.gaiagps.iburn.database.Art.IMAGE_URL;
 import static com.gaiagps.iburn.database.Camp.HOMETOWN;
 import static com.gaiagps.iburn.database.Event.ALL_DAY;
+import static com.gaiagps.iburn.database.Event.ART_PLAYA_ID;
 import static com.gaiagps.iburn.database.Event.CAMP_PLAYA_ID;
 import static com.gaiagps.iburn.database.Event.CHECK_LOC;
 import static com.gaiagps.iburn.database.Event.END_TIME;
@@ -245,6 +246,10 @@ public class IBurnService {
 
             if (event.hostedByCamp != null) {
                 values.put(CAMP_PLAYA_ID, event.hostedByCamp);
+            }
+
+            if (event.locatedAtArt != null) {
+                values.put(ART_PLAYA_ID, event.locatedAtArt);
             }
 
             for (EventOccurrence occurrence : event.occurrenceSet) {

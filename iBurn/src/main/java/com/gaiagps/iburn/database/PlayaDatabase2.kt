@@ -24,7 +24,13 @@ import java.util.Date
 private const val USE_BUNDLED_DB = true
 
 private const val DATABASE_V1 = 1
+// Add event artPlayaId and MapPin for pin deep links
 private const val DATABASE_V2 = 2
+
+// Tables that are read-only and copied from the bundled database when version is more recent than
+// the database currently installed in app's /data partition. These should contain no user created
+// data to avoid data loss.
+private val READONLY_TABLES =  listOf(Art.TABLE_NAME, Camp.TABLE_NAME, Event.TABLE_NAME)
 
 @Database(
     entities = arrayOf(
@@ -78,7 +84,7 @@ fun copyDatabaseFromAssets(context: Context, assetPath: String, dbName: String) 
         updateDatabaseTablesFromSource(
             sourceDbPath = tmpDb.absolutePath,
             destDbPath = dbPath,
-            tables = listOf(Art.TABLE_NAME, Camp.TABLE_NAME, Event.TABLE_NAME)
+            tables = READONLY_TABLES
         )
     }
 
@@ -152,6 +158,12 @@ val MIGRATION_1_2 = object : Migration(DATABASE_V1, DATABASE_V2) {
         """)
         
         database.execSQL("CREATE INDEX IF NOT EXISTS `index_map_pins_uid` ON `${MapPin.TABLE_NAME}` (`${MapPin.UID}`)")
+
+        // Add a_id column to Event table
+        database.execSQL("""
+            ALTER TABLE `${Event.TABLE_NAME}`
+            ADD COLUMN `${Event.ART_PLAYA_ID}` TEXT
+        """)
     }
 }
 

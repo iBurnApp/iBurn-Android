@@ -20,6 +20,11 @@ import com.gaiagps.iburn.database.PlayaItem;
 public class IntentUtil {
 
     public static void viewItemDetail(@NonNull Activity host, PlayaItem item) {
+        Intent i = getViewItemDetailIntent(host, item);
+        host.startActivity(i);
+    }
+
+    public static Intent getViewItemDetailIntent(@NonNull Activity host, PlayaItem item) {
         Intent i = new Intent(host, PlayaItemViewActivity.class);
         int id = item.id;
         i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ID, id);
@@ -30,6 +35,6 @@ public class IntentUtil {
         } else if (item instanceof Event) {
             i.putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM_TYPE, EXTRA_PLAYA_ITEM_EVENT);
         }
-        host.startActivity(i);
+        return i;
     }
 }
