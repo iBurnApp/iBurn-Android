@@ -9,21 +9,17 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.os.Bundle;
 
 import com.gaiagps.iburn.ArtImageManagerKt;
 import com.gaiagps.iburn.IntentUtil;
-import com.gaiagps.iburn.activity.ShareActivity;
 import com.gaiagps.iburn.database.ArtWithUserData;
-import com.gaiagps.iburn.database.CampWithUserData;
 import com.gaiagps.iburn.database.EventWithUserData;
 import com.gaiagps.iburn.database.PlayaItemWithUserData;
 import com.gaiagps.iburn.databinding.ActivityPlayaItemViewBinding;
 import com.gaiagps.iburn.service.AudioPlayerServiceKt;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 
-import android.os.Parcelable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -401,7 +397,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         inflater.inflate(R.menu.activity_playa_item, menu);
 
         favoriteMenuItem = menu.findItem(R.id.favorite_menu);
-        if (isFavorite) favoriteMenuItem.setIcon(R.drawable.ic_heart_full_white_24dp);
+        if (isFavorite) favoriteMenuItem.setIcon(R.drawable.ic_heart_full_24dp);
         if (showingLocation || showingArt) favoriteMenuItem.setVisible(false);
 
         imageMenuItem = menu.findItem(R.id.image_menu);
@@ -763,7 +759,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
             return;
         }
 
-        int newMenuDrawableResId = isFavorite ? R.drawable.ic_heart_full_white_24dp : R.drawable.ic_heart_empty_white_24dp;
+        int newMenuDrawableResId = isFavorite ? R.drawable.ic_heart_full_24dp : R.drawable.ic_heart_empty_24dp;
 
         binding.fab.setSelectedState(isFavorite, save);
         if (favoriteMenuItem != null) favoriteMenuItem.setIcon(newMenuDrawableResId);

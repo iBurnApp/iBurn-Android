@@ -18,7 +18,7 @@
         android:layout_marginTop="4dp"
         android:gravity="right"
         android:scaleType="fitEnd"
-        android:src="@drawable/ic_heart_empty" />
+        android:src="@drawable/ic_heart_empty_24dp" />
 
     <TextView
         android:id="@+id/title"

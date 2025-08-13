@@ -199,9 +199,9 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
 
             Timber.d("Binding item: ${item.playaId} favorite ${itemWithUserData.userData.isFavorite}")
             if (itemWithUserData.userData.isFavorite) {
-                holder.favoriteView.setImageResource(R.drawable.ic_heart_full)
+                holder.favoriteView.setImageResource(R.drawable.ic_heart_full_24dp)
             } else {
-                holder.favoriteView.setImageResource(R.drawable.ic_heart_empty)
+                holder.favoriteView.setImageResource(R.drawable.ic_heart_empty_24dp)
             }
 
             holder.itemView.tag = itemWithUserData
@@ -211,12 +211,12 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
             holder.favoriteView.setOnClickListener({ view ->
                 val willBeFavorite = !itemWithUserData.userData.isFavorite
                 if (willBeFavorite) {
-                    (view as ImageView).setImageResource(R.drawable.ic_heart_full)
+                    (view as ImageView).setImageResource(R.drawable.ic_heart_full_24dp)
                     view.animateScalePulse {
                         listener.onItemFavoriteButtonSelected(itemWithUserData.item)
                     }
                 } else {
-                    (view as ImageView).setImageResource(R.drawable.ic_heart_empty)
+                    (view as ImageView).setImageResource(R.drawable.ic_heart_empty_24dp)
                     listener.onItemFavoriteButtonSelected(itemWithUserData.item)
                 }
             })

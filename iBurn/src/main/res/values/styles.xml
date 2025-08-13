@@ -23,6 +23,10 @@
 
     </style>
 
+    <style name="Theme.IBurn.UnderStatus" parent="Theme.Iburn.Base">
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
+    </style>
+
     <style name="Theme.Iburn.Dialog" parent="Theme.Material3.DayNight.Dialog">
         <item name="colorPrimary">@color/iburn_color</item>
         <item name="colorSecondary">@color/iburn_color</item>

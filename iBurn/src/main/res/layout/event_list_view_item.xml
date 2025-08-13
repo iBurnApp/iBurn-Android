@@ -20,7 +20,7 @@
         android:gravity="right"
         android:layout_alignParentRight="true"
         android:scaleType="fitEnd"
-        android:src="@drawable/ic_heart_empty"/>
+        android:src="@drawable/ic_heart_empty_24dp"/>
 
     <TextView
         android:id="@+id/title"

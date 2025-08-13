@@ -79,8 +79,8 @@
             android:screenOrientation="portrait"></activity>
         <activity
             android:name=".activity.ShareActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.Iburn"></activity>
+            android:theme="@style/Theme.IBurn.UnderStatus"
+            android:screenOrientation="portrait"></activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"

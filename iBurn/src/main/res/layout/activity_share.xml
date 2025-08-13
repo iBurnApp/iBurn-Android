@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:background="@android:color/transparent"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     <ScrollView
@@ -72,7 +72,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Scan this QR code to view on iBurn"
+                android:text="Scan to share with another iBurn device"
                 android:textSize="14sp"
                 android:textAlignment="center"
                 android:gravity="center"
@@ -103,9 +103,11 @@
                 android:textSize="16sp"
                 android:paddingTop="12dp"
                 android:paddingBottom="12dp"
-                app:icon="@android:drawable/ic_menu_share"
                 app:iconGravity="textStart"
-                style="@style/Widget.MaterialComponents.Button" />
+                app:backgroundTint="@color/tab_bg"
+                android:textColor="@color/regular_text"
+                app:iconTint="@color/regular_text"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/copy_url_button"
@@ -116,7 +118,9 @@
                 android:textSize="16sp"
                 android:paddingTop="12dp"
                 android:paddingBottom="12dp"
-                app:icon="@android:drawable/ic_menu_save"
+                app:backgroundTint="@color/tab_bg"
+                android:textColor="@color/regular_text"
+                app:iconTint="@color/regular_text"
                 app:iconGravity="textStart"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
