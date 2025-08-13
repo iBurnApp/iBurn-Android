@@ -723,9 +723,11 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
         MediaMetadataCompat metadata = mediaControllerCompat.getMetadata();
         if (metadata == null) return false;
-
+        // Prefer custom key, fall back to standard MEDIA_ID
         String currentlyPlayingArtPlayaId = metadata.getString(AudioPlayerServiceKt.MediaMetadataKeyArtPlayaId);
-
+        if (currentlyPlayingArtPlayaId == null) {
+            currentlyPlayingArtPlayaId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
+        }
         return (currentlyPlayingArtPlayaId != null && currentlyPlayingArtPlayaId.equals(item.playaId));
     }
 

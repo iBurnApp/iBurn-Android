@@ -27,11 +27,14 @@ import android.app.PendingIntent
 import android.content.res.AssetFileDescriptor
 import android.os.Parcelable
 import android.support.v4.media.MediaMetadataCompat
+import com.gaiagps.iburn.database.ArtWithUserData
+import com.gaiagps.iburn.database.DataProvider
 import com.gaiagps.iburn.getAssetPathFromAssetUri
 import com.gaiagps.iburn.isAssetUri
+import io.reactivex.android.schedulers.AndroidSchedulers
 
 
-const val ExtraArtItem = "ArtItem"
+const val ExtraArtPlayaId = "ArtPlayaId"
 const val ExtraLocalMediaUri = "LocalMedia"
 const val ExtraAlbumArtUri = "AlbumArt"
 
@@ -56,11 +59,16 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
                           localMediaUrl: Uri,
                           art: Art,
                           albumArtUri: Uri) {
+            Timber.d("playAudioTour called with Art: ${art.playaId}, LocalMedia: $localMediaUrl, AlbumArt: $albumArtUri")
             val intent = Intent(context, AudioPlayerService::class.java)
-            intent.putExtra(ExtraArtItem, art as Parcelable)
+            intent.putExtra(ExtraArtPlayaId, art.playaId)
             intent.putExtra(ExtraAlbumArtUri, albumArtUri.toString())
             intent.putExtra(ExtraLocalMediaUri, localMediaUrl.toString())
-            context.startService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
         }
     }
 
@@ -107,9 +115,10 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
 
         // Set an initial PlaybackState with ACTION_PLAY, so media buttons can start the player
         val stateBuilder = PlaybackStateCompat.Builder()
-                .setActions(
-                        PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PLAY_PAUSE)
-        stateBuilder.setState(PlaybackStateCompat.STATE_PLAYING, 0, 1f)
+            .setActions(
+                PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PLAY_PAUSE
+            )
+        stateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, 0, 1f)
         mediaSession.setPlaybackState(stateBuilder.build())
 
         // MySessionCallback() has methods that handle callbacks from a media controller
@@ -134,6 +143,8 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
         })
 
         sessionToken = mediaSession.sessionToken
+        // Mark the session active so controllers receive state/metadata
+        mediaSession.isActive = true
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -142,70 +153,90 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        intent?.getParcelableExtra(ExtraArtItem, Art::class.java)?.let { art: Art ->
+        val artPlayaId = intent?.getStringExtra(ExtraArtPlayaId)
+        if (artPlayaId == null) {
+            // System UI and other components may ping the service without extras (e.g., media resume)
+            Timber.d("AudioPlayerService started without ArtPlayaId; ignoring start request")
+            return START_NOT_STICKY
+        }
 
-            // Always stop playback to ensure MediaPlayer is in correct state
-            stopPlayback()
+        // Publish minimal metadata immediately so controllers can match the session
+        val minimalMeta = MediaMetadataCompat.Builder()
+            .putString(MediaMetadataKeyArtPlayaId, artPlayaId)
+            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, artPlayaId)
+            .build()
+        mediaSession.setMetadata(minimalMeta)
 
-            val extras = intent.extras
-            val art = art as Art
-            val albumArtUri = Uri.parse(extras!!.getString(ExtraAlbumArtUri))
-            val mediaUri = Uri.parse(extras!!.getString(ExtraLocalMediaUri))
+        DataProvider.getInstance(applicationContext).subscribe {
+            it.observeArtByPlayaId(artPlayaId).observeOn(AndroidSchedulers.mainThread())
+                .firstElement()
+                .subscribe { art ->
+                // Always stop playback to ensure MediaPlayer is in correct state
+                stopPlayback()
 
-            currentAlbumArtUri = albumArtUri
-            currentArt = art
+                val extras = intent.extras
+                val art = (art as ArtWithUserData).item
+                val albumArtUri = Uri.parse(extras!!.getString(ExtraAlbumArtUri))
+                val mediaUri = Uri.parse(extras!!.getString(ExtraLocalMediaUri))
 
-            Timber.d("Attempting to play audio $mediaUri for ${art.name}")
+                currentAlbumArtUri = albumArtUri
+                currentArt = art
 
-            // Attach Art to this Media Session's Metadata. This allows clients
-            // to determine which art is being played
-            val metaBuilder = MediaMetadataCompat.Builder()
-            metaBuilder.putString(MediaMetadataKeyArtPlayaId, art.playaId)
-            mediaSession.setMetadata(metaBuilder.build())
+                Timber.d("Attempting to play audio $mediaUri for ${art.name}")
 
-            val notification = createNotificationBuilder(
+                // Attach Art to this Media Session's Metadata so clients can identify the item
+                val metaBuilder = MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataKeyArtPlayaId, art.playaId)
+                    // Populate common fields for broader compatibility
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, art.playaId)
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, art.name)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, art.artist)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, albumArtUri.toString())
+                mediaSession.setMetadata(metaBuilder.build())
+
+                val notification = createNotificationBuilder(
                     art = art,
                     albumArtUri = albumArtUri,
                     isPlaying = true)
 
-            mediaPlayer.setOnPreparedListener(this)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                Timber.d("Using Android O AudioAttributes")
-                // Use AudioAttributes
-                val audioAttribs = AudioAttributes.Builder()
+                mediaPlayer.setOnPreparedListener(this)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    Timber.d("Using Android O AudioAttributes")
+                    // Use AudioAttributes
+                    val audioAttribs = AudioAttributes.Builder()
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                         .setUsage(AudioAttributes.USAGE_MEDIA)
-                mediaPlayer.setAudioAttributes(audioAttribs.build())
+                    mediaPlayer.setAudioAttributes(audioAttribs.build())
 
-            } else {
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
-            }
+                } else {
+                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+                }
 
-            if (isAssetUri(mediaUri)) {
-                val assetPath = getAssetPathFromAssetUri(mediaUri)
-                val assetDescriptor = assets.openFd(assetPath)
-                Timber.d("Playing audio from asset $assetPath")
-                mediaPlayer.setDataSource(assetDescriptor.fileDescriptor, assetDescriptor.startOffset, assetDescriptor.length)
-                assetDescriptor.close()
-            } else {
-                mediaPlayer.setDataSource(applicationContext, mediaUri)
-            }
-            // TODO : Catch and attempt recover from IllegalStateException
-            mediaPlayer.prepareAsync()
-            mediaPlayer.setOnCompletionListener {
-                Timber.d("Playback complete. Stopping foreground service2")
-                stopPlayback()
-                stopForeground(true)
-                cancelNotification()
-                stopSelf()
-                mediaSession.setMetadata(null)
-            }
-            // MediaPlayer readiness reported to [onPrepared]
+                if (isAssetUri(mediaUri)) {
+                    val assetPath = getAssetPathFromAssetUri(mediaUri)
+                    val assetDescriptor = assets.openFd(assetPath)
+                    Timber.d("Playing audio from asset $assetPath")
+                    mediaPlayer.setDataSource(assetDescriptor.fileDescriptor, assetDescriptor.startOffset, assetDescriptor.length)
+                    assetDescriptor.close()
+                } else {
+                    mediaPlayer.setDataSource(applicationContext, mediaUri)
+                }
+                // TODO : Catch and attempt recover from IllegalStateException
+                mediaPlayer.prepareAsync()
+                mediaPlayer.setOnCompletionListener {
+                    Timber.d("Playback complete. Stopping foreground service2")
+                    stopPlayback()
+                    stopForeground(true)
+                    cancelNotification()
+                    stopSelf()
+                    mediaSession.setMetadata(null)
+                }
+                // MediaPlayer readiness reported to [onPrepared]
 
-            startForeground(NotificationId, notification.build())
+                startForeground(NotificationId, notification.build())
+            }
         }
-
-        return super.onStartCommand(intent, flags, startId)
+        return START_NOT_STICKY
     }
 
     private fun createNotificationBuilder(art: Art, albumArtUri: Uri?, isPlaying: Boolean): androidx.core.app.NotificationCompat.Builder {
@@ -301,8 +332,16 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
     private fun stopPlayback() {
         Timber.d("StopPlayback")
         currentArt = null
-        mediaPlayer.stop()
-        mediaPlayer.reset()
+        try {
+            mediaPlayer.stop()
+        } catch (e: IllegalStateException) {
+            // Safe to ignore if not started
+        }
+        try {
+            mediaPlayer.reset()
+        } catch (e: IllegalStateException) {
+            // Ignore
+        }
         updatePlaybackState(false)
         updateNotification()
     }
