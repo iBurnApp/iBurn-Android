@@ -142,7 +142,7 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        intent?.extras?.getSerializable(ExtraArtItem)?.let { art ->
+        intent?.getParcelableExtra(ExtraArtItem, Art::class.java)?.let { art: Art ->
 
             // Always stop playback to ensure MediaPlayer is in correct state
             stopPlayback()

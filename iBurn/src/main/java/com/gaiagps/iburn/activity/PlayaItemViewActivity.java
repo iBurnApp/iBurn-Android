@@ -220,17 +220,37 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                 new ComponentName(this, AudioPlayerService.class),
                 new PlayaItemViewMediaConnectionCallback(),
                 null); // optional Bundle
+        // Connect immediately so ConnectionCallback can fire
+        onStartMediaController();
     }
 
     private void onStartMediaController() {
-        mediaBrowser.connect();
+        if (mediaBrowser != null && !mediaBrowser.isConnected()) {
+            mediaBrowser.connect();
+        }
     }
 
     private void onStopMediaController() {
         if (MediaControllerCompat.getMediaController(PlayaItemViewActivity.this) != null) {
             MediaControllerCompat.getMediaController(PlayaItemViewActivity.this).unregisterCallback(mediaControllerCallback);
         }
-        mediaBrowser.disconnect();
+        if (mediaBrowser != null && mediaBrowser.isConnected()) {
+            mediaBrowser.disconnect();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // If the browser was created earlier, ensure it's connected
+        onStartMediaController();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Tidy up the media connection when leaving the screen
+        onStopMediaController();
     }
 
     private class PlayaItemViewMediaConnectionCallback extends MediaBrowserCompat.ConnectionCallback {
@@ -801,4 +821,3 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         fade.start();
     }
 }
-

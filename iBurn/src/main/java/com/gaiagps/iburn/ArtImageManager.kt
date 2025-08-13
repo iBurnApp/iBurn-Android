@@ -21,7 +21,7 @@ import java.lang.Exception
 
 private val httpClient by lazy { OkHttpClient() }
 
-private const val useBundledArtImages = false
+private const val useBundledArtImages = true
 
 fun getArtImageLocalPath(context: Context, art: Art): String? {
     if (useBundledArtImages) {
