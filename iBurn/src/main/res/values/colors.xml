@@ -49,10 +49,9 @@
     <color name="tab_divider">@color/off_blk_3</color>
 
     <!-- Art, Camps Events Header Tabs -->
-    <color name="sub_tab_bg">@color/white</color>
-    <color name="sub_tab_text">@color/off_blk</color>
+    <color name="sub_tab_bg">@color/tab_bg</color>
     <color name="sub_tab_pressed">@color/off_blk_4</color>
-    <color name="sub_tab_selected">@color/off_blk_3</color>
+    <color name="sub_tab_selected">@color/regular_text</color>
 
     <!-- Types, Days Header tabs -->
     <color name="sub_sub_tab_bg">@color/white</color>

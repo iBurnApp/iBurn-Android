@@ -54,26 +54,24 @@ public class AdapterUtils {
         populateDayRanges(EVENT_START_DATE, EVENT_END_DATE);
 
         // Event types sourced from the iOS EventType enum
-        sEventTypes.put("cere", "Ritual/Ceremony");
-        sEventTypes.put("prty", "Gathering/Party");
-        sEventTypes.put("work", "Class/Workshop");
-        sEventTypes.put("game", "Games");
-        sEventTypes.put("food", "Food & Drink");
-        sEventTypes.put("adlt", "Mature Audiences");
-        sEventTypes.put("perf", "Performance");
-        sEventTypes.put("care", "Self Care");
-        sEventTypes.put("fire", "Fire/Spectacle");
-        sEventTypes.put("para", "Parade");
-        sEventTypes.put("kid", "For Kids");
-        sEventTypes.put("none", "None");
-        sEventTypes.put("othr", "Miscellaneous");
         sEventTypes.put("arts", "Arts & Crafts");
+        sEventTypes.put("work", "Class/Workshop");
         sEventTypes.put("tea", "Coffee/Tea");
+        sEventTypes.put("RIDE", "Diversity & Inclusion");
+        sEventTypes.put("fire", "Fire/Spectacle");
+        sEventTypes.put("food", "Food & Drink");
+        sEventTypes.put("game", "Games");
+        sEventTypes.put("prty", "Gathering/Party");
         sEventTypes.put("heal", "Healing/Massage/Spa");
+        sEventTypes.put("kid", "Kids");
         sEventTypes.put("LGBT", "LGBTQIA2S+");
         sEventTypes.put("live", "Live Music");
-        sEventTypes.put("RIDE", "Diversity & Inclusion");
+        sEventTypes.put("adlt", "Mature Audiences");
+        sEventTypes.put("othr", "Miscellaneous");
+        sEventTypes.put("para", "Parade");
+        sEventTypes.put("perf", "Performance");
         sEventTypes.put("repr", "Repair");
+        sEventTypes.put("cere", "Ritual/Ceremony");
         sEventTypes.put("sust", "Sustainability/Greening Your Burn");
         sEventTypes.put("yoga", "Yoga/Movement/Fitness");
 

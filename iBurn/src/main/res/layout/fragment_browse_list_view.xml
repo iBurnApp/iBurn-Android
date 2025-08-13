@@ -59,7 +59,7 @@
         android:layout_height="@dimen/list_item_height"
         android:layout_gravity="right"
         recyclerviewfastscroller:rfs_section_indicator_layout="@layout/section_indicator_with_title"
-        recyclerviewfastscroller:rfs_backgroundColor="@color/sub_tab_selected"
+        recyclerviewfastscroller:rfs_backgroundColor="@color/tab_bg"
         recyclerviewfastscroller:rfs_textColor="@color/regular_text" />
 
 </FrameLayout>
