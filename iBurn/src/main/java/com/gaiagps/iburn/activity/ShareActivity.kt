@@ -15,6 +15,7 @@ import com.gaiagps.iburn.database.EventWithUserData
 import com.gaiagps.iburn.databinding.ActivityShareBinding
 import com.gaiagps.iburn.util.ShareUrlBuilder
 import com.gaiagps.iburn.util.ShareUrlBuilder.withDecodedColons
+import com.gaiagps.iburn.database.MapPin
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
@@ -28,6 +29,7 @@ class ShareActivity : AppCompatActivity() {
     companion object {
         // Match viewItemDetail scheme: pass type and a stable playaId
         private const val EXTRA_PLAYA_ITEM_PLAYA_ID = "playa-id"
+        private const val EXTRA_MAP_PIN = "map-pin"
         private const val QR_CODE_SIZE = 512
         
         fun createIntent(context: Context, item: PlayaItem): Intent {
@@ -40,6 +42,12 @@ class ShareActivity : AppCompatActivity() {
                     else -> null
                 })
                 putExtra(EXTRA_PLAYA_ITEM_PLAYA_ID, item.playaId)
+            }
+        }
+
+        fun createIntent(context: Context, pin: MapPin): Intent {
+            return Intent(context, ShareActivity::class.java).apply {
+                putExtra(EXTRA_MAP_PIN, pin)
             }
         }
     }
@@ -61,8 +69,13 @@ class ShareActivity : AppCompatActivity() {
             setDisplayHomeAsUpEnabled(true)
             title = "Share"
         }
-        // Load the item from intent extras (type + playaId) and then populate UI
-        loadPlayaItemFromIntent(intent)
+        // Load from intent: prefer MapPin if present, otherwise PlayaItem
+        if (intent.hasExtra(EXTRA_MAP_PIN)) {
+            loadMapPinFromIntent(intent)
+        } else {
+            // Load the item from intent extras (type + playaId) and then populate UI
+            loadPlayaItemFromIntent(intent)
+        }
     }
 
     private fun loadPlayaItemFromIntent(i: Intent) {
@@ -134,6 +147,35 @@ class ShareActivity : AppCompatActivity() {
         Timber.e(throwable, "Failed to load item for sharing")
         Toast.makeText(this, "Error loading item", Toast.LENGTH_SHORT).show()
         finish()
+    }
+
+    private fun loadMapPinFromIntent(i: Intent) {
+        val pin = i.getParcelableExtra<MapPin>(EXTRA_MAP_PIN)
+        if (pin == null) {
+            finishWithError(IllegalArgumentException("Missing MapPin"))
+            return
+        }
+        onMapPinLoaded(pin)
+    }
+
+    private fun onMapPinLoaded(pin: MapPin) {
+        shareUrl = ShareUrlBuilder.buildPinShareUrl(pin)
+        itemName = pin.title
+
+        binding.itemTitle.text = pin.title
+        binding.itemDescription.text = pin.address ?: (pin.description ?: "")
+
+        binding.shareUrl.text = shareUrl.toString()
+
+        generateQRCode(shareUrl.toString())
+
+        binding.shareButton.setOnClickListener {
+            shareItem()
+        }
+
+        binding.copyUrlButton.setOnClickListener {
+            copyUrlToClipboard()
+        }
     }
     
     private fun generateQRCode(url: String) {

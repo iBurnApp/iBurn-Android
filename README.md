@@ -57,6 +57,7 @@ The `./gradlew updateData` will copy art images and tour audio from the iBurn-Da
 
 ## TODO
 
+* updateData gradle task should delete old files before copying new ones
 * Pretty up that item detail view.
 * Investigate Mapbox offline and SIGABRT issues. Seems like it's possible Mapbox gets into a state where it stops displaying the map
 

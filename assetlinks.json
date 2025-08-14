@@ -1,10 +1,26 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "com.gaiagps.iburn",
-    "sha256_cert_fingerprints": [
-      "REPLACE_WITH_YOUR_APP_SIGNING_CERTIFICATE_SHA256_FINGERPRINT"
-    ]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.iburnapp.iburn3.debug",
+      "sha256_cert_fingerprints": [
+        "85:A7:E4:D6:0F:CD:3E:9B:52:56:C4:CC:55:01:D8:D5:8F:DE:19:97:23:14:62:7E:6B:61:FA:07:AE:8B:A9:17"
+      ]
+    }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.iburnapp.iburn3",
+      "sha256_cert_fingerprints": [
+        "46:05:7D:6D:B7:76:5D:EE:1D:5A:63:CD:FC:05:02:9C:25:E3:BE:83:A3:84:F4:55:F7:35:41:64:8C:67:B7:02"
+      ]
+    }
   }
-}]
+]
