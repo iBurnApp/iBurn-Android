@@ -12,15 +12,12 @@
     }
   },
   {
-    "relation": [
-      "delegate_permission/common.handle_all_urls"
-    ],
+    "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
       "package_name": "com.iburnapp.iburn3",
-      "sha256_cert_fingerprints": [
-        "46:05:7D:6D:B7:76:5D:EE:1D:5A:63:CD:FC:05:02:9C:25:E3:BE:83:A3:84:F4:55:F7:35:41:64:8C:67:B7:02"
-      ]
+      "sha256_cert_fingerprints":
+        ["3B:B1:64:6B:4D:D6:40:5F:A0:4A:24:29:21:12:E0:1F:CE:D0:53:72:2E:86:BD:99:0E:F0:04:5C:09:77:D6:4E"]
     }
   }
 ]

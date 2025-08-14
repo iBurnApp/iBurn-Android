@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.gaiagps.iburn">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -56,22 +55,15 @@
                 <data android:scheme="iburn" />
             </intent-filter>
             
-            <!-- App Links (auto-verified) -->
+            <!-- App Links: iburnapp.com (auto-verified) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                
-                <data android:scheme="https" />
-                <data android:host="iburnapp.com" />
-                <data android:host="www.iburnapp.com" />
-                <data android:pathPattern="/art" />
-                <data android:pathPattern="/art/" />
-                <data android:pathPattern="/camp" />
-                <data android:pathPattern="/camp/" />
-                <data android:pathPattern="/event" />
-                <data android:pathPattern="/event/" />
-                <data android:pathPattern="/pin" />
+                <data android:scheme="https" android:host="iburnapp.com" android:pathPrefix="/art" />
+                <data android:scheme="https" android:host="iburnapp.com" android:pathPrefix="/camp" />
+                <data android:scheme="https" android:host="iburnapp.com" android:pathPrefix="/event" />
+                <data android:scheme="https" android:host="iburnapp.com" android:pathPrefix="/pin" />
             </intent-filter>
         </activity>
         <activity

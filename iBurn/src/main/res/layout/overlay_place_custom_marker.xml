@@ -20,6 +20,7 @@
         android:padding="8dp"
         android:layout_marginBottom="16dp"
         android:gravity="center"
+        android:textColor="@color/regular_text"
         android:text="@string/place_marker"/>
 
 </RelativeLayout>
