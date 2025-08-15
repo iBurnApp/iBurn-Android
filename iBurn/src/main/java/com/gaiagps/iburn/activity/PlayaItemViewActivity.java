@@ -141,7 +141,9 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         int itemId = i.getIntExtra(EXTRA_PLAYA_ITEM_ID, -1);
         String type = i.getStringExtra(EXTRA_PLAYA_ITEM_TYPE);
         if (itemId == -1 || type == null) {
-            throw new IllegalArgumentException("Missing itemId or type in Intent");
+            Timber.e("Missing itemId or type in Intent: itemId=%d, type=%s", itemId, type);
+            finishWithError(new IllegalArgumentException("Missing itemId or type in Intent"));
+            return;
         }
         // Use DataProvider to fetch the item
         DataProvider.Companion.getInstance(getApplicationContext())
@@ -203,6 +205,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
     }
 
     private void finishWithError(Throwable throwable) {
+        Timber.e(throwable, "Error loading PlayaItem");
         // Optionally show error to user
         finish();
     }
