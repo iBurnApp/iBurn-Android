@@ -7,6 +7,7 @@
     android:clipChildren="false"
     android:gravity="center_horizontal"
     android:orientation="vertical"
+    android:paddingBottom="42dp"
     android:paddingTop="32dp">
 
     <!-- Welcome 3 : Set home location -->

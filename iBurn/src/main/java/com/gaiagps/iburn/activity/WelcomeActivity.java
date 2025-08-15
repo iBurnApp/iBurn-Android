@@ -1,5 +1,7 @@
 package com.gaiagps.iburn.activity;
 
+import static com.gaiagps.iburn.activity.ActivityUtilsKt.setupEdgeToEdge;
+
 import android.Manifest;
 import android.animation.ValueAnimator;
 import android.content.Intent;
@@ -52,8 +54,10 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Window window = getWindow();
-        window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        setupEdgeToEdge(this);
+
+//        Window window = getWindow();
+//        window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
         setContentView(R.layout.activity_welcome);
         skip = Button.class.cast(findViewById(R.id.skip));

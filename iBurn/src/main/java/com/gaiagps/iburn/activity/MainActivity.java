@@ -1,14 +1,11 @@
 package com.gaiagps.iburn.activity;
 
 import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
+import static com.gaiagps.iburn.activity.ActivityUtilsKt.setupEdgeToEdge;
 
 import android.Manifest;
-import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.text.InputType;
@@ -23,8 +20,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 
 import com.gaiagps.iburn.DateUtil;
@@ -33,11 +28,12 @@ import com.gaiagps.iburn.PermissionManager;
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
 import com.gaiagps.iburn.SearchQueryProvider;
+import com.gaiagps.iburn.analytics.AnalyticsKt;
+import com.gaiagps.iburn.analytics.DeepLinkType;
 import com.gaiagps.iburn.api.IBurnService;
 import com.gaiagps.iburn.api.MockIBurnApi;
 import com.gaiagps.iburn.database.DataProvider;
 import com.gaiagps.iburn.database.Embargo;
-import com.gaiagps.iburn.database.PlayaDatabase2Kt;
 import com.gaiagps.iburn.deeplink.DeepLinkHandler;
 import com.gaiagps.iburn.databinding.ActivityMainBinding;
 import com.gaiagps.iburn.fragment.BrowseListViewFragment;
@@ -58,7 +54,6 @@ import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
@@ -104,18 +99,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 //                    .build());
         }
 
-        // Draw under status bar
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            getWindow().setDecorFitsSystemWindows(false);
-            WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
-            int nightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-            controller.setAppearanceLightStatusBars(nightMode != Configuration.UI_MODE_NIGHT_YES);
-            getWindow().setStatusBarColor(Color.TRANSPARENT);
-            getWindow().setNavigationBarColor(Color.TRANSPARENT);
-        } else {
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        }
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        setupEdgeToEdge(this);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -391,6 +375,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                 deepLinkHandler.handle(MainActivity.this, uri, resultIntent -> {
                     if (resultIntent != null) {
                         if (DeepLinkHandler.ACTION_SHOW_MAP_PIN.equals(resultIntent.getAction())) {
+                            AnalyticsKt.trackDeepLinkReceived(DeepLinkType.MapPin);
                             // Show map centered on pin
                             double lat = resultIntent.getDoubleExtra(DeepLinkHandler.EXTRA_LATITUDE, 0.0);
                             double lng = resultIntent.getDoubleExtra(DeepLinkHandler.EXTRA_LONGITUDE, 0.0);
@@ -399,6 +384,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                             showMapAtLocation(lat, lng, pinName);
                         } else {
                             // Start detail activity
+                            AnalyticsKt.trackDeepLinkReceived(DeepLinkType.PlayaItem);
                             startActivity(resultIntent);
                         }
                     }

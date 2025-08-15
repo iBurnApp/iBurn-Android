@@ -7,40 +7,45 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.gaiagps.iburn.database.DataProvider
-import com.gaiagps.iburn.database.PlayaItem
 import com.gaiagps.iburn.database.ArtWithUserData
 import com.gaiagps.iburn.database.CampWithUserData
+import com.gaiagps.iburn.database.DataProvider
 import com.gaiagps.iburn.database.EventWithUserData
+import com.gaiagps.iburn.database.MapPin
+import com.gaiagps.iburn.database.PlayaItem
 import com.gaiagps.iburn.databinding.ActivityShareBinding
 import com.gaiagps.iburn.util.ShareUrlBuilder
-import com.gaiagps.iburn.util.ShareUrlBuilder.withDecodedColons
-import com.gaiagps.iburn.database.MapPin
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import com.journeyapps.barcodescanner.BarcodeEncoder
-import timber.log.Timber
 import io.reactivex.android.schedulers.AndroidSchedulers
+import timber.log.Timber
 
 class ShareActivity : AppCompatActivity() {
-    
+
     companion object {
         // Match viewItemDetail scheme: pass type and a stable playaId
         private const val EXTRA_PLAYA_ITEM_PLAYA_ID = "playa-id"
         private const val EXTRA_MAP_PIN = "map-pin"
         private const val QR_CODE_SIZE = 512
-        
+
         fun createIntent(context: Context, item: PlayaItem): Intent {
             return Intent(context, ShareActivity::class.java).apply {
                 // Reuse PlayaItemViewActivity type constants for consistency
-                putExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM_TYPE, when (item) {
-                    is com.gaiagps.iburn.database.Camp -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_CAMP
-                    is com.gaiagps.iburn.database.Art -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ART
-                    is com.gaiagps.iburn.database.Event -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_EVENT
-                    else -> null
-                })
+                putExtra(
+                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_TYPE, when (item) {
+                        is com.gaiagps.iburn.database.Camp -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_CAMP
+                        is com.gaiagps.iburn.database.Art -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ART
+                        is com.gaiagps.iburn.database.Event -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_EVENT
+                        else -> null
+                    }
+                )
                 putExtra(EXTRA_PLAYA_ITEM_PLAYA_ID, item.playaId)
             }
         }
@@ -51,18 +56,18 @@ class ShareActivity : AppCompatActivity() {
             }
         }
     }
-    
+
     private lateinit var binding: ActivityShareBinding
     private var shareUrl: Uri? = null
     private var itemName: String? = null
     private var playaItemDisposable: io.reactivex.disposables.Disposable? = null
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivityShareBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        
+
         // Set up toolbar
         setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
@@ -78,6 +83,14 @@ class ShareActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        Firebase.analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Share")
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, this@ShareActivity.javaClass.simpleName)
+        }
+    }
+
     private fun loadPlayaItemFromIntent(i: Intent) {
         val type = i.getStringExtra(PlayaItemViewActivity.EXTRA_PLAYA_ITEM_TYPE)
         val playaId = i.getStringExtra(EXTRA_PLAYA_ITEM_PLAYA_ID)
@@ -90,21 +103,30 @@ class ShareActivity : AppCompatActivity() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ provider ->
                 playaItemDisposable = when (type) {
-                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_CAMP -> provider.observeCampByPlayaId(playaId)
+                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_CAMP -> provider.observeCampByPlayaId(
+                        playaId
+                    )
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ itemWithUserData: CampWithUserData ->
                             onPlayaItemLoaded(itemWithUserData.item)
                         }, { throwable -> finishWithError(throwable) })
-                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ART -> provider.observeArtByPlayaId(playaId)
+
+                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ART -> provider.observeArtByPlayaId(
+                        playaId
+                    )
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ itemWithUserData: ArtWithUserData ->
                             onPlayaItemLoaded(itemWithUserData.item)
                         }, { throwable -> finishWithError(throwable) })
-                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_EVENT -> provider.observeEventByPlayaId(playaId)
+
+                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_EVENT -> provider.observeEventByPlayaId(
+                        playaId
+                    )
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ itemWithUserData: EventWithUserData ->
                             onPlayaItemLoaded(itemWithUserData.item)
                         }, { throwable -> finishWithError(throwable) })
+
                     else -> {
                         finishWithError(IllegalArgumentException("Unknown PlayaItem type $type"))
                         null
@@ -177,11 +199,12 @@ class ShareActivity : AppCompatActivity() {
             copyUrlToClipboard()
         }
     }
-    
+
     private fun generateQRCode(url: String) {
         try {
             val writer = MultiFormatWriter()
-            val bitMatrix: BitMatrix = writer.encode(url, BarcodeFormat.QR_CODE, QR_CODE_SIZE, QR_CODE_SIZE)
+            val bitMatrix: BitMatrix =
+                writer.encode(url, BarcodeFormat.QR_CODE, QR_CODE_SIZE, QR_CODE_SIZE)
             val barcodeEncoder = BarcodeEncoder()
             val bitmap: Bitmap = barcodeEncoder.createBitmap(bitMatrix)
             binding.qrCodeImage.setImageBitmap(bitmap)
@@ -190,7 +213,7 @@ class ShareActivity : AppCompatActivity() {
             Toast.makeText(this, "Error generating QR code", Toast.LENGTH_SHORT).show()
         }
     }
-    
+
     private fun shareItem() {
         shareUrl?.let { url ->
             val shareIntent = Intent().apply {
@@ -202,14 +225,15 @@ class ShareActivity : AppCompatActivity() {
             startActivity(Intent.createChooser(shareIntent, "Share via"))
         }
     }
-    
+
     private fun copyUrlToClipboard() {
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clipboard =
+            getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
         val clip = android.content.ClipData.newPlainText("iBurn Share URL", shareUrl.toString())
         clipboard.setPrimaryClip(clip)
         Toast.makeText(this, "URL copied to clipboard", Toast.LENGTH_SHORT).show()
     }
-    
+
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
