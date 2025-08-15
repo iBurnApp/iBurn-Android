@@ -117,9 +117,16 @@ class DeepLinkHandler(
     ) {
         val disposable = when (type) {
             PATH_ART -> dataProvider.observeArtByPlayaId(playaId)
+                .take(1)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
             PATH_CAMP -> dataProvider.observeCampByPlayaId(playaId)
+                .take(1)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
             PATH_EVENT -> dataProvider.observeEventByPlayaId(playaId)
                 .toFlowable()
+                .take(1)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
             else -> null

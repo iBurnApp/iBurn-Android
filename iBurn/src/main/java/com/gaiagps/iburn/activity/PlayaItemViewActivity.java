@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.net.Uri;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Point;
@@ -70,6 +71,7 @@ import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 
 import org.maplibre.android.geometry.LatLng;
@@ -111,6 +113,8 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
     // New: Hold onto the subscription for DB lookup
     private io.reactivex.disposables.Disposable playaItemDisposable;
+    // Avoid spamming Crashlytics with duplicate non-fatals per process
+    private static boolean reportedBadIntentOnce = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -137,11 +141,39 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
         // The rest of onCreate will be called after item is loaded
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        // Reload content for successive intents (e.g., repeated deep links)
+        loadPlayaItemFromIntent(intent);
+    }
+
     private void loadPlayaItemFromIntent(Intent i) {
+        // Dispose any prior DB subscription if reloading
+        if (playaItemDisposable != null && !playaItemDisposable.isDisposed()) {
+            playaItemDisposable.dispose();
+        }
+
         int itemId = i.getIntExtra(EXTRA_PLAYA_ITEM_ID, -1);
         String type = i.getStringExtra(EXTRA_PLAYA_ITEM_TYPE);
         if (itemId == -1 || type == null) {
-            throw new IllegalArgumentException("Missing itemId or type in Intent");
+            Timber.e("Missing itemId or type in Intent: itemId=%d type=%s", itemId, String.valueOf(type));
+            try {
+                FirebaseCrashlytics.getInstance().setCustomKey("PIVA_missing_inputs", true);
+                FirebaseCrashlytics.getInstance().setCustomKey("PIVA_item_id", itemId);
+                FirebaseCrashlytics.getInstance().setCustomKey("PIVA_item_type", String.valueOf(type));
+                FirebaseCrashlytics.getInstance().log("PIVA: missing inputs in PlayaItemViewActivity.loadPlayaItemFromIntent");
+                if (!reportedBadIntentOnce) {
+                    FirebaseCrashlytics.getInstance().recordException(
+                            new IllegalArgumentException("Non-fatal: Missing itemId or type in Intent"));
+                    reportedBadIntentOnce = true;
+                }
+            } catch (Throwable ignored) {}
+
+            // Finish quietly to avoid crashing users
+            finishWithError(new IllegalArgumentException("Missing itemId or type in Intent"));
+            return;
         }
         // Use DataProvider to fetch the item
         DataProvider.Companion.getInstance(getApplicationContext())
@@ -150,6 +182,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                 if (EXTRA_PLAYA_ITEM_CAMP.equals(type)) {
                     playaItemDisposable = dataProvider.observeCampById(itemId)
                         .observeOn(AndroidSchedulers.mainThread())
+                        .take(1)
                         .subscribe(item -> {
                             itemWithUserData = item;
                             onPlayaItemLoaded();
@@ -157,6 +190,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
                 } else if (EXTRA_PLAYA_ITEM_ART.equals(type)) {
                     playaItemDisposable = dataProvider.observeArtById(itemId)
                         .observeOn(AndroidSchedulers.mainThread())
+                        .take(1)
                         .subscribe(item -> {
                             itemWithUserData = item;
                             onPlayaItemLoaded();

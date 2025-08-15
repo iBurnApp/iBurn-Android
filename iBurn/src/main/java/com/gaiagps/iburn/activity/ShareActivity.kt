@@ -106,6 +106,7 @@ class ShareActivity : AppCompatActivity() {
                     PlayaItemViewActivity.EXTRA_PLAYA_ITEM_CAMP -> provider.observeCampByPlayaId(
                         playaId
                     )
+                        .take(1)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ itemWithUserData: CampWithUserData ->
                             onPlayaItemLoaded(itemWithUserData.item)
@@ -114,6 +115,7 @@ class ShareActivity : AppCompatActivity() {
                     PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ART -> provider.observeArtByPlayaId(
                         playaId
                     )
+                        .take(1)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ itemWithUserData: ArtWithUserData ->
                             onPlayaItemLoaded(itemWithUserData.item)
