@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import com.gaiagps.iburn.IntentUtil
 import com.gaiagps.iburn.database.DataProvider
 import com.gaiagps.iburn.database.MapPin
@@ -117,11 +118,33 @@ class DeepLinkHandler(
     ) {
         val disposable = when (type) {
             PATH_ART -> dataProvider.observeArtByPlayaId(playaId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnComplete {
+                    // This is called when the Flowable completes without emitting any items
+                    Timber.w("Art not found in database: $playaId")
+                    showItemNotFoundError(host)
+                    callback(null)
+                }
             PATH_CAMP -> dataProvider.observeCampByPlayaId(playaId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnComplete {
+                    // This is called when the Flowable completes without emitting any items
+                    Timber.w("Camp not found in database: $playaId")
+                    showItemNotFoundError(host)
+                    callback(null)
+                }
             PATH_EVENT -> dataProvider.observeEventByPlayaId(playaId)
                 .toFlowable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnComplete {
+                    // This is called when the Flowable completes without emitting any items
+                    Timber.w("Event not found in database: $playaId")
+                    showItemNotFoundError(host)
+                    callback(null)
+                }
             else -> null
         }
         
@@ -129,17 +152,26 @@ class DeepLinkHandler(
             disposables.add(
                 disposable.subscribe(
                     { playaItem ->
-                        if (playaItem != null) {
-                            val intent = IntentUtil.getViewItemDetailIntent(host, playaItem.item as PlayaItem)
+                        if (playaItem != null && playaItem.item != null) {
+                            val item = playaItem.item as PlayaItem
+                            Timber.d("Loading deep link item: ${item.name} (id=${item.id}, playaId=${item.playaId})")
+                            val intent = IntentUtil.getViewItemDetailIntent(host, item)
                             callback(intent)
                         } else {
-                            Timber.w("Object not found: $type/$playaId")
+                            // This shouldn't happen with switchIfEmpty, but handle it just in case
+                            Timber.w("Unexpected null item for: $type/$playaId")
                             callback(null)
                         }
                     },
                     { error ->
                         Timber.e(error, "Error loading deep link object: $type/$playaId")
+                        showItemNotFoundError(host)
                         callback(null)
+                    },
+                    {
+                        // onComplete - called when Flowable completes (including when empty)
+                        // If we get here without emitting an item, callback with null
+                        Timber.d("Deep link query completed for: $type/$playaId")
                     }
                 )
             )
@@ -206,6 +238,16 @@ class DeepLinkHandler(
     private fun isValidBRCCoordinate(lat: Double, lng: Double): Boolean {
         // Black Rock City approximate bounds
         return lat in 40.75..40.82 && lng in -119.25..-119.17
+    }
+    
+    private fun showItemNotFoundError(activity: Activity) {
+        activity.runOnUiThread {
+            Toast.makeText(
+                activity,
+                "This item doesn't exist in your version of the app. It may have been shared from a different platform with different data.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
     }
     
     fun dispose() {
