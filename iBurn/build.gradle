@@ -87,25 +87,6 @@ android {
         }
     }
 
-    splits {
-        abi {
-
-            // Enables building multiple APKs per ABI.
-            enable true
-
-            // By default all ABIs are included, so use reset() and include to specify that we only
-            // want APKs for x86, armeabi-v7a, and mips.
-
-            // Resets the list of ABIs that Gradle should create APKs for to none.
-            reset()
-
-            // Specifies a list of ABIs that Gradle should create APKs for.
-            include "x86", "x86_64", "armeabi-v8a", "arm64-v8a", "armeabi-v7a"
-
-            // Specifies that we do not want to also generate a universal APK that includes all ABIs.
-            universalApk true
-        }
-    }
     packagingOptions {
         resources {
             excludes += ['META-INF/rxjava.properties', 'META-INF/rxjava.properties']
