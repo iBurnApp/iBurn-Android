@@ -62,11 +62,13 @@ public class PrefsHelper {
     }
 
     public void setCopiedMbtilesVersion(long version) {
-        editor.putLong(getAnnualKey(getAnnualKey(COPIED_MBTILES_VERSION)), version).commit();
+        // Store using an annualized key so each year's map can be managed independently
+        editor.putLong(getAnnualKey(COPIED_MBTILES_VERSION), version).commit();
     }
 
     public long getCopiedMbtilesVersion() {
-        return sharedPrefs.getLong(COPIED_MBTILES_VERSION, 0);
+        // Read using the same annualized key used for writes
+        return sharedPrefs.getLong(getAnnualKey(COPIED_MBTILES_VERSION), 0);
     }
 
     public void setIngestedDatabaseName(String name) {

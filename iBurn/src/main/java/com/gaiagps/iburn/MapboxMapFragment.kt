@@ -362,20 +362,73 @@ class MapboxMapFragment : Fragment() {
 
     @Synchronized
     private fun copyAssets(): String {
-        val tilesInput = requireContext().assets.open("map/map.mbtiles")
-        val tilesOutput = File(requireContext().getExternalFilesDir(null), "map.mbtiles")
-        val prefs = PrefsHelper(requireContext())
-        if (tilesOutput.exists() && prefs.copiedMbtilesVersion == MBTILES_VERSION) {
-            return tilesOutput.path
+        val context = requireContext().applicationContext
+        val assets = context.assets
+
+        // Prefer external files dir; fall back to internal if unavailable
+        val baseDir = context.getExternalFilesDir(null) ?: context.filesDir
+        val destFile = File(baseDir, "map.mbtiles")
+        val tmpFile = File(baseDir, "map.mbtiles.part")
+
+        val prefs = PrefsHelper(context)
+
+        // If we already have a valid file for the current version, use it
+        if (destFile.exists() && prefs.copiedMbtilesVersion == MBTILES_VERSION && validateMbtiles(destFile)) {
+            return destFile.path
         }
-        val tilesOutputStream = tilesOutput.outputStream()
-        tilesInput.use { input ->
-            tilesOutputStream.use { output ->
-                input.copyTo(output)
+
+        Timber.d("Copying bundled MBTiles to %s", destFile.path)
+
+        // Ensure directory exists
+        baseDir.mkdirs()
+
+        // Copy to a temp file and fsync, then atomically rename into place
+        assets.open("map/map.mbtiles").use { input ->
+            java.io.FileOutputStream(tmpFile).use { fos ->
+                input.copyTo(fos)
+                try {
+                    fos.fd.sync()
+                } catch (ignored: Exception) {
+                    // Best-effort; not all filesystems support fsync
+                }
             }
         }
+
+        // Verify header before swapping in
+        if (!validateMbtiles(tmpFile)) {
+            // Clean up bad temp file and throw to surface a clear error
+            tmpFile.delete()
+            throw IllegalStateException("Bundled MBTiles failed validation after copy")
+        }
+
+        // Replace existing atomically
+        if (destFile.exists()) destFile.delete()
+        if (!tmpFile.renameTo(destFile)) {
+            // If rename fails, try manual copy as a fallback
+            java.io.FileInputStream(tmpFile).use { inStream ->
+                java.io.FileOutputStream(destFile).use { outStream ->
+                    inStream.copyTo(outStream)
+                    try { outStream.fd.sync() } catch (_: Exception) {}
+                }
+            }
+            tmpFile.delete()
+        }
+
         prefs.copiedMbtilesVersion = MBTILES_VERSION
-        return tilesOutput.path
+        return destFile.path
+    }
+
+    private fun validateMbtiles(file: File): Boolean {
+        return try {
+            if (!file.exists() || file.length() < 1024) return false
+            java.io.FileInputStream(file).use { fis ->
+                val header = ByteArray(16)
+                val read = fis.read(header)
+                read == 16 && String(header, Charsets.UTF_8) == "SQLite format 3\u0000"
+            }
+        } catch (e: Exception) {
+            false
+        }
     }
 
     @SuppressLint("MissingPermission")
