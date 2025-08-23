@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.PointF
 import android.os.Bundle
@@ -27,7 +26,6 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.fragment.app.Fragment
-import com.gaiagps.iburn.activity.PlayaItemViewActivity
 import com.gaiagps.iburn.database.Art
 import com.gaiagps.iburn.database.Camp
 import com.gaiagps.iburn.database.DataProvider
@@ -524,7 +522,7 @@ class MapboxMapFragment : Fragment() {
             }
             .flatMap { (provider, visibleRegion) ->
 
-                val embargoActive = Embargo.isEmbargoActive(prefsHelper)
+                val embargoActive = Embargo.isAnyEmbargoActive(prefsHelper)
                 val queryAllItems = (state != State.SHOWCASE) && (!embargoActive)
                 // Note we're only querying user-added (favorites) and user pois, which
                 // should be visible at all zooms. If we were to plot all camps, art, etc,

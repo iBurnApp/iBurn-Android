@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.net.Uri;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Point;
@@ -500,7 +499,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
     private void populateViews(PlayaItemWithUserData itemWithUserData) {
         PlayaItem item = itemWithUserData.getItem();
-        boolean embargoActive = Embargo.isEmbargoActive(new PrefsHelper(getApplicationContext()));
+        boolean embargoActive = Embargo.isAnyEmbargoActive(new PrefsHelper(getApplicationContext()));
         showingLocation = (item.hasLocation() && !embargoActive) || item.hasUnofficialLocation();
 
         if (showingLocation) {

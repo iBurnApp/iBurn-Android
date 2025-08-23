@@ -32,6 +32,13 @@ object EventInfo {
     val EMBARGO_DATE: Date = EVENT_START_DATE
 
     /**
+     * Separate embargo date for Camp and Event locations. Defaults to event start date.
+     * Change this to release camps/events at a different time than Art.
+     */
+    @JvmField
+    val CAMP_EMBARGO_DATE: Date = createDate(CURRENT_YEAR, Calendar.AUGUST, 20)
+
+    /**
      * The "current" date used by the 'mock' build variant.
      */
     @JvmField

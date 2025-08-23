@@ -1,62 +1,68 @@
 package com.gaiagps.iburn.database;
 
-import androidx.annotation.NonNull;
-
-import com.gaiagps.iburn.BuildConfig;
 import com.gaiagps.iburn.CurrentDateProvider;
 import com.gaiagps.iburn.EventInfo;
 import com.gaiagps.iburn.PrefsHelper;
 
 import java.util.Date;
-import java.util.Iterator;
 
-import static com.gaiagps.iburn.database.PlayaItem.LATITUDE;
-import static com.gaiagps.iburn.database.PlayaItem.LONGITUDE;
-import static com.gaiagps.iburn.database.PlayaItem.PLAYA_ADDR;
+import timber.log.Timber;
 
 /**
  * A data restriction policy that ensures location data never leaves the database
  * before {@link #EMBARGO_DATE} and without {@link PrefsHelper#enteredValidUnlockCode()}
- *
+ * <p>
  * Created by davidbrodsky on 7/1/15.
  */
-public class Embargo implements DataProvider.QueryInterceptor {
+public class Embargo {
 
     // Embargo date is the day gates open
+    // Art locations embargo date (existing behavior)
     public static final Date EMBARGO_DATE = EventInfo.EMBARGO_DATE;
+    // Camps and Events locations embargo date (new, separate)
+    public static final Date CAMP_EVENT_EMBARGO_DATE = EventInfo.CAMP_EMBARGO_DATE;
 
     // For mock builds, force user to enter unlock code
-    private static final boolean FORCE_EMBARGO = BuildConfig.MOCK;
-    private static final String NULL_LATITUDE  = "NULL AS " + LATITUDE;
-    private static final String NULL_LONGITUDE = "NULL AS " + LONGITUDE;
-    private static final String NULL_ADDRESS = "NULL AS " + PLAYA_ADDR;
+    private static final boolean FORCE_EMBARGO = false;
 
-    private PrefsHelper prefs;
+    // We never go from no embargo -> embargo, so stop checking date after embargo ends
+    private static boolean didCampEmbargoEnd = false;
+    private static boolean didArtEmbargoEnd = false;
 
-    public Embargo(PrefsHelper prefs) {
-        this.prefs = prefs;
-    }
-
-    @Override
-    public String onQueryIntercepted(@NonNull String query, @NonNull Iterable<String> tables) {
-        // If Embargo is active and this query does not select from POIS
-        if (isEmbargoActive(prefs) && !isPoiTableQuery(tables)) {
-            return query.replace(LATITUDE, NULL_LATITUDE)
-                    .replace(LONGITUDE, NULL_LONGITUDE)
-                    .replace(PLAYA_ADDR, NULL_ADDRESS)
-                    .replace("SELECT *", "SELECT *, " + NULL_LATITUDE + ", " + NULL_LONGITUDE + ", " + NULL_ADDRESS);
+    public static boolean isEmbargoActiveForPlayaItem(PrefsHelper prefs, PlayaItem item) {
+        // Determine embargo based on which core table is present in the query
+        if (item instanceof Art || (item instanceof Event && ((Event) item).hasArtHost())) {
+            if (didArtEmbargoEnd) return false;
+            boolean result = isEmbargoActiveForArt(prefs);
+            // Once the art embargo has ended, it will never be active again
+            if (!result) didArtEmbargoEnd = true;
+            return result;
+        } else if (item instanceof Camp || (item instanceof Event && ((Event) item).hasCampHost())) {
+            if (didCampEmbargoEnd) return false;
+            boolean result = isEmbargoActiveForCamp(prefs);
+            // Once the camp embargo has ended, it will never be active again
+            if (!result) didCampEmbargoEnd = true;
+            return result;
         }
-        return query;
+        Timber.e("Embargo: Cannot determine embargo for unknown PlayaItem type: %s", item.getClass().getSimpleName());
+        return false;
     }
 
-    private boolean isPoiTableQuery(Iterable<String> tables) {
-        Iterator<String> tableIterator = tables.iterator();
-        String tableName = tableIterator.next();
-        return tableName.equals(UserPoi.TABLE_NAME) && !tableIterator.hasNext();
-    }
-
-    public static boolean isEmbargoActive(PrefsHelper prefs) {
+    public static boolean isAnyEmbargoActive(PrefsHelper prefs) {
         // Embargo is active if before date and no unlock code present
-        return (FORCE_EMBARGO || CurrentDateProvider.getCurrentDate().before(EMBARGO_DATE)) && !prefs.enteredValidUnlockCode();
+        return isEmbargoActiveForDate(prefs, EMBARGO_DATE);
+    }
+
+    private static boolean isEmbargoActiveForArt(PrefsHelper prefs) {
+        return isEmbargoActiveForDate(prefs, EMBARGO_DATE);
+    }
+
+    private static boolean isEmbargoActiveForCamp(PrefsHelper prefs) {
+        return isEmbargoActiveForDate(prefs, CAMP_EVENT_EMBARGO_DATE);
+    }
+
+    private static boolean isEmbargoActiveForDate(PrefsHelper prefs, Date embargoDate) {
+        boolean embargoActive = (FORCE_EMBARGO || CurrentDateProvider.getCurrentDate().before(embargoDate));
+        return embargoActive && !prefs.enteredValidUnlockCode();
     }
 }

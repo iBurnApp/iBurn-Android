@@ -28,13 +28,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Created by davidbrodsky on 6/22/15.
  */
-class DataProvider private constructor(private val context: Context, private val db: AppDatabase, private val interceptor: DataProvider.QueryInterceptor?) {
+class DataProvider private constructor(private val context: Context, private val db: AppDatabase) {
 
     private val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
-
-    interface QueryInterceptor {
-        fun onQueryIntercepted(query: String, tables: Iterable<String>): String
-    }
 
     private val upgradeLock = AtomicBoolean(false)
 
@@ -503,15 +499,6 @@ class DataProvider private constructor(private val context: Context, private val
         }
     }
 
-    private fun interceptQuery(query: String, table: String): String {
-        return interceptQuery(query, setOf(table))
-    }
-
-    private fun interceptQuery(query: String, tables: Iterable<String>): String {
-        if (interceptor == null) return query
-        return interceptor.onQueryIntercepted(query, tables)
-    }
-
     companion object {
 
         /**
@@ -542,7 +529,7 @@ class DataProvider private constructor(private val context: Context, private val
                         prefs.databaseVersion = BUNDLED_DATABASE_VERSION
                         prefs.setBaseResourcesVersion(RESOURCES_VERSION)
                     }
-                    .map { sqlBrite -> DataProvider(context, sqlBrite, Embargo(prefs)) }
+                    .map { sqlBrite -> DataProvider(context, sqlBrite) }
                     .doOnNext { dataProvider -> provider = dataProvider }
         }
 
@@ -550,17 +537,7 @@ class DataProvider private constructor(private val context: Context, private val
             val prefs = PrefsHelper(context)
             return Observable.fromCallable { newDatabase(context, name) }
                 .subscribeOn(Schedulers.io())
-                .map { db -> DataProvider(context, db, Embargo(prefs)) }
-        }
-
-        fun makeProjectionString(projection: Array<String>): String {
-            val builder = StringBuilder()
-            for (column in projection) {
-                builder.append(column)
-                builder.append(',')
-            }
-            // Remove the last comma
-            return builder.substring(0, builder.length - 1)
+                .map { db -> DataProvider(context, db) }
         }
 
         /**

@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
         // For testing data update live
         // DataUpdateService.Companion.updateNow(this);
-        if (Embargo.isEmbargoActive(prefs)) {
+        if (Embargo.isAnyEmbargoActive(prefs)) {
             Flowable.timer(1, TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(tick -> {

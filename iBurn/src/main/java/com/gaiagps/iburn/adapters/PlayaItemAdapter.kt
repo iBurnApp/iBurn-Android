@@ -27,10 +27,10 @@ import java.util.*
  * Facilities the display of a collection of [PlayaItem]s in a [RecyclerView]
  * Created by dbro on 6/7/17.
  */
-open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHolder>(
+open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
         val context: Context,
         val listener: AdapterListener) :
-        androidx.recyclerview.widget.RecyclerView.Adapter<T>(), SectionIndexer {
+        RecyclerView.Adapter<T>(), SectionIndexer {
 
     protected val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
 
@@ -40,7 +40,6 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
         set(value) {
             field = value
             sectionIndexer?.items = value
-            isEmbargoActive = Embargo.isEmbargoActive(prefs)
             notifyDataSetChanged()
         }
 
@@ -49,7 +48,6 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
     private var deviceLocation: Location? = null
     private val now = CurrentDateProvider.getCurrentDate()
     private val prefs = PrefsHelper(context)
-    private var isEmbargoActive = Embargo.isEmbargoActive(prefs)
 
     init {
         // TODO : Trigger re-draw when location available / changed?
@@ -164,7 +162,7 @@ open class PlayaItemAdapter<T: androidx.recyclerview.widget.RecyclerView.ViewHol
             holder.titleView.text = item.name
             holder.descView.text = item.description
 
-            val canShowOfficialLocation = !isEmbargoActive && item.hasLocation()
+            val canShowOfficialLocation = !Embargo.isEmbargoActiveForPlayaItem(prefs, item) && item.hasLocation()
             val canShowLocation = canShowOfficialLocation || item.hasUnofficialLocation()
 
             if (!canShowLocation) {

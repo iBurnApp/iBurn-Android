@@ -25,6 +25,7 @@ class Event : PlayaItem(), Parcelable {
     @ColumnInfo(name = CAMP_PLAYA_ID)
     var campPlayaId: String? = null
 
+    @JvmField
     @ColumnInfo(name = ART_PLAYA_ID)
     var artPlayaId: String? = null
 
@@ -45,7 +46,11 @@ class Event : PlayaItem(), Parcelable {
     var endTimePretty: String? = null
 
     fun hasCampHost(): Boolean {
-        return !TextUtils.isEmpty(campPlayaId)
+        return campPlayaId.isNullOrEmpty().not()
+    }
+
+    fun hasArtHost(): Boolean {
+        return artPlayaId.isNullOrEmpty().not()
     }
 
     companion object {

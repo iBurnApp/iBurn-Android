@@ -138,6 +138,10 @@ android {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
     }
+    testOptions {
+        unitTests.returnDefaultValues = true
+        unitTests.includeAndroidResources = true
+    }
     namespace 'com.gaiagps.iburn'
 }
 
@@ -215,10 +219,12 @@ dependencies {
 
     // Test dependencies
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-core:5.18.0'
-    androidTestImplementation 'androidx.test:runner:1.6.2'
-    androidTestImplementation 'androidx.test:rules:1.6.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+    testImplementation 'org.mockito:mockito-core:5.19.0'
+    // Enable static method mocking (for CurrentDateProvider)
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
+    androidTestImplementation 'androidx.test:runner:1.7.0'
+    androidTestImplementation 'androidx.test:rules:1.7.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
     androidTestImplementation 'androidx.annotation:annotation:1.9.1'
 
 }
