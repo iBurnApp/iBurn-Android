@@ -347,10 +347,11 @@ class DataProvider private constructor(private val context: Context, private val
         // TODO : Honor upgradeLock
         // TODO : Return structure with metadata on how many art, camps, events etc?
         val wildQuery = addWildcardsToQuery(query)
+        val ftsQuery = sanitizeFtsQuery(query)
         return Flowables.combineLatest(
-                db.artDao().searchFts(query),
-                db.campDao().searchFts(query),
-                db.eventDao().searchFts(query),
+                db.artDao().searchFts(ftsQuery),
+                db.campDao().searchFts(ftsQuery),
+                db.eventDao().searchFts(ftsQuery),
                 db.userPoiDao().findByName(wildQuery))
         { arts, camps, events, userpois ->
             val sections = ArrayList<IntRange>(4)
@@ -546,6 +547,20 @@ class DataProvider private constructor(private val context: Context, private val
          */
         private fun addWildcardsToQuery(query: String): String {
             return "%$query%"
+        }
+
+        /**
+         * Sanitize a raw user query for use with SQLite FTS MATCH.
+         *
+         * - Double any embedded double quotes to avoid malformed expressions.
+         * - Wrap the entire query in double quotes so it is treated as a phrase,
+         *   preventing special characters from breaking parsing.
+         */
+        private fun sanitizeFtsQuery(raw: String): String {
+            val trimmed = raw.trim()
+            if (trimmed.isEmpty()) return trimmed
+            val escaped = trimmed.replace("\"", "\"\"")
+            return "\"$escaped\""
         }
     }
 

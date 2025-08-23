@@ -101,6 +101,10 @@ public class SearchFragment extends Fragment implements AdapterListener {
                 .subscribe(sectionedPlayaItems -> {
                     binding.resultsSummary.setText(describeResults(sectionedPlayaItems));
                     adapter.setSectionedItems(sectionedPlayaItems);
+                }, throwable -> {
+                    Timber.w(throwable, "FTS search failed; showing no results");
+                    adapter.setSectionedItems(new DataProvider.SectionedPlayaItems(java.util.Collections.emptyList(), java.util.Collections.emptyList()));
+                    binding.resultsSummary.setText("0 results");
                 });
 
     }
