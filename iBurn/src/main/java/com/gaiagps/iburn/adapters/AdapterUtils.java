@@ -57,23 +57,23 @@ public class AdapterUtils {
         sEventTypes.put("arts", "Arts & Crafts");
         sEventTypes.put("work", "Class/Workshop");
         sEventTypes.put("tea", "Coffee/Tea");
-        sEventTypes.put("RIDE", "Diversity & Inclusion");
-        sEventTypes.put("fire", "Fire/Spectacle");
+//        sEventTypes.put("RIDE", "Diversity & Inclusion");
+//        sEventTypes.put("fire", "Fire/Spectacle");
         sEventTypes.put("food", "Food & Drink");
-        sEventTypes.put("game", "Games");
+//        sEventTypes.put("game", "Games");
         sEventTypes.put("prty", "Gathering/Party");
-        sEventTypes.put("heal", "Healing/Massage/Spa");
+//        sEventTypes.put("heal", "Healing/Massage/Spa");
         sEventTypes.put("kid", "Kids");
-        sEventTypes.put("LGBT", "LGBTQIA2S+");
-        sEventTypes.put("live", "Live Music");
+//        sEventTypes.put("LGBT", "LGBTQIA2S+");
+//        sEventTypes.put("live", "Live Music");
         sEventTypes.put("adlt", "Mature Audiences");
         sEventTypes.put("othr", "Miscellaneous");
-        sEventTypes.put("para", "Parade");
-        sEventTypes.put("perf", "Performance");
-        sEventTypes.put("repr", "Repair");
-        sEventTypes.put("cere", "Ritual/Ceremony");
-        sEventTypes.put("sust", "Sustainability/Greening Your Burn");
-        sEventTypes.put("yoga", "Yoga/Movement/Fitness");
+//        sEventTypes.put("para", "Parade");
+//        sEventTypes.put("perf", "Performance");
+//        sEventTypes.put("repr", "Repair");
+//        sEventTypes.put("cere", "Ritual/Ceremony");
+//        sEventTypes.put("sust", "Sustainability/Greening Your Burn");
+//        sEventTypes.put("yoga", "Yoga/Movement/Fitness");
 
         // Initial 2017 data had uncategorized events but first update with official location
         // has all events categorized
