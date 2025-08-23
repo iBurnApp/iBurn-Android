@@ -119,6 +119,7 @@ class MapboxMapFragment : Fragment() {
     private val defaultZoom = 12.5
     private val markerShowcaseZoom = 14.5
     private val poiVisibleZoom = 16.0
+    private val labelVisibleZoom = 14.5
 
     private var userPoiButton: ImageView? = null
     private var addressLabel: TextView? = null
@@ -428,13 +429,17 @@ class MapboxMapFragment : Fragment() {
                     val layerId = symbolManager?.layerId
                     if (layerId != null) {
                         val symbolLayer = appliedStyle.getLayer(layerId) as? SymbolLayer
+                        // Smoothly fade labels in/out around poiVisibleZoom instead of a hard cut
+                        val fadeDelta = 0.5 // half-zoom fade window on either side
                         symbolLayer?.setProperties(
                             PropertyFactory.textOpacity(
-                                // 0 when zoom < poiVisibleZoom; 1 when >= poiVisibleZoom
-                                Expression.step(
+                                Expression.interpolate(
+                                    Expression.linear(),
                                     Expression.zoom(),
-                                    0.0f,
-                                    Expression.stop(poiVisibleZoom, 1.0f)
+                                    // 0 opacity until (labelVisibleZoom - fadeDelta)
+                                    Expression.stop(labelVisibleZoom - fadeDelta, 0.0f),
+                                    // ramp to full opacity by (labelVisibleZoom + fadeDelta)
+                                    Expression.stop(labelVisibleZoom + fadeDelta, 1.0f)
                                 )
                             )
                         )
