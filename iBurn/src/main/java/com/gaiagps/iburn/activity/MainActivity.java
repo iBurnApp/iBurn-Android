@@ -21,6 +21,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.MapboxMapFragment;
@@ -64,6 +66,12 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
 
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private static final String BUNDLE_SELECTED_TAB = "IBURN_SELECTED_TAB";
+    private static final String TAG_MAP = "tag_map";
+    private static final String TAG_MAP_PLACEHOLDER = "tag_map_placeholder";
+    private static final String TAG_EXPLORE = "tag_explore";
+    private static final String TAG_BROWSE = "tag_browse";
+    private static final String TAG_FAVORITES = "tag_favorites";
+    private static final String TAG_SEARCH = "tag_search";
     private boolean googlePlayServicesMissing = false;
     private boolean awaitingLocationPermission = false;
 
@@ -146,6 +154,11 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
                         Timber.e(throwable, "Error occurred while showing embargo banner");
                     });
         }
+        // Avoid adding fragments while the system is restoring them.
+        if (savedInstanceState != null) {
+            restoreFragmentsFromManager();
+        }
+
         handleIntent(getIntent());
 
 //        uncomment to load JSON assets immediately for testing
@@ -244,35 +257,93 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             }
             return true;
         });
-        if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_SELECTED_TAB)) {
-            bottomBar.setSelectedItemId(savedInstanceState.getInt(BUNDLE_SELECTED_TAB));
-        } else {
+        // Only select the default tab when first created. When restoring, let FragmentManager
+        // handle existing fragments to avoid double-add crashes.
+        if (savedInstanceState == null) {
             bottomBar.setSelectedItemId(R.id.tab_map);
         }
         bottomBar.setOnItemReselectedListener(menuItem -> { /* ignore re-selection */});
+    }
+
+    private void restoreFragmentsFromManager() {
+        FragmentManager fm = getSupportFragmentManager();
+        mapFragment = fm.findFragmentByTag(TAG_MAP);
+        mapPlaceholderFragment = fm.findFragmentByTag(TAG_MAP_PLACEHOLDER);
+        exploreFragment = fm.findFragmentByTag(TAG_EXPLORE);
+        browseFragment = fm.findFragmentByTag(TAG_BROWSE);
+        favoritesFragment = fm.findFragmentByTag(TAG_FAVORITES);
+        searchFragment = fm.findFragmentByTag(TAG_SEARCH);
+
+        // Determine which fragment is currently visible
+        Fragment[] candidates = new Fragment[]{
+                mapFragment, mapPlaceholderFragment, exploreFragment,
+                browseFragment, favoritesFragment, searchFragment
+        };
+        for (Fragment f : candidates) {
+            if (f != null && f.isAdded() && !f.isHidden()) {
+                currentFragment = f;
+                break;
+            }
+        }
     }
 
     private void setCurrentFragment(@NonNull Fragment fragment) {
         if (fragment == currentFragment) {
             return; // Fragment is already displayed
         }
-        
-        androidx.fragment.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        
+
+        // Reuse existing fragment instance by tag if available (e.g., after process death)
+        String tag = getTagFor(fragment);
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment existing = tag == null ? null : fm.findFragmentByTag(tag);
+        if (existing != null) {
+            fragment = existing;
+            cacheFragmentReference(fragment);
+        }
+
+        FragmentTransaction transaction = fm.beginTransaction();
+
         // Hide current fragment if it exists
         if (currentFragment != null) {
             transaction.hide(currentFragment);
         }
-        
+
         // Show or add the new fragment
         if (fragment.isAdded()) {
             transaction.show(fragment);
         } else {
-            transaction.add(R.id.content, fragment);
+            // Add with a stable tag so the system can restore and we can find it later
+            transaction.add(R.id.content, fragment, tag);
         }
-        
+
         transaction.commitAllowingStateLoss();
         currentFragment = fragment;
+    }
+
+    private void cacheFragmentReference(@NonNull Fragment fragment) {
+        if (fragment instanceof MapboxMapFragment) {
+            mapFragment = fragment;
+        } else if (fragment instanceof MapPlaceHolderFragment) {
+            mapPlaceholderFragment = fragment;
+        } else if (fragment instanceof ExploreListViewFragment) {
+            exploreFragment = fragment;
+        } else if (fragment instanceof BrowseListViewFragment) {
+            browseFragment = fragment;
+        } else if (fragment instanceof FavoritesListViewFragment) {
+            favoritesFragment = fragment;
+        } else if (fragment instanceof SearchFragment) {
+            searchFragment = fragment;
+        }
+    }
+
+    private String getTagFor(@NonNull Fragment fragment) {
+        if (fragment instanceof MapboxMapFragment) return TAG_MAP;
+        if (fragment instanceof MapPlaceHolderFragment) return TAG_MAP_PLACEHOLDER;
+        if (fragment instanceof ExploreListViewFragment) return TAG_EXPLORE;
+        if (fragment instanceof BrowseListViewFragment) return TAG_BROWSE;
+        if (fragment instanceof FavoritesListViewFragment) return TAG_FAVORITES;
+        if (fragment instanceof SearchFragment) return TAG_SEARCH;
+        return null;
     }
 
     @Override
