@@ -24,6 +24,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.dynamicanimation.animation.DynamicAnimation
+import androidx.core.content.ContextCompat
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.fragment.app.Fragment
 import com.gaiagps.iburn.database.Art
@@ -761,11 +762,17 @@ class MapboxMapFragment : Fragment() {
 
     private fun addNewMarkerForItem(item: PlayaItem): Symbol {
         val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
+        // Pull map text and halo colors from resources and convert to hex strings
+        val haloColorInt = ContextCompat.getColor(requireContext(), R.color.map_bg)
+        val textColorInt = ContextCompat.getColor(requireContext(), R.color.map_text)
+        val haloHex = String.format("#%06X", 0xFFFFFF and haloColorInt)
+        val textHex = String.format("#%06X", 0xFFFFFF and textColorInt)
         val symbolOptions: SymbolOptions = SymbolOptions()
             .withLatLng(pos)
             .withTextField(item.name)
             .withTextSize(12f)
-            .withTextHaloColor("#EBDED1")
+            .withTextHaloColor(haloHex)
+            .withTextColor(textHex)
             .withTextHaloWidth(2.0F)
 
         if (item is UserPoi) {

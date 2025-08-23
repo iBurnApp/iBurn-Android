@@ -74,11 +74,11 @@
 
     <!-- Map Colors -->
     <color name="map_my_location">#139dff</color>
-    <color name="map_bg">#E8E0D8</color>
+    <color name="map_bg">#232323</color>
     <color name="map_highlight">#FFA851</color>
     <color name="map_streets">#D9CCBE</color>
     <color name="map_streets_halo">#B2993D</color>
-    <color name="map_text">#3F3F3F</color>
+    <color name="map_text">#FAEEB7</color>
     <color name="map_halo_text">#F2DBA0</color>
 
     <!-- Derivative Map Colors -->
