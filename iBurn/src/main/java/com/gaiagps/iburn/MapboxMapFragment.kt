@@ -117,7 +117,7 @@ class MapboxMapFragment : Fragment() {
 
     private val defaultZoom = 12.5
     private val markerShowcaseZoom = 14.5
-    private val poiVisibleZoom = 14.0
+    private val poiVisibleZoom = 16.0
 
     private var userPoiButton: ImageView? = null
     private var addressLabel: TextView? = null
@@ -548,15 +548,16 @@ class MapboxMapFragment : Fragment() {
 
                 val embargoActive = Embargo.isAnyEmbargoActive(prefsHelper)
                 val queryAllItems = (state != State.SHOWCASE) && (!embargoActive)
-                // Note we're only querying user-added (favorites) and user pois, which
-                // should be visible at all zooms. If we were to plot all camps, art, etc,
-                // we could use the zoom gate, but then we'd only want zoom to affect
-                // query of those types, so it'd require a new DataProvider query
-                // && shouldShowPoisAtZoom(map.cameraPosition.zoom)
 
                 if (queryAllItems) {
-                    Timber.d("Map query for all items at zoom %f", map.cameraPosition.zoom)
-                    provider.observeUserAddedMapItemsOnly().firstElement().toObservable()
+                    val zoom = map.cameraPosition.zoom
+                    return@flatMap if (shouldShowPoisAtZoom(zoom)) {
+                        Timber.d("Map query for all items + art in-region at zoom %f", zoom)
+                        provider.observeAllMapItemsInVisibleRegion(visibleRegion).firstElement().toObservable()
+                    } else {
+                        Timber.d("Map query for all items (no art) at zoom %f", zoom)
+                        provider.observeUserAddedMapItemsOnly().firstElement().toObservable()
+                    }
                 } else {
                     Timber.d("Map query for user items at zoom %f", map.cameraPosition.zoom)
                     (provider.getUserPoi()).firstElement().toObservable()

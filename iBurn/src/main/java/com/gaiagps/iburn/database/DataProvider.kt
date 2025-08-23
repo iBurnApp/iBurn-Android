@@ -391,7 +391,8 @@ class DataProvider private constructor(private val context: Context, private val
     }
 
     /**
-     * Returns ongoing events in [region], favorites, and user-added markers
+     * Returns favorites, user-added markers, ongoing events in [region],
+     * and Art within [region]. Intended for high zoom map views to avoid clutter.
      */
     fun observeAllMapItemsInVisibleRegion(region: VisibleRegion): Flowable<List<PlayaItemWithUserData>> {
         // TODO : Honor upgradeLock
@@ -403,9 +404,13 @@ class DataProvider private constructor(private val context: Context, private val
         val minLon = region.farLeft!!.longitude.toFloat()
 
         return Flowables.combineLatest(
-                db.artDao().favorites,
+                // Include Art in-region (plus any favorites)
+                db.artDao().findInRegionOrFavorite(maxLat, minLat, maxLon, minLon),
+                // Camps remain favorites-only to limit density
                 db.campDao().favorites,
-                db.eventDao().findInRegionOrFavorite(minLat, maxLat, minLon, maxLon),
+                // Include Event favorites
+                db.eventDao().favorites,
+                // Always include all user POIs
                 db.userPoiDao().getAll())
         { arts, camps, events, userpois ->
             val all = ArrayList<PlayaItemWithUserData>(arts.size + camps.size + events.size + userpois.size)
