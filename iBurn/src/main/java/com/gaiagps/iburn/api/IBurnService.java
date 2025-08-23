@@ -56,6 +56,7 @@ import org.maplibre.android.geometry.LatLng;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
+import java.util.Calendar;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -359,6 +360,9 @@ public class IBurnService {
 
             Event event = (Event) item;
 
+            // Repair invalid occurrence end times that are before start times
+            repairEventOccurrenceTimes(event);
+
             String locationPlayaId = (event.hostedByCamp != null) ? event.hostedByCamp : event.locatedAtArt;
 
             if (locationPlayaId != null) {
@@ -426,6 +430,51 @@ public class IBurnService {
             values.put(LONGITUDE_UNOFFICIAL, 0);
         }
         values.put(URL, item.url);
+    }
+
+    /**
+     * Repairs Event occurrence end times that are before their start times by:
+     * - Applying the end time's H:M:S to the start date's Y-M-D
+     * - If still not after the start time, adding one day (crosses midnight)
+     */
+    private void repairEventOccurrenceTimes(Event event) {
+        if (event == null || event.occurrenceSet == null) return;
+        for (EventOccurrence occurrence : event.occurrenceSet) {
+            Date startDate = occurrence.startTime;
+            Date endDate = occurrence.endTime;
+            if (startDate == null || endDate == null) continue;
+
+            if (endDate.before(startDate)) {
+                Calendar calStart = Calendar.getInstance();
+                calStart.setTime(startDate);
+
+                Calendar calEndTime = Calendar.getInstance();
+                calEndTime.setTime(endDate);
+
+                // Apply end time (H:M:S) to the start date (Y-M-D)
+                Calendar corrected = Calendar.getInstance();
+                corrected.set(Calendar.YEAR, calStart.get(Calendar.YEAR));
+                corrected.set(Calendar.MONTH, calStart.get(Calendar.MONTH));
+                corrected.set(Calendar.DAY_OF_MONTH, calStart.get(Calendar.DAY_OF_MONTH));
+                corrected.set(Calendar.HOUR_OF_DAY, calEndTime.get(Calendar.HOUR_OF_DAY));
+                corrected.set(Calendar.MINUTE, calEndTime.get(Calendar.MINUTE));
+                corrected.set(Calendar.SECOND, calEndTime.get(Calendar.SECOND));
+                corrected.set(Calendar.MILLISECOND, 0);
+
+                Date correctedEndDate = corrected.getTime();
+
+                // If still before or equal to start, it must cross midnight
+                if (!correctedEndDate.after(startDate)) {
+                    corrected.add(Calendar.DAY_OF_MONTH, 1);
+                    correctedEndDate = corrected.getTime();
+                }
+
+                Timber.d("Fixed event '%s': Start %s -> End %s (was %s)",
+                        event.title, startDate, correctedEndDate, endDate);
+
+                occurrence.endTime = correctedEndDate;
+            }
+        }
     }
 
     private Single<Long> updateResource(UpdateDataDependencies dependencies) {
