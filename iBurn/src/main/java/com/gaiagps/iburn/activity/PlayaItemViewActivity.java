@@ -499,7 +499,7 @@ public class PlayaItemViewActivity extends AppCompatActivity implements AdapterL
 
     private void populateViews(PlayaItemWithUserData itemWithUserData) {
         PlayaItem item = itemWithUserData.getItem();
-        boolean embargoActive = Embargo.isAnyEmbargoActive(new PrefsHelper(getApplicationContext()));
+        boolean embargoActive = Embargo.isEmbargoActiveForPlayaItem(new PrefsHelper(getApplicationContext()), item);
         showingLocation = (item.hasLocation() && !embargoActive) || item.hasUnofficialLocation();
 
         if (showingLocation) {
