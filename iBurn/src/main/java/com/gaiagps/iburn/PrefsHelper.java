@@ -15,7 +15,7 @@ public class PrefsHelper {
     private static final String VALID_UNLOCK_CODE = "unlocked";             // boolean
     private static final String COPIED_MBTILES_VERSION = "copied_tiles";    // long
 
-    private static final String POPULATED_DB_VERSION = "db_populated_ver";  // long
+    private static final String INGESTED_DB_NAME = "db_ingested_name";  // long
     private static final String SCHEDULED_UPDATE = "sched_update";          // boolean
 
     private static final String DEFAULT_RESOURCE_VERSION = "resver";        // long
@@ -69,12 +69,12 @@ public class PrefsHelper {
         return sharedPrefs.getLong(COPIED_MBTILES_VERSION, 0);
     }
 
-    public void setDatabaseVersion(long version) {
-        editor.putLong(POPULATED_DB_VERSION, version).commit();
+    public void setIngestedDatabaseName(String name) {
+        editor.putString(INGESTED_DB_NAME, name).commit();
     }
 
-    public long getDatabaseVersion() {
-        return sharedPrefs.getLong(POPULATED_DB_VERSION, 0);
+    public String getIngestedDatabaseName() {
+        return sharedPrefs.getString(INGESTED_DB_NAME, "");
     }
 
     /**

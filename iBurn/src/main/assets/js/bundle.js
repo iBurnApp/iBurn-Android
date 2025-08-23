@@ -1099,15 +1099,52 @@ Geocoder.prototype.plazaTimeToLatLon = function(plazaName, timeString) {
       plazaRadius = utils.feetToMiles(320); // Default based on 2025 layout
     }
   } else {
-    // Try to find plaza in features
-    var plazaFeatures = this.fuzzyMatchFeatures(['name', 'ref'], plazaName);
-    if (plazaFeatures.length > 0) {
-      var plaza = plazaFeatures[0];
+    // First try exact name matching
+    var plazaNameLower = plazaName.toLowerCase().trim();
+    var exactMatch = null;
+    
+    for (var i = 0; i < this.features.length; i++) {
+      var feature = this.features[i];
+      if (feature.properties.name && feature.properties.name.toLowerCase() === plazaNameLower) {
+        exactMatch = feature;
+        break;
+      }
+    }
+    
+    var plaza = exactMatch;
+    
+    // If no exact match, try fuzzy matching as fallback
+    if (!plaza) {
+      var plazaFeatures = this.fuzzyMatchFeatures(['name', 'ref'], plazaName);
+      if (plazaFeatures.length > 0) {
+        // If multiple matches with same score, prefer the one that contains the exact street letter
+        if (plazaFeatures.length > 1 && plazaFeatures[0].properties.match === plazaFeatures[1].properties.match) {
+          // Extract street letter from plaza name (e.g., "G" from "4:30 G Plaza")
+          var streetMatch = plazaName.match(/\b([A-L])\s+Plaza\b/i);
+          if (streetMatch) {
+            var streetLetter = streetMatch[1].toUpperCase();
+            for (var j = 0; j < plazaFeatures.length; j++) {
+              if (plazaFeatures[j].properties.name && 
+                  plazaFeatures[j].properties.name.includes(streetLetter + " Plaza")) {
+                plaza = plazaFeatures[j];
+                break;
+              }
+            }
+          }
+        }
+        // If still no match or no street letter, take the first fuzzy match
+        if (!plaza) {
+          plaza = plazaFeatures[0];
+        }
+      }
+    }
+    
+    if (plaza) {
       plazaCenter = turf.centroid(plaza);
       // Calculate approximate radius from polygon
       var bbox = turf.bbox(plaza);
-      var width = turf.distance([bbox[0], bbox[1]], [bbox[2], bbox[1]]);
-      var height = turf.distance([bbox[0], bbox[1]], [bbox[0], bbox[3]]);
+      var width = turf.distance([bbox[0], bbox[1]], [bbox[2], bbox[1]], {units: 'miles'});
+      var height = turf.distance([bbox[0], bbox[1]], [bbox[0], bbox[3]], {units: 'miles'});
       plazaRadius = Math.max(width, height) / 2;
     } else {
       return undefined;
@@ -1128,6 +1165,13 @@ Geocoder.prototype.geocode = function(locationString1,locationString2) {
   if (plazaMatch) {
     var plazaName = plazaMatch[1].trim();
     var timeString = plazaMatch[2].trim();
+    // Normalize plaza name to title case for consistency
+    plazaName = plazaName.replace(/\b([A-Z]+)\b/g, function(match) {
+      // Keep single letters uppercase (street letters like B, G)
+      if (match.length === 1) return match;
+      // Convert all-caps words to title case
+      return match.charAt(0).toUpperCase() + match.slice(1).toLowerCase();
+    });
     return this.plazaTimeToLatLon(plazaName, timeString);
   }
   
@@ -1459,7 +1503,7 @@ var streetResult = function(point,features) {
 reverseGeocoder.prototype.playaResult = function(point, polygon) {
   var bearing = turf.bearing(this.cityCenter,point);
   var time = utils.degreesToTime(bearing,this.cityBearing);
-  var distance = turf.distance(point,this.cityCenter, 'miles');
+  var distance = turf.distance(point,this.cityCenter, {units: 'miles'});
   var feet = utils.milesToFeet(distance);
 
   return time +" & "+ Math.round(feet) +'\' ' + polygon.properties.name;

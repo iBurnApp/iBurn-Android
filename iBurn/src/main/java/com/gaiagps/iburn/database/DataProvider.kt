@@ -502,11 +502,6 @@ class DataProvider private constructor(private val context: Context, private val
     companion object {
 
         /**
-         * Version of database schema
-         */
-        const val BUNDLED_DATABASE_VERSION: Long = 1
-
-        /**
          * Version of database data and mbtiles. This is basically the unix time at which bundled data was provided to this build.
          */
         val RESOURCES_VERSION: Long = 1692570508202L // Unix time of creation
@@ -526,7 +521,6 @@ class DataProvider private constructor(private val context: Context, private val
             return Observable.just(getSharedDb(context))
                     .subscribeOn(Schedulers.io())
                     .doOnNext { database ->
-                        prefs.databaseVersion = BUNDLED_DATABASE_VERSION
                         prefs.setBaseResourcesVersion(RESOURCES_VERSION)
                     }
                     .map { sqlBrite -> DataProvider(context, sqlBrite) }

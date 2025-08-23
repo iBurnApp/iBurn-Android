@@ -44,7 +44,7 @@ public class Embargo {
             if (!result) didCampEmbargoEnd = true;
             return result;
         }
-        Timber.e("Embargo: Cannot determine embargo for unknown PlayaItem type: %s", item.getClass().getSimpleName());
+        Timber.e("Embargo: Cannot determine embargo for unknown PlayaItem type: %s id %s", item.getClass().getSimpleName(), item.playaId);
         return false;
     }
 

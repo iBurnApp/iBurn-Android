@@ -1,7 +1,6 @@
 package com.gaiagps.iburn.database
 
 import android.content.Context
-import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import androidx.room.Database
 import androidx.room.RoomDatabase
@@ -10,7 +9,7 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.gaiagps.iburn.BuildConfig
-import io.reactivex.Single
+import com.gaiagps.iburn.PrefsHelper
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -22,6 +21,11 @@ import java.util.Date
  * The database file name is provided via BuildConfig.DATABASE_NAME.
  */
 private const val USE_BUNDLED_DB = true
+
+// Database file name in app's /data partition
+// This database is often derived from the bundled database in assets but to avoid confusion with the
+// bundled database and to avoid storing multiple versions of the bundled database in /data, we use a fixed name.
+private const val APP_DATABASE_NAME = "playaDatabase2025.1.db"
 
 private const val DATABASE_V1 = 1
 // Add event artPlayaId and MapPin for pin deep links
@@ -58,16 +62,16 @@ abstract class AppDatabase : RoomDatabase() {
 
 private var sharedDb: AppDatabase? = null
 
-fun copyDatabaseFromAssets(context: Context, assetPath: String, dbName: String) {
-    val dbFile = context.getDatabasePath(dbName)
+fun copyDatabaseFromAssets(context: Context, assetPath: String, destinationDbName: String) {
+    val dbFile = context.getDatabasePath(destinationDbName)
     val dbPath = dbFile.absolutePath
 
     dbFile.parentFile?.mkdirs()
 
     // Copy the bundled database to a temporary file first
-    val tmpDb = File.createTempFile("iburn", ".db", context.cacheDir)
+    val tmpAssetDb = File.createTempFile("iburn", ".db", context.cacheDir)
     context.assets.open(assetPath).use { input ->
-        FileOutputStream(tmpDb).use { output ->
+        FileOutputStream(tmpAssetDb).use { output ->
             val buffer = ByteArray(1024)
             var length: Int
             while (input.read(buffer).also { length = it } > 0) {
@@ -76,19 +80,21 @@ fun copyDatabaseFromAssets(context: Context, assetPath: String, dbName: String) 
         }
     }
 
+    Timber.d("Copied bundled db to temp file ${tmpAssetDb.absolutePath} with size ${tmpAssetDb.length()}")
+
     if (!dbFile.exists()) {
-        Timber.d("Copying bundled db $dbName from assets")
-        tmpDb.copyTo(dbFile, overwrite = true)
+        Timber.d("Copying bundled db $tmpAssetDb to $dbPath")
+        tmpAssetDb.copyTo(dbFile, overwrite = true)
     } else {
-        Timber.d("Updating db $dbName from bundled assets")
+        Timber.d("Updating db $dbPath from bundled assets")
         updateDatabaseTablesFromSource(
-            sourceDbPath = tmpDb.absolutePath,
+            sourceDbPath = tmpAssetDb.absolutePath,
             destDbPath = dbPath,
             tables = READONLY_TABLES
         )
     }
 
-    tmpDb.delete()
+    tmpAssetDb.delete()
 }
 
 fun updateDatabaseTablesFromSource(sourceDbPath: String, destDbPath: String, tables: List<String>) {
@@ -112,7 +118,7 @@ fun getSharedDb(context: Context): AppDatabase {
 
     val db = sharedDb
     if (db == null) {
-        val newDb = buildDatabase(context, BuildConfig.DATABASE_NAME, USE_BUNDLED_DB)
+        val newDb = buildDatabase(context, APP_DATABASE_NAME, USE_BUNDLED_DB)
         sharedDb = newDb
         return newDb
     } else {
@@ -128,7 +134,18 @@ fun buildDatabase(context: Context, name: String, copyBundled: Boolean): AppData
         .addMigrations(MIGRATION_1_2)
 
     if (copyBundled) {
-        copyDatabaseFromAssets(context, "databases/$name", name)
+        val prefs = PrefsHelper(context)
+        if (prefs.ingestedDatabaseName != BuildConfig.BUNDLED_DATABASE_NAME) {
+            Timber.d("Updating from bundled db. '${prefs.ingestedDatabaseName}' (Last ingested version) -> '${BuildConfig.BUNDLED_DATABASE_NAME}' (Bundled version)")
+            // Always copy from the current bundled DB asset, but write to a fixed on-device name
+            // to avoid multiple copies in /data as the bundled DB version changes.
+            copyDatabaseFromAssets(
+                context,
+                assetPath = "databases/${BuildConfig.BUNDLED_DATABASE_NAME}",
+                destinationDbName = name
+            )
+            prefs.ingestedDatabaseName = BuildConfig.BUNDLED_DATABASE_NAME;
+        }
     }
     return builder.build()
 }

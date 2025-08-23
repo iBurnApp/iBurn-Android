@@ -375,19 +375,17 @@ public class IBurnService {
 
             if (item.location != null) {
                 // https://github.com/iBurnApp/BlackRockCityPlanner/issues/6
-                if (!TextUtils.isEmpty(item.location.string)) {
-                    item.location.string = item.location.string.replace("None None", "");
+                String locationStr = item.locationString;
+                if (!TextUtils.isEmpty(locationStr)) {
+                    locationStr = locationStr.replace("None None", "");
                 }
 
-                Location location = new Location();
-                location.gps_latitude = item.location.gps_latitude;
-                location.gps_longitude = item.location.gps_longitude;
-                location.string = item.location.string;
+                Location location = Location.fromLocation(item.location);
 
-                if (!TextUtils.isEmpty(location.string) &&
-                        !(location.string.equals("Mobile")) &&
+                if (!TextUtils.isEmpty(locationStr) &&
+                        !(locationStr.equals("Mobile")) &&
                         location.gps_latitude == 0.0 && location.gps_longitude == 0.0) {
-                    LatLng response = Geocoder.INSTANCE.forwardGeocode(context, location.string).blockingGet();
+                    LatLng response = Geocoder.INSTANCE.forwardGeocode(context, locationStr).blockingGet();
                     location.gps_latitude = response.getLatitude();
                     location.gps_longitude = response.getLongitude();
                     item.location.gps_latitude = response.getLatitude();
@@ -398,11 +396,13 @@ public class IBurnService {
             }
 
             if (item.burnermap_location != null) {
-
+                // TODO - this is probably worthless using the new Location type from API
                 Location location = new Location();
                 location.gps_latitude =  item.burnermap_location.gps_latitude;
                 location.gps_longitude = item.burnermap_location.gps_longitude;
-                location.string = item.burnermap_location.string;
+                location.frontage = item.burnermap_location.frontage;
+                location.intersectionType = item.burnermap_location.intersectionType;
+                location.intersection = item.burnermap_location.intersection;
                 cachedUnofficialLocations.put(item.uid, location);
             }
         }
@@ -410,7 +410,7 @@ public class IBurnService {
         if (item.location != null) {
             values.put(LATITUDE, item.location.gps_latitude);
             values.put(LONGITUDE, item.location.gps_longitude);
-            values.put(PLAYA_ADDR, item.location.string);
+            values.put(PLAYA_ADDR, item.locationString);
         } else {
             values.put(LATITUDE, 0);
             values.put(LONGITUDE, 0);
@@ -419,7 +419,7 @@ public class IBurnService {
         if (item.burnermap_location != null) {
             values.put(LATITUDE_UNOFFICIAL, item.burnermap_location.gps_latitude);
             values.put(LONGITUDE_UNOFFICIAL, item.burnermap_location.gps_longitude);
-            values.put(PLAYA_ADDR_UNOFFICIAL, item.burnermap_location.string);
+            values.put(PLAYA_ADDR_UNOFFICIAL, item.burnermap_location.locationString());
         } else {
             values.put(LATITUDE_UNOFFICIAL, 0);
             values.put(LONGITUDE_UNOFFICIAL, 0);

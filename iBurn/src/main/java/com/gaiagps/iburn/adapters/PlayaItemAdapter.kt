@@ -195,7 +195,6 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
                 }
             }
 
-            Timber.d("Binding item: ${item.playaId} favorite ${itemWithUserData.userData.isFavorite}")
             if (itemWithUserData.userData.isFavorite) {
                 holder.favoriteView.setImageResource(R.drawable.ic_heart_full_24dp)
             } else {
