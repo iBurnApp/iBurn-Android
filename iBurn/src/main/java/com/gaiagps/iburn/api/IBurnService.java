@@ -364,6 +364,7 @@ public class IBurnService {
             if (locationPlayaId != null) {
                 if (cachedLocations.containsKey(locationPlayaId)) {
                     item.location = cachedLocations.get(locationPlayaId);
+                    item.locationString = item.location.locationString();
                 }
                 if (cachedUnofficialLocations.containsKey(locationPlayaId)) {
                     item.burnermap_location = cachedUnofficialLocations.get(locationPlayaId);
