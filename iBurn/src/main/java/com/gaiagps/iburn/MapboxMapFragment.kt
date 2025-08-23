@@ -59,6 +59,9 @@ import org.maplibre.android.plugins.annotation.Symbol
 import org.maplibre.android.plugins.annotation.SymbolManager
 import org.maplibre.android.plugins.annotation.SymbolOptions
 import org.maplibre.android.style.sources.VectorSource
+import org.maplibre.android.style.layers.PropertyFactory
+import org.maplibre.android.style.expressions.Expression
+import org.maplibre.android.style.layers.SymbolLayer
 import org.maplibre.android.utils.MapFragmentUtils
 import org.maplibre.geojson.Point
 import timber.log.Timber
@@ -412,12 +415,33 @@ class MapboxMapFragment : Fragment() {
             style.withImage("pin", AppCompatResources.getDrawable(context, R.drawable.pin)!!)
             style.withImage("recycle", AppCompatResources.getDrawable(context, R.drawable.recycle)!!)
 
-            map.setStyle(style) {
+            map.setStyle(style) { appliedStyle ->
                 this.map = map
 
-                symbolManager = SymbolManager(mapView, map, it)
+                symbolManager = SymbolManager(mapView, map, appliedStyle)
                 symbolManager?.iconAllowOverlap = true
                 symbolManager?.textAllowOverlap = true
+
+                // Hide marker labels at low zooms using a layer-level expression
+                try {
+                    val layerId = symbolManager?.layerId
+                    if (layerId != null) {
+                        val symbolLayer = appliedStyle.getLayer(layerId) as? SymbolLayer
+                        symbolLayer?.setProperties(
+                            PropertyFactory.textOpacity(
+                                // 0 when zoom < poiVisibleZoom; 1 when >= poiVisibleZoom
+                                Expression.step(
+                                    Expression.zoom(),
+                                    0.0f,
+                                    Expression.stop(poiVisibleZoom, 1.0f)
+                                )
+                            )
+                        )
+                    }
+                } catch (t: Throwable) {
+                    // No-op if layer unavailable; labels will remain always visible
+                    Timber.w(t, "Unable to apply textOpacity expression to SymbolLayer")
+                }
 
                 symbolManager?.addClickListener { symbol ->
                     if (markerIdToItem.containsKey(symbol.id)) {
@@ -442,7 +466,7 @@ class MapboxMapFragment : Fragment() {
 
                 if (hasLocationPermission()) {
                     val activateOptions =
-                        LocationComponentActivationOptions.Builder(requireContext(), it)
+                        LocationComponentActivationOptions.Builder(requireContext(), appliedStyle)
                             .build()
 
                     map.locationComponent.activateLocationComponent(activateOptions)
