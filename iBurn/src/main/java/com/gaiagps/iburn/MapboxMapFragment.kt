@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.location.Location
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -146,6 +147,7 @@ class MapboxMapFragment : Fragment() {
     private var cameraUpdateSubscription: Disposable? = null
 
     private var locationSubscription: Disposable? = null
+    private var currentLocation: Location? = null
 
     /**
      * Showcase a point on the map using a generic pin
@@ -603,6 +605,34 @@ class MapboxMapFragment : Fragment() {
                 // Tap handling to detect marker clicks
                 map.addOnMapClickListener { point ->
                     val screenPoint = map.projection.toScreenLocation(point)
+
+                    // If tap is near the user's current location dot, open Share "My Location"
+                    currentLocation?.let { loc ->
+                        try {
+                            val density = resources.displayMetrics.density
+                            val thresholdPx = 32f * density // ~32dp radius
+                            val userPoint = map.projection.toScreenLocation(LatLng(loc.latitude, loc.longitude))
+                            val dx = screenPoint.x - userPoint.x
+                            val dy = screenPoint.y - userPoint.y
+                            val dist = kotlin.math.hypot(dx.toDouble(), dy.toDouble()).toFloat()
+                            if (dist <= thresholdPx) {
+                                val pin = com.gaiagps.iburn.database.MapPin(
+                                    uid = java.util.UUID.randomUUID().toString(),
+                                    title = "My Location",
+                                    latitude = loc.latitude.toFloat(),
+                                    longitude = loc.longitude.toFloat(),
+                                    address = null,
+                                    color = "blue"
+                                )
+                                val intent = com.gaiagps.iburn.activity.ShareActivity.createIntent(requireContext(), pin)
+                                startActivity(intent)
+                                return@addOnMapClickListener true
+                            }
+                        } catch (t: Throwable) {
+                            Timber.w(t, "Error handling user location tap")
+                        }
+                    }
+
                     val features = map.queryRenderedFeatures(screenPoint, annotationsLayerId)
                     val feature = features.firstOrNull()
                     if (feature != null) {
@@ -690,6 +720,7 @@ class MapboxMapFragment : Fragment() {
         val context = requireActivity().applicationContext
         locationSubscription?.dispose()
         locationSubscription = LocationProvider.observeCurrentLocation(context, locationRequest)
+            .doOnNext { loc -> currentLocation = loc }
             .observeOn(ioScheduler)
             .flatMap { location ->
                 Geocoder.reverseGeocode(
