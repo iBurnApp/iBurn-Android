@@ -13,6 +13,14 @@
   "bearing": 0,
   "pitch": 3.5,
   "sources": {
+    "camp-boundaries": {
+      "type": "geojson",
+      "data": "asset://map/camp_outlines.geojson"
+    },
+    "camp-labels": {
+      "type": "geojson",
+      "data": "asset://map/camp_labels.geojson"
+    }
   },
   "glyphs": "asset://map/glyphs/{range}.pbf",
   "layers": [
@@ -70,6 +78,38 @@
       "source-layer": "outline",
       "layout": {"visibility": "visible"},
       "paint": {"fill-color": "#574e26"}
+    },
+    {
+      "id": "camp-boundaries",
+      "type": "line",
+      "source": "camp-boundaries",
+      "minzoom": 15,
+      "layout": {
+        "visibility": "visible",
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#9B8DB0",
+        "line-width": 1.5,
+        "line-opacity": 0.7
+      }
+    },
+    {
+      "id": "camp-labels-big",
+      "type": "line",
+      "source": "camp-labels",
+      "minzoom": 17,
+      "layout": {
+        "visibility": "visible",
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#D4D4D4",
+        "line-width": 2,
+        "line-opacity": 0.9
+      }
     },
     {
       "id": "streets",

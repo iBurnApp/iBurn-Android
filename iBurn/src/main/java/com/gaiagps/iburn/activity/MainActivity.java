@@ -358,6 +358,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         super.onStart();
     }
 
+
     @OnPermissionDenied(Manifest.permission.ACCESS_FINE_LOCATION)
     @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     void onAcquiredLocationPermission() {

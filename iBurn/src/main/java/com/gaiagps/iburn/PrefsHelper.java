@@ -33,6 +33,31 @@ public class PrefsHelper {
         editor = sharedPrefs.edit();
     }
 
+    // Map layer visibility preferences (annualized)
+    private String keyShowCampBoundaries() {
+        return getAnnualKey("show_camp_boundaries");
+    }
+
+    private String keyShowBigCampNames() {
+        return getAnnualKey("show_big_camp_names");
+    }
+
+    public boolean getShowCampBoundaries() {
+        return sharedPrefs.getBoolean(keyShowCampBoundaries(), true);
+    }
+
+    public void setShowCampBoundaries(boolean visible) {
+        editor.putBoolean(keyShowCampBoundaries(), visible).apply();
+    }
+
+    public boolean getShowBigCampNames() {
+        return sharedPrefs.getBoolean(keyShowBigCampNames(), true);
+    }
+
+    public void setShowBigCampNames(boolean visible) {
+        editor.putBoolean(keyShowBigCampNames(), visible).apply();
+    }
+
     /**
      * @return a key that is a combination of the given baseKey with the current app year.
      * This is handy when you want preferences set in a previous app release to be cleared
