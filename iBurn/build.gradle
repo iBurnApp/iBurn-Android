@@ -200,7 +200,7 @@ dependencies {
     implementation 'androidx.media:media:1.7.0'
     implementation 'com.eclipsesource.j2v8:j2v8:6.2.1@aar'
     implementation 'org.maplibre.gl:android-sdk:11.13.0'
-    implementation 'org.maplibre.gl:android-plugin-annotation-v9:3.0.2'
+    // Removed legacy v9 annotations plugin; using SDK 11 runtime layers instead
 
     implementation 'com.squareup.picasso:picasso:2.71828'
 
