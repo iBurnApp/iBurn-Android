@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_show_camp_boundaries"
+        android:title="Show Camp Boundaries"
+        android:checkable="true"
+        android:checked="true" />
+    <item
+        android:id="@+id/menu_show_big_camp_names"
+        android:title="Show Big Camp Names"
+        android:checkable="true"
+        android:checked="true" />
+ </menu>
+

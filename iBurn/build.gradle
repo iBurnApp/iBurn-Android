@@ -200,7 +200,7 @@ dependencies {
     implementation 'androidx.media:media:1.7.0'
     implementation 'com.eclipsesource.j2v8:j2v8:6.2.1@aar'
     implementation 'org.maplibre.gl:android-sdk:11.13.0'
-    implementation 'org.maplibre.gl:android-plugin-annotation-v9:3.0.2'
+    // Removed legacy v9 annotations plugin; using SDK 11 runtime layers instead
 
     implementation 'com.squareup.picasso:picasso:2.71828'
 
@@ -290,6 +290,13 @@ tasks.register('updateData') {
             filter { line ->
                 line.replaceAll('asset://iBurnData_iBurn2025Map.bundle/Map.bundle/glyphs/\\{fontstack\\}/\\{range\\}.pbf', 'asset://map/glyphs/\\{range\\}.pbf')
             }
+            // Rewrite newly added camp GeoJSON asset paths to Android assets
+            filter { line ->
+                line.replaceAll('asset://iBurnData_iBurn2025Map.bundle/Map.bundle/camp_outlines.geojson', 'asset://map/camp_outlines.geojson')
+            }
+            filter { line ->
+                line.replaceAll('asset://iBurnData_iBurn2025Map.bundle/Map.bundle/camp_labels.geojson', 'asset://map/camp_labels.geojson')
+            }
             // Filter out map style templating. Mapbox provides an API
             // for attaching a source to styles, which I think is less fragile.
             filter { line ->
@@ -297,6 +304,18 @@ tasks.register('updateData') {
             }
         }
         println("Copied ${stylesCount} map style files")
+
+        // Camp GeoJSON (boundaries and labels)
+        def campGeoJsonFiles = fileTree("$projectDir/../iBurn-Data/data/$versionYear/Map/Map.bundle/") {
+            include 'camp_outlines.geojson'
+            include 'camp_labels.geojson'
+        }
+        def campGeoJsonCount = campGeoJsonFiles.files.size()
+        copy {
+            from campGeoJsonFiles
+            into "$projectDir/src/main/assets/map/"
+        }
+        println("Copied ${campGeoJsonCount} camp GeoJSON files")
 
         // Map glyphs
         def glyphsFiles = fileTree("$projectDir/../iBurn-Data/data/$versionYear/Map/Map.bundle/glyphs/Open Sans Regular/") {
