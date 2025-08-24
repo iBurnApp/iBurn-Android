@@ -65,9 +65,9 @@ android {
         compileSdk 35
         minSdkVersion 23
         targetSdkVersion 35
-        versionCode 67
+        versionCode 68
 
-        versionName "$versionYear.4"
+        versionName "$versionYear.5"
 
         applicationId "com.iburnapp.iburn3"
 
