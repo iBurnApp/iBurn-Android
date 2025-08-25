@@ -74,7 +74,6 @@ class DataProvider private constructor(private val context: Context, private val
     }
 
     fun observeCampsByName(query: String): Flow<List<CampWithUserData>> {
-
         // TODO : Honor upgradeLock
         val wildQuery = addWildcardsToQuery(query)
         return db.campDao().findByName(wildQuery)

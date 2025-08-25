@@ -30,6 +30,7 @@ import com.gaiagps.iburn.database.DataProvider
 import com.gaiagps.iburn.database.DataProvider.Companion.getInstance
 import com.gaiagps.iburn.database.Embargo
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
@@ -80,6 +81,7 @@ class WelcomeFragment : Fragment(), SurfaceTextureListener {
             brcMap.setTint(rootView.getContext().getColor(R.color.regular_text))
             brcView.setImageDrawable(brcMap)
             campSearchView = rootView.findViewById<AutoCompleteTextView>(R.id.campNameSearch)
+            campSearchView!!.threshold = 1  // Start filtering after 1 character
             campSearchView!!.setAdapter<CampAutoCompleteAdapter?>(
                 CampAutoCompleteAdapter(
                     requireActivity()
@@ -282,7 +284,9 @@ class WelcomeFragment : Fragment(), SurfaceTextureListener {
                 if (constraint != null) {
                     val query = constraint.toString() // '%' + constraint.toString() + '%';
                     val camps = runBlocking {
-                        dataProvider.observeCampsByName(query).single()
+                        dataProvider.observeCampsByName(query).first().also {
+                            Timber.d("Got ${it.size} camps for query $query")
+                        }
                     }
 
                     r.values = camps
