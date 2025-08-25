@@ -4,12 +4,12 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import io.reactivex.Flowable
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FavoriteDao {
     @get:Query("SELECT * FROM " + Favorite.TABLE_NAME)
-    val all: Flowable<List<Favorite>>
+    val all: Flow<List<Favorite>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(vararg fav: Favorite)

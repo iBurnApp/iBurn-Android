@@ -31,7 +31,7 @@ class UpcomingEventsAdapter(context: Context, listener: AdapterListener) :
         return set
     }
 
-    override fun onBindHeaderViewHolder(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int) {
+    override fun onBindHeaderViewHolder(viewHolder: ViewHolder, position: Int) {
         setLinearSlimParameters(viewHolder, position)
 
         val firstSectionItem = getDataPositionForPosition(position + 1)

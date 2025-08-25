@@ -1,7 +1,6 @@
 package com.gaiagps.iburn;
 
-import io.reactivex.Observable;
-import io.reactivex.schedulers.Schedulers;
+// Rx removed; keep file for reference only
 
 /**
  * Created by dbro on 8/20/16.

@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import io.reactivex.Flowable
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Created by dbro on 6/8/17.
@@ -18,14 +18,14 @@ interface CampDao {
             " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
             " ORDER BY " + PlayaItem.NAME
     )
-    val all: Flowable<List<CampWithUserData>>
+    val all: Flow<List<CampWithUserData>>
 
     @get:Query(
         "SELECT c.*, 1 AS " + UserData.FAVORITE +
             " FROM " + Camp.TABLE_NAME + " c INNER JOIN " + Favorite.TABLE_NAME +
             " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID
     )
-    val favorites: Flowable<List<CampWithUserData>>
+    val favorites: Flow<List<CampWithUserData>>
 
     @Query(
         "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -34,7 +34,7 @@ interface CampDao {
             " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
             " WHERE c." + PlayaItem.NAME + " LIKE :name"
     )
-    fun findByName(name: String?): Flowable<List<CampWithUserData>>
+    fun findByName(name: String?): Flow<List<CampWithUserData>>
 
     @Query(
         "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -45,7 +45,7 @@ interface CampDao {
             " ON c." + PlayaItem.ID + " = " + CampFts.TABLE_NAME + ".rowid" +
             " WHERE " + CampFts.TABLE_NAME + " MATCH :query"
     )
-    fun searchFts(query: String?): Flowable<List<CampWithUserData>>
+    fun searchFts(query: String?): Flow<List<CampWithUserData>>
 
     @Query(
         "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -54,7 +54,7 @@ interface CampDao {
             " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
             " WHERE c." + PlayaItem.PLAYA_ID + " = :playaId"
     )
-    fun findByPlayaId(playaId: String?): Flowable<CampWithUserData>
+    fun findByPlayaId(playaId: String?): Flow<CampWithUserData>
 
     @Query(
         "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -63,7 +63,7 @@ interface CampDao {
             " f ON c." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
             " WHERE c." + PlayaItem.ID + " = :id"
     )
-    fun findById(id: Int): Flowable<CampWithUserData>
+    fun findById(id: Int): Flow<CampWithUserData>
 
     @Query(
         "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -78,7 +78,7 @@ interface CampDao {
         minLat: Float,
         maxLon: Float,
         minLon: Float
-    ): Flowable<List<CampWithUserData>>
+    ): Flow<List<CampWithUserData>>
 
     @Query(
         "SELECT c.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -94,7 +94,7 @@ interface CampDao {
         minLat: Float,
         maxLon: Float,
         minLon: Float
-    ): Flowable<List<CampWithUserData>>
+    ): Flow<List<CampWithUserData>>
 
     @Insert
     fun insert(vararg camps: Camp?)

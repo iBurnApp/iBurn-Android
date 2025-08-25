@@ -23,7 +23,6 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.gaiagps.iburn.PrefsHelper;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.SchedulersKt;
 import com.gaiagps.iburn.database.Camp;
 import com.gaiagps.iburn.database.CampWithUserData;
 import com.gaiagps.iburn.database.DataProvider;
@@ -175,9 +174,11 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeFragmen
                 poi.longitude = homeCamp.longitudeUnofficial;
             }
             poi.icon = UserPoi.ICON_HOME;
-            DataProvider.Companion.getInstance(getApplicationContext())
-                    .observeOn(SchedulersKt.getIoScheduler())
-                    .subscribe(dataProvider -> dataProvider.insertUserPoi(poi));
+            new Thread(() -> {
+                try {
+                    DataProvider.Companion.getInstance(getApplicationContext()).insertUserPoi(poi);
+                } catch (Throwable ignored) {}
+            }).start();
         }
 
         prefs.setDidShowWelcome(true);

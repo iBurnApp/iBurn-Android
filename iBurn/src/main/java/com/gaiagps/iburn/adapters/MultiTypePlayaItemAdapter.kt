@@ -1,10 +1,14 @@
 package com.gaiagps.iburn.adapters
 
 import android.content.Context
-import androidx.recyclerview.widget.RecyclerView
 import android.widget.TextView
 import com.gaiagps.iburn.R
-import com.gaiagps.iburn.database.*
+import com.gaiagps.iburn.database.Art
+import com.gaiagps.iburn.database.Camp
+import com.gaiagps.iburn.database.Event
+import com.gaiagps.iburn.database.PlayaItemWithUserData
+import com.gaiagps.iburn.database.SectionedPlayaItems
+import com.gaiagps.iburn.database.UserPoi
 
 /**
  * Created by dbro on 6/13/17.
@@ -12,13 +16,13 @@ import com.gaiagps.iburn.database.*
 class MultiTypePlayaItemAdapter(context: Context, listener: AdapterListener) :
         SectionedPlayaItemAdapter(context, listener) {
 
-    var sectionedItems: DataProvider.SectionedPlayaItems? = null
+    var sectionedItems: SectionedPlayaItems? = null
         set(value) {
             field = value
             items = sectionedItems?.data
         }
 
-    override fun onBindHeaderViewHolder(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int) {
+    override fun onBindHeaderViewHolder(viewHolder: ViewHolder, position: Int) {
         setLinearSlimParameters(viewHolder, position)
 
         val firstSectionItem = getDataPositionForPosition(position + 1)

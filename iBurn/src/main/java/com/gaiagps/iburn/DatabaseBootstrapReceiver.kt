@@ -6,7 +6,9 @@ import android.content.Intent
 import com.gaiagps.iburn.api.IBurnService
 import com.gaiagps.iburn.api.MockIBurnApi
 import com.gaiagps.iburn.database.DataProvider
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -22,19 +24,16 @@ class DatabaseBootstrapReceiver : BroadcastReceiver() {
         val pending = goAsync()
         val dbName = intent.getStringExtra(EXTRA_DB_NAME) ?: return pending.finish()
         Timber.d("Bootstrapping database %s", dbName)
-        DataProvider.getNewInstance(context.applicationContext, dbName)
-            .flatMap { provider: DataProvider ->
-                IBurnService(context.applicationContext, MockIBurnApi(context.applicationContext))
-                    .updateData(provider)
-                    .toObservable()
-            }
-            .subscribeOn(Schedulers.io())
-            .subscribe({ success: Boolean ->
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val provider = DataProvider.getNewInstance(context.applicationContext, dbName)
+                val success = IBurnService(context.applicationContext, MockIBurnApi(context.applicationContext)).updateData(provider)
                 Timber.d("Bootstrap success: %b", success)
+            } catch (t: Throwable) {
+                Timber.e(t, "Bootstrap failed")
+            } finally {
                 pending.finish()
-            }, { error: Throwable ->
-                Timber.e(error, "Bootstrap failed")
-                pending.finish()
-            })
+            }
+        }
     }
 }

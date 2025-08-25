@@ -27,10 +27,10 @@ import java.util.*
  * Facilities the display of a collection of [PlayaItem]s in a [RecyclerView]
  * Created by dbro on 6/7/17.
  */
-open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
+open class PlayaItemAdapter(
         val context: Context,
         val listener: AdapterListener) :
-        RecyclerView.Adapter<T>(), SectionIndexer {
+        RecyclerView.Adapter<PlayaItemAdapter.ViewHolder>(), SectionIndexer {
 
     protected val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
 
@@ -51,16 +51,15 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
 
     init {
         // TODO : Trigger re-draw when location available / changed?
-        LocationProvider.getLastLocation(context.applicationContext).subscribe({
-                lastLocation -> deviceLocation = lastLocation
-       }, {error -> Timber.e(error, "Failed to get last location")})
+        // TODO: Convert to coroutine collection or remove if not needed
+        // LocationProvider now uses Flow - this would need proper scope handling
 
         normalPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16f, context.resources.displayMetrics).toInt()
         lastItemPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, context.resources.displayMetrics).toInt()
     }
 
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): T {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.listview_playaitem, parent, false)
 
         val viewHolder = ViewHolder(view)
@@ -72,7 +71,7 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
         })
 
 
-        return viewHolder as T
+        return viewHolder
     }
 
     override fun getItemCount(): Int {
@@ -96,7 +95,7 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
         viewHolder.itemView.touchDelegate = TouchDelegate(delegateArea, favButton)
     }
 
-    override fun onBindViewHolder(viewHolder: T, position: Int) {
+    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
         val item = items?.get(position)
 
         item?.let { itemWithUserData ->
@@ -259,22 +258,22 @@ open class PlayaItemAdapter<T: RecyclerView.ViewHolder>(
 
     // </editor-fold desc="SectionIndexer">
 
-    open class ViewHolder(val view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
+    open class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
 
-        val imageView: ImageView = view.findViewById(R.id.image)
-        val imageMaskView: ImageView = view.findViewById(R.id.imageMask)
-        val titleView: TextView = view.findViewById(R.id.title)
-        val artistView: TextView = view.findViewById(R.id.artist)
-        val audioTourView: TextView = view.findViewById(R.id.audioTourLabel)
-        val descView: TextView  = view.findViewById(R.id.description)
-        val eventTypeView: TextView = view.findViewById(R.id.type)
-        val eventTimeView: TextView = view.findViewById(R.id.time)
+        val imageView: ImageView by lazy { view.findViewById(R.id.image) }
+        val imageMaskView: ImageView by lazy { view.findViewById(R.id.imageMask) }
+        val titleView: TextView by lazy {view.findViewById(R.id.title) }
+        val artistView: TextView by lazy {view.findViewById(R.id.artist) }
+        val audioTourView: TextView by lazy {view.findViewById(R.id.audioTourLabel) }
+        val descView: TextView  by lazy {view.findViewById(R.id.description) }
+        val eventTypeView: TextView by lazy {view.findViewById(R.id.type) }
+        val eventTimeView: TextView by lazy {view.findViewById(R.id.time) }
 
-        val favoriteView: ImageView = view.findViewById(R.id.heart)
-        val addressView: TextView = view.findViewById(R.id.address)
+        val favoriteView: ImageView by lazy {view.findViewById(R.id.heart) }
+        val addressView: TextView by lazy {view.findViewById(R.id.address) }
 
-        val walkTimeView: TextView = view.findViewById(R.id.walk_time)
-        val bikeTimeView: TextView = view.findViewById(R.id.bike_time)
+        val walkTimeView: TextView by lazy {view.findViewById(R.id.walk_time) }
+        val bikeTimeView: TextView by lazy {view.findViewById(R.id.bike_time) }
 
         fun showImage(doShow: Boolean) {
             val visibility = if (doShow) View.VISIBLE else View.GONE

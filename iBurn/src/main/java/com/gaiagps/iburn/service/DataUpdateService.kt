@@ -9,6 +9,7 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.gaiagps.iburn.api.IBurnService
 import com.gaiagps.iburn.database.DataProvider
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
@@ -33,18 +34,25 @@ class DataUpdateService(context: Context, workerParams: WorkerParameters) :
         }
 
         fun updateNow(context: Context) {
-            IBurnService(context)
-                .updateData()
-                .subscribe { success -> Timber.d("Updated data result: $success") }
+            // TODO: Convert to coroutine scope
+            // IBurnService(context).updateData() now returns suspend function
+            Timber.d("updateNow called - needs coroutine implementation")
         }
     }
 
     override fun doWork(): Result {
-        val dataProvider = DataProvider.getInstance(applicationContext).onErrorReturn { null }.blockingFirst()
-        if (dataProvider?.inUpgrade() == true) return Result.retry()
+        val dataProvider = DataProvider.getInstance(applicationContext)
+        if (dataProvider.inUpgrade()) return Result.retry()
 
         val service = IBurnService(applicationContext)
-        val success = service.updateData().blockingGet()
+        val success = try {
+            runBlocking {
+                service.updateData()
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Update failed")
+            false
+        }
         Timber.d("Update task finished with success: $success")
         if (!success) {
             return Result.failure()

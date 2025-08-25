@@ -54,8 +54,8 @@ import org.maplibre.android.geometry.LatLng;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Flowable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
+import android.os.Handler;
+import android.os.Looper;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         prefs = new PrefsHelper(this);
         
         // Initialize deep link handler
-        DataProvider.Companion.getInstance(getApplicationContext()).subscribe(dataProvider -> deepLinkHandler = new DeepLinkHandler(getApplicationContext(), dataProvider));
+        deepLinkHandler = new DeepLinkHandler(getApplicationContext(), DataProvider.Companion.getInstance(getApplicationContext()));
 
         if (checkPlayServices()) {
             boolean haveLocationPermission = PermissionManager.hasLocationPermissions(getApplicationContext());
@@ -146,13 +146,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         // For testing data update live
         // DataUpdateService.Companion.updateNow(this);
         if (Embargo.isAnyEmbargoActive(prefs)) {
-            Flowable.timer(1, TimeUnit.SECONDS)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(tick -> {
-                        showEmbargoBanner();
-                    }, throwable -> {
-                        Timber.e(throwable, "Error occurred while showing embargo banner");
-                    });
+            new Handler(Looper.getMainLooper()).postDelayed(() -> showEmbargoBanner(), 1000);
         }
         // Avoid adding fragments while the system is restoring them.
         if (savedInstanceState != null) {
@@ -172,7 +166,10 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         Context context = getApplicationContext();
         long startTime = System.currentTimeMillis();
         IBurnService service = new IBurnService(context, new MockIBurnApi(context));
-        service.updateData().subscribe(success -> Timber.d("Bootstrap success: %b in %d ms", success, System.currentTimeMillis() - startTime));
+        new Thread(() -> {
+            boolean success = service.updateDataBlocking();
+            Timber.d("Bootstrap success: %b in %d ms", success, System.currentTimeMillis() - startTime);
+        }).start();
     }
 
     @Override
@@ -406,7 +403,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         if (guess.equals(UNLOCK_CODE)) {
             prefs.setEnteredValidUnlockCode(true);
             // Notify all observers that embargo is clear
-            DataProvider.Companion.getInstance(getApplicationContext()).subscribe(DataProvider::endUpgrade);
+            DataProvider.Companion.getInstance(getApplicationContext()).endUpgrade();
             new AlertDialog.Builder(MainActivity.this, R.style.Theme_Iburn_Dialog)
                     .setTitle(getString(R.string.embargo_disabled))
                     .setMessage(getString(R.string.location_data_unlocked))

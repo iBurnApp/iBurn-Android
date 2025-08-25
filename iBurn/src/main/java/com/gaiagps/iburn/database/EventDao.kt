@@ -4,8 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import io.reactivex.Flowable
-import io.reactivex.Single
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Created by dbro on 6/8/17.
@@ -19,7 +18,7 @@ interface EventDao {
             " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME
     )
-    val all: Flowable<List<EventWithUserData>>
+    val all: Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -29,7 +28,7 @@ interface EventDao {
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + PlayaItem.PLAYA_ID + " = :id"
     )
-    fun getByPlayaId(id: String?): Single<EventWithUserData>
+    suspend fun getByPlayaId(id: String?): EventWithUserData
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -39,7 +38,7 @@ interface EventDao {
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + PlayaItem.ID + " = :id"
     )
-    fun getById(id: Int): Single<EventWithUserData>
+    suspend fun getById(id: Int): EventWithUserData
 
     @get:Query(
         "SELECT e.*, 1 AS " + UserData.FAVORITE +
@@ -48,7 +47,7 @@ interface EventDao {
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " ORDER BY e." + Event.START_TIME
     )
-    val favorites: Flowable<List<EventWithUserData>>
+    val favorites: Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, 1 AS " + UserData.FAVORITE +
@@ -57,7 +56,7 @@ interface EventDao {
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + Event.END_TIME + " >= :now ORDER BY e." + Event.START_TIME
     )
-    fun getNonExpiredFavorites(now: String?): Flowable<List<EventWithUserData>>
+    fun getNonExpiredFavorites(now: String?): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -67,7 +66,7 @@ interface EventDao {
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + PlayaItem.NAME + " LIKE :name OR e." + PlayaItem.DESC + " LIKE :name GROUP BY e." + PlayaItem.NAME
     )
-    fun findByName(name: String?): Flowable<List<EventWithUserData>>
+    fun findByName(name: String?): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -79,7 +78,7 @@ interface EventDao {
             " ON e." + PlayaItem.ID + " = " + EventFts.TABLE_NAME + ".rowid" +
             " WHERE " + EventFts.TABLE_NAME + " MATCH :query"
     )
-    fun searchFts(query: String?): Flowable<List<EventWithUserData>>
+    fun searchFts(query: String?): Flow<List<EventWithUserData>>
 
 
     @Query(
@@ -90,7 +89,7 @@ interface EventDao {
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + Event.CAMP_PLAYA_ID + " = :campPlayaId GROUP BY e." + PlayaItem.NAME
     )
-    fun findByCampPlayaId(campPlayaId: String?): Flowable<List<EventWithUserData>>
+    fun findByCampPlayaId(campPlayaId: String?): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -100,7 +99,7 @@ interface EventDao {
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + PlayaItem.PLAYA_ID + " = :playaId AND e." + PlayaItem.ID + " != :excludingId"
     )
-    fun findOtherOccurrences(playaId: String?, excludingId: Int): Flowable<List<EventWithUserData>>
+    fun findOtherOccurrences(playaId: String?, excludingId: Int): Flow<List<EventWithUserData>>
 
 
     //Event-related Queries
@@ -117,7 +116,7 @@ interface EventDao {
     fun findByDayTimed(
         day: String?, allDayStart: String?,
         allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -134,7 +133,7 @@ interface EventDao {
         day: String?, now: String?,
         allDayStart: String?,
         allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -150,7 +149,7 @@ interface EventDao {
         day: String?,
         allDayStart: String?,
         allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -166,7 +165,7 @@ interface EventDao {
         day: String?, types: List<String?>?,
         allDayStart: String?,
         allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -181,7 +180,7 @@ interface EventDao {
     fun findByDayAndTypeNoExpiredTimed(
         day: String?, types: List<String?>?, now: String?,
         allDayStart: String?, allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -198,7 +197,7 @@ interface EventDao {
         types: List<String?>?,
         allDayStart: String?,
         allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -208,7 +207,7 @@ interface EventDao {
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + Event.START_TIME + " BETWEEN :startDate AND :endDate AND e." + Event.ALL_DAY + " = 0 ORDER BY e." + Event.START_TIME
     )
-    fun findInDateRange(startDate: String?, endDate: String?): Flowable<List<EventWithUserData>>
+    fun findInDateRange(startDate: String?, endDate: String?): kotlinx.coroutines.flow.Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -224,7 +223,7 @@ interface EventDao {
         minLat: Float,
         maxLon: Float,
         minLon: Float
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -241,7 +240,7 @@ interface EventDao {
         maxLat: Float,
         minLon: Float,
         maxLon: Float
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     // All days queries (for showing events across all days)
     @Query(
@@ -256,7 +255,7 @@ interface EventDao {
     fun findAllDaysTimed(
         allDayStart: String?,
         allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -272,7 +271,7 @@ interface EventDao {
         now: String?,
         allDayStart: String?,
         allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -286,7 +285,7 @@ interface EventDao {
     fun findAllDaysAllDay(
         allDayStart: String?,
         allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -301,7 +300,7 @@ interface EventDao {
         types: List<String?>?,
         allDayStart: String?,
         allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -315,7 +314,7 @@ interface EventDao {
     fun findAllDaysAndTypeNoExpiredTimed(
         types: List<String?>?, now: String?,
         allDayStart: String?, allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -330,7 +329,7 @@ interface EventDao {
         types: List<String?>?,
         allDayStart: String?,
         allDayEnd: String?
-    ): Flowable<List<EventWithUserData>>
+    ): Flow<List<EventWithUserData>>
 
     @Insert
     fun insert(vararg arts: Event?)
