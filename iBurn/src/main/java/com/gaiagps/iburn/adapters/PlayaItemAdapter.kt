@@ -19,6 +19,13 @@ import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.location.LocationProvider
 import com.gaiagps.iburn.view.animateScalePulse
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
 import java.text.ParseException
 import java.util.*
@@ -48,11 +55,20 @@ open class PlayaItemAdapter(
     private var deviceLocation: Location? = null
     private val now = CurrentDateProvider.getCurrentDate()
     private val prefs = PrefsHelper(context)
+    private val adapterScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     init {
-        // TODO : Trigger re-draw when location available / changed?
-        // TODO: Convert to coroutine collection or remove if not needed
-        // LocationProvider now uses Flow - this would need proper scope handling
+        // Collect location updates to show distance information in list items
+        LocationProvider.getLastLocationFlow(context.applicationContext)
+            .onEach { lastLocation -> 
+                deviceLocation = lastLocation
+                // TODO: Trigger re-draw when location available / changed?
+                // notifyDataSetChanged() // Uncomment if distance display is needed
+            }
+            .catch { error -> 
+                Timber.e(error, "Failed to get last location")
+            }
+            .launchIn(adapterScope)
 
         normalPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16f, context.resources.displayMetrics).toInt()
         lastItemPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, context.resources.displayMetrics).toInt()
@@ -257,6 +273,14 @@ open class PlayaItemAdapter(
     }
 
     // </editor-fold desc="SectionIndexer">
+
+    /**
+     * Clean up resources when adapter is no longer needed.
+     * Should be called from the parent Fragment/Activity lifecycle methods.
+     */
+    fun cleanup() {
+        adapterScope.cancel()
+    }
 
     open class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
 

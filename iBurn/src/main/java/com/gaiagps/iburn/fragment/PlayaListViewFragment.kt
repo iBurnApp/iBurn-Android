@@ -67,6 +67,13 @@ abstract class PlayaListViewFragment : Fragment(), AdapterListener {
         stopObserving()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::adapter.isInitialized) {
+            adapter.cleanup()
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Timber.d("%s onCreateView", javaClass.simpleName)
         val v = inflater.inflate(R.layout.fragment_playa_list_view, container, false)

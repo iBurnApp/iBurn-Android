@@ -691,7 +691,7 @@ class MapboxMapFragment : Fragment() {
                         clearMap(false)
                     } else {
                         cameraUpdate.tryEmit(map.projection.visibleRegion)
-                }
+                    }
                 }
 
                 this.showcaseMarker?.let { _showcaseMarker(it) }

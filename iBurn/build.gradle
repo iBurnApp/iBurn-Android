@@ -87,13 +87,6 @@ android {
         }
     }
 
-    packagingOptions {
-        resources {
-            // No RxJava; remove legacy excludes
-        }
-    }
-
-
     signingConfigs {
         release {
             // We'll read release signingConfig's data from
