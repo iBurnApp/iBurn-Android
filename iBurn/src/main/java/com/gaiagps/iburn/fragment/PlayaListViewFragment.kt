@@ -59,19 +59,24 @@ abstract class PlayaListViewFragment : Fragment(), AdapterListener {
 
     override fun onStart() {
         super.onStart()
+        if (::adapter.isInitialized) {
+            adapter.startMonitoringLocation()
+        } else {
+            Timber.d("Adapter not yet initialized in onStart")
+        }
         startObserving()
     }
 
     override fun onStop() {
         super.onStop()
+        if (::adapter.isInitialized) {
+            adapter.stopMonitoringLocation()
+        }
         stopObserving()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (::adapter.isInitialized) {
-            adapter.cleanup()
-        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -174,4 +179,3 @@ abstract class PlayaListViewFragment : Fragment(), AdapterListener {
         return 0
     }
 }
-

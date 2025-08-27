@@ -19,10 +19,11 @@ import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.location.LocationProvider
 import com.gaiagps.iburn.view.animateScalePulse
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.Priority
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -55,23 +56,40 @@ open class PlayaItemAdapter(
     private var deviceLocation: Location? = null
     private val now = CurrentDateProvider.getCurrentDate()
     private val prefs = PrefsHelper(context)
-    private val adapterScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val adapterScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var locationJob: kotlinx.coroutines.Job? = null
+    // Foreground list-friendly request (balanced accuracy, moderate cadence)
+    private val locationRequest: LocationRequest =
+        LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 10_000L)
+            .setMinUpdateIntervalMillis(5_000L)
+            .build()
 
     init {
-        // Collect location updates to show distance information in list items
-        LocationProvider.getLastLocationFlow(context.applicationContext)
-            .onEach { lastLocation -> 
+        normalPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16f, context.resources.displayMetrics).toInt()
+        lastItemPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, context.resources.displayMetrics).toInt()
+    }
+
+    fun startMonitoringLocation() {
+        if (locationJob != null) return
+        locationJob = LocationProvider.currentLocationFlow(context.applicationContext, locationRequest)
+            .onEach { lastLocation ->
+                Timber.d("Updating device location $lastLocation")
+                val prior = deviceLocation
+                val deltaMeters = prior?.distanceTo(lastLocation) ?: Float.MAX_VALUE
                 deviceLocation = lastLocation
-                // TODO: Trigger re-draw when location available / changed?
-                // notifyDataSetChanged() // Uncomment if distance display is needed
+                if (prior == null || deltaMeters > 61f) { // ~200 feet / 1 minute of walking distance
+                    notifyDataSetChanged()
+                }
             }
-            .catch { error -> 
+            .catch { error ->
                 Timber.e(error, "Failed to get last location")
             }
             .launchIn(adapterScope)
+    }
 
-        normalPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16f, context.resources.displayMetrics).toInt()
-        lastItemPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, context.resources.displayMetrics).toInt()
+    fun stopMonitoringLocation() {
+        locationJob?.cancel()
+        locationJob = null
     }
 
 
@@ -274,13 +292,6 @@ open class PlayaItemAdapter(
 
     // </editor-fold desc="SectionIndexer">
 
-    /**
-     * Clean up resources when adapter is no longer needed.
-     * Should be called from the parent Fragment/Activity lifecycle methods.
-     */
-    fun cleanup() {
-        adapterScope.cancel()
-    }
 
     open class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
 

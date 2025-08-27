@@ -18,6 +18,8 @@ import com.gaiagps.iburn.view.EventListHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import com.gaiagps.iburn.VerticalRecyclerViewFastScroller2
+import com.gaiagps.iburn.adapters.SimpleSectionTitleIndicator
 
 class BrowseListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaListViewHeaderReceiver, BrowseListHeader.BrowseSelectionListener, com.gaiagps.iburn.view.ArtListHeader.Listener {
 
@@ -67,6 +69,16 @@ class BrowseListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaLis
         v.findViewById<BrowseListHeader>(R.id.header).setBrowseSelectionListener(this)
         v.findViewById<EventListHeader>(R.id.eventHeader).setReceiver(this)
         v.findViewById<ArtListHeader>(R.id.artHeader).setListener(this)
+
+        // Bind fast scroller to RecyclerView and section indicator to avoid NPEs
+        v.findViewById<VerticalRecyclerViewFastScroller2>(R.id.fastScroller)?.let { scroller ->
+            mRecyclerView?.let { rv ->
+                scroller.setRecyclerView(rv)
+            }
+            v.findViewById<SimpleSectionTitleIndicator>(R.id.fastScrollerSectionIndicator)?.let { indicator ->
+                scroller.setSectionIndicator(indicator)
+            }
+        }
         return v
     }
 
@@ -106,4 +118,3 @@ class BrowseListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaLis
         startObserving()
     }
 }
-

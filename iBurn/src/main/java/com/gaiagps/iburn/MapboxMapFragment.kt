@@ -40,6 +40,7 @@ import com.gaiagps.iburn.database.UserPoi
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
 import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.Priority
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -713,9 +714,9 @@ class MapboxMapFragment : Fragment() {
     }
 
     private fun setupLocationSub() {
-        val locationRequest = LocationRequest.create()
-            .setPriority(LocationRequest.PRIORITY_NO_POWER)
-            .setInterval(5000)
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5_000L)
+            .setMinUpdateIntervalMillis(2_000L)
+            .build()
 
         val context = requireActivity().applicationContext
         locationJob?.cancel()
