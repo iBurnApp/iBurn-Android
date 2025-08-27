@@ -5,21 +5,19 @@ import android.app.PendingIntent
 import android.content.Context
 import android.location.Location
 import android.os.Build
+import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import com.gaiagps.iburn.BuildConfig
 import com.gaiagps.iburn.PermissionManager
-import com.google.android.gms.location.LocationRequest
-import com.patloew.colocation.CoLocation
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
-import io.reactivex.subjects.PublishSubject
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.rx2.asFlow
-import kotlinx.coroutines.rx2.asObservable
+import com.google.android.gms.location.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.maplibre.android.location.engine.LocationEngine
 import org.maplibre.android.location.engine.LocationEngineCallback
 import org.maplibre.android.location.engine.LocationEngineRequest
@@ -34,66 +32,61 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Created by davidbrodsky on 7/5/15.
  */
 object LocationProvider {
-    private var locationProvider: CoLocation? = null
+    private var fusedClient: FusedLocationProviderClient? = null
 
     // Location Mocking
     private val isMockingLocation = AtomicBoolean(false)
-    private var mockLocationSubscription: Disposable? = null
+    private var mockJob: Job? = null
     private var lastMockLocation = createMockLocation()
-    private val mockLocationSubject = PublishSubject.create<Location>()
+    private val mockLocationFlow = MutableSharedFlow<Location>(replay = 1)
     private const val MAX_MOCK_LAT = 40.8037
     private const val MIN_MOCK_LAT = 40.7727
     private const val MAX_MOCK_LON = -119.1851
     private const val MIN_MOCK_LON = -119.2210
 
-    @SuppressLint("MissingPermission")
-    fun getLastLocation(context: Context): Observable<Location> {
-        return getLastLocationFlow(context).asObservable()
-    }
-
     fun getLastLocationFlow(context: Context): Flow<Location> {
         init(context)
         return if (BuildConfig.MOCK) {
-            return flow {
-                emit(lastMockLocation)
-            }
+            flowOf(lastMockLocation)
         } else {
             if (!PermissionManager.hasLocationPermissions(context)) {
-                flow {
-                }
-            } else flow {
-                val lastLocation = locationProvider?.getLastLocation()
-                if (lastLocation != null) {
-                    emit(lastLocation)
-                }
+                emptyFlow()
+            } else callbackFlow {
+                val client = fusedClient!!
+                client.lastLocation.addOnSuccessListener { loc ->
+                    if (loc != null) trySend(loc)
+                    close()
+                }.addOnFailureListener { close(it) }
+                awaitClose { }
             }
         }
     }
 
     @SuppressLint("MissingPermission")
-    fun observeCurrentLocation(context: Context, request: LocationRequest): Observable<Location> {
-        return currentLocationFlow(context, request).asObservable()
-    }
-
-    private fun currentLocationFlow(context: Context, request: LocationRequest): Flow<Location> {
+    fun currentLocationFlow(context: Context, request: LocationRequest): Flow<Location> {
         init(context)
         return if (BuildConfig.MOCK) {
-            mockLocationSubject.asFlow()
+            mockLocationFlow.asSharedFlow()
         } else {
             if (!PermissionManager.hasLocationPermissions(context)) {
-                flow {
-
+                emptyFlow()
+            } else callbackFlow {
+                val client = fusedClient!!
+                val cb = object : LocationCallback() {
+                    override fun onLocationResult(result: LocationResult) {
+                        result.lastLocation?.let { trySend(it) }
+                    }
                 }
-            } else locationProvider!!.getLocationUpdates(request)
+                client.requestLocationUpdates(request, cb, Looper.getMainLooper())
+                awaitClose { client.removeLocationUpdates(cb) }
+            }
         }
     }
 
     private fun init(context: Context) {
-        if (locationProvider == null) {
-            locationProvider = CoLocation.from(context)
-            if (BuildConfig.MOCK) {
-                mockCurrentLocation()
-            }
+        if (fusedClient == null) {
+            fusedClient = LocationServices.getFusedLocationProviderClient(context)
+            if (BuildConfig.MOCK) mockCurrentLocation()
         }
     }
 
@@ -118,21 +111,22 @@ object LocationProvider {
     private fun mockCurrentLocation() {
         if (!isMockingLocation.get()) {
             isMockingLocation.set(true)
-            mockLocationSubscription = Observable.interval(2, 15, TimeUnit.SECONDS)
-                .startWith(-1L)
-                .subscribe { time: Long? ->
+            mockJob?.cancel()
+            mockJob = CoroutineScope(Dispatchers.Default).launch {
+                while (isActive) {
                     lastMockLocation = createMockLocation()
-                    mockLocationSubject.onNext(lastMockLocation)
+                    mockLocationFlow.emit(lastMockLocation)
+                    kotlinx.coroutines.delay(TimeUnit.SECONDS.toMillis(15))
                 }
+            }
         }
     }
 
     class MapboxMockLocationSource : LocationEngine {
-        private var mockLocationSubs: CompositeDisposable? = CompositeDisposable()
+        private var mockLocationJob: Job? = null
         private var areUpdatesRequested = false
         fun activate() {
             Timber.d("activate mock location provider")
-            mockLocationSubs = CompositeDisposable()
             mockCurrentLocation()
             deactivate()
             areUpdatesRequested = true
@@ -140,10 +134,8 @@ object LocationProvider {
         }
 
         fun deactivate() {
-            if (mockLocationSubs != null) {
-                mockLocationSubs!!.dispose()
-                mockLocationSubs = null
-            }
+            mockLocationJob?.cancel()
+            mockLocationJob = null
         }
 
         val isConnected: Boolean
@@ -151,16 +143,9 @@ object LocationProvider {
 
         @SuppressLint("MissingPermission", "CheckResult")
         override fun getLastLocation(callback: LocationEngineCallback<LocationEngineResult>) {
-            mockLocationSubject
-                .take(1)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { location: Location? ->
-                    callback.onSuccess(
-                        LocationEngineResult.create(
-                            location
-                        )
-                    )
-                }
+            Handler(Looper.getMainLooper()).post {
+                callback.onSuccess(LocationEngineResult.create(lastMockLocation))
+            }
         }
 
         fun requestLocationUpdates(intent: PendingIntent?) {
@@ -179,18 +164,15 @@ object LocationProvider {
             looper: Looper?
         ) {
             areUpdatesRequested = true
-            val requestLocationSub = mockLocationSubject
-                .takeWhile { ignored: Location? -> areUpdatesRequested }
-                .observeOn(AndroidSchedulers.from(looper))
-                .subscribe { location: Location? ->
-                    result.onSuccess(
-                        LocationEngineResult.create(
-                            location
-                        )
-                    )
+            val handler = if (looper != null) Handler(looper) else Handler(Looper.getMainLooper())
+            mockLocationJob?.cancel()
+            mockLocationJob = CoroutineScope(Dispatchers.Default).launch {
+                mockLocationFlow.collect { location ->
+                    if (!areUpdatesRequested) return@collect
+                    handler.post {
+                        result.onSuccess(LocationEngineResult.create(location))
+                    }
                 }
-            if (mockLocationSubs != null) {
-                mockLocationSubs!!.add(requestLocationSub)
             }
         }
 

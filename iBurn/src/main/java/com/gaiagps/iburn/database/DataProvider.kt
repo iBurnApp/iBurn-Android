@@ -8,12 +8,11 @@ import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.Favorite
-import io.reactivex.Flowable
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.rxkotlin.Flowables
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import org.maplibre.android.geometry.VisibleRegion
 import timber.log.Timber
 import java.util.Date
@@ -64,28 +63,27 @@ class DataProvider private constructor(private val context: Context, private val
         return db.openHelper.writableDatabase.delete(tablename, null, null)
     }
 
-    fun observeCamps(): Flowable<List<CampWithUserData>> {
+    fun observeCamps(): Flow<List<CampWithUserData>> {
         return db.campDao().all
     }
 
-    fun observeCampFavorites(): Flowable<List<CampWithUserData>> {
+    fun observeCampFavorites(): Flow<List<CampWithUserData>> {
 
         // TODO : Honor upgradeLock?
         return db.campDao().favorites
     }
 
-    fun observeCampsByName(query: String): Flowable<List<CampWithUserData>> {
-
+    fun observeCampsByName(query: String): Flow<List<CampWithUserData>> {
         // TODO : Honor upgradeLock
         val wildQuery = addWildcardsToQuery(query)
         return db.campDao().findByName(wildQuery)
     }
 
-    fun observeCampByPlayaId(playaId: String): Flowable<CampWithUserData> {
+    fun observeCampByPlayaId(playaId: String): Flow<CampWithUserData> {
         return db.campDao().findByPlayaId(playaId)
     }
 
-    fun observeCampById(id: Int): Flowable<CampWithUserData> {
+    fun observeCampById(id: Int): Flow<CampWithUserData> {
         return db.campDao().findById(id)
     }
 
@@ -134,35 +132,35 @@ class DataProvider private constructor(private val context: Context, private val
         //        if (result != null) result.close();
     }
 
-    fun observeEventByPlayaId(id: String): Single<EventWithUserData> {
+    suspend fun observeEventByPlayaId(id: String): EventWithUserData {
         return db.eventDao().getByPlayaId(id)
     }
 
-    fun observeEventById(id: Int): Single<EventWithUserData> {
+    suspend fun observeEventById(id: Int): EventWithUserData {
         return db.eventDao().getById(id)
     }
 
     fun observeEventsOnDayOfTypes(day: String?,
                                   types: ArrayList<String>?,
                                   includeExpired: Boolean,
-                                  eventTiming: String): Flowable<List<EventWithUserData>> {
+                                  eventTiming: String): Flow<List<EventWithUserData>> {
 
         // TODO : Honor upgradeLock?
         val isoDateFormat = DateUtil.getIso8601Format()
         val nowDate = CurrentDateProvider.getCurrentDate()
         val now = isoDateFormat.format(nowDate)
-        
+
         // Handle "all days" case when day is null or empty
         if (day == null || day.isEmpty()) {
             // For "all days", we use dummy values for allDayStart/allDayEnd since the query
-            // methods don't actually filter by day - they just use these to distinguish 
+            // methods don't actually filter by day - they just use these to distinguish
             // between timed and all-day events
             val dummyDay = "8/25" // Use a dummy day format that DateUtil can parse
             val allDayStart = isoDateFormat.format(
                     DateUtil.getAllDayStartDateTime(dummyDay))
             val allDayEnd = isoDateFormat.format(
                     DateUtil.getAllDayEndDateTime(dummyDay))
-            
+
             if (types == null || types.isEmpty()) {
                 if(eventTiming=="timed"){
                     if(includeExpired == true) {
@@ -189,7 +187,7 @@ class DataProvider private constructor(private val context: Context, private val
                 }
             }
         }
-        
+
         // Handle specific day filtering (existing logic)
         val wildDay = addWildcardsToQuery(day)
         val allDayStart = isoDateFormat.format(
@@ -232,21 +230,21 @@ class DataProvider private constructor(private val context: Context, private val
         }
     }
 
-    fun observeEventsHostedByCamp(camp: Camp): Flowable<List<EventWithUserData>> {
+    fun observeEventsHostedByCamp(camp: Camp): Flow<List<EventWithUserData>> {
         return db.eventDao().findByCampPlayaId(camp.playaId)
     }
 
-    fun observeOtherOccurrencesOfEvent(event: Event): Flowable<List<EventWithUserData>> {
+    fun observeOtherOccurrencesOfEvent(event: Event): Flow<List<EventWithUserData>> {
         return db.eventDao().findOtherOccurrences(event.playaId, event.id)
     }
 
-    fun observeEventFavorites(): Flowable<List<EventWithUserData>> {
+    fun observeEventFavorites(): Flow<List<EventWithUserData>> {
 
         // TODO : Honor upgradeLock?
         return db.eventDao().favorites
     }
 
-    fun observeEventBetweenDates(start: Date, end: Date): Flowable<List<EventWithUserData>> {
+    fun observeEventBetweenDates(start: Date, end: Date): Flow<List<EventWithUserData>> {
 
         val startDateStr = apiDateFormat.format(start)
         val endDateStr = apiDateFormat.format(end)
@@ -262,17 +260,17 @@ class DataProvider private constructor(private val context: Context, private val
         //        if (result != null) result.close();
     }
 
-    fun observeArt(): Flowable<List<ArtWithUserData>> {
+    fun observeArt(): Flow<List<ArtWithUserData>> {
         // TODO : Honor upgradeLock?
         return db.artDao().all
     }
 
-    fun observeArtFavorites(): Flowable<List<ArtWithUserData>> {
+    fun observeArtFavorites(): Flow<List<ArtWithUserData>> {
         // TODO : Honor upgradeLock?
         return db.artDao().favorites
     }
 
-    fun observeArtWithAudioTour(): Flowable<List<ArtWithUserData>> {
+    fun observeArtWithAudioTour(): Flow<List<ArtWithUserData>> {
 
         // TODO : Honor upgradeLock?
         return db.artDao().all.map { it.filter {
@@ -281,11 +279,11 @@ class DataProvider private constructor(private val context: Context, private val
         } }
     }
 
-    fun observeArtByPlayaId(playaId: String): Flowable<ArtWithUserData> {
+    fun observeArtByPlayaId(playaId: String): Flow<ArtWithUserData> {
         return db.artDao().findByPlayaId(playaId)
     }
 
-    fun observeArtById(id: Int): Flowable<ArtWithUserData> {
+    fun observeArtById(id: Int): Flow<ArtWithUserData> {
         return db.artDao().findById(id)
     }
 
@@ -296,11 +294,11 @@ class DataProvider private constructor(private val context: Context, private val
      * Note: This query automatically adds in Event.startTime (and 0 values for all non-events),
      * since we always want to show this data for an event.
      */
-    fun observeFavorites(): Flowable<SectionedPlayaItems> {
+    fun observeFavorites(): Flow<SectionedPlayaItems> {
 
         // TODO : Honor upgradeLock
         // TODO : Return structure with metadata on how many art, camps, events etc?
-        return Flowables.combineLatest(
+        return combine(
                 db.artDao().favorites,
                 db.campDao().favorites,
                 db.eventDao().favorites)
@@ -342,13 +340,13 @@ class DataProvider private constructor(private val context: Context, private val
      * Note: This query automatically adds in Event.startTime (and 0 values for all non-events),
      * since we always want to show this data for an event.
      */
-    fun observeFtsQuery(query: String): Flowable<SectionedPlayaItems> {
+    fun observeFtsQuery(query: String): Flow<SectionedPlayaItems> {
 
         // TODO : Honor upgradeLock
         // TODO : Return structure with metadata on how many art, camps, events etc?
         val wildQuery = addWildcardsToQuery(query)
         val ftsQuery = sanitizeFtsQuery(query)
-        return Flowables.combineLatest(
+        return combine(
                 db.artDao().searchFts(ftsQuery),
                 db.campDao().searchFts(ftsQuery),
                 db.eventDao().searchFts(ftsQuery),
@@ -395,7 +393,7 @@ class DataProvider private constructor(private val context: Context, private val
      * Returns favorites, user-added markers, ongoing events in [region],
      * and Art within [region]. Intended for high zoom map views to avoid clutter.
      */
-    fun observeAllMapItemsInVisibleRegion(region: VisibleRegion): Flowable<List<PlayaItemWithUserData>> {
+    fun observeAllMapItemsInVisibleRegion(region: VisibleRegion): Flow<List<PlayaItemWithUserData>> {
         // TODO : Honor upgradeLock
 
         // Warning: The following is very ethnocentric to Earth C-137 North-Western ... Quadrasphere(?)
@@ -404,7 +402,7 @@ class DataProvider private constructor(private val context: Context, private val
         val maxLon = region.farRight!!.longitude.toFloat()
         val minLon = region.farLeft!!.longitude.toFloat()
 
-        return Flowables.combineLatest(
+        return combine(
                 // Include Art in-region (plus any favorites)
                 db.artDao().findInRegionOrFavorite(maxLat, minLat, maxLon, minLon),
                 // Camps remain favorites-only to limit density
@@ -426,12 +424,12 @@ class DataProvider private constructor(private val context: Context, private val
     /**
      * Returns favorites and user-added markers only
      */
-    fun observeUserAddedMapItemsOnly(): Flowable<List<PlayaItemWithUserData>> {
+    fun observeUserAddedMapItemsOnly(): Flow<List<PlayaItemWithUserData>> {
         // TODO : Honor upgradeLock
         val nowDate = CurrentDateProvider.getCurrentDate()
         val now = DateUtil.getIso8601Format().format(nowDate)
 
-        return Flowables.combineLatest(
+        return combine(
                 db.artDao().favorites,
                 db.campDao().favorites,
                 db.eventDao().getNonExpiredFavorites(now),
@@ -446,11 +444,11 @@ class DataProvider private constructor(private val context: Context, private val
         }
     }
 
-    fun getUserPoi(): Flowable<List<UserPoiWithUserData>> {
+    fun getUserPoi(): Flow<List<UserPoiWithUserData>> {
         return db.userPoiDao().getAll()
     }
 
-    fun getUserPoiByPlayaId(playaId: String): Flowable<UserPoiWithUserData> {
+    fun getUserPoiByPlayaId(playaId: String): Flow<UserPoiWithUserData> {
         return db.userPoiDao().findByPlayaId(playaId)
     }
 
@@ -516,29 +514,31 @@ class DataProvider private constructor(private val context: Context, private val
 
         //    private ArrayDeque<BriteDatabase.Transaction> transactionStack = new ArrayDeque<>();
 
-        fun getInstance(context: Context): Observable<DataProvider> {
-
-            // TODO : This ain't thread safe
-
-            if (provider != null) return Observable.just(provider!!).subscribeOn(Schedulers.io())
-
+        fun getInstance(context: Context): DataProvider {
+            if (provider != null) return provider!!
             val prefs = PrefsHelper(context)
-
-            return Observable.just(getSharedDb(context))
-                    .subscribeOn(Schedulers.io())
-                    .doOnNext { database ->
-                        prefs.setBaseResourcesVersion(RESOURCES_VERSION)
-                    }
-                    .map { sqlBrite -> DataProvider(context, sqlBrite) }
-                    .doOnNext { dataProvider -> provider = dataProvider }
+            val db = getSharedDb(context)
+            prefs.setBaseResourcesVersion(RESOURCES_VERSION)
+            val dp = DataProvider(context, db)
+            provider = dp
+            return dp
         }
 
-        fun getNewInstance(context: Context, name: String): Observable<DataProvider> {
-            val prefs = PrefsHelper(context)
-            return Observable.fromCallable { newDatabase(context, name) }
-                .subscribeOn(Schedulers.io())
-                .map { db -> DataProvider(context, db) }
+        fun getNewInstance(context: Context, name: String): DataProvider {
+            val db = newDatabase(context, name)
+            return DataProvider(context, db)
         }
+
+        // Java-friendly blocking helpers for common lookups
+    }
+
+    // Blocking helpers for Java callers
+    fun getCampByIdBlocking(id: Int): CampWithUserData = runBlocking { observeCampById(id).first() }
+    fun getArtByIdBlocking(id: Int): ArtWithUserData = runBlocking { observeArtById(id).first() }
+    fun getEventByIdBlocking(id: Int): EventWithUserData = runBlocking { observeEventById(id) }
+    fun getCampByPlayaIdBlocking(playaId: String): CampWithUserData = runBlocking { observeCampByPlayaId(playaId).first() }
+    fun getArtByPlayaIdBlocking(playaId: String): ArtWithUserData = runBlocking { observeArtByPlayaId(playaId).first() }
+    fun getEventByPlayaIdBlocking(playaId: String): EventWithUserData = runBlocking { observeEventByPlayaId(playaId) }
 
         /**
          * Add wildcards to the beginning and end of a query term
@@ -566,4 +566,3 @@ class DataProvider private constructor(private val context: Context, private val
 
     data class SectionedPlayaItems(val data: List<PlayaItemWithUserData>,
                                    val ranges: List<IntRange>)
-}

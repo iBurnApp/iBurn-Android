@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import io.reactivex.Flowable
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Created by dbro on 6/8/17.
@@ -18,13 +18,13 @@ interface ArtDao {
             " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
             " ORDER BY " + PlayaItem.NAME
     )
-    val all: Flowable<List<ArtWithUserData>>
+    val all: Flow<List<ArtWithUserData>>
     @get:Query(
         "SELECT a.*, 1 AS " + UserData.FAVORITE +
             " FROM " + Art.TABLE_NAME + " a INNER JOIN " + Favorite.TABLE_NAME +
             " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID
     )
-    val favorites: Flowable<List<ArtWithUserData>>
+    val favorites: Flow<List<ArtWithUserData>>
 
     @Query(
         "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -33,7 +33,7 @@ interface ArtDao {
             " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
             " WHERE a." + PlayaItem.NAME + " LIKE :name"
     )
-    fun findByName(name: String?): Flowable<List<ArtWithUserData>>
+    fun findByName(name: String?): Flow<List<ArtWithUserData>>
 
     @Query(
         "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -44,7 +44,7 @@ interface ArtDao {
             " ON a." + PlayaItem.ID + " = " + ArtFts.TABLE_NAME + ".rowid" +
             " WHERE " + ArtFts.TABLE_NAME + " MATCH :query"
     )
-    fun searchFts(query: String?): Flowable<List<ArtWithUserData>>
+    fun searchFts(query: String?): Flow<List<ArtWithUserData>>
 
     @Query(
         "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -59,7 +59,7 @@ interface ArtDao {
         minLat: Float,
         maxLon: Float,
         minLon: Float
-    ): Flowable<List<ArtWithUserData>>
+    ): Flow<List<ArtWithUserData>>
 
     @Query(
         "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -75,7 +75,7 @@ interface ArtDao {
         minLat: Float,
         maxLon: Float,
         minLon: Float
-    ): Flowable<List<ArtWithUserData>>
+    ): Flow<List<ArtWithUserData>>
 
     //    @Query("SELECT * FROM " + TABLE_NAME + " WHERE " + AUDIO_TOUR_URL + " IS NOT NULL")
     //    Flowable<List<Art>> getAllWithAudioTour();
@@ -92,7 +92,7 @@ interface ArtDao {
             " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
             " WHERE a." + PlayaItem.PLAYA_ID + " = :playaId"
     )
-    fun findByPlayaId(playaId: String): Flowable<ArtWithUserData>
+    fun findByPlayaId(playaId: String): Flow<ArtWithUserData>
 
     @Query(
         "SELECT a.*, CASE WHEN f." + Favorite.PLAYA_ID +
@@ -101,5 +101,5 @@ interface ArtDao {
             " f ON a." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
             " WHERE a." + PlayaItem.ID + " = :id"
     )
-    fun findById(id: Int): Flowable<ArtWithUserData>
+    fun findById(id: Int): Flow<ArtWithUserData>
 }

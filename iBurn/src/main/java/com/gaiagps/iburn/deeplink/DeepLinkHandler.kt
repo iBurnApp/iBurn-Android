@@ -9,9 +9,12 @@ import com.gaiagps.iburn.database.DataProvider
 import com.gaiagps.iburn.database.MapPin
 import com.gaiagps.iburn.database.PlayaItem
 import com.gaiagps.iburn.database.getSharedDb
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.*
 
@@ -37,7 +40,7 @@ class DeepLinkHandler(
         const val EXTRA_LONGITUDE = "longitude"
     }
     
-    private val disposables = CompositeDisposable()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     
     fun canHandle(uri: Uri): Boolean {
         return when (uri.scheme) {
@@ -115,43 +118,44 @@ class DeepLinkHandler(
         metadata: Map<String, String>,
         callback: (Intent?) -> Unit
     ) {
-        val disposable = when (type) {
-            PATH_ART -> dataProvider.observeArtByPlayaId(playaId)
-                .take(1)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-            PATH_CAMP -> dataProvider.observeCampByPlayaId(playaId)
-                .take(1)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-            PATH_EVENT -> dataProvider.observeEventByPlayaId(playaId)
-                .toFlowable()
-                .take(1)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-            else -> null
-        }
-        
-        if (disposable != null) {
-            disposables.add(
-                disposable.subscribe(
-                    { playaItem ->
-                        if (playaItem != null) {
-                            val intent = IntentUtil.getViewItemDetailIntent(host, playaItem.item as PlayaItem)
-                            callback(intent)
-                        } else {
-                            Timber.w("Object not found: $type/$playaId")
-                            callback(null)
-                        }
-                    },
-                    { error ->
-                        Timber.e(error, "Error loading deep link object: $type/$playaId")
+        when (type) {
+            PATH_ART -> scope.launch(Dispatchers.IO) {
+                val item = dataProvider.observeArtByPlayaId(playaId).firstOrNull()
+                launch(Dispatchers.Main) {
+                    if (item != null) {
+                        val intent = IntentUtil.getViewItemDetailIntent(host, item.item as PlayaItem)
+                        callback(intent)
+                    } else {
+                        Timber.w("Object not found: $type/$playaId")
                         callback(null)
                     }
-                )
-            )
-        } else {
-            callback(null)
+                }
+            }
+            PATH_CAMP -> scope.launch(Dispatchers.IO) {
+                val item = dataProvider.observeCampByPlayaId(playaId).firstOrNull()
+                launch(Dispatchers.Main) {
+                    if (item != null) {
+                        val intent = IntentUtil.getViewItemDetailIntent(host, item.item as PlayaItem)
+                        callback(intent)
+                    } else {
+                        Timber.w("Object not found: $type/$playaId")
+                        callback(null)
+                    }
+                }
+            }
+            PATH_EVENT -> scope.launch(Dispatchers.IO) {
+                try {
+                    val item = dataProvider.observeEventByPlayaId(playaId)
+                    launch(Dispatchers.Main) {
+                        val intent = IntentUtil.getViewItemDetailIntent(host, item.item as PlayaItem)
+                        callback(intent)
+                    }
+                } catch (t: Throwable) {
+                    Timber.e(t, "Error loading deep link object: $type/$playaId")
+                    launch(Dispatchers.Main) { callback(null) }
+                }
+            }
+            else -> callback(null)
         }
     }
     
@@ -187,12 +191,10 @@ class DeepLinkHandler(
         
         // Save pin to database
         val db = getSharedDb(context)
-        val disposable = db.mapPinDao().insert(pin)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                {
-                    // Create intent to show map centered on pin
+        scope.launch(Dispatchers.IO) {
+            try {
+                db.mapPinDao().insertSuspend(pin)
+                launch(Dispatchers.Main) {
                     val intent = Intent(ACTION_SHOW_MAP_PIN).apply {
                         putExtra(EXTRA_PIN_ID, pin.uid)
                         putExtra(EXTRA_PIN_TITLE, pin.title)
@@ -200,14 +202,12 @@ class DeepLinkHandler(
                         putExtra(EXTRA_LONGITUDE, lng)
                     }
                     callback(intent)
-                },
-                { error ->
-                    Timber.e(error, "Error saving map pin")
-                    callback(null)
                 }
-            )
-        
-        disposables.add(disposable)
+            } catch (e: Exception) {
+                Timber.e(e, "Error saving map pin")
+                launch(Dispatchers.Main) { callback(null) }
+            }
+        }
     }
     
     private fun isValidBRCCoordinate(lat: Double, lng: Double): Boolean {
@@ -216,6 +216,6 @@ class DeepLinkHandler(
     }
     
     fun dispose() {
-        disposables.clear()
+        scope.cancel()
     }
 }

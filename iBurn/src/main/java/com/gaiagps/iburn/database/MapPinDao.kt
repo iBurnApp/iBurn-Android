@@ -1,34 +1,32 @@
 package com.gaiagps.iburn.database
 
 import androidx.room.*
-import io.reactivex.Completable
-import io.reactivex.Flowable
-import io.reactivex.Single
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MapPinDao {
     
     @Query("SELECT * FROM ${MapPin.TABLE_NAME} ORDER BY ${MapPin.CREATED_AT} DESC")
-    fun getAllPins(): Flowable<List<MapPin>>
+    fun getAllPins(): Flow<List<MapPin>>
     
     @Query("SELECT * FROM ${MapPin.TABLE_NAME} WHERE ${MapPin.UID} = :uid")
-    fun getByUid(uid: String): Single<MapPin>
+    suspend fun getByUid(uid: String): MapPin
     
     @Query("SELECT * FROM ${MapPin.TABLE_NAME} WHERE ${MapPin.ID} = :id")
-    fun getById(id: Int): Single<MapPin>
+    suspend fun getById(id: Int): MapPin
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(pin: MapPin): Completable
+    suspend fun insertSuspend(pin: MapPin)
     
     @Update
-    fun update(pin: MapPin): Completable
+    suspend fun updateSuspend(pin: MapPin)
     
     @Delete
-    fun delete(pin: MapPin): Completable
+    suspend fun deleteSuspend(pin: MapPin)
     
     @Query("DELETE FROM ${MapPin.TABLE_NAME} WHERE ${MapPin.UID} = :uid")
-    fun deleteByUid(uid: String): Completable
+    suspend fun deleteByUidSuspend(uid: String)
     
     @Query("DELETE FROM ${MapPin.TABLE_NAME}")
-    fun deleteAll(): Completable
+    suspend fun deleteAllSuspend()
 }

@@ -14,8 +14,8 @@ import android.widget.ImageButton
 import android.widget.TextSwitcher
 import android.widget.TextView
 import com.gaiagps.iburn.R
-import io.reactivex.Flowable
-import io.reactivex.android.schedulers.AndroidSchedulers
+import android.os.Handler
+import android.os.Looper
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
@@ -80,37 +80,38 @@ public class BottomTickerView(val viewParent: ViewGroup,
         alphaAnimator.duration = 1000
         alphaAnimator.addUpdateListener { valueAnimator -> embargoBanner.alpha = valueAnimator.animatedValue as Float }
 
-        val tickerDisposable = Flowable.interval(1, TimeUnit.SECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { numSecs ->
-                    val messageIdx = (numSecs / tickerMessageDisplayTimeS).toInt() % tickerMessages.size
-                    if (debugLog) {
-                        Timber.d("Embargo counter %d messageIdx %d", numSecs, messageIdx)
-                    }
-                    if (numSecs == 0L) {
-                        callback?.onShown()
-                        alphaAnimator.start()
-                        tickerContentText.setText(tickerMessages[messageIdx])
-                    } else if (numSecs % tickerMessageDisplayTimeS == 0L) {
-                        tickerContentText.setText(tickerMessages[messageIdx])
-                    }
+        val handler = Handler(Looper.getMainLooper())
+        var numSecs = 0L
+        val tick = object : Runnable {
+            override fun run() {
+                val messageIdx = (numSecs / tickerMessageDisplayTimeS).toInt() % tickerMessages.size
+                if (debugLog) Timber.d("Embargo counter %d messageIdx %d", numSecs, messageIdx)
+                if (numSecs == 0L) {
+                    callback?.onShown()
+                    alphaAnimator.start()
+                    tickerContentText.setText(tickerMessages[messageIdx])
+                } else if (numSecs % tickerMessageDisplayTimeS == 0L) {
+                    tickerContentText.setText(tickerMessages[messageIdx])
                 }
+                numSecs++
+                handler.postDelayed(this, TimeUnit.SECONDS.toMillis(1))
+            }
+        }
+        handler.post(tick)
 
         // Allow clicking anywhere on banner to enter unlock code
         embargoBanner.setOnClickListener { view ->  enterUnlockCodeBtn.performClick() }
         enterUnlockCodeBtn.setOnClickListener { view ->
             remove()
             callback?.onEnterUnlockCodeRequested()
-            tickerDisposable.dispose()
+            handler.removeCallbacksAndMessages(null)
         }
 
         //Auto - dismiss banner
-        Flowable.timer(tickerDisplayTimeS.toLong(), TimeUnit.SECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { counter ->
-                    remove()
-                    tickerDisposable.dispose()
-                }
+        Handler(Looper.getMainLooper()).postDelayed({
+            remove()
+            handler.removeCallbacksAndMessages(null)
+        }, TimeUnit.SECONDS.toMillis(tickerDisplayTimeS.toLong()))
 
 
     }

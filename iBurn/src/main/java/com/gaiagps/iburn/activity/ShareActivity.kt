@@ -24,7 +24,10 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import com.journeyapps.barcodescanner.BarcodeEncoder
-import io.reactivex.android.schedulers.AndroidSchedulers
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class ShareActivity : AppCompatActivity() {
@@ -60,7 +63,7 @@ class ShareActivity : AppCompatActivity() {
     private lateinit var binding: ActivityShareBinding
     private var shareUrl: Uri? = null
     private var itemName: String? = null
-    private var playaItemDisposable: io.reactivex.disposables.Disposable? = null
+    private var cancelled = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,42 +102,26 @@ class ShareActivity : AppCompatActivity() {
             finish()
             return
         }
-        DataProvider.getInstance(applicationContext)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ provider ->
-                playaItemDisposable = when (type) {
-                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_CAMP -> provider.observeCampByPlayaId(
-                        playaId
-                    )
-                        .take(1)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({ itemWithUserData: CampWithUserData ->
-                            onPlayaItemLoaded(itemWithUserData.item)
-                        }, { throwable -> finishWithError(throwable) })
-
-                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ART -> provider.observeArtByPlayaId(
-                        playaId
-                    )
-                        .take(1)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({ itemWithUserData: ArtWithUserData ->
-                            onPlayaItemLoaded(itemWithUserData.item)
-                        }, { throwable -> finishWithError(throwable) })
-
-                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_EVENT -> provider.observeEventByPlayaId(
-                        playaId
-                    )
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({ itemWithUserData: EventWithUserData ->
-                            onPlayaItemLoaded(itemWithUserData.item)
-                        }, { throwable -> finishWithError(throwable) })
-
-                    else -> {
-                        finishWithError(IllegalArgumentException("Unknown PlayaItem type $type"))
-                        null
+        val provider = DataProvider.getInstance(applicationContext)
+        lifecycleScope.launch(Dispatchers.Main) {
+            try {
+                when (type) {
+                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_CAMP -> {
+                        val itemWithUserData: CampWithUserData = provider.observeCampByPlayaId(playaId).first()
+                        onPlayaItemLoaded(itemWithUserData.item)
                     }
+                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ART -> {
+                        val itemWithUserData: ArtWithUserData = provider.observeArtByPlayaId(playaId).first()
+                        onPlayaItemLoaded(itemWithUserData.item)
+                    }
+                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_EVENT -> {
+                        val itemWithUserData: EventWithUserData = provider.observeEventByPlayaId(playaId)
+                        onPlayaItemLoaded(itemWithUserData.item)
+                    }
+                    else -> finishWithError(IllegalArgumentException("Unknown PlayaItem type $type"))
                 }
-            }, { throwable -> finishWithError(throwable) })
+            } catch (t: Throwable) { finishWithError(t) }
+        }
     }
 
     private fun onPlayaItemLoaded(item: PlayaItem) {
@@ -242,7 +229,7 @@ class ShareActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        playaItemDisposable?.let { if (!it.isDisposed) it.dispose() }
+        cancelled = true
         super.onDestroy()
     }
 }

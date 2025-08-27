@@ -40,11 +40,14 @@ import com.gaiagps.iburn.database.UserPoi
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
 import com.google.android.gms.location.LocationRequest
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.subjects.PublishSubject
+import com.google.android.gms.location.Priority
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collect
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.exceptions.InvalidLatLngBoundsException
@@ -143,20 +146,31 @@ class MapboxMapFragment : Fragment() {
     private val markerStore = HashMap<Long, MapMarker>()
     private val annotationsSourceId = "app-annotations-source"
     private val annotationsLayerId = "app-annotations-layer"
-    private val cameraUpdate = PublishSubject.create<VisibleRegion>()
-    private var cameraUpdateSubscription: Disposable? = null
+    private val cameraUpdate = MutableSharedFlow<VisibleRegion>(replay = 0, extraBufferCapacity = 64)
+    private var cameraUpdateJob: Job? = null
 
-    private var locationSubscription: Disposable? = null
+    private var locationJob: Job? = null
     private var currentLocation: Location? = null
 
     /**
-     * Showcase a point on the map using a generic pin
+     * Showcase a playaitem on the map
      */
-    fun showcaseLatLng(context: Context, latLng: LatLng) {
-        // We ask for an external context because we want this method to be callable
-        // before this fragment is resumed (e.g: shortly after construction)
-        // TODO : Refactor to include showcase marker in Bundle on construction
-        showcaseMarker(latLng)
+    fun showcaseItem(item: PlayaItem) {
+        // Prepare showcase state and add the appropriate marker icon for this item
+        state = State.SHOWCASE
+
+        // Prefer official coordinates; fall back to unofficial if needed
+        val target = when {
+            item.hasLocation() -> item.latLng
+            item.hasUnofficialLocation() -> item.unofficialLatLng
+            else -> null
+        }
+
+        // Add a marker for this item using its appropriate icon, if we have a target
+        if (target != null) {
+            addNewMarkerForItem(item)
+            showcaseMarker(target)
+        }
     }
 
     /**
@@ -168,7 +182,7 @@ class MapboxMapFragment : Fragment() {
         if (isResumed) {
             _showcaseMarker(marker)
         }
-        locationSubscription?.dispose()
+        locationJob?.cancel()
     }
 
     private fun hasLocationPermission(): Boolean {
@@ -182,10 +196,6 @@ class MapboxMapFragment : Fragment() {
         Timber.d("_showcaseMarker")
         mapMarkerAndFitEntireCity(marker)
         map?.locationComponent?.cameraMode = CameraMode.NONE
-
-        if (hasLocationPermission()) {
-            map?.locationComponent?.isLocationComponentEnabled = false
-        }
         addressLabel?.visibility = View.INVISIBLE
         userPoiButton?.visibility = View.INVISIBLE
     }
@@ -199,19 +209,18 @@ class MapboxMapFragment : Fragment() {
                 )
             )
 
-            Observable.timer(1, TimeUnit.SECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { ignored ->
-                    Timber.d("Animating camera")
-                    map.animateCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                            LatLng(
-                                Geo.MAN_LAT,
-                                Geo.MAN_LON
-                            ), defaultZoom
-                        ), 3 * 1000
-                    )
-                }
+            viewLifecycleOwner.lifecycleScope.launch {
+                delay(1000)
+                Timber.d("Animating camera")
+                map.animateCamera(
+                    CameraUpdateFactory.newLatLngZoom(
+                        LatLng(
+                            Geo.MAN_LAT,
+                            Geo.MAN_LON
+                        ), defaultZoom
+                    ), 3 * 1000
+                )
+            }
         }
     }
 
@@ -676,11 +685,10 @@ class MapboxMapFragment : Fragment() {
 
                 if (state != State.SHOWCASE) {
                     Timber.d("Easing camera in")
-                    Single.timer(800, TimeUnit.MILLISECONDS)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe { it ->
-                            map.easeCamera(CameraUpdateFactory.zoomBy(initZoomAmount), 500)
-                        }
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        delay(800)
+                        map.easeCamera(CameraUpdateFactory.zoomBy(initZoomAmount), 500)
+                    }
                 }
 
                 map.uiSettings.setAllGesturesEnabled(state != State.SHOWCASE)
@@ -690,7 +698,7 @@ class MapboxMapFragment : Fragment() {
                         Timber.d("Clearing transient markers on zoom change")
                         clearMap(false)
                     } else {
-                        cameraUpdate.onNext(map.projection.visibleRegion)
+                        cameraUpdate.tryEmit(map.projection.visibleRegion)
                     }
                 }
 
@@ -713,63 +721,60 @@ class MapboxMapFragment : Fragment() {
     }
 
     private fun setupLocationSub() {
-        val locationRequest = LocationRequest.create()
-            .setPriority(LocationRequest.PRIORITY_NO_POWER)
-            .setInterval(5000)
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5_000L)
+            .setMinUpdateIntervalMillis(2_000L)
+            .build()
 
         val context = requireActivity().applicationContext
-        locationSubscription?.dispose()
-        locationSubscription = LocationProvider.observeCurrentLocation(context, locationRequest)
-            .doOnNext { loc -> currentLocation = loc }
-            .observeOn(ioScheduler)
-            .flatMap { location ->
-                Geocoder.reverseGeocode(
-                    context,
-                    location.latitude.toFloat(),
-                    location.longitude.toFloat()
-                )
-                    .toObservable()
+        locationJob?.cancel()
+        locationJob = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+            try {
+                LocationProvider.currentLocationFlow(context, locationRequest)
+                    .collect { location ->
+                        currentLocation = location
+                        val address = com.gaiagps.iburn.js.Geocoder.reverseGeocode(
+                            context,
+                            location.latitude.toFloat(),
+                            location.longitude.toFloat()
+                        )
+                        addressLabel?.visibility = View.VISIBLE
+                        addressLabel?.text = address
+                    }
+            } catch (t: Throwable) {
+                Timber.e(t, "Failed to get device location")
             }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ address ->
-                addressLabel?.visibility = View.VISIBLE
-                addressLabel?.text = address
-            }, { error -> Timber.e(error, "Failed to get device location") })
+        }
     }
 
     private fun setupCameraUpdateSub(map: MapLibreMap) {
         val prefsHelper = PrefsHelper(requireActivity().applicationContext)
         Timber.d("Subscribing to camera updates")
-        cameraUpdateSubscription?.dispose()
-        cameraUpdateSubscription = cameraUpdate
-            .debounce(250, TimeUnit.MILLISECONDS)
-            .flatMap { visibleRegion ->
-                DataProvider.getInstance(requireActivity().applicationContext)
-                    .map { provider -> Pair(provider, visibleRegion) }
-            }
-            .flatMap { (provider, visibleRegion) ->
-
-                val embargoActive = Embargo.isAnyEmbargoActive(prefsHelper)
-                val queryAllItems = (state != State.SHOWCASE) && (!embargoActive)
-
-                if (queryAllItems) {
-                    val zoom = map.cameraPosition.zoom
-                    return@flatMap if (shouldShowPoisAtZoom(zoom)) {
-                        Timber.d("Map query for all items + art in-region at zoom %f", zoom)
-                        provider.observeAllMapItemsInVisibleRegion(visibleRegion).firstElement().toObservable()
-                    } else {
-                        Timber.d("Map query for all items (no art) at zoom %f", zoom)
-                        provider.observeUserAddedMapItemsOnly().firstElement().toObservable()
+        cameraUpdateJob?.cancel()
+        cameraUpdateJob = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+            cameraUpdate
+                .debounce(250)
+                .collect { visibleRegion ->
+                    val provider = DataProvider.getInstance(requireActivity().applicationContext)
+                    val embargoActive = Embargo.isAnyEmbargoActive(prefsHelper)
+                    val queryAllItems = (state != State.SHOWCASE) && (!embargoActive)
+                    val items = withContext(Dispatchers.IO) {
+                        if (queryAllItems) {
+                            val zoom = map.cameraPosition.zoom
+                            if (shouldShowPoisAtZoom(zoom)) {
+                                Timber.d("Map query for all items + art in-region at zoom %f", zoom)
+                                provider.observeAllMapItemsInVisibleRegion(visibleRegion).first()
+                            } else {
+                                Timber.d("Map query for all items (no art) at zoom %f", zoom)
+                                provider.observeUserAddedMapItemsOnly().first()
+                            }
+                        } else {
+                            Timber.d("Map query for user items at zoom %f", map.cameraPosition.zoom)
+                            provider.getUserPoi().first()
+                        }
                     }
-                } else {
-                    Timber.d("Map query for user items at zoom %f", map.cameraPosition.zoom)
-                    (provider.getUserPoi()).firstElement().toObservable()
+                    processMapItemResult(items)
                 }
-            }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { items: List<PlayaItemWithUserData> ->
-                processMapItemResult(items)
-            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -823,8 +828,8 @@ class MapboxMapFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         mapView?.onStop()
-        locationSubscription?.dispose()
-        cameraUpdateSubscription?.dispose()
+        locationJob?.cancel()
+        cameraUpdateJob?.cancel()
         Geocoder.close()
     }
 
@@ -838,7 +843,7 @@ class MapboxMapFragment : Fragment() {
         mapView?.onDestroy()
         styleRef = null
         markerStore.clear()
-        cameraUpdateSubscription?.dispose()
+        cameraUpdateJob?.cancel()
     }
 
     fun getMapAsync(onMapReadyCallback: OnMapReadyCallback) {
@@ -978,7 +983,12 @@ class MapboxMapFragment : Fragment() {
 
 
     private fun addNewMarkerForItem(item: PlayaItem): MapMarker {
-        val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
+        // Prefer official coordinates; fall back to unofficial if official is missing
+        val pos = when {
+            item.hasLocation() -> LatLng(item.latitude.toDouble(), item.longitude.toDouble())
+            item.hasUnofficialLocation() -> item.unofficialLatLng
+            else -> LatLng(0.0, 0.0)
+        }
         val icon = when (item) {
             is UserPoi -> item.icon
             is Art -> iconArt
@@ -1161,13 +1171,12 @@ class MapboxMapFragment : Fragment() {
                                 mapView?.let { mapView ->
                                     mapView.removeView(markerPlaceView)
                                     marker.latLng = markerLatLng
-                                    DataProvider.getInstance(requireActivity().applicationContext)
-                                        .observeOn(ioScheduler)
-                                        .subscribe { provider ->
-                                            userPoi.latitude = markerLatLng.latitude.toFloat()
-                                            userPoi.longitude = markerLatLng.longitude.toFloat()
-                                            provider.update(userPoi)
-                                        }
+                                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                                        val provider = DataProvider.getInstance(requireActivity().applicationContext)
+                                        userPoi.latitude = markerLatLng.latitude.toFloat()
+                                        userPoi.longitude = markerLatLng.longitude.toFloat()
+                                        provider.update(userPoi)
+                                    }
                                     refreshAnnotationSource()
                                 }
                             }
@@ -1258,23 +1267,16 @@ class MapboxMapFragment : Fragment() {
         userPoi.playaId = userPoiPlayaId
 
         try {
-            DataProvider.getInstance(requireActivity().applicationContext)
-                .observeOn(ioScheduler)
-                .flatMap { dataProvider ->
-                    dataProvider.insertUserPoi(userPoi)
-                    dataProvider.getUserPoiByPlayaId(userPoiPlayaId).toObservable()
-                }
-                .firstElement() // Inserting can cause the get query to refresh
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { userPoiWithUserData ->
-                    val userPoi = userPoiWithUserData.item
-                    Timber.d("After inserting, userPoi has id ${userPoi.id}")
-                    // Make sure UserPoi is added to mappedItems before being inserted as this will
-                    // trigger a map items update
-                    mappedItems.add(userPoi)
-                    mappedCustomMarkerIds[symbol.id] = userPoi
-                    callback?.invoke(symbol)
-                }
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                val provider = withContext(Dispatchers.IO) { DataProvider.getInstance(requireActivity().applicationContext) }
+                withContext(Dispatchers.IO) { provider.insertUserPoi(userPoi) }
+                val userPoiWithUserData = withContext(Dispatchers.IO) { provider.getUserPoiByPlayaId(userPoiPlayaId).first() }
+                val inserted = userPoiWithUserData.item
+                Timber.d("After inserting, userPoi has id ${inserted.id}")
+                mappedItems.add(inserted)
+                mappedCustomMarkerIds[symbol.id] = inserted
+                callback?.invoke(symbol)
+            }
         } catch (e: NumberFormatException) {
             Timber.w("Unable to get id for new custom marker")
         }
@@ -1285,10 +1287,11 @@ class MapboxMapFragment : Fragment() {
         refreshAnnotationSource()
         val userPoi = mappedCustomMarkerIds[marker.id]
         userPoi?.let { userPoi ->
-            DataProvider.getInstance(requireActivity().applicationContext)
-                .observeOn(ioScheduler)
-                .map { provider -> provider.deleteUserPoi(userPoi) }
-                .subscribe { _ -> Timber.d("Deleted marker") }
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                val provider = DataProvider.getInstance(requireActivity().applicationContext)
+                provider.deleteUserPoi(userPoi)
+                Timber.d("Deleted marker")
+            }
         }
     }
 
@@ -1306,10 +1309,11 @@ class MapboxMapFragment : Fragment() {
             userPoi.latitude = symbol.latLng.latitude.toFloat()
             userPoi.longitude = symbol.latLng.longitude.toFloat()
 
-            DataProvider.getInstance(requireActivity().applicationContext)
-                .observeOn(ioScheduler)
-                .map { dataProvider -> dataProvider.update(userPoi) }
-                .subscribe { _ -> Timber.d("Updated marker") }
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                val provider = DataProvider.getInstance(requireActivity().applicationContext)
+                provider.update(userPoi)
+                Timber.d("Updated marker")
+            }
             refreshAnnotationSource()
         }
     }

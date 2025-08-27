@@ -104,7 +104,7 @@ const val MAPBOX_API_KEY = "YOUR_MAPBOX_KEY"
 
 - The app uses a mix of Java and Kotlin
 - Room database with FTS (Full Text Search) support
-- RxJava for reactive programming patterns
+- Kotlin Flow for reactive programming patterns
 - Mapbox for offline map rendering
 - View binding is enabled for safer view references
 - Mock build variant simulates on-playa conditions for testing

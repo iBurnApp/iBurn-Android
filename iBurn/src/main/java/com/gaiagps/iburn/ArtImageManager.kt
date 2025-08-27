@@ -4,7 +4,8 @@ import android.content.Context
 import android.widget.ImageView
 import com.gaiagps.iburn.database.Art
 import com.squareup.picasso.Picasso
-import io.reactivex.android.schedulers.AndroidSchedulers
+import android.os.Handler
+import android.os.Looper
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -136,7 +137,7 @@ private fun cacheArtImageFile(context: Context, art: Art, callback: Callback) {
 }
 
 private fun postResult(callback: Callback, succcess: Boolean = true) {
-    AndroidSchedulers.mainThread().scheduleDirect {
+    Handler(Looper.getMainLooper()).post {
         if (succcess) callback.onSuccess() else callback.onError()
     }
 }

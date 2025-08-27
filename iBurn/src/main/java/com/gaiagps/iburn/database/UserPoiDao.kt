@@ -5,7 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import io.reactivex.Flowable
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Created by dbro on 6/12/17.
@@ -19,7 +19,7 @@ interface UserPoiDao {
                 "LEFT JOIN ${Favorite.TABLE_NAME} f " +
                 "ON u.${PlayaItem.PLAYA_ID} = f.${Favorite.PLAYA_ID}"
     )
-    fun getAll(): Flowable<List<UserPoiWithUserData>>
+    fun getAll(): Flow<List<UserPoiWithUserData>>
 
     @Query(
         "SELECT u.*, " +
@@ -29,7 +29,7 @@ interface UserPoiDao {
                 "ON u.${PlayaItem.PLAYA_ID} = f.${Favorite.PLAYA_ID} " +
                 "WHERE u.${PlayaItem.NAME} LIKE :name"
     )
-    fun findByName(name: String?): Flowable<List<UserPoiWithUserData>>
+    fun findByName(name: String?): Flow<List<UserPoiWithUserData>>
 
     @Query(
         "SELECT u.*, " +
@@ -39,7 +39,7 @@ interface UserPoiDao {
                 "ON u.${PlayaItem.PLAYA_ID} = f.${Favorite.PLAYA_ID} " +
                 "WHERE u.${PlayaItem.PLAYA_ID} LIKE :playaId"
     )
-    fun findByPlayaId(playaId: String?): Flowable<UserPoiWithUserData>
+    fun findByPlayaId(playaId: String?): Flow<UserPoiWithUserData>
 
     @Insert
     fun insert(vararg poi: UserPoi?)

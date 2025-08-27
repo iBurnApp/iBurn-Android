@@ -24,8 +24,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import io.reactivex.Observable;
-import io.reactivex.schedulers.Schedulers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;

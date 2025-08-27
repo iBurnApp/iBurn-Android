@@ -31,7 +31,12 @@ import com.gaiagps.iburn.database.ArtWithUserData
 import com.gaiagps.iburn.database.DataProvider
 import com.gaiagps.iburn.getAssetPathFromAssetUri
 import com.gaiagps.iburn.isAssetUri
-import io.reactivex.android.schedulers.AndroidSchedulers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 
 
 const val ExtraArtPlayaId = "ArtPlayaId"
@@ -90,6 +95,7 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
     }
 
     private var currentAlbumArtUri: Uri? = null
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
 //    private var stateBuilder: PlaybackStateCompat.Builder? = null
 
@@ -167,74 +173,73 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
             .build()
         mediaSession.setMetadata(minimalMeta)
 
-        DataProvider.getInstance(applicationContext).subscribe {
-            it.observeArtByPlayaId(artPlayaId).observeOn(AndroidSchedulers.mainThread())
-                .firstElement()
-                .subscribe { art ->
-                // Always stop playback to ensure MediaPlayer is in correct state
-                stopPlayback()
+        val provider = DataProvider.getInstance(applicationContext)
+        // Launch on main to keep subsequent UI work on main thread
+        serviceScope.launch(Dispatchers.Main) {
+            val artWithUserData = provider.observeArtByPlayaId(artPlayaId).first()
+            // Always stop playback to ensure MediaPlayer is in correct state
+            stopPlayback()
 
-                val extras = intent.extras
-                val art = (art as ArtWithUserData).item
-                val albumArtUri = Uri.parse(extras!!.getString(ExtraAlbumArtUri))
-                val mediaUri = Uri.parse(extras!!.getString(ExtraLocalMediaUri))
+            val extras = intent.extras
+            val art = (artWithUserData as ArtWithUserData).item
+            val albumArtUri = Uri.parse(extras!!.getString(ExtraAlbumArtUri))
+            val mediaUri = Uri.parse(extras!!.getString(ExtraLocalMediaUri))
 
-                currentAlbumArtUri = albumArtUri
-                currentArt = art
+            currentAlbumArtUri = albumArtUri
+            currentArt = art
 
-                Timber.d("Attempting to play audio $mediaUri for ${art.name}")
+            Timber.d("Attempting to play audio $mediaUri for ${art.name}")
 
-                // Attach Art to this Media Session's Metadata so clients can identify the item
-                val metaBuilder = MediaMetadataCompat.Builder()
-                    .putString(MediaMetadataKeyArtPlayaId, art.playaId)
-                    // Populate common fields for broader compatibility
-                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, art.playaId)
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, art.name)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, art.artist)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, albumArtUri.toString())
-                mediaSession.setMetadata(metaBuilder.build())
+            // Attach Art to this Media Session's Metadata so clients can identify the item
+            val metaBuilder = MediaMetadataCompat.Builder()
+                .putString(MediaMetadataKeyArtPlayaId, art.playaId)
+                // Populate common fields for broader compatibility
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, art.playaId)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, art.name)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, art.artist)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, albumArtUri.toString())
+            mediaSession.setMetadata(metaBuilder.build())
 
-                val notification = createNotificationBuilder(
-                    art = art,
-                    albumArtUri = albumArtUri,
-                    isPlaying = true)
+            val notification = createNotificationBuilder(
+                art = art,
+                albumArtUri = albumArtUri,
+                isPlaying = true)
 
-                mediaPlayer.setOnPreparedListener(this)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Timber.d("Using Android O AudioAttributes")
-                    // Use AudioAttributes
-                    val audioAttribs = AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                    mediaPlayer.setAudioAttributes(audioAttribs.build())
+            mediaPlayer.setOnPreparedListener(this@AudioPlayerService)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Timber.d("Using Android O AudioAttributes")
+                // Use AudioAttributes
+                val audioAttribs = AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                mediaPlayer.setAudioAttributes(audioAttribs.build())
 
-                } else {
-                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
-                }
-
-                if (isAssetUri(mediaUri)) {
-                    val assetPath = getAssetPathFromAssetUri(mediaUri)
-                    val assetDescriptor = assets.openFd(assetPath)
-                    Timber.d("Playing audio from asset $assetPath")
-                    mediaPlayer.setDataSource(assetDescriptor.fileDescriptor, assetDescriptor.startOffset, assetDescriptor.length)
-                    assetDescriptor.close()
-                } else {
-                    mediaPlayer.setDataSource(applicationContext, mediaUri)
-                }
-                // TODO : Catch and attempt recover from IllegalStateException
-                mediaPlayer.prepareAsync()
-                mediaPlayer.setOnCompletionListener {
-                    Timber.d("Playback complete. Stopping foreground service2")
-                    stopPlayback()
-                    stopForeground(true)
-                    cancelNotification()
-                    stopSelf()
-                    mediaSession.setMetadata(null)
-                }
-                // MediaPlayer readiness reported to [onPrepared]
-
-                startForeground(NotificationId, notification.build())
+            } else {
+                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
             }
+
+            if (isAssetUri(mediaUri)) {
+                val assetPath = getAssetPathFromAssetUri(mediaUri)
+                val assetDescriptor = assets.openFd(assetPath)
+                Timber.d("Playing audio from asset $assetPath")
+                mediaPlayer.setDataSource(assetDescriptor.fileDescriptor, assetDescriptor.startOffset, assetDescriptor.length)
+                assetDescriptor.close()
+            } else {
+                mediaPlayer.setDataSource(applicationContext, mediaUri)
+            }
+            // TODO : Catch and attempt recover from IllegalStateException
+            mediaPlayer.prepareAsync()
+            mediaPlayer.setOnCompletionListener {
+                Timber.d("Playback complete. Stopping foreground service2")
+                stopPlayback()
+                stopForeground(true)
+                cancelNotification()
+                stopSelf()
+                mediaSession.setMetadata(null)
+            }
+            // MediaPlayer readiness reported to [onPrepared]
+
+            startForeground(NotificationId, notification.build())
         }
         return START_NOT_STICKY
     }
@@ -312,6 +317,7 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
     override fun onDestroy() {
         Timber.d("onDestroy")
         super.onDestroy()
+        serviceScope.cancel()
         mediaPlayer.release()
     }
 

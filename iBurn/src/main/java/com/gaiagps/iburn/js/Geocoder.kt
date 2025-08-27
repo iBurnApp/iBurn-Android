@@ -3,8 +3,9 @@ package com.gaiagps.iburn.js
 import android.content.Context
 import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.V8Array
-import io.reactivex.Single
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.withContext
 import org.maplibre.android.geometry.LatLng
 import timber.log.Timber
 import java.util.concurrent.Executors
@@ -17,10 +18,8 @@ import java.util.concurrent.Executors
  * Use a single threaded executor to prevent spinning up multiple instances of the JS engine,
  * which is very expensive
  */
-private val jsScheduler =
-        Schedulers.from(
-                Executors.newSingleThreadExecutor()
-        )
+private val jsExecutor = Executors.newSingleThreadExecutor()
+private val jsDispatcher: CoroutineDispatcher = jsExecutor.asCoroutineDispatcher()
 
 object Geocoder {
 
@@ -28,70 +27,48 @@ object Geocoder {
     private var v8: V8? = null
     private var jsContent: String? = null
 
-    fun reverseGeocode(context: Context, lat: Float, lon: Float): Single<String> {
-
-        return Single.just(true)
-                .observeOn(jsScheduler)
-                .map { ignored ->
-
-                    init(context)
-
-                    Timber.d("Reverse geocoding... $lat / $lon")
-                    // Call into the JavaScript object to decode a string.
-                    try {
-                        val playaAddress = v8?.executeStringScript("coder.reverse($lat, $lon)")
-                        Timber.d("Reverse geocode result %s", playaAddress)
-
-                        playaAddress ?: "?"
-                    } catch (e: Exception) {
-                        Timber.e(e, "Geocoder exception: $e")
-                        "?"
-                    }
-                }
-
+    suspend fun reverseGeocode(context: Context, lat: Float, lon: Float): String = withContext(jsDispatcher) {
+        init(context)
+        Timber.d("Reverse geocoding... $lat / $lon")
+        try {
+            val playaAddress = v8?.executeStringScript("coder.reverse($lat, $lon)")
+            Timber.d("Reverse geocode result %s", playaAddress)
+            playaAddress ?: "?"
+        } catch (e: Exception) {
+            Timber.e(e, "Geocoder exception: $e")
+            "?"
+        }
     }
 
-    fun forwardGeocode(context: Context, playaAddress: String): Single<LatLng> {
-        return Single.just(true)
-                .observeOn(jsScheduler)
-                .map { ignored ->
-
-                    init(context)
-
-                    val result = LatLng()
-//                    Timber.d("Forward geocoding '$playaAddress'...")
-                    if (playaAddress.length < 8) {
-                        Timber.w("Invalid playa address $playaAddress, not geocoding")
-                    } else {
-                        // Call into the JavaScript object to decode a string.
-                        try {
-                            val latLon = v8?.executeObjectScript("coder.forward(\"$playaAddress\")")
-//                            Timber.d("Forward geocode result %s", latLon)
-
-                            latLon?.let {
-                                if (it.toString() == "undefined") {
-                                    Timber.w("Undefined result for $playaAddress")
-                                    return@let
-                                }
-                                val rawCoords = it.getObject("geometry").getObject("coordinates")
-                                if (rawCoords is V8Array) {
-                                    var item: V8Array = rawCoords
-                                    while (item.type != 2 /* double */) {
-                                        item = item.getArray(0)
-                                    }
-                                    val coords = item.getDoubles(0, 2)
-//                                    Timber.d("Got coords! ${coords[0]}, ${coords[1]}")
-                                    result.latitude = coords[1]
-                                    result.longitude = coords[0]
-                                }
+    suspend fun forwardGeocode(context: Context, playaAddress: String): LatLng = withContext(jsDispatcher) {
+        init(context)
+        val result = LatLng()
+        if (playaAddress.length < 8) {
+            Timber.w("Invalid playa address $playaAddress, not geocoding")
+        } else {
+            try {
+                val latLon = v8?.executeObjectScript("coder.forward(\\\"$playaAddress\\\")")
+                latLon?.let {
+                    if (it.toString() != "undefined") {
+                        val rawCoords = it.getObject("geometry").getObject("coordinates")
+                        if (rawCoords is V8Array) {
+                            var item: V8Array = rawCoords
+                            while (item.type != 2 /* double */) {
+                                item = item.getArray(0)
                             }
-                        } catch (e: Exception) {
-                            Timber.w("Geocoder exception: $e")
+                            val coords = item.getDoubles(0, 2)
+                            result.latitude = coords[1]
+                            result.longitude = coords[0]
                         }
+                    } else {
+                        Timber.w("Undefined result for $playaAddress")
                     }
-                    result
                 }
-            .onErrorReturnItem(LatLng(0.0, 0.0))
+            } catch (e: Exception) {
+                Timber.w("Geocoder exception: $e")
+            }
+        }
+        result
     }
 
     private fun init(context: Context) {
@@ -116,7 +93,7 @@ object Geocoder {
 
     fun close() {
         Timber.d("Closing")
-        jsScheduler.scheduleDirect {
+        jsExecutor.execute {
             v8?.release()
             v8 = null
         }
