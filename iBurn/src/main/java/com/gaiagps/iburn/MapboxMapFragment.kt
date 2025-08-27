@@ -153,13 +153,24 @@ class MapboxMapFragment : Fragment() {
     private var currentLocation: Location? = null
 
     /**
-     * Showcase a point on the map using a generic pin
+     * Showcase a playaitem on the map
      */
-    fun showcaseLatLng(context: Context, latLng: LatLng) {
-        // We ask for an external context because we want this method to be callable
-        // before this fragment is resumed (e.g: shortly after construction)
-        // TODO : Refactor to include showcase marker in Bundle on construction
-        showcaseMarker(latLng)
+    fun showcaseItem(item: PlayaItem) {
+        // Prepare showcase state and add the appropriate marker icon for this item
+        state = State.SHOWCASE
+
+        // Prefer official coordinates; fall back to unofficial if needed
+        val target = when {
+            item.hasLocation() -> item.latLng
+            item.hasUnofficialLocation() -> item.unofficialLatLng
+            else -> null
+        }
+
+        // Add a marker for this item using its appropriate icon, if we have a target
+        if (target != null) {
+            addNewMarkerForItem(item)
+            showcaseMarker(target)
+        }
     }
 
     /**
@@ -185,10 +196,6 @@ class MapboxMapFragment : Fragment() {
         Timber.d("_showcaseMarker")
         mapMarkerAndFitEntireCity(marker)
         map?.locationComponent?.cameraMode = CameraMode.NONE
-
-        if (hasLocationPermission()) {
-            map?.locationComponent?.isLocationComponentEnabled = false
-        }
         addressLabel?.visibility = View.INVISIBLE
         userPoiButton?.visibility = View.INVISIBLE
     }
@@ -976,7 +983,12 @@ class MapboxMapFragment : Fragment() {
 
 
     private fun addNewMarkerForItem(item: PlayaItem): MapMarker {
-        val pos = LatLng(item.latitude.toDouble(), item.longitude.toDouble())
+        // Prefer official coordinates; fall back to unofficial if official is missing
+        val pos = when {
+            item.hasLocation() -> LatLng(item.latitude.toDouble(), item.longitude.toDouble())
+            item.hasUnofficialLocation() -> item.unofficialLatLng
+            else -> LatLng(0.0, 0.0)
+        }
         val icon = when (item) {
             is UserPoi -> item.icon
             is Art -> iconArt

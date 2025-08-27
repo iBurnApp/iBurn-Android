@@ -494,7 +494,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
                 Timber.d("adding / centering marker on %f, %f", location.latitude, location.longitude)
 
                 val mapFragment = MapboxMapFragment()
-                mapFragment.showcaseLatLng(applicationContext, location)
+                mapFragment.showcaseItem(item)
                 supportFragmentManager.beginTransaction().add(R.id.map_container, mapFragment).commit()
             }
         } else if (item is Art && item.hasImage()) {
