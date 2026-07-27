@@ -44,6 +44,7 @@ object LocationProvider {
     private const val MAX_MOCK_LON = -119.1851
     private const val MIN_MOCK_LON = -119.2210
 
+    @SuppressLint("MissingPermission")
     fun getLastLocationFlow(context: Context): Flow<Location> {
         init(context)
         return if (BuildConfig.MOCK) {

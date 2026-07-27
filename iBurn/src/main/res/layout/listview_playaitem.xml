@@ -69,6 +69,7 @@
         android:paddingTop="0dp"
         android:singleLine="true"
         android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="@id/title"
         app:layout_constraintTop_toBottomOf="@id/title"
         tools:text="Joe Artist" />
 
@@ -86,6 +87,7 @@
         android:text="Audio Tour Available"
         android:textSize="18sp"
         android:visibility="gone"
+        app:layout_constraintStart_toStartOf="@id/title"
         app:layout_constraintTop_toBottomOf="@id/artist" />
 
     <TextView

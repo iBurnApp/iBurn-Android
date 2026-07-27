@@ -11,60 +11,77 @@ Got iOS? You'll love [iBurn for iOS](https://github.com/Burning-Man-Earth/iBurn-
 * Make sure your Android SDK packages are up to date.
 * `$ git clone https://github.com/Burning-Man-Earth/iBurn-Android --recursive`
 * `$ cd ./iBurn-Android`
-* `$ touch ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.kt && open ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.kt`
-* Copy the following into `SECRETS.kt`:
-
-    ```java
-    package com.gaiagps.iburn
-
-    const val UNLOCK_CODE = "WHATEVER_PASSWORD"
-    const val IBURN_API_URL = "https://SOME_API"
-    const val MAPBOX_API_KEY = "YOUR_MAPBOX_KEY"
-    ```
-* Copy the following into `./iBurn/fabric.properties`:
-
-    apiKey=yourFabricApiKey
-
 * `$ ./gradlew assembleDebug` or from Android Studio invoke 'Import Project' and select the `./iBurn-Android` directory.
 
-**Note**: Camp, Art and Event location data (`camps.json`, `art.json`, `events.json`) are embargoed by the Burning Man Organization until the gates open each year. Sorry!
+Optional local values can be supplied in untracked `~/.gradle/gradle.properties`:
+
+```properties
+iburnUnlockCode=staff-code
+iburnApiUrl=https://example.invalid/
+mapboxApiKey=optional-token
+```
+
+CI uses the equivalent `IBURN_UNLOCK_CODE`, `IBURN_API_URL`, and
+`MAPBOX_API_KEY` environment variables. Values are compiled into the selected
+artifact but are never written to generated source or logs.
+
+**Note**: Camp, Art and Event location data are embargoed by the Burning Man
+Organization until the gates open each year.
 
 Fortunately, you can still run and test the app with the previous year's data.
 
 ## Annual Update
 
-#### Update code and text resources
+1. Review upstream event dates and create `annual/<year>.json`. Version codes
+   must increase, first releases use `<year>.1`, and all timestamps must carry
+   the correct `America/Los_Angeles` offset.
+2. Check out the exact `iBurn-Data` commit. The selected `data/<year>` tree must
+   be clean; automation never fetches or moves it.
+3. Run:
 
-* Update event year as `versionYear` `iBurn/build.gradle`
-* Update `versionCode` and `versionName` in `iBurn/build.gradle`
-    * Increment `versionCode` by 1, and set `versionName` to "$versionYear.1" for first release.
-* Update event dates in `EventInfo.kt` (Event start, end, and embargo dates)
-* Update `UNLOCK_CODE` in SECRETS.kt
+   ```shell
+   ./gradlew :iBurn:annualUpdate \
+     -PannualConfig=annual/<year>.json \
+     -PdataRevision=<full-40-character-commit>
 
+   ./gradlew :iBurn:verifyAnnualUpdate \
+     -PannualConfig=annual/<year>.json \
+     -PdataRevision=<full-40-character-commit>
+   ```
 
-#### Update playa data
+The update uses clean `Sync` outputs, generates the SQLite database on the
+host, derives map/database cache identities from content, and writes the
+manifest and verification report under `build/reports/annual-update/`.
+Embargoed JSON, images, audio, and databases remain ignored and must be handled
+only as restricted artifacts.
 
-1. Run `./gradlew updateData`. This will update the iBurn-Data submodule, copy updated map, geocoder, art images, art audio tour, and api json (camp, art, event) files to this repo.
-3. If the map.mbtiles were updated, bump `MapboxMapFragment.MBTILES_VERSION`
-4. Update the `databaseName` property in `iBurn/build.gradle` by bumping the version number. This will trigger a copy of the playa api database tables on next app run.
-5. Connect an Android device with developer mode enabled and run `./gradlew :iBurn:bootstrapDatabase` to install the debug build, trigger
-   database generation, and copy the resulting file to
-   `iBurn/src/main/assets/databases/$databaseName`.
+To prove idempotence, rerun `annualUpdate` with `--rerun-tasks`; the SHA-256 of
+`annual-manifest.json` must remain unchanged.
 
-#### Art Images/Audio Tour
+The manual GitHub Actions workflow accepts a year and exact data revision. Run
+it first in report-only mode. PR creation is an explicit input and stages only
+the allowed configuration, submodule pointer, map, and geocoder outputs.
 
-The `./gradlew updateData` will copy art images and tour audio from the iBurn-Data repo to `./assets/art_images` and `./assets/audio_tour` respectively.
+### Recovery
+
+- A revision mismatch means the checked-out data does not match the asserted
+  commit; select the intended revision and rerun.
+- A source-contract or integrity failure must be fixed upstream rather than
+  bypassed.
+- Roll back by selecting the prior annual config and data revision, then run
+  the same commands.
+- Production signing and Play Store publication remain separate, explicit
+  maintainer actions.
 
 ## TODO
 
-* updateData gradle task should delete old files before copying new ones (mainly important for the first copy of a new year)
 * Pretty up that item detail view.
 * Investigate Mapbox offline and SIGABRT issues. Seems like it's possible Mapbox gets into a state where it stops displaying the map
 
 ## Releasing
 Make sure you've:
-* Set event dates correctly in `EventInfo.kt`
-* Incremented the version code and name in ./iBurn/build.grade
+* Verified event dates in the selected iBurn-Data `dates_info.json`
+* Set the version code and name in `annual/<year>.json`
 The final pre-signed store release should be built with:
 
 ```

@@ -25,7 +25,7 @@ private const val USE_BUNDLED_DB = true
 // Database file name in app's /data partition
 // This database is often derived from the bundled database in assets but to avoid confusion with the
 // bundled database and to avoid storing multiple versions of the bundled database in /data, we use a fixed name.
-private const val APP_DATABASE_NAME = "playaDatabase2025.1.db"
+private const val APP_DATABASE_NAME = "playaDatabase.db"
 
 private const val DATABASE_V1 = 1
 // Add event artPlayaId and MapPin for pin deep links
@@ -82,17 +82,13 @@ fun copyDatabaseFromAssets(context: Context, assetPath: String, destinationDbNam
 
     Timber.d("Copied bundled db to temp file ${tmpAssetDb.absolutePath} with size ${tmpAssetDb.length()}")
 
-    if (!dbFile.exists()) {
-        Timber.d("Copying bundled db $tmpAssetDb to $dbPath")
-        tmpAssetDb.copyTo(dbFile, overwrite = true)
-    } else {
-        Timber.d("Updating db $dbPath from bundled assets")
-        updateDatabaseTablesFromSource(
-            sourceDbPath = tmpAssetDb.absolutePath,
-            destDbPath = dbPath,
-            tables = READONLY_TABLES
-        )
-    }
+    check(dbFile.exists()) { "Destination Room database must exist before importing bundled tables" }
+    Timber.d("Updating db $dbPath from bundled assets")
+    updateDatabaseTablesFromSource(
+        sourceDbPath = tmpAssetDb.absolutePath,
+        destDbPath = dbPath,
+        tables = READONLY_TABLES
+    )
 
     tmpAssetDb.delete()
 }
@@ -103,8 +99,20 @@ fun updateDatabaseTablesFromSource(sourceDbPath: String, destDbPath: String, tab
     try {
         db.beginTransaction()
         tables.forEach { table ->
+            fun columns(pragma: String): List<String> = db.rawQuery(pragma, null).use { cursor ->
+                val nameIndex = cursor.getColumnIndexOrThrow("name")
+                buildList {
+                    while (cursor.moveToNext()) add(cursor.getString(nameIndex))
+                }
+            }
+            val destinationColumns = columns("PRAGMA table_info(`$table`)")
+            val sourceColumns = columns("PRAGMA newdb.table_info(`$table`)")
+            check(destinationColumns == sourceColumns) {
+                "Bundled $table schema mismatch. destination=$destinationColumns source=$sourceColumns"
+            }
+            val columnList = destinationColumns.joinToString(",") { "`$it`" }
             db.execSQL("DELETE FROM $table")
-            db.execSQL("INSERT INTO $table SELECT * FROM newdb.$table")
+            db.execSQL("INSERT INTO $table ($columnList) SELECT $columnList FROM newdb.$table")
         }
         db.setTransactionSuccessful()
     } finally {
@@ -127,18 +135,13 @@ fun getSharedDb(context: Context): AppDatabase {
 }
 
 fun buildDatabase(context: Context, name: String, copyBundled: Boolean): AppDatabase {
-    val builder = androidx.room.Room.databaseBuilder(
-        context,
-        AppDatabase::class.java, name
-    )
-        .addMigrations(MIGRATION_1_2)
-
     if (copyBundled) {
         val prefs = PrefsHelper(context)
         if (prefs.ingestedDatabaseName != BuildConfig.BUNDLED_DATABASE_NAME) {
             Timber.d("Updating from bundled db. '${prefs.ingestedDatabaseName}' (Last ingested version) -> '${BuildConfig.BUNDLED_DATABASE_NAME}' (Bundled version)")
-            // Always copy from the current bundled DB asset, but write to a fixed on-device name
-            // to avoid multiple copies in /data as the bundled DB version changes.
+            // Create/upgrade the complete Room schema first. The host-generated
+            // bundle contains only the read-only tables imported below.
+            newRoomDatabase(context, name).also { it.openHelper.writableDatabase }
             copyDatabaseFromAssets(
                 context,
                 assetPath = "databases/${BuildConfig.BUNDLED_DATABASE_NAME}",
@@ -147,8 +150,13 @@ fun buildDatabase(context: Context, name: String, copyBundled: Boolean): AppData
             prefs.ingestedDatabaseName = BuildConfig.BUNDLED_DATABASE_NAME;
         }
     }
-    return builder.build()
+    return newRoomDatabase(context, name)
 }
+
+private fun newRoomDatabase(context: Context, name: String): AppDatabase =
+    androidx.room.Room.databaseBuilder(context, AppDatabase::class.java, name)
+        .addMigrations(MIGRATION_1_2)
+        .build()
 
 fun newDatabase(context: Context, name: String): AppDatabase {
     return buildDatabase(context, name, false)

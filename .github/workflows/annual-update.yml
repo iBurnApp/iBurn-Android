@@ -1,0 +1,216 @@
+name: Annual update
+
+on:
+  workflow_dispatch:
+    inputs:
+      year:
+        description: Annual configuration year
+        required: true
+        type: number
+      data_revision:
+        description: Full iBurn-Data commit id
+        required: true
+        type: string
+      version_name:
+        description: Optional assertion matching annual/<year>.json
+        required: false
+        type: string
+      create_pr:
+        description: Create or update annual-update/<year>
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: annual-update-${{ inputs.year }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Restricted annual update
+    runs-on: ubuntu-24.04
+    environment: annual-update
+    timeout-minutes: 60
+    env:
+      ANNUAL_YEAR: ${{ inputs.year }}
+      ANNUAL_CONFIG: annual/${{ inputs.year }}.json
+      DATA_REVISION: ${{ inputs.data_revision }}
+      VERSION_ASSERTION: ${{ inputs.version_name }}
+      IBURN_DATA_REMOTE: ${{ secrets.IBURN_DATA_REMOTE }}
+      IBURN_UNLOCK_CODE: ${{ secrets.IBURN_UNLOCK_CODE }}
+      IBURN_API_URL: ${{ secrets.IBURN_API_URL }}
+      MAPBOX_API_KEY: ${{ secrets.MAPBOX_API_KEY }}
+
+    steps:
+      - name: Check out Android repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Validate inputs and check out exact private data revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$DATA_REVISION" =~ ^[0-9a-f]{40}$ ]]
+          test -f "$ANNUAL_CONFIG"
+          test -n "$IBURN_DATA_REMOTE"
+          test "$(jq -r .year "$ANNUAL_CONFIG")" = "$ANNUAL_YEAR"
+          if test -n "$VERSION_ASSERTION"; then
+            test "$(jq -r .versionName "$ANNUAL_CONFIG")" = "$VERSION_ASSERTION"
+          fi
+
+          git clone --no-checkout "$IBURN_DATA_REMOTE" .annual-data
+          git -C .annual-data fetch --no-tags origin \
+            "+refs/heads/*:refs/remotes/annual-data/*"
+          reachable=false
+          while read -r ref; do
+            if git -C .annual-data merge-base --is-ancestor "$DATA_REVISION" "$ref"; then
+              reachable=true
+              break
+            fi
+          done < <(git -C .annual-data for-each-ref \
+            --format='%(refname)' refs/remotes/annual-data)
+          test "$reachable" = true
+          git -C .annual-data checkout --detach "$DATA_REVISION"
+
+          if test -d iBurn-Data; then
+            rmdir iBurn-Data
+          fi
+          mv .annual-data iBurn-Data
+
+      - name: Validate restricted staff configuration
+        run: ./gradlew :iBurn:validateAnnualSecret -PannualConfig="$ANNUAL_CONFIG"
+
+      - name: Generate and verify annual update
+        run: |
+          ./gradlew :iBurn:annualUpdate \
+            -PannualConfig="$ANNUAL_CONFIG" \
+            -PdataRevision="$DATA_REVISION"
+          first_manifest="$(sha256sum build/reports/annual-update/annual-manifest.json)"
+          ./gradlew :iBurn:annualUpdate --rerun-tasks \
+            -PannualConfig="$ANNUAL_CONFIG" \
+            -PdataRevision="$DATA_REVISION"
+          second_manifest="$(sha256sum build/reports/annual-update/annual-manifest.json)"
+          test "$first_manifest" = "$second_manifest"
+          ./gradlew :iBurn:verifyAnnualUpdate \
+            -PannualConfig="$ANNUAL_CONFIG" \
+            -PdataRevision="$DATA_REVISION"
+
+      - name: Upload restricted verification artifacts
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: annual-update-${{ inputs.year }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            build/reports/annual-update/annual-manifest.json
+            build/reports/annual-update/verification-report.json
+            iBurn/src/main/assets/databases/*.db
+            iBurn/build/outputs/apk/regular/debug/*.apk
+
+      - name: Prepare non-restricted pull request inputs
+        if: ${{ inputs.create_pr }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          handoff=build/reports/annual-update/pr-handoff
+          mkdir -p "$handoff"
+          git diff --binary -- \
+            "$ANNUAL_CONFIG" \
+            iBurn-Data \
+            iBurn/src/main/assets/js \
+            iBurn/src/main/assets/map \
+            > "$handoff/changes.patch"
+          jq '{
+            year,
+            versionName,
+            sourceRecords,
+            databaseRows: (.database.rowCounts | to_entries | map(.value) | add),
+            status
+          }' build/reports/annual-update/verification-report.json \
+            > "$handoff/summary.json"
+
+      - name: Upload pull request handoff
+        if: ${{ inputs.create_pr }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: annual-update-pr-${{ inputs.year }}
+          if-no-files-found: error
+          retention-days: 1
+          path: build/reports/annual-update/pr-handoff/
+
+  pull_request:
+    name: Publish annual update pull request
+    needs: validate
+    if: ${{ inputs.create_pr }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      ANNUAL_YEAR: ${{ inputs.year }}
+      DATA_REVISION: ${{ inputs.data_revision }}
+
+    steps:
+      - name: Check out Android repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - name: Download non-restricted pull request inputs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: annual-update-pr-${{ inputs.year }}
+          path: build/reports/annual-update/pr-handoff
+
+      - name: Create or update annual update pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch="annual-update/$ANNUAL_YEAR"
+          handoff=build/reports/annual-update/pr-handoff
+          summary="$handoff/summary.json"
+          git checkout -B "$branch"
+          git apply --index "$handoff/changes.patch"
+          git diff --cached --quiet && exit 0
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -m "Automate $ANNUAL_YEAR annual update"
+          git push --force-with-lease origin "$branch"
+
+          body=build/reports/annual-update/pull-request.md
+          printf '%s\n' \
+            "## Annual update $ANNUAL_YEAR" \
+            "" \
+            "- Data revision: \`$DATA_REVISION\`" \
+            "- Version: \`$(jq -r .versionName "$summary")\`" \
+            "- Art: $(jq -r .sourceRecords.art "$summary")" \
+            "- Camps: $(jq -r .sourceRecords.camps "$summary")" \
+            "- Events: $(jq -r .sourceRecords.events "$summary")" \
+            "- Database rows: $(jq -r .databaseRows "$summary")" \
+            "- Verification: $(jq -r .status "$summary")" \
+            "" \
+            "Restricted JSON, media, database, and APK outputs are workflow artifacts and are not included in this PR." \
+            > "$body"
+
+          if gh pr view "$branch" >/dev/null 2>&1; then
+            gh pr edit "$branch" --title "Annual update $ANNUAL_YEAR" --body-file "$body"
+          else
+            gh pr create --draft --base "${{ github.event.repository.default_branch }}" \
+              --head "$branch" --title "Annual update $ANNUAL_YEAR" --body-file "$body"
+          fi
