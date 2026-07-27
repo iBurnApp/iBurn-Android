@@ -36,6 +36,18 @@ if (annualConfigFiles.isEmpty()) {
 }
 def annualConfigFile = annualConfigFiles.last()
 def annualConfig = new JsonSlurper().parse(annualConfigFile)
+def releaseSigningPropertyNames = [
+        'storeFile', 'storePassword', 'keyAlias', 'keyPassword'
+]
+def configuredReleaseSigningProperties = releaseSigningPropertyNames.findAll {
+    project.hasProperty(it)
+}
+def hasReleaseSigningConfig =
+        configuredReleaseSigningProperties.size() == releaseSigningPropertyNames.size()
+if (!configuredReleaseSigningProperties.isEmpty() && !hasReleaseSigningConfig) {
+    def missing = releaseSigningPropertyNames - configuredReleaseSigningProperties
+    throw new GradleException("Incomplete release signing configuration; missing ${missing}")
+}
 def expectedAnnualKeys = [
         'year', 'versionCode', 'versionName', 'artEmbargo',
         'campEventEmbargo', 'mockNow'
@@ -249,6 +261,15 @@ android {
         unitTests.includeAndroidResources = true
     }
     namespace 'com.gaiagps.iburn'
+}
+
+// A full local build should not require production signing credentials. When
+// they are unavailable, keep the explicit unsigned variants and omit only the
+// signed release variants.
+androidComponents {
+    beforeVariants(selector().withBuildType('release')) { variantBuilder ->
+        variantBuilder.enable = hasReleaseSigningConfig
+    }
 }
 
 // Read Signing key from gradle.properties located in project root

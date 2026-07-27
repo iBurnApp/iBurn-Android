@@ -131,6 +131,7 @@ open class PlayaItemAdapter(
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
         val item = items?.get(position)
+        val isLastItem = position == items?.lastIndex
 
         item?.let { itemWithUserData ->
             val item = itemWithUserData.item
@@ -251,7 +252,7 @@ open class PlayaItemAdapter(
                 }
             })
 
-            if (position == items?.lastIndex) {
+            if (isLastItem) {
                 // Set footer padding
                 holder.itemView.setPadding(normalPaddingBottom,
                         normalPaddingBottom,

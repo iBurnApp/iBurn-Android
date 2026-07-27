@@ -1,5 +1,7 @@
 package com.gaiagps.iburn.database;
 
+import android.annotation.SuppressLint;
+
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.annotation.StringDef;
@@ -14,6 +16,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
  */
 
 @Entity(tableName = TABLE_NAME)
+@SuppressLint("ParcelCreator")
 public class UserPoi extends PlayaItem {
     public static final String TABLE_NAME = "user_pois";
 

@@ -141,9 +141,7 @@ fun buildDatabase(context: Context, name: String, copyBundled: Boolean): AppData
             Timber.d("Updating from bundled db. '${prefs.ingestedDatabaseName}' (Last ingested version) -> '${BuildConfig.BUNDLED_DATABASE_NAME}' (Bundled version)")
             // Create/upgrade the complete Room schema first. The host-generated
             // bundle contains only the read-only tables imported below.
-            newRoomDatabase(context, name).use { database ->
-                database.openHelper.writableDatabase
-            }
+            newRoomDatabase(context, name).also { it.openHelper.writableDatabase }
             copyDatabaseFromAssets(
                 context,
                 assetPath = "databases/${BuildConfig.BUNDLED_DATABASE_NAME}",

@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.service
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -368,15 +369,19 @@ class AudioPlayerService : MediaBrowserServiceCompat(), MediaPlayer.OnPreparedLi
         AudioPlayerService.isPlaying = isPlaying
     }
 
+    // Media-session notifications are exempt from the Android 13 notification
+    // permission behavior, and playback establishes this via startForeground.
+    @SuppressLint("NotificationPermission")
     private fun updateNotification() {
         currentArt?.let { art ->
             val notification = createNotificationBuilder(art, currentAlbumArtUri, isPlaying)
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.notify(NotificationId, notification.build())
 
             if (isPlaying) {
                 startForeground(NotificationId, notification.build())
             } else {
+                val notificationManager =
+                        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.notify(NotificationId, notification.build())
                 stopForeground(false)
             }
         }
