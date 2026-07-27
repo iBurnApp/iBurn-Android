@@ -4,10 +4,26 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from generate_playa_database import build_database, populate_missing_coordinates
+from generate_playa_database import (
+    build_database,
+    deduplicate_records,
+    populate_missing_coordinates,
+)
 
 
 class GeneratePlayaDatabaseTest(unittest.TestCase):
+    def test_deduplicates_identical_records_and_rejects_conflicts(self):
+        record = {"uid": "same", "name": "Same"}
+        self.assertEqual(
+            [record],
+            deduplicate_records([record, dict(record)], "fixture.json"),
+        )
+        with self.assertRaisesRegex(ValueError, "conflicting records"):
+            deduplicate_records(
+                [record, {"uid": "same", "name": "Different"}],
+                "fixture.json",
+            )
+
     def test_fills_missing_coordinates_with_bundled_geocoder(self):
         with tempfile.TemporaryDirectory() as directory:
             geocoder = Path(directory) / "bundle.js"

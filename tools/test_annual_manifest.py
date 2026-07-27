@@ -16,6 +16,18 @@ class AnnualManifestTest(unittest.TestCase):
             "totalBytes": 11,
             "sha256": "40a6f22031032d2cf3331f871328e64d9ac3049643fcc5ad29567cd9b5f05efe",
             "extensions": {".json": 1, ".txt": 1},
+            "files": [
+                {
+                    "path": "a.txt",
+                    "size": 6,
+                    "sha256": "5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03",
+                },
+                {
+                    "path": "nested/b.json",
+                    "size": 5,
+                    "sha256": "e6d4186a938579ceed4ed5b2fccd42a32448dcda6b0ddbcfd49fc70177bbe9ae",
+                },
+            ],
         }
 
         self.assertEqual(expected, inventory(FIXTURE_ROOT / "map"))
@@ -24,7 +36,8 @@ class AnnualManifestTest(unittest.TestCase):
     def test_manifest_includes_empty_or_missing_asset_groups(self):
         manifest = build_manifest(FIXTURE_ROOT, 2025, "abc123")
 
-        self.assertEqual(1, manifest["schemaVersion"])
+        self.assertEqual(2, manifest["schemaVersion"])
+        self.assertEqual(1, manifest["toolVersion"])
         self.assertEqual(2025, manifest["year"])
         self.assertEqual("abc123", manifest["dataRevision"])
         self.assertEqual(set(ASSET_GROUPS), set(manifest["assetGroups"]))

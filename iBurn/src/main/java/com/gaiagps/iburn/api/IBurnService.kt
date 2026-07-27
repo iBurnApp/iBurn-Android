@@ -5,7 +5,7 @@ import android.content.Context
 import androidx.annotation.NonNull
 import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.PrefsHelper
-import com.gaiagps.iburn.IBURN_API_URL
+import com.gaiagps.iburn.BuildConfig
 import com.gaiagps.iburn.adapters.AdapterUtils
 import com.gaiagps.iburn.api.response.EventOccurrence
 import com.gaiagps.iburn.api.response.PlayaItem as ApiPlayaItem
@@ -41,7 +41,7 @@ class IBurnService(@NonNull context: Context) {
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(IBURN_API_URL)
+            .baseUrl(BuildConfig.IBURN_API_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
@@ -120,7 +120,7 @@ class IBurnService(@NonNull context: Context) {
 
     private suspend fun updateArt(provider: DataProvider): Long {
         Timber.d("Updating art")
-        val items = api.getArt()
+        val items = api.getArt().distinctBy { it.uid }
         return updateTable(provider, items, Art.TABLE_NAME) { item, values, database ->
             val art = item as com.gaiagps.iburn.api.response.Art
             values.put(Art.ARTIST, art.artist)
@@ -134,7 +134,7 @@ class IBurnService(@NonNull context: Context) {
 
     private suspend fun updateCamps(provider: DataProvider): Long {
         Timber.d("Updating Camps")
-        val items = api.getCamps()
+        val items = api.getCamps().distinctBy { it.uid }
         return updateTable(provider, items, Camp.TABLE_NAME) { item, values, database ->
             values.put(Camp.HOMETOWN, (item as com.gaiagps.iburn.api.response.Camp).hometown)
             database.insert(values)
@@ -143,7 +143,7 @@ class IBurnService(@NonNull context: Context) {
 
     private suspend fun updateEvents(provider: DataProvider): Long {
         Timber.d("Updating Events")
-        val items = api.getEvents()
+        val items = api.getEvents().distinctBy { it.uid }
         return updateTable(provider, items, Event.TABLE_NAME) { item, values, database ->
             val event = item as com.gaiagps.iburn.api.response.Event
             if (event.occurrenceSet == null) return@updateTable

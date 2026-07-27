@@ -12,7 +12,8 @@ from pathlib import Path
 from typing import Iterable
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+TOOL_VERSION = 1
 ASSET_GROUPS = {
     "geocoder": "js",
     "map": "map",
@@ -39,6 +40,7 @@ def inventory(root: Path) -> dict[str, object]:
     count = 0
     total_bytes = 0
 
+    files = []
     for path in _files(root):
         relative_path = path.relative_to(root).as_posix()
         content = path.read_bytes()
@@ -56,18 +58,30 @@ def inventory(root: Path) -> dict[str, object]:
         suffixes[path.suffix.lower() or "<none>"] += 1
         count += 1
         total_bytes += size
+        files.append({
+            "path": relative_path,
+            "size": size,
+            "sha256": file_hash,
+        })
 
     return {
         "fileCount": count,
         "totalBytes": total_bytes,
         "sha256": digest.hexdigest(),
         "extensions": dict(sorted(suffixes.items())),
+        "files": files,
     }
 
 
-def build_manifest(assets_root: Path, year: int, data_revision: str) -> dict[str, object]:
-    return {
+def build_manifest(
+    assets_root: Path,
+    year: int,
+    data_revision: str,
+    annual_config: Path | None = None,
+) -> dict[str, object]:
+    manifest = {
         "schemaVersion": SCHEMA_VERSION,
+        "toolVersion": TOOL_VERSION,
         "year": year,
         "dataRevision": data_revision,
         "assetGroups": {
@@ -75,6 +89,11 @@ def build_manifest(assets_root: Path, year: int, data_revision: str) -> dict[str
             for name, relative_path in ASSET_GROUPS.items()
         },
     }
+    if annual_config:
+        manifest["annualConfigSha256"] = hashlib.sha256(
+            annual_config.read_bytes()
+        ).hexdigest()
+    return manifest
 
 
 def resolve_data_revision(repo_root: Path) -> str:
@@ -93,6 +112,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--assets-root", type=Path)
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--data-revision")
+    parser.add_argument("--annual-config", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
 
@@ -102,7 +122,9 @@ def main() -> None:
     repo_root = args.repo_root.resolve()
     assets_root = (args.assets_root or repo_root / "iBurn/src/main/assets").resolve()
     revision = args.data_revision or resolve_data_revision(repo_root)
-    manifest = build_manifest(assets_root, args.year, revision)
+    manifest = build_manifest(
+        assets_root, args.year, revision, args.annual_config
+    )
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(

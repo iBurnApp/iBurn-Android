@@ -11,57 +11,67 @@ Got iOS? You'll love [iBurn for iOS](https://github.com/Burning-Man-Earth/iBurn-
 * Make sure your Android SDK packages are up to date.
 * `$ git clone https://github.com/Burning-Man-Earth/iBurn-Android --recursive`
 * `$ cd ./iBurn-Android`
-* `$ touch ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.kt && open ./iBurn/src/main/java/com/gaiagps/iburn/SECRETS.kt`
-* Copy the following into `SECRETS.kt`:
-
-    ```java
-    package com.gaiagps.iburn
-
-    const val UNLOCK_CODE = "WHATEVER_PASSWORD"
-    const val IBURN_API_URL = "https://SOME_API"
-    const val MAPBOX_API_KEY = "YOUR_MAPBOX_KEY"
-    ```
-* Copy the following into `./iBurn/fabric.properties`:
-
-    apiKey=yourFabricApiKey
-
 * `$ ./gradlew assembleDebug` or from Android Studio invoke 'Import Project' and select the `./iBurn-Android` directory.
 
-**Note**: Camp, Art and Event location data (`camps.json`, `art.json`, `events.json`) are embargoed by the Burning Man Organization until the gates open each year. Sorry!
+Optional local values can be supplied in untracked `~/.gradle/gradle.properties`:
+
+```properties
+iburnUnlockCode=staff-code
+iburnApiUrl=https://example.invalid/
+mapboxApiKey=optional-token
+```
+
+CI uses the equivalent `IBURN_UNLOCK_CODE`, `IBURN_API_URL`, and
+`MAPBOX_API_KEY` environment variables. Values are compiled into the selected
+artifact but are never written to generated source or logs.
+
+**Note**: Camp, Art and Event location data are embargoed by the Burning Man
+Organization until the gates open each year.
 
 Fortunately, you can still run and test the app with the previous year's data.
 
 ## Annual Update
 
-The current procedure is documented below. A staged design for replacing it with a
-single, CI-friendly command is in the [annual update automation plan](docs/annual-update-automation-plan.md).
+1. Review upstream event dates and create `annual/<year>.json`. Version codes
+   must increase, first releases use `<year>.1`, and all timestamps must carry
+   the correct `America/Los_Angeles` offset.
+2. Check out the exact `iBurn-Data` commit. The selected `data/<year>` tree must
+   be clean; automation never fetches or moves it.
+3. Run:
 
-#### Update code and text resources
+   ```shell
+   ./gradlew :iBurn:annualUpdate \
+     -PannualConfig=annual/<year>.json \
+     -PdataRevision=<full-40-character-commit>
 
-* Add `annual/<year>.json` with the version, embargo, and mock-date metadata.
-  The newest annual configuration is selected automatically.
-    * Increment `versionCode` by 1, and set `versionName` to "$year.1" for first release.
-* Verify event start and end dates in
-  `iBurn-Data/data/<year>/APIData/APIData.bundle/dates_info.json`. These dates are
-  consumed directly; do not duplicate them in Android source.
-* Update `UNLOCK_CODE` in SECRETS.kt
+   ./gradlew :iBurn:verifyAnnualUpdate \
+     -PannualConfig=annual/<year>.json \
+     -PdataRevision=<full-40-character-commit>
+   ```
 
+The update uses clean `Sync` outputs, generates the SQLite database on the
+host, derives map/database cache identities from content, and writes the
+manifest and verification report under `build/reports/annual-update/`.
+Embargoed JSON, images, audio, and databases remain ignored and must be handled
+only as restricted artifacts.
 
-#### Update playa data
+To prove idempotence, rerun `annualUpdate` with `--rerun-tasks`; the SHA-256 of
+`annual-manifest.json` must remain unchanged.
 
-1. Check out the intended `iBurn-Data` commit and ensure the submodule is clean.
-2. Run `./gradlew :iBurn:annualUpdate -PdataRevision=<full-commit-id>`.
-   This validates the source contract, removes stale assets while synchronizing
-   map, geocoder, media, and API JSON, and generates the bundled database on the
-   host. No Android device is required.
-3. Review the synchronized assets and generated database report. Map and
-   database cache identities are derived from content and must not be bumped by
-   hand.
+The manual GitHub Actions workflow accepts a year and exact data revision. Run
+it first in report-only mode. PR creation is an explicit input and stages only
+the allowed configuration, submodule pointer, map, and geocoder outputs.
 
-#### Art Images/Audio Tour
+### Recovery
 
-The `annualUpdate` task synchronizes art images and tour audio from iBurn-Data to
-`iBurn/src/main/assets/art_images` and `iBurn/src/main/assets/audio_tour`.
+- A revision mismatch means the checked-out data does not match the asserted
+  commit; select the intended revision and rerun.
+- A source-contract or integrity failure must be fixed upstream rather than
+  bypassed.
+- Roll back by selecting the prior annual config and data revision, then run
+  the same commands.
+- Production signing and Play Store publication remain separate, explicit
+  maintainer actions.
 
 ## TODO
 

@@ -1,5 +1,7 @@
 import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.security.MessageDigest
 
 buildscript {
@@ -34,7 +36,15 @@ def annualConfigFiles = file("$rootDir/annual").listFiles()
 if (annualConfigFiles.isEmpty()) {
     throw new GradleException('No annual configuration found at annual/<year>.json')
 }
-def annualConfigFile = annualConfigFiles.last()
+def requestedAnnualConfig = providers.gradleProperty('annualConfig').orNull
+def annualConfigFile = requestedAnnualConfig != null
+        ? rootProject.file(requestedAnnualConfig)
+        : annualConfigFiles.last()
+if (!annualConfigFile.isFile() ||
+        annualConfigFile.parentFile.canonicalFile != file("$rootDir/annual").canonicalFile ||
+        !(annualConfigFile.name ==~ /\d{4}\.json/)) {
+    throw new GradleException("annualConfig must select annual/<year>.json: ${annualConfigFile}")
+}
 def annualConfig = new JsonSlurper().parse(annualConfigFile)
 def releaseSigningPropertyNames = [
         'storeFile', 'storePassword', 'keyAlias', 'keyPassword'
@@ -42,6 +52,15 @@ def releaseSigningPropertyNames = [
 def configuredReleaseSigningProperties = releaseSigningPropertyNames.findAll {
     project.hasProperty(it)
 }
+def staffUnlockCode = providers.environmentVariable('IBURN_UNLOCK_CODE')
+        .orElse(providers.gradleProperty('iburnUnlockCode'))
+        .orElse('')
+def iburnApiUrl = providers.environmentVariable('IBURN_API_URL')
+        .orElse(providers.gradleProperty('iburnApiUrl'))
+        .orElse('https://iburnapp.com/')
+def mapboxApiKey = providers.environmentVariable('MAPBOX_API_KEY')
+        .orElse(providers.gradleProperty('mapboxApiKey'))
+        .orElse('')
 def hasReleaseSigningConfig =
         configuredReleaseSigningProperties.size() == releaseSigningPropertyNames.size()
 if (!configuredReleaseSigningProperties.isEmpty() && !hasReleaseSigningConfig) {
@@ -65,8 +84,16 @@ if (!(versionYear instanceof Integer) || versionYear <= 0 || annualConfigFile.na
 if (!(annualConfig.versionCode instanceof Integer) || annualConfig.versionCode <= 0) {
     throw new GradleException('Annual versionCode must be a positive integer')
 }
-if (!(annualConfig.versionName instanceof String) || !(annualConfig.versionName ==~ /${versionYear}\.\d+/)) {
+if (!(annualConfig.versionName instanceof String) ||
+        !(annualConfig.versionName ==~ /${versionYear}\.[1-9]\d*/)) {
     throw new GradleException("Annual versionName must match ${versionYear}.<release>")
+}
+def olderConfigs = annualConfigFiles.findAll { it != annualConfigFile }.collect {
+    new JsonSlurper().parse(it)
+}.findAll { it.year < versionYear }
+if (!olderConfigs.isEmpty() &&
+        annualConfig.versionCode <= olderConfigs.collect { it.versionCode }.max()) {
+    throw new GradleException('Annual versionCode must increase from prior years')
 }
 
 def datesInfoFile = file("$rootDir/iBurn-Data/data/${versionYear}/APIData/APIData.bundle/dates_info.json")
@@ -95,6 +122,18 @@ def artEmbargo = annualConfig.artEmbargo == 'eventStart'
         ? eventStart : parseAnnualDate('artEmbargo', annualConfig.artEmbargo)
 def campEventEmbargo = parseAnnualDate('campEventEmbargo', annualConfig.campEventEmbargo)
 def mockNow = parseAnnualDate('mockNow', annualConfig.mockNow)
+def playaZone = ZoneId.of('America/Los_Angeles')
+[
+        eventStart: eventStart,
+        eventEnd: eventEnd,
+        artEmbargo: artEmbargo,
+        campEventEmbargo: campEventEmbargo,
+        mockNow: mockNow
+].each { field, value ->
+    if (value.offset != playaZone.rules.getOffset(value.toInstant())) {
+        throw new GradleException("Annual ${field} offset does not match America/Los_Angeles")
+    }
+}
 if (!eventEnd.isAfter(eventStart)) {
     throw new GradleException('Annual eventEnd must be after eventStart')
 }
@@ -113,6 +152,10 @@ def geocoderSource = file("$annualDataRoot/geocoder")
 def mapSource = file("$annualDataRoot/Map/Map.bundle")
 def mediaSource = file("$annualDataRoot/MediaFiles/MediaFiles.bundle")
 def apiSource = file("$annualDataRoot/APIData/APIData.bundle")
+def artMediaNames = new JsonSlurper().parse(file("$apiSource/art.json"))
+        .findAll { it.uid && it.images }
+        .collect { "${it.uid}.jpg" }
+        .unique()
 def contentDigest = { File root, Collection<File> files ->
     def digest = MessageDigest.getInstance('SHA-256')
     files.findAll { it.isFile() }.sort { root.toPath().relativize(it.toPath()).toString() }.each { input ->
@@ -200,6 +243,12 @@ android {
         resValue "string", "app_name", "iBurn $versionYear"
         resValue "string", "current_year", "$versionYear"
         buildConfigField "String", "BUNDLED_DATABASE_NAME", "\"${bundledDatabaseName}\""
+        buildConfigField "String", "IBURN_UNLOCK_CODE",
+                JsonOutput.toJson(staffUnlockCode.get())
+        buildConfigField "String", "IBURN_API_URL",
+                JsonOutput.toJson(iburnApiUrl.get())
+        buildConfigField "String", "MAPBOX_API_KEY",
+                JsonOutput.toJson(mapboxApiKey.get())
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         archivesBaseName = "iburn-$versionName-$versionCode"
@@ -366,11 +415,12 @@ tasks.register('validateAnnualData') {
         def statusOutput = new ByteArrayOutputStream()
         exec {
             workingDir "$rootDir/iBurn-Data"
-            commandLine 'git', 'status', '--porcelain'
+            commandLine 'git', 'status', '--porcelain', '--untracked-files=all',
+                    '--', "data/${versionYear}"
             standardOutput = statusOutput
         }
         if (!statusOutput.toString('UTF-8').trim().isEmpty()) {
-            throw new GradleException('iBurn-Data must be clean before annual synchronization')
+            throw new GradleException("iBurn-Data data/${versionYear} must be clean before annual synchronization")
         }
         def revisionOutput = new ByteArrayOutputStream()
         exec {
@@ -380,6 +430,9 @@ tasks.register('validateAnnualData') {
         }
         def actualRevision = revisionOutput.toString('UTF-8').trim()
         def expectedRevision = providers.gradleProperty('dataRevision').orNull
+        if (expectedRevision != null && !(expectedRevision ==~ /[0-9a-f]{40}/)) {
+            throw new GradleException('dataRevision must be a full 40-character commit id')
+        }
         if (expectedRevision != null && actualRevision != expectedRevision) {
             throw new GradleException("iBurn-Data revision ${actualRevision} does not match ${expectedRevision}")
         }
@@ -405,6 +458,12 @@ tasks.register('validateAnnualData') {
             if (!(records instanceof List) || records.any { !(it instanceof Map) || !it.uid }) {
                 throw new GradleException("${name} must be an array of records with non-empty uid values")
             }
+            records.groupBy { it.uid }.each { uid, matches ->
+                def canonical = matches.collect { JsonOutput.toJson(it) }.unique()
+                if (canonical.size() > 1) {
+                    throw new GradleException("${name} contains conflicting records for one uid")
+                }
+            }
         }
     }
 }
@@ -429,7 +488,7 @@ tasks.register('syncMap', Sync) {
                     .replaceFirst('^glyphs/Open Sans Regular/', 'glyphs/')
         }
         includeEmptyDirs = false
-        filesMatching(['iburn-light.json', 'iburn-dark.json']) {
+        filesMatching('**/iburn-*.json') {
             filter { line ->
                 line.replaceAll('asset://Map', 'asset://map')
                         .replaceAll(/asset:\/\/iBurnData_iBurn\d{4}Map\.bundle\/Map\.bundle\/glyphs\/\{fontstack\}\/\{range\}\.pbf/, 'asset://map/glyphs/{range}.pbf')
@@ -455,7 +514,7 @@ tasks.register('syncMap', Sync) {
 tasks.register('syncMedia', Sync) {
     group = 'annual update'
     dependsOn 'validateAnnualData'
-    from(mediaSource) { include '*.jpg', '*.webp' }
+    from(mediaSource) { include artMediaNames }
     into "$projectDir/src/main/assets/art_images"
 }
 
@@ -485,56 +544,88 @@ tasks.register('updateData') {
     dependsOn 'syncAnnualData'
 }
 
+def generatedDatabaseFile = file(
+        "$buildDir/generated/annual/database/${bundledDatabaseName}"
+)
 tasks.register('generateBundledDatabase', Exec) {
     group = 'annual update'
     description = 'Generates the bundled playa database on the host.'
     dependsOn 'validateAnnualData'
-    def outputFile = file("$projectDir/src/main/assets/databases/${bundledDatabaseName}")
     inputs.files databaseInputFiles
     inputs.file "$rootDir/tools/generate_playa_database.py"
-    outputs.file outputFile
+    outputs.file generatedDatabaseFile
     commandLine 'python3', "$rootDir/tools/generate_playa_database.py",
             '--api-root', apiSource,
             '--geocoder', file("$geocoderSource/bundle.js"),
-            '--output', outputFile
+            '--output', generatedDatabaseFile
+}
+
+tasks.register('syncBundledDatabase', Sync) {
+    group = 'annual update'
+    description = 'Installs only the current content-addressed bundled database.'
+    dependsOn 'generateBundledDatabase'
+    from generatedDatabaseFile
+    into "$projectDir/src/main/assets/databases"
 }
 
 tasks.register('annualUpdate') {
     group = 'annual update'
     description = 'Synchronizes annual assets and generates the bundled database.'
-    dependsOn 'syncAnnualData', 'generateBundledDatabase', 'generateAnnualMetadata'
+    dependsOn 'syncAnnualData', 'syncBundledDatabase', 'generateAnnualMetadata'
 }
 
 tasks.register('bootstrapDatabase') {
     // Install the debug build, trigger DB bootstrap, and pull the resulting file.
     dependsOn(tasks.named('installRegularDebug'))
     doLast {
+        def adb = file("${android.sdkDirectory}/platform-tools/adb").absolutePath
         def pkg = "com.iburnapp.iburn3.debug"
         def databaseName = project.ext.bundledDatabaseName
         def bootstrapName = "bootstrap"
 
         // Ensure the app is fully installed
         exec {
-            commandLine 'adb', 'shell', 'sleep', '1'
+            commandLine adb, 'shell', 'sleep', '1'
         }
 
         println("Broadcasting bootstrap intent to ${pkg} with name ${bootstrapName}")
         exec {
-            commandLine 'adb', 'shell', 'am', 'broadcast', '-a',
+            commandLine adb, 'shell', 'am', 'broadcast', '-a',
                     'com.gaiagps.iburn.BOOTSTRAP_DB', '--es',
                     'com.gaiagps.iburn.EXTRA_DB_NAME', bootstrapName,
                     '-n', "${pkg}/com.gaiagps.iburn.DatabaseBootstrapReceiver"
         }
 
-        def outFile = file("$projectDir/src/main/assets/databases/${databaseName}")
+        def outFile = file("$buildDir/reports/annual-update/device/${databaseName}")
         outFile.parentFile.mkdirs()
         exec {
-            commandLine 'adb', 'exec-out', 'run-as', pkg,
+            commandLine adb, 'exec-out', 'run-as', pkg,
                     'cat', "/data/data/${pkg}/databases/${bootstrapName}"
             standardOutput = new FileOutputStream(outFile)
         }
         println("Database bootstrap complete. Output written to ${outFile.absolutePath} (${outFile.length()} bytes)")
     }
+}
+
+tasks.register('verifyDeviceDatabaseParity', Exec) {
+    group = 'verification'
+    description = 'Compares host and device-generated read-only database tables.'
+    dependsOn 'bootstrapDatabase'
+    def deviceDatabase = file(
+            "$buildDir/reports/annual-update/device/${bundledDatabaseName}"
+    )
+    def parityReport = file(
+            "$rootProject.buildDir/reports/annual-update/device-parity-report.json"
+    )
+    inputs.file generatedDatabaseFile
+    inputs.file deviceDatabase
+    inputs.file "$rootDir/tools/compare_database_parity.py"
+    outputs.file parityReport
+    outputs.upToDateWhen { false }
+    commandLine 'python3', "$rootDir/tools/compare_database_parity.py",
+            '--host', generatedDatabaseFile,
+            '--device', deviceDatabase,
+            '--output', parityReport
 }
 
 tasks.register('generateAnnualBaselineManifest', Exec) {
@@ -556,10 +647,104 @@ tasks.register('generateAnnualBaselineManifest', Exec) {
     commandLine 'python3', "$rootDir/tools/annual_manifest.py",
             '--repo-root', rootDir,
             '--year', versionYear.toString(),
+            '--annual-config', annualConfigFile,
             '--output', outputFile
+}
+
+def annualReportDir = file("$rootProject.buildDir/reports/annual-update")
+def annualManifestFile = file("$annualReportDir/annual-manifest.json")
+def annualVerificationFile = file("$annualReportDir/verification-report.json")
+def dataRevisionOutput = new ByteArrayOutputStream()
+exec {
+    workingDir "$rootDir/iBurn-Data"
+    commandLine 'git', 'rev-parse', 'HEAD'
+    standardOutput = dataRevisionOutput
+}
+def selectedDataRevision = dataRevisionOutput.toString('UTF-8').trim()
+
+tasks.register('generateAnnualManifest', Exec) {
+    group = 'annual update'
+    description = 'Generates the deterministic annual asset manifest.'
+    dependsOn 'syncAnnualData', 'syncBundledDatabase'
+    inputs.dir "$projectDir/src/main/assets"
+    inputs.file annualConfigFile
+    inputs.file "$rootDir/tools/annual_manifest.py"
+    inputs.property 'dataRevision', selectedDataRevision
+    outputs.file annualManifestFile
+    outputs.upToDateWhen { false }
+    commandLine 'python3', "$rootDir/tools/annual_manifest.py",
+            '--repo-root', rootDir,
+            '--year', versionYear.toString(),
+            '--data-revision', selectedDataRevision,
+            '--annual-config', annualConfigFile,
+            '--output', annualManifestFile
+}
+
+tasks.named('annualUpdate') {
+    dependsOn 'generateAnnualManifest'
+}
+
+tasks.register('testAnnualTools', Exec) {
+    group = 'verification'
+    description = 'Runs host-side annual automation unit tests.'
+    commandLine 'python3', '-m', 'unittest', 'discover',
+            '-s', "$rootDir/tools", '-p', 'test_*.py'
+}
+
+tasks.register('verifyAnnualOutputs', Exec) {
+    group = 'verification'
+    description = 'Validates annual JSON, database, MBTiles, styles, media, and secrecy.'
+    dependsOn 'annualUpdate', 'testAnnualTools'
+    inputs.dir "$projectDir/src/main/assets"
+    inputs.file annualConfigFile
+    inputs.file annualManifestFile
+    inputs.file "$rootDir/tools/verify_annual_update.py"
+    outputs.file annualVerificationFile
+    outputs.upToDateWhen { false }
+    commandLine 'python3', "$rootDir/tools/verify_annual_update.py",
+            '--repo-root', rootDir,
+            '--annual-config', annualConfigFile,
+            '--data-revision', selectedDataRevision,
+            '--database', file("$projectDir/src/main/assets/databases/${bundledDatabaseName}"),
+            '--manifest', annualManifestFile,
+            '--report', annualVerificationFile
+}
+
+tasks.register('verifyAnnualUpdate') {
+    group = 'verification'
+    description = 'Runs all host-side annual update validation gates.'
+    dependsOn 'verifyAnnualOutputs', 'testRegularDebugUnitTest',
+            'lint', 'assembleRegularDebug'
+}
+
+tasks.register('validateAnnualSecret') {
+    group = 'verification'
+    description = 'Checks that the restricted staff unlock code is available without printing it.'
+    doLast {
+        def unlockCode = providers.environmentVariable('IBURN_UNLOCK_CODE')
+                .orElse(providers.gradleProperty('iburnUnlockCode')).orNull
+        if (unlockCode == null || unlockCode.trim().isEmpty()) {
+            throw new GradleException(
+                    'Set IBURN_UNLOCK_CODE or local Gradle property iburnUnlockCode'
+            )
+        }
+    }
 }
 
 // Ensure generated source is available before compiling
 tasks.named('preBuild') {
     dependsOn(generateAnnualMetadata)
+}
+
+// When synchronization and Android packaging share one task graph (as they do
+// under verifyAnnualUpdate), packaging must observe the completed Sync outputs.
+// mustRunAfter does not make ordinary builds require private annual data.
+def annualAssetProducerTasks = [
+        'syncApiJson', 'syncAudioTour', 'syncGeocoder', 'syncMap', 'syncMedia',
+        'syncBundledDatabase'
+]
+tasks.matching {
+    it.name ==~ /merge.*Assets/ || it.name.toLowerCase().contains('lint')
+}.configureEach {
+    mustRunAfter annualAssetProducerTasks
 }

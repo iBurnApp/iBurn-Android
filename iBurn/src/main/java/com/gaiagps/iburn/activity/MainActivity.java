@@ -1,6 +1,6 @@
 package com.gaiagps.iburn.activity;
 
-import static com.gaiagps.iburn.SECRETSKt.UNLOCK_CODE;
+import com.gaiagps.iburn.BuildConfig;
 import static com.gaiagps.iburn.activity.ActivityUtilsKt.setupEdgeToEdge;
 
 import android.Manifest;
@@ -400,7 +400,8 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
     }
 
     private boolean handleUnlockCodeGuess(String guess) {
-        if (guess.equals(UNLOCK_CODE)) {
+        if (!BuildConfig.IBURN_UNLOCK_CODE.isEmpty()
+                && guess.equals(BuildConfig.IBURN_UNLOCK_CODE)) {
             prefs.setEnteredValidUnlockCode(true);
             // Notify all observers that embargo is clear
             DataProvider.Companion.getInstance(getApplicationContext()).endUpgrade();

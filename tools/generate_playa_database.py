@@ -30,6 +30,20 @@ def load_array(path: Path) -> list[dict]:
     return value
 
 
+def deduplicate_records(items: list[dict], source_name: str) -> list[dict]:
+    """Collapse byte-equivalent duplicate UIDs and reject conflicting records."""
+    records: dict[str, dict] = {}
+    for item in items:
+        uid = item.get("uid")
+        if not isinstance(uid, str) or not uid:
+            raise ValueError(f"{source_name} contains a record without a uid")
+        previous = records.get(uid)
+        if previous is not None and previous != item:
+            raise ValueError(f"{source_name} contains conflicting records for one uid")
+        records[uid] = item
+    return list(records.values())
+
+
 def location_values(item: dict) -> tuple[object, ...]:
     official = item.get("location") or {}
     unofficial = item.get("burnermap_location") or {}
@@ -38,7 +52,7 @@ def location_values(item: dict) -> tuple[object, ...]:
         unofficial_address = " ".join(
             str(unofficial.get(key) or "")
             for key in ("frontage", "intersection_type", "intersection")
-        ).strip()
+        ).strip() or None
     return (
         item.get("location_string"),
         unofficial_address,
@@ -55,7 +69,7 @@ def base_values(item: dict) -> tuple[object, ...]:
         item.get("name") or item.get("title") or "?",
         item.get("description"),
         item.get("url"),
-        item.get("contact_email") or item.get("contact"),
+        item.get("contact_email"),
         address,
         unofficial_address,
         item.get("uid"),
@@ -105,16 +119,18 @@ process.stdout.write(JSON.stringify(addresses.map(address => {
         text=True,
     )
     coordinates = json.loads(result.stdout)
-    for item, coordinate in zip(pending, coordinates, strict=True):
+    if len(pending) != len(coordinates):
+        raise ValueError("geocoder returned an unexpected number of results")
+    for item, coordinate in zip(pending, coordinates):
         if coordinate:
             item["location"]["gps_longitude"] = coordinate[0]
             item["location"]["gps_latitude"] = coordinate[1]
 
 
 def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -> dict[str, int]:
-    art = load_array(api_root / "art.json")
-    camps = load_array(api_root / "camp.json")
-    events = load_array(api_root / "event.json")
+    art = deduplicate_records(load_array(api_root / "art.json"), "art.json")
+    camps = deduplicate_records(load_array(api_root / "camp.json"), "camp.json")
+    events = deduplicate_records(load_array(api_root / "event.json"), "event.json")
     populate_missing_coordinates(art + camps, geocoder)
     locations = {
         item["uid"]: location_values(item)

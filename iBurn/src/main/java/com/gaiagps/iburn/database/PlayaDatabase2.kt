@@ -25,7 +25,7 @@ private const val USE_BUNDLED_DB = true
 // Database file name in app's /data partition
 // This database is often derived from the bundled database in assets but to avoid confusion with the
 // bundled database and to avoid storing multiple versions of the bundled database in /data, we use a fixed name.
-private const val APP_DATABASE_NAME = "playaDatabase2025.1.db"
+private const val APP_DATABASE_NAME = "playaDatabase.db"
 
 private const val DATABASE_V1 = 1
 // Add event artPlayaId and MapPin for pin deep links

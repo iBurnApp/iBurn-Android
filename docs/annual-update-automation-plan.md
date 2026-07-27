@@ -212,11 +212,15 @@ dispatch provides a safer first release.
    reconciles stable IDs, and runs SQLite integrity checks. The app first creates
    its complete Room schema and then imports those tables. The old device task is
    retained only for parity testing during the first annual cycle.
-6. **Add CI orchestration.** Start in report-only mode, then enable artifact
-   upload, and finally enable PR creation after two successful dry runs against
-   historical data revisions.
-7. **Retire the manual path.** Replace the README checklist with the one-command
-   workflow and retain a short troubleshooting/recovery section.
+6. **Add CI orchestration (implemented; enablement requires approval).** The
+   manually dispatched workflow validates an exact private-data revision,
+   proves idempotence, publishes restricted artifacts, and can create a draft
+   update PR. Validation has read-only repository access; the separate PR job
+   receives only a vetted patch and summary. Repository maintainers must
+   configure and protect the `annual-update` environment before enabling it.
+7. **Retire the manual path (implemented).** The README now documents the
+   one-command workflow, verification, idempotence check, CI operation, and
+   troubleshooting/recovery path.
 
 Each phase should be its own reviewable pull request. Until phase 5 passes parity
 testing, the existing device-generated database remains the release authority.
