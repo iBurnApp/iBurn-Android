@@ -33,38 +33,45 @@ Fortunately, you can still run and test the app with the previous year's data.
 
 ## Annual Update
 
+The current procedure is documented below. A staged design for replacing it with a
+single, CI-friendly command is in the [annual update automation plan](docs/annual-update-automation-plan.md).
+
 #### Update code and text resources
 
-* Update event year as `versionYear` `iBurn/build.gradle`
-* Update `versionCode` and `versionName` in `iBurn/build.gradle`
-    * Increment `versionCode` by 1, and set `versionName` to "$versionYear.1" for first release.
-* Update event dates in `EventInfo.kt` (Event start, end, and embargo dates)
+* Add `annual/<year>.json` with the version, embargo, and mock-date metadata.
+  The newest annual configuration is selected automatically.
+    * Increment `versionCode` by 1, and set `versionName` to "$year.1" for first release.
+* Verify event start and end dates in
+  `iBurn-Data/data/<year>/APIData/APIData.bundle/dates_info.json`. These dates are
+  consumed directly; do not duplicate them in Android source.
 * Update `UNLOCK_CODE` in SECRETS.kt
 
 
 #### Update playa data
 
-1. Run `./gradlew updateData`. This will update the iBurn-Data submodule, copy updated map, geocoder, art images, art audio tour, and api json (camp, art, event) files to this repo.
-3. If the map.mbtiles were updated, bump `MapboxMapFragment.MBTILES_VERSION`
-4. Update the `databaseName` property in `iBurn/build.gradle` by bumping the version number. This will trigger a copy of the playa api database tables on next app run.
-5. Connect an Android device with developer mode enabled and run `./gradlew :iBurn:bootstrapDatabase` to install the debug build, trigger
-   database generation, and copy the resulting file to
-   `iBurn/src/main/assets/databases/$databaseName`.
+1. Check out the intended `iBurn-Data` commit and ensure the submodule is clean.
+2. Run `./gradlew :iBurn:annualUpdate -PdataRevision=<full-commit-id>`.
+   This validates the source contract, removes stale assets while synchronizing
+   map, geocoder, media, and API JSON, and generates the bundled database on the
+   host. No Android device is required.
+3. Review the synchronized assets and generated database report. Map and
+   database cache identities are derived from content and must not be bumped by
+   hand.
 
 #### Art Images/Audio Tour
 
-The `./gradlew updateData` will copy art images and tour audio from the iBurn-Data repo to `./assets/art_images` and `./assets/audio_tour` respectively.
+The `annualUpdate` task synchronizes art images and tour audio from iBurn-Data to
+`iBurn/src/main/assets/art_images` and `iBurn/src/main/assets/audio_tour`.
 
 ## TODO
 
-* updateData gradle task should delete old files before copying new ones (mainly important for the first copy of a new year)
 * Pretty up that item detail view.
 * Investigate Mapbox offline and SIGABRT issues. Seems like it's possible Mapbox gets into a state where it stops displaying the map
 
 ## Releasing
 Make sure you've:
-* Set event dates correctly in `EventInfo.kt`
-* Incremented the version code and name in ./iBurn/build.grade
+* Verified event dates in the selected iBurn-Data `dates_info.json`
+* Set the version code and name in `annual/<year>.json`
 The final pre-signed store release should be built with:
 
 ```

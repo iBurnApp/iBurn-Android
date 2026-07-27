@@ -10,6 +10,8 @@ iBurn/src/main/assets/databases/
 iBurn/src/main/assets/json/
 .DS_Store
 *.class
+__pycache__/
+*.py[cod]
 data/
 
 #Bundled media
