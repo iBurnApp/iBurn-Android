@@ -2,6 +2,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 
 from generate_playa_database import (
@@ -67,13 +68,34 @@ class GeneratePlayaDatabaseTest(unittest.TestCase):
 
             counts = build_database(api, output)
 
-            self.assertEqual({"arts": 1, "camps": 1, "events": 2}, counts)
+            self.assertEqual({
+                "arts": 1,
+                "camps": 1,
+                "events": 1,
+                "event_occurrences": 2,
+            }, counts)
             with sqlite3.connect(output) as database:
                 self.assertEqual("ok", database.execute("PRAGMA integrity_check").fetchone()[0])
-                rows = database.execute("SELECT p_id, lat, lon, s_time FROM events ORDER BY p_id").fetchall()
+                event = database.execute(
+                    "SELECT p_id, lat, lon FROM events"
+                ).fetchone()
+                self.assertEqual(("event-1", 3.0, 4.0), event)
+                rows = database.execute(
+                    "SELECT p_id, s_time FROM event_occurrences ORDER BY p_id"
+                ).fetchall()
                 self.assertEqual([
-                    ("event-1-0", 3.0, 4.0, "2025-08-25T12:00:00-0700"),
-                    ("event-1-1", 3.0, 4.0, "2025-08-26T12:00:00-0700"),
+                    (
+                        "event-1-0",
+                        int(datetime.fromisoformat(
+                            "2025-08-25T12:00:00-07:00"
+                        ).timestamp() * 1000),
+                    ),
+                    (
+                        "event-1-1",
+                        int(datetime.fromisoformat(
+                            "2025-08-26T12:00:00-07:00"
+                        ).timestamp() * 1000),
+                    ),
                 ], rows)
 
 

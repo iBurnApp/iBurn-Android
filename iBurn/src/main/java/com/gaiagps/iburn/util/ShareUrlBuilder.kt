@@ -3,15 +3,12 @@ package com.gaiagps.iburn.util
 import android.net.Uri
 import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.database.*
-import java.text.DateFormat
-import java.text.SimpleDateFormat
 import java.util.*
 
 object ShareUrlBuilder {
     
     private const val BASE_URL = "https://iburnapp.com"
     private val deepLinkFormatter = DateUtil.getIso8601DeepLinkFormat()
-    private val databaseFormatter = DateUtil.getIso8601Format()
 
     fun buildShareUrl(item: PlayaItem): Uri {
         val builder = Uri.Builder()
@@ -33,7 +30,7 @@ object ShareUrlBuilder {
             is Event -> {
                 builder.appendPath("event")
                     .appendPath("") // Creates /event/
-                    .appendQueryParameter("uid", item.playaId)
+                    .appendQueryParameter("uid", item.eventUid)
             }
             is UserPoi -> {
                 // User POIs could be handled as pins
@@ -69,14 +66,8 @@ object ShareUrlBuilder {
         // Event-specific parameters
         if (item is Event) {
 
-            item.startTime?.let { start ->
-                val startDate = databaseFormatter.parse(start)
-                builder.appendQueryParameter("start", deepLinkFormatter.format(startDate))
-            }
-            item.endTime?.let { end ->
-                val endDate = databaseFormatter.parse(end)
-                builder.appendQueryParameter("end", deepLinkFormatter.format(endDate))
-            }
+            builder.appendQueryParameter("start", deepLinkFormatter.format(item.startDate))
+            builder.appendQueryParameter("end", deepLinkFormatter.format(item.endDate))
 
             item.campPlayaId?.let { campId ->
                 builder.appendQueryParameter("host_id", campId)

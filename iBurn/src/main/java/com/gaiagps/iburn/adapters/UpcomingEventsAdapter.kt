@@ -5,7 +5,6 @@ import androidx.recyclerview.widget.RecyclerView
 import android.widget.TextView
 import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.DateUtil
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.*
 import java.util.Locale
 
@@ -18,11 +17,10 @@ class UpcomingEventsAdapter(context: Context, listener: AdapterListener) :
     override fun createHeaderPositionsForItems(items: List<PlayaItemWithUserData>): Set<Int> {
         val set = HashSet<Int>()
         var headerCount = 0
-        var lastStartTime = ""
+        var lastStartTime = Long.MIN_VALUE
         items.forEachIndexed { index, playaItemWithUserData ->
             val playaItem = playaItemWithUserData.item
             val thisStartTime = (playaItem as Event).startTime
-            requireNotNull(thisStartTime) { "Event start time cannot be null" }
             if (thisStartTime != lastStartTime) {
                 set.add(index + headerCount++)
             }
@@ -38,7 +36,7 @@ class UpcomingEventsAdapter(context: Context, listener: AdapterListener) :
         val item = items?.get(firstSectionItem)?.item as Event
 
         val headerTitle = DateUtil.getStartDateString(
-                    apiDateFormat.parse(item.startTime),
+                    item.startDate,
                     CurrentDateProvider.getCurrentDate()).uppercase(Locale.getDefault())
 
         // SectionedPlayaItemAdapter sets header layout to a single TextView

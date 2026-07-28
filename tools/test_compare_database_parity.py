@@ -8,7 +8,7 @@ from compare_database_parity import compare
 
 def create_database(path: Path, value: str) -> None:
     with sqlite3.connect(path) as database:
-        for table in ("arts", "camps", "events"):
+        for table in ("arts", "camps", "events", "event_occurrences"):
             database.execute(
                 f"CREATE TABLE {table} "
                 "(_id INTEGER PRIMARY KEY, p_id TEXT, name TEXT)"

@@ -6,7 +6,7 @@ import androidx.room.Entity
 @Entity(tableName = Favorite.TABLE_NAME, primaryKeys = [Favorite.PLAYA_ID, Favorite.START_TIME])
 data class Favorite(
     @ColumnInfo(name = PLAYA_ID) val playaId: String,
-    @ColumnInfo(name = START_TIME) val startTime: String = ""
+    @ColumnInfo(name = START_TIME) val startTime: Long = 0
 ) {
     companion object {
         const val TABLE_NAME = "favorites"

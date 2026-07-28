@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Fts4
 
-@Fts4(contentEntity = Event::class)
+@Fts4(contentEntity = EventDefinition::class)
 @Entity(tableName = EventFts.TABLE_NAME)
 data class EventFts(
     @ColumnInfo(name = PlayaItem.NAME) val name: String?,

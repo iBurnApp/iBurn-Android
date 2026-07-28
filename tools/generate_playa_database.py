@@ -80,15 +80,6 @@ def base_values(item: dict) -> tuple[object, ...]:
     )
 
 
-def iso_and_pretty(value: str, all_day: bool) -> tuple[str, str]:
-    parsed = datetime.fromisoformat(value)
-    # Match PlayaDateTypeAdapter's yyyy-MM-dd'T'HH:mm:ssZ output exactly.
-    iso_value = parsed.strftime("%Y-%m-%dT%H:%M:%S%z")
-    day = parsed.strftime("%a %-m/%-d")
-    pretty = day if all_day else f"{day} {parsed.strftime('%-I:%M %p')}"
-    return iso_value, pretty
-
-
 def populate_missing_coordinates(items: list[dict], geocoder: Path | None) -> None:
     pending = [
         item for item in items
@@ -144,13 +135,22 @@ def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -
     temporary = Path(temporary_name)
     try:
         connection = sqlite3.connect(temporary)
+        connection.execute("PRAGMA foreign_keys = ON")
         with connection:
             connection.execute(f"CREATE TABLE arts (`artist` TEXT, `a_loc` TEXT, `i_url` TEXT, {BASE_COLUMNS})")
             connection.execute(f"CREATE TABLE camps (`hometown` TEXT, {BASE_COLUMNS})")
             connection.execute(
                 f"CREATE TABLE events (`e_type` TEXT, `all_day` INTEGER NOT NULL, "
                 f"`check_loc` INTEGER NOT NULL, `c_id` TEXT, `a_id` TEXT, "
-                f"`s_time` TEXT, `s_time_p` TEXT, `e_time` TEXT, `e_time_p` TEXT, {BASE_COLUMNS})"
+                f"{BASE_COLUMNS})"
+            )
+            connection.execute(
+                "CREATE TABLE event_occurrences ("
+                "`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                "`event_id` INTEGER NOT NULL, `p_id` TEXT NOT NULL, "
+                "`s_time` INTEGER NOT NULL, `e_time` INTEGER NOT NULL, "
+                "FOREIGN KEY(`event_id`) REFERENCES `events`(`_id`) "
+                "ON UPDATE NO ACTION ON DELETE CASCADE)"
             )
             for item in art:
                 images = item.get("images") or []
@@ -180,6 +180,20 @@ def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -
                         "gps_latitude": lat_u,
                         "gps_longitude": lon_u,
                     }
+                event_values = list(base_values(event_item))
+                event_values[6] = item["uid"]
+                cursor = connection.execute(
+                    "INSERT INTO events (e_type,all_day,check_loc,c_id,a_id,"
+                    "name,desc,url,contact,p_addr,p_addr_unof,p_id,lat,lon,lat_unof,lon_unof) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        (item.get("event_type") or {}).get("abbr", "unknwn"),
+                        int(bool(item.get("all_day"))), int(bool(item.get("check_location"))),
+                        item.get("hosted_by_camp"), item.get("located_at_art"),
+                        *event_values,
+                    ),
+                )
+                event_id = cursor.lastrowid
                 for index, occurrence in enumerate(occurrences):
                     start = datetime.fromisoformat(occurrence["start_time"])
                     end = datetime.fromisoformat(occurrence["end_time"])
@@ -187,27 +201,25 @@ def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -
                         end = end.replace(year=start.year, month=start.month, day=start.day)
                         if end <= start:
                             end += timedelta(days=1)
-                    start_iso, start_pretty = iso_and_pretty(start.isoformat(), bool(item.get("all_day")))
-                    end_iso, end_pretty = iso_and_pretty(end.isoformat(), bool(item.get("all_day")))
-                    values = list(base_values(event_item))
-                    values[6] = f"{item['uid']}-{index}"
                     connection.execute(
-                        "INSERT INTO events (e_type,all_day,check_loc,c_id,a_id,s_time,s_time_p,e_time,e_time_p,"
-                        "name,desc,url,contact,p_addr,p_addr_unof,p_id,lat,lon,lat_unof,lon_unof) "
-                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        "INSERT INTO event_occurrences "
+                        "(event_id,p_id,s_time,e_time) "
+                        "VALUES (?,?,?,?)",
                         (
-                            (item.get("event_type") or {}).get("abbr", "unknwn"),
-                            int(bool(item.get("all_day"))), int(bool(item.get("check_location"))),
-                            item.get("hosted_by_camp"), item.get("located_at_art"),
-                            start_iso, start_pretty, end_iso, end_pretty, *values,
+                            event_id, f"{item['uid']}-{index}",
+                            int(start.timestamp() * 1000),
+                            int(end.timestamp() * 1000),
                         ),
                     )
                     event_rows += 1
-            connection.execute("PRAGMA user_version = 2")
+            # Runtime indexes belong to Room's destination schema. The app copies
+            # rows, not indexes, from this import-only bundle.
+            connection.execute("PRAGMA user_version = 4")
             expected_ids = {
                 "arts": Counter(item["uid"] for item in art),
                 "camps": Counter(item["uid"] for item in camps),
-                "events": Counter(
+                "events": Counter(item["uid"] for item in events),
+                "event_occurrences": Counter(
                     f"{item['uid']}-{index}"
                     for item in events
                     for index, _ in enumerate(sorted(
@@ -226,7 +238,12 @@ def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -
                 raise ValueError(f"database validation failed: integrity={integrity}, foreignKeys={foreign_keys}")
         connection.close()
         os.replace(temporary, output)
-        return {"arts": len(art), "camps": len(camps), "events": event_rows}
+        return {
+            "arts": len(art),
+            "camps": len(camps),
+            "events": len(events),
+            "event_occurrences": event_rows,
+        }
     finally:
         temporary.unlink(missing_ok=True)
 

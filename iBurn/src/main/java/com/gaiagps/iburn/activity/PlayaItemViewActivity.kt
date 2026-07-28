@@ -43,7 +43,6 @@ import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.R
 import com.gaiagps.iburn.adapters.AdapterListener
 import com.gaiagps.iburn.adapters.PlayaItemAdapter
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.Art
 import com.gaiagps.iburn.database.ArtWithUserData
 import com.gaiagps.iburn.database.Camp
@@ -68,7 +67,6 @@ import kotlinx.coroutines.withContext
 import org.maplibre.android.geometry.LatLng
 import timber.log.Timber
 import java.text.DateFormat
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -628,24 +626,14 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         val nowDate = CurrentDateProvider.getCurrentDate()
 
         // Describe the event time with some smarts: "[Starts|Ends] [in|at] [20m|4:20p]"
-        val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
-        try {
-            val startDate = apiDateFormat.parse(event.startTime)
-            val endDate = apiDateFormat.parse(event.endTime)
-
-            val dateDescription = DateUtil.getDateString(
-                applicationContext,
-                nowDate,
-                startDate,
-                event.startTimePretty,
-                endDate,
-                event.endTimePretty
-            )
-            binding.subitem2.text = dateDescription
-        } catch (e: ParseException) {
-            Timber.e(e, "Failed to parse event dates")
-            binding.subitem2.text = event.startTimePretty
-        }
+        binding.subitem2.text = DateUtil.getDateString(
+            applicationContext,
+            nowDate,
+            event.startDate,
+            event.startTimePretty,
+            event.endDate,
+            event.endTimePretty
+        )
 
         binding.subitem3.visibility = View.GONE
 
@@ -700,12 +688,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     )
-                    try {
-                        eventTv.text = timeDayFormatter.format(apiDateFormat.parse(occurrence.item.startTime))
-                    } catch (e: ParseException) {
-                        Timber.w(e, "Unable to parse date, using pre-computed")
-                        eventTv.text = event.startTimePretty?.uppercase()
-                    }
+                    eventTv.text = timeDayFormatter.format(occurrence.item.startDate)
                     eventTv.setOnClickListener(RelatedItemOnClickListener(occurrence))
                     eventTv.setPadding(pad, pad, pad, pad)
 

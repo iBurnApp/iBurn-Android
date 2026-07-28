@@ -13,7 +13,6 @@ import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.EventInfo;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -97,8 +96,6 @@ public class AdapterUtils {
             sDayAbbreviations.add(dayAbbrevFormatter.format(date));
         }
     }
-
-    private static final DateFormat apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format();
 
     public static List<String> getEventTypeAbbreviations() {
         return new ArrayList<>(sEventTypes.keySet());

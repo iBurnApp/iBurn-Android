@@ -1,0 +1,781 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "7e507bd7a18a215ed7c580a3aa4f7963",
+    "entities": [
+      {
+        "tableName": "arts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`artist` TEXT, `a_loc` TEXT, `i_url` TEXT, `_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `desc` TEXT, `url` TEXT, `contact` TEXT, `p_addr` TEXT, `p_addr_unof` TEXT, `p_id` TEXT, `lat` REAL NOT NULL, `lon` REAL NOT NULL, `lat_unof` REAL NOT NULL, `lon_unof` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "artist",
+            "columnName": "artist",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "artistLocation",
+            "columnName": "a_loc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "imageUrl",
+            "columnName": "i_url",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "desc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contact",
+            "columnName": "contact",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaAddress",
+            "columnName": "p_addr",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaAddressUnofficial",
+            "columnName": "p_addr_unof",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaId",
+            "columnName": "p_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "lat",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "lon",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitudeUnofficial",
+            "columnName": "lat_unof",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitudeUnofficial",
+            "columnName": "lon_unof",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_arts_p_id",
+            "unique": true,
+            "columnNames": [
+              "p_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_arts_p_id` ON `${TABLE_NAME}` (`p_id`)"
+          },
+          {
+            "name": "index_arts_name",
+            "unique": false,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_arts_name` ON `${TABLE_NAME}` (`name`)"
+          }
+        ]
+      },
+      {
+        "tableName": "camps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`hometown` TEXT, `_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `desc` TEXT, `url` TEXT, `contact` TEXT, `p_addr` TEXT, `p_addr_unof` TEXT, `p_id` TEXT, `lat` REAL NOT NULL, `lon` REAL NOT NULL, `lat_unof` REAL NOT NULL, `lon_unof` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "hometown",
+            "columnName": "hometown",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "desc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contact",
+            "columnName": "contact",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaAddress",
+            "columnName": "p_addr",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaAddressUnofficial",
+            "columnName": "p_addr_unof",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaId",
+            "columnName": "p_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "lat",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "lon",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitudeUnofficial",
+            "columnName": "lat_unof",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitudeUnofficial",
+            "columnName": "lon_unof",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_camps_p_id",
+            "unique": true,
+            "columnNames": [
+              "p_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_camps_p_id` ON `${TABLE_NAME}` (`p_id`)"
+          },
+          {
+            "name": "index_camps_name",
+            "unique": false,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_camps_name` ON `${TABLE_NAME}` (`name`)"
+          }
+        ]
+      },
+      {
+        "tableName": "events",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`e_type` TEXT, `all_day` INTEGER NOT NULL, `check_loc` INTEGER NOT NULL, `c_id` TEXT, `a_id` TEXT, `_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `desc` TEXT, `url` TEXT, `contact` TEXT, `p_addr` TEXT, `p_addr_unof` TEXT, `p_id` TEXT, `lat` REAL NOT NULL, `lon` REAL NOT NULL, `lat_unof` REAL NOT NULL, `lon_unof` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "type",
+            "columnName": "e_type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "allDay",
+            "columnName": "all_day",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "checkLocation",
+            "columnName": "check_loc",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "campPlayaId",
+            "columnName": "c_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "artPlayaId",
+            "columnName": "a_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "desc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contact",
+            "columnName": "contact",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaAddress",
+            "columnName": "p_addr",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaAddressUnofficial",
+            "columnName": "p_addr_unof",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaId",
+            "columnName": "p_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "lat",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "lon",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitudeUnofficial",
+            "columnName": "lat_unof",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitudeUnofficial",
+            "columnName": "lon_unof",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_events_p_id",
+            "unique": true,
+            "columnNames": [
+              "p_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_events_p_id` ON `${TABLE_NAME}` (`p_id`)"
+          },
+          {
+            "name": "index_events_c_id",
+            "unique": false,
+            "columnNames": [
+              "c_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_events_c_id` ON `${TABLE_NAME}` (`c_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "event_occurrences",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `event_id` INTEGER NOT NULL, `p_id` TEXT NOT NULL, `s_time` TEXT NOT NULL, `s_time_p` TEXT NOT NULL, `e_time` TEXT NOT NULL, `e_time_p` TEXT NOT NULL, FOREIGN KEY(`event_id`) REFERENCES `events`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventId",
+            "columnName": "event_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "playaId",
+            "columnName": "p_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startTime",
+            "columnName": "s_time",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startTimePretty",
+            "columnName": "s_time_p",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endTime",
+            "columnName": "e_time",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endTimePretty",
+            "columnName": "e_time_p",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_event_occurrences_event_id_s_time",
+            "unique": true,
+            "columnNames": [
+              "event_id",
+              "s_time"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_event_occurrences_event_id_s_time` ON `${TABLE_NAME}` (`event_id`, `s_time`)"
+          },
+          {
+            "name": "index_event_occurrences_p_id",
+            "unique": true,
+            "columnNames": [
+              "p_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_event_occurrences_p_id` ON `${TABLE_NAME}` (`p_id`)"
+          },
+          {
+            "name": "index_event_occurrences_s_time",
+            "unique": false,
+            "columnNames": [
+              "s_time"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_event_occurrences_s_time` ON `${TABLE_NAME}` (`s_time`)"
+          },
+          {
+            "name": "index_event_occurrences_e_time",
+            "unique": false,
+            "columnNames": [
+              "e_time"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_event_occurrences_e_time` ON `${TABLE_NAME}` (`e_time`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "events",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "event_id"
+            ],
+            "referencedColumns": [
+              "_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "arts_fts",
+        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING FTS4(`name` TEXT, `desc` TEXT, `artist` TEXT, `a_loc` TEXT, content=`arts`)",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "desc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "artist",
+            "columnName": "artist",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "artistLocation",
+            "columnName": "a_loc",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": []
+        },
+        "ftsVersion": "FTS4",
+        "ftsOptions": {
+          "tokenizer": "simple",
+          "tokenizerArgs": [],
+          "contentTable": "arts",
+          "languageIdColumnName": "",
+          "matchInfo": "FTS4",
+          "notIndexedColumns": [],
+          "prefixSizes": [],
+          "preferredOrder": "ASC"
+        },
+        "contentSyncTriggers": [
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_arts_fts_BEFORE_UPDATE BEFORE UPDATE ON `arts` BEGIN DELETE FROM `arts_fts` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_arts_fts_BEFORE_DELETE BEFORE DELETE ON `arts` BEGIN DELETE FROM `arts_fts` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_arts_fts_AFTER_UPDATE AFTER UPDATE ON `arts` BEGIN INSERT INTO `arts_fts`(`docid`, `name`, `desc`, `artist`, `a_loc`) VALUES (NEW.`rowid`, NEW.`name`, NEW.`desc`, NEW.`artist`, NEW.`a_loc`); END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_arts_fts_AFTER_INSERT AFTER INSERT ON `arts` BEGIN INSERT INTO `arts_fts`(`docid`, `name`, `desc`, `artist`, `a_loc`) VALUES (NEW.`rowid`, NEW.`name`, NEW.`desc`, NEW.`artist`, NEW.`a_loc`); END"
+        ]
+      },
+      {
+        "tableName": "camps_fts",
+        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING FTS4(`name` TEXT, `desc` TEXT, `hometown` TEXT, content=`camps`)",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "desc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "hometown",
+            "columnName": "hometown",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": []
+        },
+        "ftsVersion": "FTS4",
+        "ftsOptions": {
+          "tokenizer": "simple",
+          "tokenizerArgs": [],
+          "contentTable": "camps",
+          "languageIdColumnName": "",
+          "matchInfo": "FTS4",
+          "notIndexedColumns": [],
+          "prefixSizes": [],
+          "preferredOrder": "ASC"
+        },
+        "contentSyncTriggers": [
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_camps_fts_BEFORE_UPDATE BEFORE UPDATE ON `camps` BEGIN DELETE FROM `camps_fts` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_camps_fts_BEFORE_DELETE BEFORE DELETE ON `camps` BEGIN DELETE FROM `camps_fts` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_camps_fts_AFTER_UPDATE AFTER UPDATE ON `camps` BEGIN INSERT INTO `camps_fts`(`docid`, `name`, `desc`, `hometown`) VALUES (NEW.`rowid`, NEW.`name`, NEW.`desc`, NEW.`hometown`); END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_camps_fts_AFTER_INSERT AFTER INSERT ON `camps` BEGIN INSERT INTO `camps_fts`(`docid`, `name`, `desc`, `hometown`) VALUES (NEW.`rowid`, NEW.`name`, NEW.`desc`, NEW.`hometown`); END"
+        ]
+      },
+      {
+        "tableName": "events_fts",
+        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING FTS4(`name` TEXT, `desc` TEXT, content=`events`)",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "desc",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": []
+        },
+        "ftsVersion": "FTS4",
+        "ftsOptions": {
+          "tokenizer": "simple",
+          "tokenizerArgs": [],
+          "contentTable": "events",
+          "languageIdColumnName": "",
+          "matchInfo": "FTS4",
+          "notIndexedColumns": [],
+          "prefixSizes": [],
+          "preferredOrder": "ASC"
+        },
+        "contentSyncTriggers": [
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_events_fts_BEFORE_UPDATE BEFORE UPDATE ON `events` BEGIN DELETE FROM `events_fts` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_events_fts_BEFORE_DELETE BEFORE DELETE ON `events` BEGIN DELETE FROM `events_fts` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_events_fts_AFTER_UPDATE AFTER UPDATE ON `events` BEGIN INSERT INTO `events_fts`(`docid`, `name`, `desc`) VALUES (NEW.`rowid`, NEW.`name`, NEW.`desc`); END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_events_fts_AFTER_INSERT AFTER INSERT ON `events` BEGIN INSERT INTO `events_fts`(`docid`, `name`, `desc`) VALUES (NEW.`rowid`, NEW.`name`, NEW.`desc`); END"
+        ]
+      },
+      {
+        "tableName": "user_pois",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`icon` TEXT, `_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `desc` TEXT, `url` TEXT, `contact` TEXT, `p_addr` TEXT, `p_addr_unof` TEXT, `p_id` TEXT, `lat` REAL NOT NULL, `lon` REAL NOT NULL, `lat_unof` REAL NOT NULL, `lon_unof` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "icon",
+            "columnName": "icon",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "desc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contact",
+            "columnName": "contact",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaAddress",
+            "columnName": "p_addr",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaAddressUnofficial",
+            "columnName": "p_addr_unof",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "playaId",
+            "columnName": "p_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "lat",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "lon",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitudeUnofficial",
+            "columnName": "lat_unof",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitudeUnofficial",
+            "columnName": "lon_unof",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        }
+      },
+      {
+        "tableName": "favorites",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`p_id` TEXT NOT NULL, `s_time` TEXT NOT NULL, PRIMARY KEY(`p_id`, `s_time`))",
+        "fields": [
+          {
+            "fieldPath": "playaId",
+            "columnName": "p_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startTime",
+            "columnName": "s_time",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "p_id",
+            "s_time"
+          ]
+        }
+      },
+      {
+        "tableName": "map_pins",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `address` TEXT, `color` TEXT NOT NULL, `icon` TEXT, `created_at` INTEGER NOT NULL, `notes` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "address",
+            "columnName": "address",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "color",
+            "columnName": "color",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "icon",
+            "columnName": "icon",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_map_pins_uid",
+            "unique": false,
+            "columnNames": [
+              "uid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_map_pins_uid` ON `${TABLE_NAME}` (`uid`)"
+          }
+        ]
+      }
+    ],
+    "views": [
+      {
+        "viewName": "event_occurrence_rows",
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT o._id AS _id, d.name AS name, d.`desc` AS `desc`, d.url AS url, d.contact AS contact, d.p_addr AS p_addr, d.p_addr_unof AS p_addr_unof, o.p_id AS p_id, d.lat AS lat, d.lon AS lon, d.lat_unof AS lat_unof, d.lon_unof AS lon_unof, d.e_type AS e_type, d.all_day AS all_day, d.check_loc AS check_loc, d.c_id AS c_id, d.a_id AS a_id, o.event_id AS event_id, d.p_id AS event_uid, o.s_time AS s_time, o.s_time_p AS s_time_p, o.e_time AS e_time, o.e_time_p AS e_time_p FROM events d JOIN event_occurrences o ON o.event_id = d._id"
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7e507bd7a18a215ed7c580a3aa4f7963')"
+    ]
+  }
+}
