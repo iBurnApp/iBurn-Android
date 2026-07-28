@@ -1,9 +1,7 @@
 package com.gaiagps.iburn.database
 
 import androidx.room.Dao
-import androidx.room.Insert
 import androidx.room.Query
-import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -14,8 +12,8 @@ interface EventDao {
     @get:Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME
     )
     val all: Flow<List<EventWithUserData>>
@@ -23,18 +21,19 @@ interface EventDao {
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE e." + PlayaItem.PLAYA_ID + " = :id"
+            " WHERE e." + PlayaItem.PLAYA_ID + " = :id OR e." + Event.EVENT_UID +
+            " = :id ORDER BY e." + Event.START_TIME + " LIMIT 1"
     )
     suspend fun getByPlayaId(id: String?): EventWithUserData
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + PlayaItem.ID + " = :id"
     )
@@ -42,8 +41,8 @@ interface EventDao {
 
     @get:Query(
         "SELECT e.*, 1 AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e INNER JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e INNER JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " ORDER BY e." + Event.START_TIME
     )
@@ -51,18 +50,18 @@ interface EventDao {
 
     @Query(
         "SELECT e.*, 1 AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e INNER JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e INNER JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + Event.END_TIME + " >= :now ORDER BY e." + Event.START_TIME
     )
-    fun getNonExpiredFavorites(now: String?): Flow<List<EventWithUserData>>
+    fun getNonExpiredFavorites(now: Long): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + PlayaItem.NAME + " LIKE :name OR e." + PlayaItem.DESC + " LIKE :name GROUP BY e." + PlayaItem.NAME
     )
@@ -71,11 +70,11 @@ interface EventDao {
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " JOIN " + EventFts.TABLE_NAME +
-            " ON e." + PlayaItem.ID + " = " + EventFts.TABLE_NAME + ".rowid" +
+            " ON e." + Event.EVENT_ID + " = " + EventFts.TABLE_NAME + ".rowid" +
             " WHERE " + EventFts.TABLE_NAME + " MATCH :query"
     )
     fun searchFts(query: String?): Flow<List<EventWithUserData>>
@@ -84,8 +83,8 @@ interface EventDao {
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + Event.CAMP_PLAYA_ID + " = :campPlayaId GROUP BY e." + PlayaItem.NAME
     )
@@ -94,126 +93,131 @@ interface EventDao {
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE e." + PlayaItem.PLAYA_ID + " = :playaId AND e." + PlayaItem.ID + " != :excludingId"
+            " WHERE e." + Event.EVENT_ID + " = :eventId AND e." + PlayaItem.ID + " != :excludingId" +
+            " ORDER BY e." + Event.START_TIME
     )
-    fun findOtherOccurrences(playaId: String?, excludingId: Int): Flow<List<EventWithUserData>>
+    fun findOtherOccurrences(eventId: Int, excludingId: Int): Flow<List<EventWithUserData>>
 
 
     //Event-related Queries
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE e." + Event.START_TIME_PRETTY + " LIKE :day AND " +
-            "not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd)" +
+            " WHERE e." + Event.START_TIME + " >= :dayStart AND e." +
+            Event.START_TIME + " < :dayEnd AND e." + Event.ALL_DAY + " = 0" +
             " ORDER BY " + Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
     fun findByDayTimed(
-        day: String?, allDayStart: String?,
-        allDayEnd: String?
+        dayStart: Long,
+        dayEnd: Long
     ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE (e." + Event.START_TIME_PRETTY +
-            " LIKE :day AND e." + Event.END_TIME + ">= :now AND " +
-            "not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd)) ORDER BY " +
+            " WHERE (e." + Event.START_TIME + " >= :dayStart AND e." +
+            Event.START_TIME + " < :dayEnd AND e." + Event.END_TIME + " >= :now AND e." +
+            Event.ALL_DAY + " = 0) ORDER BY " +
             Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
     fun findByDayNoExpiredTimed(
-        day: String?, now: String?,
-        allDayStart: String?,
-        allDayEnd: String?
+        dayStart: Long,
+        dayEnd: Long,
+        now: Long
     ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE (e." + Event.START_TIME_PRETTY +
-            " LIKE :day AND e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) ORDER BY " +
+            " WHERE (e." + Event.START_TIME + " >= :dayStart AND e." +
+            Event.START_TIME + " < :dayEnd AND e." + Event.ALL_DAY + " = 1) ORDER BY " +
             Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
     fun findByDayAllDay(
-        day: String?,
-        allDayStart: String?,
-        allDayEnd: String?
+        dayStart: Long,
+        dayEnd: Long
     ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE (e." + Event.START_TIME_PRETTY +
-            " LIKE :day AND not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) AND e." + Event.TYPE + " IN (:types)) ORDER BY " +
+            " WHERE (e." + Event.START_TIME + " >= :dayStart AND e." +
+            Event.START_TIME + " < :dayEnd AND e." + Event.ALL_DAY +
+            " = 0 AND e." + Event.TYPE + " IN (:types)) ORDER BY " +
             Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
     fun findByDayAndTypeTimed(
-        day: String?, types: List<String?>?,
-        allDayStart: String?,
-        allDayEnd: String?
+        dayStart: Long,
+        dayEnd: Long,
+        types: List<String?>?
     ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE (e." + Event.START_TIME_PRETTY +
-            " LIKE :day AND e." + Event.END_TIME + ">= :now AND not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) AND e." + Event.TYPE + " IN (:types)) ORDER BY " +
+            " WHERE (e." + Event.START_TIME + " >= :dayStart AND e." +
+            Event.START_TIME + " < :dayEnd AND e." + Event.END_TIME +
+            " >= :now AND e." + Event.ALL_DAY + " = 0 AND e." +
+            Event.TYPE + " IN (:types)) ORDER BY " +
             Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
     fun findByDayAndTypeNoExpiredTimed(
-        day: String?, types: List<String?>?, now: String?,
-        allDayStart: String?, allDayEnd: String?
+        dayStart: Long,
+        dayEnd: Long,
+        types: List<String?>?,
+        now: Long
     ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE (e." + Event.START_TIME_PRETTY +
-            " LIKE :day AND e." + Event.TYPE + " IN (:types) AND e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) ORDER BY " +
+            " WHERE (e." + Event.START_TIME + " >= :dayStart AND e." +
+            Event.START_TIME + " < :dayEnd AND e." + Event.ALL_DAY +
+            " = 1 AND e." + Event.TYPE + " IN (:types)) ORDER BY " +
             Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
     fun findByDayAndTypeAllDay(
-        day: String?,
-        types: List<String?>?,
-        allDayStart: String?,
-        allDayEnd: String?
+        dayStart: Long,
+        dayEnd: Long,
+        types: List<String?>?
     ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE e." + Event.START_TIME + " BETWEEN :startDate AND :endDate AND e." + Event.ALL_DAY + " = 0 ORDER BY e." + Event.START_TIME
     )
-    fun findInDateRange(startDate: String?, endDate: String?): kotlinx.coroutines.flow.Flow<List<EventWithUserData>>
+    fun findInDateRange(startDate: Long, endDate: Long): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE (e." + PlayaItem.LATITUDE + " BETWEEN :minLat AND :maxLat) " +
             "AND (e." + PlayaItem.LONGITUDE + " BETWEEN :minLon AND :maxLon)"
@@ -228,8 +232,8 @@ interface EventDao {
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
             " WHERE f." + Favorite.PLAYA_ID + " IS NOT NULL OR ((e." + PlayaItem.LATITUDE +
             " BETWEEN :minLat AND :maxLat) AND (e." + PlayaItem.LONGITUDE +
@@ -246,94 +250,74 @@ interface EventDao {
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd)" +
+            " WHERE e." + Event.ALL_DAY + " = 0" +
             " ORDER BY " + Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
-    fun findAllDaysTimed(
-        allDayStart: String?,
-        allDayEnd: String?
-    ): Flow<List<EventWithUserData>>
+    fun findAllDaysTimed(): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE (e." + Event.END_TIME + ">= :now AND " +
-            "not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd)) ORDER BY " +
+            " WHERE e." + Event.END_TIME + " >= :now AND e." +
+            Event.ALL_DAY + " = 0 ORDER BY " +
             Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
-    fun findAllDaysNoExpiredTimed(
-        now: String?,
-        allDayStart: String?,
-        allDayEnd: String?
-    ): Flow<List<EventWithUserData>>
+    fun findAllDaysNoExpiredTimed(now: Long): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE (e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) ORDER BY " +
+            " WHERE e." + Event.ALL_DAY + " = 1 ORDER BY " +
             Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
-    fun findAllDaysAllDay(
-        allDayStart: String?,
-        allDayEnd: String?
-    ): Flow<List<EventWithUserData>>
+    fun findAllDaysAllDay(): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE (not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) AND e." + Event.TYPE + " IN (:types)) ORDER BY " +
+            " WHERE e." + Event.ALL_DAY + " = 0 AND e." +
+            Event.TYPE + " IN (:types) ORDER BY " +
             Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
-    fun findAllDaysAndTypeTimed(
-        types: List<String?>?,
-        allDayStart: String?,
-        allDayEnd: String?
-    ): Flow<List<EventWithUserData>>
+    fun findAllDaysAndTypeTimed(types: List<String?>?): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE (e." + Event.END_TIME + ">= :now AND not(e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) AND e." + Event.TYPE + " IN (:types)) ORDER BY " +
+            " WHERE e." + Event.END_TIME + " >= :now AND e." +
+            Event.ALL_DAY + " = 0 AND e." + Event.TYPE + " IN (:types) ORDER BY " +
             Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
     fun findAllDaysAndTypeNoExpiredTimed(
-        types: List<String?>?, now: String?,
-        allDayStart: String?, allDayEnd: String?
+        types: List<String?>?,
+        now: Long
     ): Flow<List<EventWithUserData>>
 
     @Query(
         "SELECT e.*, CASE WHEN f." + Favorite.PLAYA_ID +
             " IS NOT NULL THEN 1 ELSE 0 END AS " + UserData.FAVORITE +
-            " FROM " + Event.TABLE_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
-            " f ON e." + PlayaItem.PLAYA_ID + " = f." + Favorite.PLAYA_ID +
+            " FROM " + Event.VIEW_NAME + " e LEFT JOIN " + Favorite.TABLE_NAME +
+            " f ON e." + Event.EVENT_UID + " = f." + Favorite.PLAYA_ID +
             " AND e." + Event.START_TIME + " = f." + Favorite.START_TIME +
-            " WHERE (e." + Event.TYPE + " IN (:types) AND e." + Event.START_TIME + " <= :allDayStart AND e." + Event.END_TIME + " >= :allDayEnd) ORDER BY " +
+            " WHERE e." + Event.ALL_DAY + " = 1 AND e." +
+            Event.TYPE + " IN (:types) ORDER BY " +
             Event.ALL_DAY + ", " + Event.START_TIME + " ASC"
     )
-    fun findAllDaysAndTypeAllDay(
-        types: List<String?>?,
-        allDayStart: String?,
-        allDayEnd: String?
-    ): Flow<List<EventWithUserData>>
+    fun findAllDaysAndTypeAllDay(types: List<String?>?): Flow<List<EventWithUserData>>
 
-    @Insert
-    fun insert(vararg arts: Event?)
-
-    @Update
-    fun update(vararg arts: Event?)
 }

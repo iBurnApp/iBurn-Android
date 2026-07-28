@@ -7,7 +7,7 @@ import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.BuildConfig
 import com.gaiagps.iburn.adapters.AdapterUtils
-import com.gaiagps.iburn.api.response.EventOccurrence
+import com.gaiagps.iburn.api.response.EventOccurrence as ApiEventOccurrence
 import com.gaiagps.iburn.api.response.PlayaItem as ApiPlayaItem
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.*
@@ -20,7 +20,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
-import java.text.DateFormat
 import java.util.*
 import java.util.concurrent.Executors
 
@@ -29,8 +28,6 @@ class IBurnService(@NonNull context: Context) {
     private val service: IBurnApi
     private val cachedLocations = HashMap<String, com.gaiagps.iburn.api.response.Location>()
     private val cachedUnofficialLocations = HashMap<String, com.gaiagps.iburn.api.response.Location>()
-    private val apiDateFormat: DateFormat = PlayaDateTypeAdapter.buildIso8601Format()
-
     init {
         val gson = GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -144,48 +141,67 @@ class IBurnService(@NonNull context: Context) {
     private suspend fun updateEvents(provider: DataProvider): Long {
         Timber.d("Updating Events")
         val items = api.getEvents().distinctBy { it.uid }
-        return updateTable(provider, items, Event.TABLE_NAME) { item, values, database ->
-            val event = item as com.gaiagps.iburn.api.response.Event
-            if (event.occurrenceSet == null) return@updateTable
-
-            values.put(PlayaItem.NAME, event.title)
-            values.put(Event.ALL_DAY, event.allDay)
-            values.put(Event.CHECK_LOC, event.checkLocation)
-            values.put(Event.TYPE, event.eventType?.abbr ?: AdapterUtils.EVENT_TYPE_ABBREVIATION_UNKNOWN)
-            if (event.hostedByCamp != null) values.put(Event.CAMP_PLAYA_ID, event.hostedByCamp)
-            if (event.locatedAtArt != null) values.put(Event.ART_PLAYA_ID, event.locatedAtArt)
-
-            val occurrences = ArrayList<EventOccurrence>(event.occurrenceSet)
-            occurrences.sortWith { o1, o2 ->
-                val t1 = o1.startTime
-                val t2 = o2.startTime
-                when {
-                    t1 === t2 -> 0
-                    t1 == null -> -1
-                    t2 == null -> 1
-                    else -> t1.compareTo(t2)
+        var count = 0L
+        try {
+            provider.beginTransaction()
+            val numDeleted = provider.deleteEvents()
+            Timber.d("Deleted %d existing event definitions. Beginning inserts", numDeleted)
+            for (event in items) {
+                val sourceOccurrences = event.occurrenceSet ?: continue
+                val definitionValues = ContentValues()
+                bindBaseValues(event, definitionValues)
+                definitionValues.put(PlayaItem.NAME, event.title)
+                definitionValues.put(Event.ALL_DAY, event.allDay)
+                definitionValues.put(Event.CHECK_LOC, event.checkLocation)
+                definitionValues.put(
+                    Event.TYPE,
+                    event.eventType?.abbr ?: AdapterUtils.EVENT_TYPE_ABBREVIATION_UNKNOWN
+                )
+                if (event.hostedByCamp != null) {
+                    definitionValues.put(Event.CAMP_PLAYA_ID, event.hostedByCamp)
                 }
-            }
+                if (event.locatedAtArt != null) {
+                    definitionValues.put(Event.ART_PLAYA_ID, event.locatedAtArt)
+                }
+                val eventId = provider.insertAndReturnId(
+                    EventDefinition.TABLE_NAME,
+                    definitionValues
+                )
+                check(eventId != -1L) { "Failed to insert event definition ${event.uid}" }
 
-            var index = 0
-            for (occurrence in occurrences) {
-                values.put(PlayaItem.PLAYA_ID, event.uid + "-" + index)
-                values.put(Event.START_TIME, apiDateFormat.format(occurrence.startTime))
-                val timeDayFormatter = DateUtil.getPlayaTimeFormat("EE M/d h:mm a")
-                val dayFormatter = DateUtil.getPlayaTimeFormat("EE M/d")
-                values.put(
-                    Event.START_TIME_PRETTY,
-                    if (event.allDay) dayFormatter.format(occurrence.startTime) else timeDayFormatter.format(occurrence.startTime)
-                )
-                values.put(Event.END_TIME, apiDateFormat.format(occurrence.endTime))
-                values.put(
-                    Event.END_TIME_PRETTY,
-                    if (event.allDay) dayFormatter.format(occurrence.endTime) else timeDayFormatter.format(occurrence.endTime)
-                )
-                database.insert(values)
-                index++
+                val occurrences = ArrayList<ApiEventOccurrence>(sourceOccurrences)
+                occurrences.sortWith { o1, o2 ->
+                    val t1 = o1.startTime
+                    val t2 = o2.startTime
+                    when {
+                        t1 === t2 -> 0
+                        t1 == null -> -1
+                        t2 == null -> 1
+                        else -> t1.compareTo(t2)
+                    }
+                }
+                occurrences.forEachIndexed { index, occurrence ->
+                    val occurrenceValues = ContentValues()
+                    occurrenceValues.put(Event.EVENT_ID, eventId)
+                    occurrenceValues.put(PlayaItem.PLAYA_ID, "${event.uid}-$index")
+                    occurrenceValues.put(Event.START_TIME, occurrence.startTime.time)
+                    occurrenceValues.put(Event.END_TIME, occurrence.endTime.time)
+                    check(
+                        provider.insertAndReturnId(
+                            EventOccurrence.TABLE_NAME,
+                            occurrenceValues
+                        ) != -1L
+                    ) { "Failed to insert occurrence $index for ${event.uid}" }
+                }
+                count++
             }
+            provider.setTransactionSuccessful()
+        } catch (t: Throwable) {
+            Timber.e(t, "Error. Rolling back events transaction")
+        } finally {
+            provider.endTransaction()
         }
+        return count
     }
 
     private suspend fun updateTable(

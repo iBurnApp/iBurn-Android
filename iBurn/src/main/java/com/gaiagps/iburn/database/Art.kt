@@ -5,6 +5,7 @@ import android.os.Parcelable
 import android.text.TextUtils
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import com.gaiagps.iburn.AudioTourManager
 import kotlinx.parcelize.Parcelize
 
@@ -12,7 +13,13 @@ import kotlinx.parcelize.Parcelize
  * Created by dbro on 6/8/17.
  */
 @Parcelize
-@Entity(tableName = Art.TABLE_NAME)
+@Entity(
+    tableName = Art.TABLE_NAME,
+    indices = [
+        Index(value = [PlayaItem.PLAYA_ID], unique = true),
+        Index(value = [PlayaItem.NAME])
+    ]
+)
 class Art : PlayaItem(), Parcelable {
     //    public static final String AUDIO_TOUR_URL = "a_url";
     @JvmField

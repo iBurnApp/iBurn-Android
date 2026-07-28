@@ -6,7 +6,6 @@ import com.gaiagps.iburn.AudioTourManager
 import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.PrefsHelper
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.Favorite
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -15,6 +14,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import org.maplibre.android.geometry.VisibleRegion
 import timber.log.Timber
+import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -28,8 +28,6 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Created by davidbrodsky on 6/22/15.
  */
 class DataProvider private constructor(private val context: Context, private val db: AppDatabase) {
-
-    private val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
 
     private val upgradeLock = AtomicBoolean(false)
 
@@ -114,18 +112,23 @@ class DataProvider private constructor(private val context: Context, private val
         db.openHelper.writableDatabase.insert(table, 0, values) // TODO : wtf is the int here?
     }
 
+    fun insertAndReturnId(table: String, values: ContentValues): Long {
+        return db.openHelper.writableDatabase.insert(table, 0, values)
+    }
+
     fun delete(table: String): Int {
         when (table) {
             Camp.TABLE_NAME -> return deleteCamps()
             Art.TABLE_NAME -> return deleteArt()
-            Event.TABLE_NAME -> return deleteEvents()
+            EventDefinition.TABLE_NAME -> return deleteEvents()
             else -> Timber.w("Cannot clear unknown table name '%s'", table)
         }
         return 0
     }
 
     fun deleteEvents(): Int {
-        return clearTable(Event.TABLE_NAME)
+        clearTable(EventOccurrence.TABLE_NAME)
+        return clearTable(EventDefinition.TABLE_NAME)
 
         //        return db.getOpenHelper().getWritableDatabase().delete(Event.TABLE_NAME, "*", null);
         //        Cursor result = db.query("DELETE FROM event; VACUUM", null);
@@ -146,88 +149,86 @@ class DataProvider private constructor(private val context: Context, private val
                                   eventTiming: String): Flow<List<EventWithUserData>> {
 
         // TODO : Honor upgradeLock?
-        val isoDateFormat = DateUtil.getIso8601Format()
-        val nowDate = CurrentDateProvider.getCurrentDate()
-        val now = isoDateFormat.format(nowDate)
+        val now = CurrentDateProvider.getCurrentDate().time
 
         // Handle "all days" case when day is null or empty
         if (day == null || day.isEmpty()) {
-            // For "all days", we use dummy values for allDayStart/allDayEnd since the query
-            // methods don't actually filter by day - they just use these to distinguish
-            // between timed and all-day events
-            val dummyDay = "8/25" // Use a dummy day format that DateUtil can parse
-            val allDayStart = isoDateFormat.format(
-                    DateUtil.getAllDayStartDateTime(dummyDay))
-            val allDayEnd = isoDateFormat.format(
-                    DateUtil.getAllDayEndDateTime(dummyDay))
-
             if (types == null || types.isEmpty()) {
                 if(eventTiming=="timed"){
                     if(includeExpired == true) {
-                        return db.eventDao().findAllDaysTimed(allDayStart, allDayEnd)
+                        return db.eventDao().findAllDaysTimed()
                     }
                     else{
-                        return db.eventDao().findAllDaysNoExpiredTimed(now, allDayStart, allDayEnd)
+                        return db.eventDao().findAllDaysNoExpiredTimed(now)
                     }
                 }
                 else{
-                    return db.eventDao().findAllDaysAllDay(allDayStart, allDayEnd)
+                    return db.eventDao().findAllDaysAllDay()
                 }
             } else {
                 if(eventTiming=="timed"){
                     if(includeExpired == true) {
-                        return db.eventDao().findAllDaysAndTypeTimed(types, allDayStart, allDayEnd)
+                        return db.eventDao().findAllDaysAndTypeTimed(types)
                     }
                     else{
-                        return db.eventDao().findAllDaysAndTypeNoExpiredTimed(types, now, allDayStart, allDayEnd)
+                        return db.eventDao().findAllDaysAndTypeNoExpiredTimed(types, now)
                     }
                 }
                 else{
-                    return db.eventDao().findAllDaysAndTypeAllDay(types, allDayStart, allDayEnd)
+                    return db.eventDao().findAllDaysAndTypeAllDay(types)
                 }
             }
         }
 
-        // Handle specific day filtering (existing logic)
-        val wildDay = addWildcardsToQuery(day)
-        val allDayStart = isoDateFormat.format(
-                DateUtil.getAllDayStartDateTime(day))
-        val allDayEnd = isoDateFormat.format(
-                DateUtil.getAllDayEndDateTime(day))
+        val (dayStart, dayEnd) = dayBounds(day)
 
         if (types == null || types.isEmpty()) {
             if(eventTiming=="timed"){
                 if(includeExpired == true) {
-                    return db.eventDao().findByDayTimed(wildDay,
-                            allDayStart,allDayEnd)
+                    return db.eventDao().findByDayTimed(dayStart, dayEnd)
                 }
                 else{
-                    return db.eventDao().findByDayNoExpiredTimed(wildDay, now,
-                            allDayStart,allDayEnd)
+                    return db.eventDao().findByDayNoExpiredTimed(dayStart, dayEnd, now)
                 }
             }
             else{
-                return db.eventDao().findByDayAllDay(wildDay,allDayStart,
-                        allDayEnd)
+                return db.eventDao().findByDayAllDay(dayStart, dayEnd)
             }
         } else {
             if(eventTiming=="timed"){
                 if(includeExpired == true) {
-                    return db.eventDao().findByDayAndTypeTimed(wildDay,types,
-                            allDayStart,allDayEnd)
+                    return db.eventDao().findByDayAndTypeTimed(dayStart, dayEnd, types)
                 }
                 else{
-                    return db.eventDao().findByDayAndTypeNoExpiredTimed(wildDay,
-                            types,now,
-                            allDayStart,allDayEnd)
+                    return db.eventDao().findByDayAndTypeNoExpiredTimed(
+                        dayStart,
+                        dayEnd,
+                        types,
+                        now
+                    )
                 }
             }
             else{
-                return db.eventDao().findByDayAndTypeAllDay(wildDay,types,
-                        allDayStart,
-                        allDayEnd)
+                return db.eventDao().findByDayAndTypeAllDay(dayStart, dayEnd, types)
             }
         }
+    }
+
+    private fun dayBounds(day: String): Pair<Long, Long> {
+        val parts = day.split("/")
+        require(parts.size == 2) { "Expected event day in M/d format: $day" }
+        val calendar = Calendar.getInstance(DateUtil.PLAYA_TIME_ZONE).apply {
+            time = CurrentDateProvider.getCurrentDate()
+            set(Calendar.MONTH, parts[0].toInt() - 1)
+            set(Calendar.DAY_OF_MONTH, parts[1].toInt())
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val start = calendar.timeInMillis
+        calendar.add(Calendar.DAY_OF_MONTH, 1)
+        return start to calendar.timeInMillis
     }
 
     fun observeEventsHostedByCamp(camp: Camp): Flow<List<EventWithUserData>> {
@@ -235,7 +236,7 @@ class DataProvider private constructor(private val context: Context, private val
     }
 
     fun observeOtherOccurrencesOfEvent(event: Event): Flow<List<EventWithUserData>> {
-        return db.eventDao().findOtherOccurrences(event.playaId, event.id)
+        return db.eventDao().findOtherOccurrences(event.eventId, event.id)
     }
 
     fun observeEventFavorites(): Flow<List<EventWithUserData>> {
@@ -246,11 +247,9 @@ class DataProvider private constructor(private val context: Context, private val
 
     fun observeEventBetweenDates(start: Date, end: Date): Flow<List<EventWithUserData>> {
 
-        val startDateStr = apiDateFormat.format(start)
-        val endDateStr = apiDateFormat.format(end)
         // TODO : Honor upgradeLock?
-        Timber.d("Start time between %s and %s", startDateStr, endDateStr)
-        return db.eventDao().findInDateRange(startDateStr, endDateStr)
+        Timber.d("Start time between %s and %s", start, end)
+        return db.eventDao().findInDateRange(start.time, end.time)
     }
 
     fun deleteArt(): Int {
@@ -426,8 +425,7 @@ class DataProvider private constructor(private val context: Context, private val
      */
     fun observeUserAddedMapItemsOnly(): Flow<List<PlayaItemWithUserData>> {
         // TODO : Honor upgradeLock
-        val nowDate = CurrentDateProvider.getCurrentDate()
-        val now = DateUtil.getIso8601Format().format(nowDate)
+        val now = CurrentDateProvider.getCurrentDate().time
 
         return combine(
                 db.artDao().favorites,
@@ -476,7 +474,7 @@ class DataProvider private constructor(private val context: Context, private val
         if (item is Art) {
             db.artDao().update(item)
         } else if (item is Event) {
-            db.eventDao().update(item)
+            Timber.w("Bundled events are read-only and cannot be updated individually")
         } else if (item is Camp) {
             db.campDao().update(item)
         } else if (item is UserPoi) {
@@ -487,8 +485,8 @@ class DataProvider private constructor(private val context: Context, private val
     }
 
     fun toggleFavorite(item: PlayaItem) {
-        val start = if (item is Event) item.startTime ?: "" else ""
-        val pId = item.playaId
+        val start = if (item is Event) item.startTime else 0
+        val pId = if (item is Event) item.eventUid else item.playaId
         if (pId == null) {
             Timber.e("Cannot toggle favorite for item with null playaId")
             return

@@ -24,9 +24,12 @@ READ_ONLY_SCHEMA = {
         "p_addr_unof", "p_id", "lat", "lon", "lat_unof", "lon_unof",
     ],
     "events": [
-        "_id", "e_type", "all_day", "check_loc", "c_id", "a_id", "s_time",
-        "s_time_p", "e_time", "e_time_p", "name", "desc", "url", "contact",
+        "_id", "e_type", "all_day", "check_loc", "c_id", "a_id",
+        "name", "desc", "url", "contact",
         "p_addr", "p_addr_unof", "p_id", "lat", "lon", "lat_unof", "lon_unof",
+    ],
+    "event_occurrences": [
+        "_id", "event_id", "p_id", "s_time", "e_time",
     ],
 }
 MEDIA_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".m4a"}
@@ -70,7 +73,10 @@ def verify_database(
     expected_counts = {
         "arts": len(art),
         "camps": len(camps),
-        "events": sum(len(item.get("occurrence_set") or []) for item in events),
+        "events": len(events),
+        "event_occurrences": sum(
+            len(item.get("occurrence_set") or []) for item in events
+        ),
     }
     with sqlite3.connect(f"file:{database_path}?mode=ro", uri=True) as database:
         integrity = database.execute("PRAGMA integrity_check").fetchone()[0]

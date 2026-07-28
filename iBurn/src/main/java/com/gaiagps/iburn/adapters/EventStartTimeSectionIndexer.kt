@@ -1,12 +1,10 @@
 package com.gaiagps.iburn.adapters
 
 import com.gaiagps.iburn.DateUtil
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.Event
 import com.gaiagps.iburn.database.EventWithUserData
 import com.gaiagps.iburn.database.PlayaItem
 import com.gaiagps.iburn.database.PlayaItemWithUserData
-import java.text.ParseException
 
 
 /**
@@ -14,7 +12,6 @@ import java.text.ParseException
  */
 class EventStartTimeSectionIndexer(items: List<PlayaItemWithUserData>? = null) : PlayaItemSectionIndxer(items) {
 
-    private val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
     private val humanDateFormat = DateUtil.getPlayaTimeFormat("E h a")
 
     private var sections: ArrayList<String>? = null
@@ -70,11 +67,7 @@ class EventStartTimeSectionIndexer(items: List<PlayaItemWithUserData>? = null) :
         if (event.allDay) {
             return "All ${event.startTimePretty}"
         } else {
-            try {
-                return humanDateFormat.format(apiDateFormat.parse(event.startTime))
-            } catch (e: ParseException) {
-                return event.startTimePretty
-            }
+            return humanDateFormat.format(event.startDate)
         }
     }
 }

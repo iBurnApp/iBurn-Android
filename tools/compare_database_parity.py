@@ -10,7 +10,7 @@ import sqlite3
 from pathlib import Path
 
 
-TABLES = ("arts", "camps", "events")
+TABLES = ("arts", "camps", "events", "event_occurrences")
 
 
 def canonical_table(database: sqlite3.Connection, table: str, columns: list[str]) -> tuple[int, str]:

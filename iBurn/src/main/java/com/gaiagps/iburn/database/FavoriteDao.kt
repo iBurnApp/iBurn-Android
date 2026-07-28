@@ -15,11 +15,11 @@ interface FavoriteDao {
     fun insert(vararg fav: Favorite)
 
     @Query("DELETE FROM " + Favorite.TABLE_NAME + " WHERE " + Favorite.PLAYA_ID + " = :playaId AND " + Favorite.START_TIME + " = :startTime")
-    fun delete(playaId: String, startTime: String)
+    fun delete(playaId: String, startTime: Long)
 
     @Query("DELETE FROM " + Favorite.TABLE_NAME + " WHERE " + Favorite.PLAYA_ID + " IN (:playaIds)")
     fun deleteByPlayaIds(playaIds: List<String>)
 
     @Query("SELECT COUNT(*) FROM " + Favorite.TABLE_NAME + " WHERE " + Favorite.PLAYA_ID + " = :playaId AND " + Favorite.START_TIME + " = :startTime")
-    fun count(playaId: String, startTime: String): Int
+    fun count(playaId: String, startTime: Long): Int
 }

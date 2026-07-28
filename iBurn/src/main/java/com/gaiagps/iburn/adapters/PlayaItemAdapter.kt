@@ -15,7 +15,6 @@ import android.widget.SectionIndexer
 import android.widget.TextView
 import com.gaiagps.iburn.*
 import com.gaiagps.iburn.DateUtil.getDateString
-import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.gaiagps.iburn.database.*
 import com.gaiagps.iburn.location.LocationProvider
 import com.gaiagps.iburn.view.animateScalePulse
@@ -28,7 +27,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
-import java.text.ParseException
 import java.util.*
 
 /**
@@ -39,8 +37,6 @@ open class PlayaItemAdapter(
         val context: Context,
         val listener: AdapterListener) :
         RecyclerView.Adapter<PlayaItemAdapter.ViewHolder>(), SectionIndexer {
-
-    protected val apiDateFormat = PlayaDateTypeAdapter.buildIso8601Format()
 
     var sectionIndexer: PlayaItemSectionIndxer? = null
 
@@ -176,15 +172,17 @@ open class PlayaItemAdapter(
 
                 holder.eventTypeView.text = AdapterUtils.getStringForEventType(item.type)
 
-                try {
-                    startDate = apiDateFormat.parse(item.startTime)
-                    endDate = apiDateFormat.parse(item.endTime)
-                    holder.eventTimeView.text =
-                            getDateString(context, now, startDate, item.startTimePretty, endDate, item.endTimePretty)
-                } catch (e: ParseException) {
-                    Timber.e(e, "Failed to parse event dates")
-                    holder.eventTimeView.text = item.startTimePretty
-                }
+                startDate = item.startDate
+                endDate = item.endDate
+                holder.eventTimeView.text =
+                    getDateString(
+                        context,
+                        now,
+                        startDate,
+                        item.startTimePretty,
+                        endDate,
+                        item.endTimePretty
+                    )
 
                 holder.artistView.visibility = View.GONE
                 holder.audioTourView.visibility = View.GONE
