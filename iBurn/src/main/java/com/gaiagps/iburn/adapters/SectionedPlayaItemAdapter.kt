@@ -52,6 +52,12 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
         }
     }
 
+    override fun notifyLocationChanged() {
+        positionToDataPosition.keys.forEach { position ->
+            notifyItemChanged(position, LocationChangedPayload)
+        }
+    }
+
     /**
      * content position -> header position
      */
@@ -100,6 +106,16 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
         setLinearSlimParameters(viewHolder, position)
     }
 
+    protected open fun onBindContentViewHolder(
+        viewHolder: ViewHolder,
+        position: Int,
+        dataPosition: Int,
+        payloads: MutableList<Any>
+    ) {
+        super.onBindViewHolder(viewHolder, dataPosition, payloads)
+        setLinearSlimParameters(viewHolder, position)
+    }
+
     abstract fun onBindHeaderViewHolder(viewHolder: ViewHolder, position: Int)
 
     protected open fun onCreateHeaderViewHolder(parent: ViewGroup): HeaderViewHolder {
@@ -136,6 +152,21 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
         } else {
             val dataPosition = getDataPositionForPosition(position)
             onBindContentViewHolder(viewHolder, position, dataPosition)
+        }
+    }
+
+    override fun onBindViewHolder(
+        viewHolder: ViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        if (payloads.isEmpty()) {
+            onBindViewHolder(viewHolder, position)
+        } else if (isHeaderPosition(position)) {
+            onBindHeaderViewHolder(viewHolder, position)
+        } else {
+            val dataPosition = getDataPositionForPosition(position)
+            onBindContentViewHolder(viewHolder, position, dataPosition, payloads)
         }
     }
 
