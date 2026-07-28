@@ -10,5 +10,12 @@
         android:title="Show Big Camp Names"
         android:checkable="true"
         android:checked="true" />
+    <item
+        android:id="@+id/menu_show_location_trail"
+        android:title="@string/show_location_trail"
+        android:checkable="true"
+        android:checked="true" />
+    <item
+        android:id="@+id/menu_location_trail_history"
+        android:title="@string/location_trail_history" />
  </menu>
-

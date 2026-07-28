@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.PointF
 import android.os.Bundle
+import android.os.SystemClock
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -39,6 +40,8 @@ import com.gaiagps.iburn.database.PlayaItemWithUserData
 import com.gaiagps.iburn.database.UserPoi
 import com.gaiagps.iburn.js.Geocoder
 import com.gaiagps.iburn.location.LocationProvider
+import com.gaiagps.iburn.location.LocationTrailHistory
+import com.gaiagps.iburn.location.LocationTrailPoint
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.Priority
 import androidx.lifecycle.lifecycleScope
@@ -62,13 +65,17 @@ import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.OnMapReadyCallback
 import org.maplibre.android.maps.Style
 import org.maplibre.android.style.sources.GeoJsonSource
+import org.maplibre.android.style.sources.GeoJsonOptions
 import org.maplibre.android.style.sources.VectorSource
+import org.maplibre.android.style.layers.LineLayer
 import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.expressions.Expression
 import org.maplibre.android.style.layers.SymbolLayer
 import org.maplibre.android.utils.MapFragmentUtils
-// org.maplibre.geojson.Point no longer used directly for annotations
+import org.maplibre.geojson.Feature
+import org.maplibre.geojson.FeatureCollection
+import org.maplibre.geojson.LineString
 import timber.log.Timber
 import java.io.File
 import java.util.ArrayDeque
@@ -151,6 +158,11 @@ class MapboxMapFragment : Fragment() {
 
     private var locationJob: Job? = null
     private var currentLocation: Location? = null
+    private val locationTrailSourceId = "user-location-trail-source"
+    private val locationTrailLayerId = "user-location-trail-layer"
+    private val locationTrailDurationOptionsMinutes = intArrayOf(2, 5, 15)
+    private val locationTrailHistory =
+        LocationTrailHistory(TimeUnit.MINUTES.toMillis(DEFAULT_LOCATION_TRAIL_MINUTES.toLong()))
 
     /**
      * Showcase a playaitem on the map
@@ -354,6 +366,12 @@ class MapboxMapFragment : Fragment() {
         // Sync state
         popup.menu.findItem(R.id.menu_show_camp_boundaries)?.isChecked = prefs.showCampBoundaries
         popup.menu.findItem(R.id.menu_show_big_camp_names)?.isChecked = prefs.showBigCampNames
+        popup.menu.findItem(R.id.menu_show_location_trail)?.isChecked = prefs.showLocationTrail
+        popup.menu.findItem(R.id.menu_location_trail_history)?.title =
+            getString(
+                R.string.location_trail_history_menu,
+                sanitizedLocationTrailMinutes(prefs.locationTrailHistoryMinutes)
+            )
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -369,6 +387,17 @@ class MapboxMapFragment : Fragment() {
                     item.isChecked = newVal
                     prefs.setShowBigCampNames(newVal)
                     applyCampLayerPreferences(prefs)
+                    true
+                }
+                R.id.menu_show_location_trail -> {
+                    val newVal = !item.isChecked
+                    item.isChecked = newVal
+                    prefs.setShowLocationTrail(newVal)
+                    applyLocationTrailPreference(prefs)
+                    true
+                }
+                R.id.menu_location_trail_history -> {
+                    showLocationTrailHistoryDialog(prefs)
                     true
                 }
                 else -> false
@@ -584,6 +613,8 @@ class MapboxMapFragment : Fragment() {
                     appliedStyle.addLayer(annotationsLayer)
                 }
 
+                setupLocationTrailLayer(appliedStyle)
+
                 // Push any existing markers into the new style
                 refreshAnnotationSource()
 
@@ -609,6 +640,11 @@ class MapboxMapFragment : Fragment() {
                     applyCampLayerPreferences(PrefsHelper(requireContext()))
                 } catch (t: Throwable) {
                     Timber.w(t, "Unable to apply camp layer visibility preferences")
+                }
+                try {
+                    applyLocationTrailPreference(PrefsHelper(requireContext()))
+                } catch (t: Throwable) {
+                    Timber.w(t, "Unable to apply location trail preference")
                 }
 
                 // Tap handling to detect marker clicks
@@ -720,6 +756,89 @@ class MapboxMapFragment : Fragment() {
         )
     }
 
+    private fun setupLocationTrailLayer(style: Style) {
+        if (style.getSource(locationTrailSourceId) == null) {
+            style.addSource(
+                GeoJsonSource(
+                    locationTrailSourceId,
+                    GeoJsonOptions().withLineMetrics(true)
+                )
+            )
+        }
+        if (style.getLayer(locationTrailLayerId) == null) {
+            val trailLayer = LineLayer(locationTrailLayerId, locationTrailSourceId).withProperties(
+                PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+                PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+                PropertyFactory.lineWidth(7f),
+                PropertyFactory.lineBlur(1.5f),
+                PropertyFactory.lineGradient(
+                    Expression.interpolate(
+                        Expression.linear(),
+                        Expression.lineProgress(),
+                        Expression.stop(0f, Expression.rgba(66, 133, 244, 0.0)),
+                        Expression.stop(0.2f, Expression.rgba(66, 133, 244, 0.12)),
+                        Expression.stop(0.65f, Expression.rgba(66, 133, 244, 0.45)),
+                        Expression.stop(1f, Expression.rgba(66, 133, 244, 0.82))
+                    )
+                )
+            )
+            style.addLayerBelow(trailLayer, annotationsLayerId)
+        }
+    }
+
+    private fun applyLocationTrailPreference(prefs: PrefsHelper) {
+        val visible = prefs.showLocationTrail
+        styleRef?.getLayer(locationTrailLayerId)?.setProperties(
+            PropertyFactory.visibility(if (visible) Property.VISIBLE else Property.NONE)
+        )
+        refreshLocationTrail()
+    }
+
+    private fun refreshLocationTrail(nowMillis: Long = SystemClock.elapsedRealtime()) {
+        locationTrailHistory.prune(nowMillis)
+        val points = locationTrailHistory.points()
+        val featureCollection =
+            if (points.size >= 2) {
+                val line = LineString.fromLngLats(
+                    points.map {
+                        org.maplibre.geojson.Point.fromLngLat(it.longitude, it.latitude)
+                    }
+                )
+                FeatureCollection.fromFeature(Feature.fromGeometry(line))
+            } else {
+                FeatureCollection.fromFeatures(arrayOf())
+            }
+        styleRef?.getSourceAs<GeoJsonSource>(locationTrailSourceId)
+            ?.setGeoJson(featureCollection)
+    }
+
+    private fun showLocationTrailHistoryDialog(prefs: PrefsHelper) {
+        val selectedMinutes = sanitizedLocationTrailMinutes(prefs.locationTrailHistoryMinutes)
+        val selectedIndex = locationTrailDurationOptionsMinutes.indexOf(selectedMinutes)
+        val labels = locationTrailDurationOptionsMinutes.map {
+            getString(R.string.location_trail_history_minutes, it)
+        }.toTypedArray()
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.location_trail_history_title)
+            .setSingleChoiceItems(labels, selectedIndex) { dialog, which ->
+                val minutes = locationTrailDurationOptionsMinutes[which]
+                prefs.setLocationTrailHistoryMinutes(minutes)
+                locationTrailHistory.maxAgeMillis = TimeUnit.MINUTES.toMillis(minutes.toLong())
+                refreshLocationTrail()
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun sanitizedLocationTrailMinutes(minutes: Int): Int {
+        return if (minutes in locationTrailDurationOptionsMinutes) {
+            minutes
+        } else {
+            DEFAULT_LOCATION_TRAIL_MINUTES
+        }
+    }
+
     private fun setupLocationSub() {
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5_000L)
             .setMinUpdateIntervalMillis(2_000L)
@@ -732,6 +851,15 @@ class MapboxMapFragment : Fragment() {
                 LocationProvider.currentLocationFlow(context, locationRequest)
                     .collect { location ->
                         currentLocation = location
+                        val nowMillis = SystemClock.elapsedRealtime()
+                        locationTrailHistory.add(
+                            LocationTrailPoint(
+                                latitude = location.latitude,
+                                longitude = location.longitude,
+                                recordedAtMillis = nowMillis
+                            )
+                        )
+                        refreshLocationTrail(nowMillis)
                         val address = com.gaiagps.iburn.js.Geocoder.reverseGeocode(
                             context,
                             location.latitude.toFloat(),
@@ -779,6 +907,9 @@ class MapboxMapFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val trailMinutes =
+            sanitizedLocationTrailMinutes(PrefsHelper(requireContext()).locationTrailHistoryMinutes)
+        locationTrailHistory.maxAgeMillis = TimeUnit.MINUTES.toMillis(trailMinutes.toLong())
         mapView?.onCreate(savedInstanceState)
         mapView?.let { mapView ->
             setupMap(mapView)
@@ -1346,5 +1477,9 @@ class MapboxMapFragment : Fragment() {
         springAnim.spring.dampingRatio = .6f
         springAnim.spring.stiffness = 720f
         springAnim.start()
+    }
+
+    companion object {
+        private const val DEFAULT_LOCATION_TRAIL_MINUTES = 5
     }
 }
