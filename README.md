@@ -4,7 +4,7 @@ iBurn is an offline map and guide for the [Burning Man](http://www.burningman.co
 
 Got iOS? You'll love [iBurn for iOS](https://github.com/Burning-Man-Earth/iBurn-iOS).
 
-[![Google Play link](http://steverichey.github.io/google-play-badge-svg/img/en_get.svg)](https://play.google.com/store/apps/details?id=com.gaiagps.iburn)
+[![Google Play link](http://steverichey.github.io/google-play-badge-svg/img/en_get.svg)](https://play.google.com/store/apps/details?id=com.iburnapp.iburn3&hl=en)
 
 ## Installation
 
