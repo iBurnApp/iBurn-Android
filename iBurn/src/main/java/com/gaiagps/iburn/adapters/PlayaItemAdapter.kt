@@ -42,9 +42,10 @@ open class PlayaItemAdapter(
 
     open var items: List<PlayaItemWithUserData>? = null
         set(value) {
+            val oldItems = field
             field = value
             sectionIndexer?.items = value
-            notifyDataSetChanged()
+            notifyItemsChanged(oldItems, value)
         }
 
     private val normalPaddingBottom: Int
@@ -59,6 +60,36 @@ open class PlayaItemAdapter(
         LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 10_000L)
             .setMinUpdateIntervalMillis(5_000L)
             .build()
+
+    /**
+     * Room re-runs the entire joined query when a favorite changes. If the result still contains
+     * the same items in the same order, only rebind rows whose joined user data changed. A full
+     * refresh needlessly rebinds every visible row (including images) and can visibly disturb the
+     * list while a favorite is being toggled.
+     *
+     * Subclasses with headers can translate data positions to adapter positions.
+     */
+    protected open fun notifyItemsChanged(
+        oldItems: List<PlayaItemWithUserData>?,
+        newItems: List<PlayaItemWithUserData>?
+    ) {
+        val changedPositions = changedPositionsIfStructureIsUnchanged(oldItems, newItems)
+        if (changedPositions == null) {
+            notifyDataSetChanged()
+        } else {
+            changedPositions.forEach(::notifyItemChanged)
+        }
+    }
+
+    protected fun changedPositionsIfStructureIsUnchanged(
+        oldItems: List<PlayaItemWithUserData>?,
+        newItems: List<PlayaItemWithUserData>?
+    ): List<Int>? {
+        if (oldItems == null || newItems == null || oldItems.size != newItems.size) return null
+        if (oldItems.indices.any { oldItems[it].item != newItems[it].item }) return null
+
+        return oldItems.indices.filter { oldItems[it] != newItems[it] }
+    }
 
     init {
         normalPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16f, context.resources.displayMetrics).toInt()

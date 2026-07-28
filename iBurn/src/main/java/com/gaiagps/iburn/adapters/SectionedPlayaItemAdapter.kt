@@ -23,6 +23,7 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
 
     override var items: List<PlayaItemWithUserData>? = null
         set(value) {
+            val oldItems = field
             field = value
 
             if (value != null) {
@@ -30,8 +31,26 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
             } else {
                 headerPositions = null
             }
-            notifyDataSetChanged()
+            notifyItemsChanged(oldItems, value)
         }
+
+    override fun notifyItemsChanged(
+        oldItems: List<PlayaItemWithUserData>?,
+        newItems: List<PlayaItemWithUserData>?
+    ) {
+        val changedDataPositions = changedPositionsIfStructureIsUnchanged(oldItems, newItems)
+        if (changedDataPositions == null) {
+            notifyDataSetChanged()
+            return
+        }
+
+        changedDataPositions.forEach { dataPosition ->
+            positionToDataPosition.entries
+                .firstOrNull { it.value == dataPosition }
+                ?.key
+                ?.let(::notifyItemChanged)
+        }
+    }
 
     /**
      * content position -> header position
