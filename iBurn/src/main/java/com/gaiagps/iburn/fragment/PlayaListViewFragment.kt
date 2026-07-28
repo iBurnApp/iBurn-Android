@@ -35,11 +35,13 @@ abstract class PlayaListViewFragment : Fragment(), AdapterListener {
     protected var mEmptyText: TextView? = null
 
     private var lastScrollPos: Int = 0
+    private var restoreScrollPositionOnNextData = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState != null) {
             lastScrollPos = savedInstanceState.getInt(ARG_SCROLL_POS, 0)
+            restoreScrollPositionOnNextData = true
             Timber.d("%s onCreate with scroll ps %d", javaClass.simpleName, lastScrollPos)
         }
     }
@@ -96,7 +98,7 @@ abstract class PlayaListViewFragment : Fragment(), AdapterListener {
         }
         prepareForNewData(newData)
         adapter.items = newData
-        restoreScrollPosition()
+        restoreScrollPositionIfNeeded()
     }
 
     protected fun onDataChanged(newData: SectionedPlayaItems?) {
@@ -111,11 +113,10 @@ abstract class PlayaListViewFragment : Fragment(), AdapterListener {
             Timber.w("Sectioned data provided but adapter does not seem to support sections")
             adapter.items = newData.data
         }
-        restoreScrollPosition()
+        restoreScrollPositionIfNeeded()
     }
 
     private fun prepareForNewData(newData: List<out PlayaItemWithUserData>) {
-        lastScrollPos = getScrollPosition()
         Timber.d("%s onDataChanged Had %d items. Now %d items", javaClass.simpleName, adapter.itemCount, newData.size)
         val adapterWasEmpty = adapter.itemCount == 0
         if (adapterWasEmpty && newData.isNotEmpty()) {
@@ -129,7 +130,9 @@ abstract class PlayaListViewFragment : Fragment(), AdapterListener {
         setListShown(newData.isNotEmpty())
     }
 
-    private fun restoreScrollPosition() {
+    private fun restoreScrollPositionIfNeeded() {
+        if (!restoreScrollPositionOnNextData) return
+        restoreScrollPositionOnNextData = false
         Timber.d("%s Scrolling to prior scroll position %d", javaClass.simpleName, lastScrollPos)
         mRecyclerView?.scrollToPosition(lastScrollPos)
     }

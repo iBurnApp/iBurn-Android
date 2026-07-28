@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
 import java.util.*
 
+internal object LocationChangedPayload
+
 /**
  * Facilities the display of a collection of [PlayaItem]s in a [RecyclerView]
  * Created by dbro on 6/7/17.
@@ -42,9 +44,10 @@ open class PlayaItemAdapter(
 
     open var items: List<PlayaItemWithUserData>? = null
         set(value) {
+            val oldItems = field
             field = value
             sectionIndexer?.items = value
-            notifyDataSetChanged()
+            notifyItemsChanged(oldItems, value)
         }
 
     private val normalPaddingBottom: Int
@@ -60,6 +63,36 @@ open class PlayaItemAdapter(
             .setMinUpdateIntervalMillis(5_000L)
             .build()
 
+    /**
+     * Room re-runs the entire joined query when a favorite changes. If the result still contains
+     * the same items in the same order, only rebind rows whose joined user data changed. A full
+     * refresh needlessly rebinds every visible row (including images) and can visibly disturb the
+     * list while a favorite is being toggled.
+     *
+     * Subclasses with headers can translate data positions to adapter positions.
+     */
+    protected open fun notifyItemsChanged(
+        oldItems: List<PlayaItemWithUserData>?,
+        newItems: List<PlayaItemWithUserData>?
+    ) {
+        val changedPositions = changedPositionsIfStructureIsUnchanged(oldItems, newItems)
+        if (changedPositions == null) {
+            notifyDataSetChanged()
+        } else {
+            changedPositions.forEach(::notifyItemChanged)
+        }
+    }
+
+    protected fun changedPositionsIfStructureIsUnchanged(
+        oldItems: List<PlayaItemWithUserData>?,
+        newItems: List<PlayaItemWithUserData>?
+    ): List<Int>? {
+        if (oldItems == null || newItems == null || oldItems.size != newItems.size) return null
+        if (oldItems.indices.any { oldItems[it].item != newItems[it].item }) return null
+
+        return oldItems.indices.filter { oldItems[it] != newItems[it] }
+    }
+
     init {
         normalPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16f, context.resources.displayMetrics).toInt()
         lastItemPaddingBottom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, context.resources.displayMetrics).toInt()
@@ -74,7 +107,7 @@ open class PlayaItemAdapter(
                 val deltaMeters = prior?.distanceTo(lastLocation) ?: Float.MAX_VALUE
                 deviceLocation = lastLocation
                 if (prior == null || deltaMeters > 61f) { // ~200 feet / 1 minute of walking distance
-                    notifyDataSetChanged()
+                    notifyLocationChanged()
                 }
             }
             .catch { error ->
@@ -88,6 +121,13 @@ open class PlayaItemAdapter(
         locationJob = null
     }
 
+    /**
+     * Location changes only affect distance labels. Using a payload avoids restarting image loads
+     * and changing image visibility while otherwise unchanged rows are rebound.
+     */
+    protected open fun notifyLocationChanged() {
+        notifyItemRangeChanged(0, itemCount, LocationChangedPayload)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.listview_playaitem, parent, false)
@@ -133,9 +173,6 @@ open class PlayaItemAdapter(
             val item = itemWithUserData.item
             val holder = (viewHolder as ViewHolder)
 
-            var startDate: Date? = null
-            var endDate: Date? = null
-
             if (item is Art) {
                 holder.artistView.visibility = View.VISIBLE
                 holder.artistView.text = item.artist
@@ -172,8 +209,8 @@ open class PlayaItemAdapter(
 
                 holder.eventTypeView.text = AdapterUtils.getStringForEventType(item.type)
 
-                startDate = item.startDate
-                endDate = item.endDate
+                val startDate = item.startDate
+                val endDate = item.endDate
                 holder.eventTimeView.text =
                     getDateString(
                         context,
@@ -194,38 +231,7 @@ open class PlayaItemAdapter(
             holder.titleView.text = item.name
             holder.descView.text = item.description
 
-            val canShowOfficialLocation = !Embargo.isEmbargoActiveForPlayaItem(prefs, item) && item.hasLocation()
-            val canShowLocation = canShowOfficialLocation || item.hasUnofficialLocation()
-
-            if (!canShowLocation) {
-
-                holder.addressView.visibility = View.GONE
-                holder.bikeTimeView.visibility = View.GONE
-                holder.walkTimeView.visibility = View.GONE
-
-            } else {
-
-                val lat = if (canShowOfficialLocation) item.latitude else item.latitudeUnofficial
-                val lon = if (canShowOfficialLocation) item.longitude else item.longitudeUnofficial
-                val address = if (canShowOfficialLocation) item.playaAddress else item.playaAddressUnofficial
-
-                // Sets Walk and Bike time, hiding views if item.latitude / longitude is 0
-                AdapterUtils.setDistanceText(deviceLocation, now, startDate, endDate, holder.walkTimeView, holder.bikeTimeView,
-                        lat, lon)
-
-                if (!TextUtils.isEmpty(address)) {
-                    holder.addressView.visibility = View.VISIBLE
-                    if (!canShowOfficialLocation) {
-                        holder.addressView.text = "BurnerMap: " + address
-                    } else {
-                        holder.addressView.text = address
-                    }
-                } else {
-                    holder.addressView.visibility = View.GONE
-                    holder.bikeTimeView.visibility = View.GONE
-                    holder.walkTimeView.visibility = View.GONE
-                }
-            }
+            bindLocation(viewHolder, item)
 
             if (itemWithUserData.userData.isFavorite) {
                 holder.favoriteView.setImageResource(R.drawable.ic_heart_full_24dp)
@@ -266,6 +272,58 @@ open class PlayaItemAdapter(
             holder.itemView.post {
                 expandFavButtonHitbox(holder)
             }
+        }
+    }
+
+    override fun onBindViewHolder(
+        viewHolder: ViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        if (payloads.isNotEmpty() && payloads.all { it === LocationChangedPayload }) {
+            items?.getOrNull(position)?.item?.let { bindLocation(viewHolder, it) }
+        } else {
+            onBindViewHolder(viewHolder, position)
+        }
+    }
+
+    private fun bindLocation(holder: ViewHolder, item: PlayaItem) {
+        val canShowOfficialLocation =
+            !Embargo.isEmbargoActiveForPlayaItem(prefs, item) && item.hasLocation()
+        val canShowLocation = canShowOfficialLocation || item.hasUnofficialLocation()
+
+        if (!canShowLocation) {
+            holder.addressView.visibility = View.GONE
+            holder.bikeTimeView.visibility = View.GONE
+            holder.walkTimeView.visibility = View.GONE
+            return
+        }
+
+        val lat = if (canShowOfficialLocation) item.latitude else item.latitudeUnofficial
+        val lon = if (canShowOfficialLocation) item.longitude else item.longitudeUnofficial
+        val address =
+            if (canShowOfficialLocation) item.playaAddress else item.playaAddressUnofficial
+        val event = item as? Event
+
+        // Sets Walk and Bike time, hiding views if item latitude / longitude is 0.
+        AdapterUtils.setDistanceText(
+            deviceLocation,
+            now,
+            event?.startDate,
+            event?.endDate,
+            holder.walkTimeView,
+            holder.bikeTimeView,
+            lat,
+            lon
+        )
+
+        if (!TextUtils.isEmpty(address)) {
+            holder.addressView.visibility = View.VISIBLE
+            holder.addressView.text = if (canShowOfficialLocation) address else "BurnerMap: $address"
+        } else {
+            holder.addressView.visibility = View.GONE
+            holder.bikeTimeView.visibility = View.GONE
+            holder.walkTimeView.visibility = View.GONE
         }
     }
 
