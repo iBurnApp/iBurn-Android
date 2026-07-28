@@ -42,6 +42,14 @@ public class PrefsHelper {
         return getAnnualKey("show_big_camp_names");
     }
 
+    private String keyShowLocationTrail() {
+        return getAnnualKey("show_location_trail");
+    }
+
+    private String keyLocationTrailHistoryMinutes() {
+        return getAnnualKey("location_trail_history_minutes");
+    }
+
     public boolean getShowCampBoundaries() {
         return sharedPrefs.getBoolean(keyShowCampBoundaries(), true);
     }
@@ -56,6 +64,22 @@ public class PrefsHelper {
 
     public void setShowBigCampNames(boolean visible) {
         editor.putBoolean(keyShowBigCampNames(), visible).apply();
+    }
+
+    public boolean getShowLocationTrail() {
+        return sharedPrefs.getBoolean(keyShowLocationTrail(), true);
+    }
+
+    public void setShowLocationTrail(boolean visible) {
+        editor.putBoolean(keyShowLocationTrail(), visible).apply();
+    }
+
+    public int getLocationTrailHistoryMinutes() {
+        return sharedPrefs.getInt(keyLocationTrailHistoryMinutes(), 5);
+    }
+
+    public void setLocationTrailHistoryMinutes(int minutes) {
+        editor.putInt(keyLocationTrailHistoryMinutes(), minutes).apply();
     }
 
     /**
