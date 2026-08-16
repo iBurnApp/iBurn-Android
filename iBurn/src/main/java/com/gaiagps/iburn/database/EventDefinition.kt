@@ -1,9 +1,11 @@
 package com.gaiagps.iburn.database
 
+import android.annotation.SuppressLint
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 
+@SuppressLint("ParcelCreator")
 @Entity(
     tableName = EventDefinition.TABLE_NAME,
     indices = [
