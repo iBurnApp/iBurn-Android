@@ -11,11 +11,6 @@ on:
         description: Full iBurn-Data commit id
         required: true
         type: string
-      data_remote:
-        description: iBurn-Data Git remote
-        required: true
-        default: https://github.com/iBurnApp/iBurn-Data-Private.git
-        type: string
       version_name:
         description: Optional assertion matching annual/<year>.json
         required: false
@@ -44,7 +39,6 @@ jobs:
       ANNUAL_CONFIG: annual/${{ inputs.year }}.json
       DATA_REVISION: ${{ inputs.data_revision }}
       VERSION_ASSERTION: ${{ inputs.version_name }}
-      IBURN_DATA_REMOTE: ${{ secrets.IBURN_DATA_REMOTE || inputs.data_remote }}
       IBURN_UNLOCK_CODE: ${{ secrets.IBURN_UNLOCK_CODE }}
       IBURN_API_URL: ${{ secrets.IBURN_API_URL }}
       MAPBOX_API_KEY: ${{ secrets.MAPBOX_API_KEY }}
@@ -56,6 +50,16 @@ jobs:
           fetch-depth: 0
           submodules: false
 
+      - name: Check out exact private data revision
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: iBurnApp/iBurn-Data-Private
+          ref: ${{ inputs.data_revision }}
+          token: ${{ secrets.IBURN_DATA_TOKEN }}
+          path: .annual-data
+          fetch-depth: 0
+          persist-credentials: false
+
       - name: Set up JDK 21
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
@@ -63,21 +67,18 @@ jobs:
           java-version: "21"
           cache: gradle
 
-      - name: Validate inputs and check out exact private data revision
+      - name: Validate inputs and private data revision
         shell: bash
         run: |
           set -euo pipefail
           [[ "$DATA_REVISION" =~ ^[0-9a-f]{40}$ ]]
           test -f "$ANNUAL_CONFIG"
-          test -n "$IBURN_DATA_REMOTE"
           test "$(jq -r .year "$ANNUAL_CONFIG")" = "$ANNUAL_YEAR"
           if test -n "$VERSION_ASSERTION"; then
             test "$(jq -r .versionName "$ANNUAL_CONFIG")" = "$VERSION_ASSERTION"
           fi
 
-          git clone --no-checkout "$IBURN_DATA_REMOTE" .annual-data
-          git -C .annual-data fetch --no-tags origin \
-            "+refs/heads/*:refs/remotes/annual-data/*"
+          test "$(git -C .annual-data rev-parse HEAD)" = "$DATA_REVISION"
           reachable=false
           while read -r ref; do
             if git -C .annual-data merge-base --is-ancestor "$DATA_REVISION" "$ref"; then
@@ -85,9 +86,8 @@ jobs:
               break
             fi
           done < <(git -C .annual-data for-each-ref \
-            --format='%(refname)' refs/remotes/annual-data)
+            --format='%(refname)' refs/remotes/origin)
           test "$reachable" = true
-          git -C .annual-data checkout --detach "$DATA_REVISION"
 
           if test -d iBurn-Data; then
             rmdir iBurn-Data
