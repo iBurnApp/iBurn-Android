@@ -11,6 +11,11 @@ on:
         description: Full iBurn-Data commit id
         required: true
         type: string
+      data_remote:
+        description: iBurn-Data Git remote
+        required: true
+        default: https://github.com/iBurnApp/iBurn-Data-Private.git
+        type: string
       version_name:
         description: Optional assertion matching annual/<year>.json
         required: false
@@ -39,7 +44,7 @@ jobs:
       ANNUAL_CONFIG: annual/${{ inputs.year }}.json
       DATA_REVISION: ${{ inputs.data_revision }}
       VERSION_ASSERTION: ${{ inputs.version_name }}
-      IBURN_DATA_REMOTE: ${{ secrets.IBURN_DATA_REMOTE }}
+      IBURN_DATA_REMOTE: ${{ secrets.IBURN_DATA_REMOTE || inputs.data_remote }}
       IBURN_UNLOCK_CODE: ${{ secrets.IBURN_UNLOCK_CODE }}
       IBURN_API_URL: ${{ secrets.IBURN_API_URL }}
       MAPBOX_API_KEY: ${{ secrets.MAPBOX_API_KEY }}
