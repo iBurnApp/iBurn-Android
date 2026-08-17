@@ -40,13 +40,9 @@ Fortunately, you can still run and test the app with the previous year's data.
 3. Run:
 
    ```shell
-   ./gradlew :iBurn:annualUpdate \
-     -PannualConfig=annual/<year>.json \
-     -PdataRevision=<full-40-character-commit>
-
-   ./gradlew :iBurn:verifyAnnualUpdate \
-     -PannualConfig=annual/<year>.json \
-     -PdataRevision=<full-40-character-commit>
+   tools/annual-update.sh run \
+     --year <year> \
+     --data-revision <full-40-character-commit>
    ```
 
 The update uses clean `Sync` outputs, generates the SQLite database on the
@@ -55,8 +51,9 @@ manifest and verification report under `build/reports/annual-update/`.
 Embargoed JSON, images, audio, and databases remain ignored and must be handled
 only as restricted artifacts.
 
-To prove idempotence, rerun `annualUpdate` with `--rerun-tasks`; the SHA-256 of
-`annual-manifest.json` must remain unchanged.
+The script runs the update twice and verifies that `annual-manifest.json` is
+unchanged before running the full verification suite. Run it with `--help` for
+optional version assertions, an alternate config path, and CI-only checks.
 
 The manual GitHub Actions workflow accepts a year and exact data revision. Run
 it first in report-only mode. PR creation is an explicit input and stages only
