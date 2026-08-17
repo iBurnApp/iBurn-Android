@@ -103,10 +103,12 @@ fun loadMutantVehicleImage(vehicle: MutantVehicle, view: ImageView, callback: Ca
         callback?.onError()
         return
     }
-    Picasso.get().load(imageUrl).into(view, object : com.squareup.picasso.Callback {
-        override fun onSuccess() = callback?.onSuccess() ?: Unit
-        override fun onError(e: Exception?) = callback?.onError() ?: Unit
-    })
+    Picasso.get()
+        .load(normalizeRemoteImageUrl(imageUrl))
+        .into(view, object : com.squareup.picasso.Callback {
+            override fun onSuccess() = callback?.onSuccess() ?: Unit
+            override fun onError(e: Exception?) = callback?.onError() ?: Unit
+        })
 }
 
 private fun cacheArtImageFile(context: Context, art: Art, callback: Callback) {
