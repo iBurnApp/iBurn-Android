@@ -366,6 +366,9 @@ class MapboxMapFragment : Fragment() {
         // Sync state
         popup.menu.findItem(R.id.menu_show_camp_boundaries)?.isChecked = prefs.showCampBoundaries
         popup.menu.findItem(R.id.menu_show_big_camp_names)?.isChecked = prefs.showBigCampNames
+        val campMapAvailable = !Embargo.isCampMapEmbargoActive(prefs)
+        popup.menu.findItem(R.id.menu_show_camp_boundaries)?.isEnabled = campMapAvailable
+        popup.menu.findItem(R.id.menu_show_big_camp_names)?.isEnabled = campMapAvailable
         popup.menu.findItem(R.id.menu_show_location_trail)?.isChecked = prefs.showLocationTrail
         popup.menu.findItem(R.id.menu_location_trail_history)?.title =
             getString(
@@ -745,8 +748,9 @@ class MapboxMapFragment : Fragment() {
 
     fun applyCampLayerPreferences(prefs: PrefsHelper) {
         val style = styleRef ?: return
-        val showBoundaries = prefs.showCampBoundaries
-        val showBigNames = prefs.showBigCampNames
+        val campMapAvailable = !Embargo.isCampMapEmbargoActive(prefs)
+        val showBoundaries = campMapAvailable && prefs.showCampBoundaries
+        val showBigNames = campMapAvailable && prefs.showBigCampNames
 
         style.getLayer("camp-boundaries")?.setProperties(
             PropertyFactory.visibility(if (showBoundaries) Property.VISIBLE else Property.NONE)
@@ -883,6 +887,8 @@ class MapboxMapFragment : Fragment() {
                 .debounce(250)
                 .collect { visibleRegion ->
                     val provider = DataProvider.getInstance(requireActivity().applicationContext)
+                    // Refresh time-gated base-map layers as the gate-open boundary passes.
+                    applyCampLayerPreferences(prefsHelper)
                     val embargoActive = Embargo.isAnyEmbargoActive(prefsHelper)
                     val queryAllItems = (state != State.SHOWCASE) && (!embargoActive)
                     val items = withContext(Dispatchers.IO) {

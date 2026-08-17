@@ -11,10 +11,12 @@ import com.gaiagps.iburn.database.ArtWithUserData
 import com.gaiagps.iburn.database.CampWithUserData
 import com.gaiagps.iburn.database.DataProvider
 import com.gaiagps.iburn.database.EventWithUserData
+import com.gaiagps.iburn.database.Embargo
 import com.gaiagps.iburn.database.MapPin
 import com.gaiagps.iburn.database.MutantVehicle
 import com.gaiagps.iburn.database.MutantVehicleWithUserData
 import com.gaiagps.iburn.database.PlayaItem
+import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.databinding.ActivityShareBinding
 import com.gaiagps.iburn.util.ShareUrlBuilder
 import com.google.firebase.Firebase
@@ -133,14 +135,21 @@ class ShareActivity : AppCompatActivity() {
     }
 
     private fun onPlayaItemLoaded(item: PlayaItem) {
+        val prefs = PrefsHelper(applicationContext)
+        val canShareOfficialCoordinates = !Embargo.isEmbargoActiveForPlayaItem(prefs, item)
+        val canShareOfficialAddress = !Embargo.isAddressEmbargoActiveForPlayaItem(prefs, item)
         // Generate share URL
-        shareUrl = ShareUrlBuilder.buildShareUrl(item)//.withDecodedColons()
+        shareUrl = ShareUrlBuilder.buildShareUrl(
+            item,
+            includeOfficialCoordinates = canShareOfficialCoordinates,
+            includeOfficialAddress = canShareOfficialAddress
+        )
         itemName = item.name
 
         // Display item info
         binding.itemTitle.text = item.name
         binding.itemDescription.text = when {
-            item.playaAddress != null -> item.playaAddress
+            canShareOfficialAddress && item.playaAddress != null -> item.playaAddress
             item.playaAddressUnofficial != null -> item.playaAddressUnofficial
             else -> ""
         }

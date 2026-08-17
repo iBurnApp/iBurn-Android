@@ -3,6 +3,8 @@ package com.gaiagps.iburn
 import java.util.Date
 
 object EventInfo {
+    data class MockLocation(val latitude: Double, val longitude: Double)
+
     const val CURRENT_YEAR = AnnualMetadata.YEAR
 
     /**
@@ -21,18 +23,26 @@ object EventInfo {
      * The date when location data is publicly available without a staff unlock code.
      */
     @JvmField
-    val EMBARGO_DATE: Date = Date(AnnualMetadata.ART_EMBARGO_EPOCH_MILLIS)
+    val LOCATION_EMBARGO_DATE: Date = Date(AnnualMetadata.LOCATION_EMBARGO_EPOCH_MILLIS)
 
-    /**
-     * Separate embargo date for Camp and Event locations. Defaults to event start date.
-     * Change this to release camps/events at a different time than Art.
-     */
+    /** The date when camp street addresses become public. */
     @JvmField
-    val CAMP_EMBARGO_DATE: Date = Date(AnnualMetadata.CAMP_EVENT_EMBARGO_EPOCH_MILLIS)
+    val CAMP_ADDRESS_EMBARGO_DATE: Date = Date(AnnualMetadata.CAMP_ADDRESS_EMBARGO_EPOCH_MILLIS)
 
     /**
      * The "current" date used by the 'mock' build variant.
      */
     @JvmField
     val MOCK_NOW_DATE: Date = Date(AnnualMetadata.MOCK_NOW_EPOCH_MILLIS)
+
+    /** A fixed location for mock builds, or null to use the simulated walking path. */
+    @JvmField
+    val MOCK_LOCATION: MockLocation? = if (AnnualMetadata.HAS_MOCK_LOCATION) {
+        MockLocation(
+            AnnualMetadata.MOCK_LOCATION_LATITUDE,
+            AnnualMetadata.MOCK_LOCATION_LONGITUDE
+        )
+    } else {
+        null
+    }
 }

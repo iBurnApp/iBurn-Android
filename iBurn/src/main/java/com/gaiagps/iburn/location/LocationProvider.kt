@@ -9,6 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import com.gaiagps.iburn.BuildConfig
+import com.gaiagps.iburn.EventInfo
 import com.gaiagps.iburn.PermissionManager
 import com.google.android.gms.location.*
 import kotlinx.coroutines.CoroutineScope
@@ -78,7 +79,7 @@ object LocationProvider {
     fun currentLocationFlow(context: Context, request: LocationRequest): Flow<Location> {
         init(context)
         return if (BuildConfig.MOCK) {
-            mockLocationFlow.asSharedFlow()
+            mockLocations()
         } else {
             if (!PermissionManager.hasLocationPermissions(context)) {
                 emptyFlow()
@@ -107,9 +108,12 @@ object LocationProvider {
      */
     fun createMockLocation(): Location {
         val mockLocation = Location("mock")
-        // Start somewhere near the middle of the event instead of at an arbitrary edge.
-        val mockLat = MOCK_CENTER_LAT + Random.nextDouble(-0.002, 0.002)
-        val mockLon = MOCK_CENTER_LON + Random.nextDouble(-0.002, 0.002)
+        val fixedLocation = EventInfo.MOCK_LOCATION
+        // Start somewhere near the middle of the event when no fixed annual location is set.
+        val mockLat = fixedLocation?.latitude
+            ?: (MOCK_CENTER_LAT + Random.nextDouble(-0.002, 0.002))
+        val mockLon = fixedLocation?.longitude
+            ?: (MOCK_CENTER_LON + Random.nextDouble(-0.002, 0.002))
         mockLocation.latitude = mockLat
         mockLocation.longitude = mockLon
         mockLocation.accuracy = randomMockAccuracy()
@@ -123,6 +127,11 @@ object LocationProvider {
     }
 
     private fun mockCurrentLocation() {
+        if (EventInfo.MOCK_LOCATION != null) {
+            lastMockLocation = createMockLocation()
+            mockLocationFlow.tryEmit(lastMockLocation)
+            return
+        }
         if (!isMockingLocation.get()) {
             isMockingLocation.set(true)
             mockJob?.cancel()
@@ -135,6 +144,10 @@ object LocationProvider {
             }
         }
     }
+
+    private fun mockLocations(): Flow<Location> =
+        if (EventInfo.MOCK_LOCATION != null) flowOf(lastMockLocation)
+        else mockLocationFlow.asSharedFlow()
 
     /**
      * Advances the mock position like a pedestrian: short walking segments, gradual course
@@ -264,7 +277,7 @@ object LocationProvider {
             val handler = if (looper != null) Handler(looper) else Handler(Looper.getMainLooper())
             mockLocationJob?.cancel()
             mockLocationJob = CoroutineScope(Dispatchers.Default).launch {
-                mockLocationFlow.collect { location ->
+                mockLocations().collect { location ->
                     if (!areUpdatesRequested) return@collect
                     handler.post {
                         result.onSuccess(LocationEngineResult.create(location))

@@ -25,7 +25,7 @@ run.
 | Manual responsibility | Automation target |
 | --- | --- |
 | Change `versionYear`, `versionCode`, and `versionName` in `iBurn/build.gradle` | Read one annual configuration file and generate Android build constants from it. Calculate the first release name as `<year>.1`; require an explicit override for later releases. |
-| Edit event, camp/event embargo, art embargo, and mock dates in `EventInfo.kt` | Put ISO-8601 local dates/times in the annual configuration and generate a typed Kotlin object. Validate ordering and parse dates in the playa time zone. |
+| Edit event, camp-address embargo, location embargo, and mock dates in `EventInfo.kt` | Put embargo policies and ISO-8601 local dates/times in the annual configuration and generate a typed Kotlin object. Validate ordering and parse dates in the playa time zone. |
 | Edit ignored `SECRETS.kt` | Keep it out of the update. Read `IBURN_UNLOCK_CODE` at build/runtime for staff builds, with a local-only fallback file; CI validates presence without printing the value. |
 | Run `updateData` | Replace its imperative copies with an input/output-aware `Sync` pipeline that consumes the already checked-out submodule. Remove stale destination files and fail when required inputs are absent. |
 | Decide whether to bump `MBTILES_VERSION` | Derive a stable map content digest and generate the installed-map identity from it, eliminating the manual counter. |
@@ -45,16 +45,21 @@ the build) containing only non-secret inputs:
   "year": 2026,
   "versionCode": 69,
   "versionName": "2026.1",
-  "artEmbargo": "eventStart",
-  "campEventEmbargo": "2026-08-26T00:00:00-07:00",
-  "mockNow": "2026-08-31T10:05:00-07:00"
+  "locationEmbargo": "eventStart",
+  "campAddressEmbargo": "eventStartMinusOneWeek",
+  "mockNow": "2026-08-31T10:05:00-07:00",
+  "mockLocation": {
+    "latitude": 40.7864,
+    "longitude": -119.2065
+  }
 }
 ```
 
 The dates above illustrate the schema rather than prescribing event dates. Event
 start and end are read directly from the selected year's
 `APIData/APIData.bundle/dates_info.json` in `iBurn-Data`; the operator must review
-that upstream file before committing the configuration.
+that upstream file before committing the configuration. `mockLocation` is optional;
+when omitted, mock builds retain their simulated walking path.
 
 Make this file the source of truth for Gradle and generated Kotlin. Add an
 `annualUpdateValidateConfig` task that rejects:
@@ -63,7 +68,7 @@ Make this file the source of truth for Gradle and generated Kotlin. Add an
 - a non-increasing `versionCode` or a `versionName` with the wrong year;
 - an upstream `eventEnd <= eventStart` or upstream dates for a different year;
 - embargo dates after the event end;
-- a mock date outside the scenario supported by tests; and
+- a mock date with an invalid timestamp or playa-time offset; and
 - unknown or missing keys, so typos cannot silently use defaults.
 
 Generation should write under `build/generated/`, not mutate checked-in source.

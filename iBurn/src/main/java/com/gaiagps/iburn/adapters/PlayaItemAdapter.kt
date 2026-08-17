@@ -304,40 +304,43 @@ open class PlayaItemAdapter(
     private fun bindLocation(holder: ViewHolder, item: PlayaItem) {
         val canShowOfficialLocation =
             !Embargo.isEmbargoActiveForPlayaItem(prefs, item) && item.hasLocation()
-        val canShowLocation = canShowOfficialLocation || item.hasUnofficialLocation()
+        val canShowOfficialAddress =
+            !Embargo.isAddressEmbargoActiveForPlayaItem(prefs, item) &&
+                !TextUtils.isEmpty(item.playaAddress)
+        val canShowUnofficialLocation = item.hasUnofficialLocation()
 
-        if (!canShowLocation) {
-            holder.addressView.visibility = View.GONE
+        if (!canShowOfficialLocation && !canShowUnofficialLocation) {
             holder.bikeTimeView.visibility = View.GONE
             holder.walkTimeView.visibility = View.GONE
-            return
+        } else {
+            val lat = if (canShowOfficialLocation) item.latitude else item.latitudeUnofficial
+            val lon = if (canShowOfficialLocation) item.longitude else item.longitudeUnofficial
+            val event = item as? Event
+
+            AdapterUtils.setDistanceText(
+                deviceLocation,
+                now,
+                event?.startDate,
+                event?.endDate,
+                holder.walkTimeView,
+                holder.bikeTimeView,
+                lat,
+                lon
+            )
         }
 
-        val lat = if (canShowOfficialLocation) item.latitude else item.latitudeUnofficial
-        val lon = if (canShowOfficialLocation) item.longitude else item.longitudeUnofficial
-        val address =
-            if (canShowOfficialLocation) item.playaAddress else item.playaAddressUnofficial
-        val event = item as? Event
-
-        // Sets Walk and Bike time, hiding views if item latitude / longitude is 0.
-        AdapterUtils.setDistanceText(
-            deviceLocation,
-            now,
-            event?.startDate,
-            event?.endDate,
-            holder.walkTimeView,
-            holder.bikeTimeView,
-            lat,
-            lon
-        )
-
-        if (!TextUtils.isEmpty(address)) {
-            holder.addressView.visibility = View.VISIBLE
-            holder.addressView.text = if (canShowOfficialLocation) address else "BurnerMap: $address"
-        } else {
-            holder.addressView.visibility = View.GONE
-            holder.bikeTimeView.visibility = View.GONE
-            holder.walkTimeView.visibility = View.GONE
+        when {
+            canShowOfficialAddress -> {
+                holder.addressView.visibility = View.VISIBLE
+                holder.addressView.text = item.playaAddress
+            }
+            !TextUtils.isEmpty(item.playaAddressUnofficial) -> {
+                holder.addressView.visibility = View.VISIBLE
+                holder.addressView.text = "BurnerMap: ${item.playaAddressUnofficial}"
+            }
+            else -> {
+                holder.addressView.visibility = View.GONE
+            }
         }
     }
 

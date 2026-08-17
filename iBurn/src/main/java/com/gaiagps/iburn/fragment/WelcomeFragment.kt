@@ -65,7 +65,7 @@ class WelcomeFragment : Fragment(), SurfaceTextureListener {
             run {
                 val dayFormatter = DateUtil.getPlayaTimeFormat("EEEE MMMM d")
                 dayFormatter.setTimeZone(DateUtil.PLAYA_TIME_ZONE)
-                val embargoDate = dayFormatter.format(Embargo.EMBARGO_DATE)
+                val embargoDate = dayFormatter.format(Embargo.LOCATION_EMBARGO_DATE)
                 (rootView.findViewById<View?>(R.id.content) as TextView).setText(
                     getString(
                         R.string.location_data_notice,

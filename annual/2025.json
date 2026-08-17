@@ -2,7 +2,7 @@
   "year": 2025,
   "versionCode": 68,
   "versionName": "2025.5",
-  "artEmbargo": "eventStart",
-  "campEventEmbargo": "2025-08-20T00:00:00-07:00",
+  "locationEmbargo": "eventStart",
+  "campAddressEmbargo": "eventStartMinusOneWeek",
   "mockNow": "2025-08-25T10:05:00-07:00"
 }

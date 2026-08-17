@@ -569,7 +569,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         String[] messages =
                 new String[]{
                         getString(R.string.embargo_msg_1),
-                        getString(R.string.embargo_msg_2, dayFormatter.format(Embargo.EMBARGO_DATE)).toUpperCase(),
+                        getString(R.string.embargo_msg_2, dayFormatter.format(Embargo.LOCATION_EMBARGO_DATE)).toUpperCase(),
                         getString(R.string.embargo_msg_3)
 
                 };

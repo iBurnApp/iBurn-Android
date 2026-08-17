@@ -67,14 +67,35 @@ if (!configuredReleaseSigningProperties.isEmpty() && !hasReleaseSigningConfig) {
     def missing = releaseSigningPropertyNames - configuredReleaseSigningProperties
     throw new GradleException("Incomplete release signing configuration; missing ${missing}")
 }
-def expectedAnnualKeys = [
-        'year', 'versionCode', 'versionName', 'artEmbargo',
-        'campEventEmbargo', 'mockNow'
+def requiredAnnualKeys = [
+        'year', 'versionCode', 'versionName', 'locationEmbargo',
+        'campAddressEmbargo', 'mockNow'
 ] as Set
-if (annualConfig.keySet() != expectedAnnualKeys) {
-    def missing = expectedAnnualKeys - annualConfig.keySet()
-    def unknown = annualConfig.keySet() - expectedAnnualKeys
+def allowedAnnualKeys = requiredAnnualKeys + ['mockLocation']
+if (!annualConfig.keySet().containsAll(requiredAnnualKeys) ||
+        !allowedAnnualKeys.containsAll(annualConfig.keySet())) {
+    def missing = requiredAnnualKeys - annualConfig.keySet()
+    def unknown = annualConfig.keySet() - allowedAnnualKeys
     throw new GradleException("Invalid ${annualConfigFile}: missing keys ${missing}, unknown keys ${unknown}")
+}
+
+def mockLocation = annualConfig.mockLocation
+if (mockLocation != null) {
+    if (!(mockLocation instanceof Map) ||
+            mockLocation.keySet() != (['latitude', 'longitude'] as Set)) {
+        throw new GradleException('Annual mockLocation must contain only latitude and longitude')
+    }
+    if (!(mockLocation.latitude instanceof Number) || !(mockLocation.longitude instanceof Number)) {
+        throw new GradleException('Annual mockLocation latitude and longitude must be numbers')
+    }
+    double mockLatitude = mockLocation.latitude.doubleValue()
+    double mockLongitude = mockLocation.longitude.doubleValue()
+    if (!Double.isFinite(mockLatitude) || mockLatitude < -90.0d || mockLatitude > 90.0d) {
+        throw new GradleException('Annual mockLocation latitude must be between -90 and 90')
+    }
+    if (!Double.isFinite(mockLongitude) || mockLongitude < -180.0d || mockLongitude > 180.0d) {
+        throw new GradleException('Annual mockLocation longitude must be between -180 and 180')
+    }
 }
 
 def versionYear = annualConfig.year
@@ -118,16 +139,21 @@ def parseAnnualDate = { String field, Object value ->
 }
 def eventStart = parseAnnualDate('eventStart', datesInfo.rangeInfo.startDate)
 def eventEnd = parseAnnualDate('eventEnd', datesInfo.rangeInfo.endDate)
-def artEmbargo = annualConfig.artEmbargo == 'eventStart'
-        ? eventStart : parseAnnualDate('artEmbargo', annualConfig.artEmbargo)
-def campEventEmbargo = parseAnnualDate('campEventEmbargo', annualConfig.campEventEmbargo)
+def locationEmbargo = annualConfig.locationEmbargo == 'eventStart'
+        ? eventStart : parseAnnualDate('locationEmbargo', annualConfig.locationEmbargo)
+def campAddressEmbargo = annualConfig.campAddressEmbargo == 'eventStartMinusOneWeek'
+        ? eventStart.minusWeeks(1)
+        : parseAnnualDate('campAddressEmbargo', annualConfig.campAddressEmbargo)
 def mockNow = parseAnnualDate('mockNow', annualConfig.mockNow)
+def hasMockLocation = mockLocation != null
+def mockLatitude = hasMockLocation ? mockLocation.latitude.doubleValue() : 0.0d
+def mockLongitude = hasMockLocation ? mockLocation.longitude.doubleValue() : 0.0d
 def playaZone = ZoneId.of('America/Los_Angeles')
 [
         eventStart: eventStart,
         eventEnd: eventEnd,
-        artEmbargo: artEmbargo,
-        campEventEmbargo: campEventEmbargo,
+        locationEmbargo: locationEmbargo,
+        campAddressEmbargo: campAddressEmbargo,
         mockNow: mockNow
 ].each { field, value ->
     if (value.offset != playaZone.rules.getOffset(value.toInstant())) {
@@ -140,13 +166,9 @@ if (!eventEnd.isAfter(eventStart)) {
 if (eventStart.year != versionYear || eventEnd.year != versionYear) {
     throw new GradleException("iBurn-Data event dates must be in ${versionYear}")
 }
-if (artEmbargo.isAfter(eventEnd) || campEventEmbargo.isAfter(eventEnd)) {
+if (locationEmbargo.isAfter(eventEnd) || campAddressEmbargo.isAfter(eventEnd)) {
     throw new GradleException('Annual embargo dates must not be after eventEnd')
 }
-if (mockNow.isBefore(eventStart) || mockNow.isAfter(eventEnd)) {
-    throw new GradleException('Annual mockNow must fall within the event date range')
-}
-
 def annualDataRoot = file("$rootDir/iBurn-Data/data/${versionYear}")
 def geocoderSource = file("$annualDataRoot/geocoder")
 def mapSource = file("$annualDataRoot/Map/Map.bundle")
@@ -206,9 +228,12 @@ object AnnualMetadata {
     const val YEAR = ${versionYear}
     const val EVENT_START_EPOCH_MILLIS = ${eventStart.toInstant().toEpochMilli()}L
     const val EVENT_END_EPOCH_MILLIS = ${eventEnd.toInstant().toEpochMilli()}L
-    const val ART_EMBARGO_EPOCH_MILLIS = ${artEmbargo.toInstant().toEpochMilli()}L
-    const val CAMP_EVENT_EMBARGO_EPOCH_MILLIS = ${campEventEmbargo.toInstant().toEpochMilli()}L
+    const val LOCATION_EMBARGO_EPOCH_MILLIS = ${locationEmbargo.toInstant().toEpochMilli()}L
+    const val CAMP_ADDRESS_EMBARGO_EPOCH_MILLIS = ${campAddressEmbargo.toInstant().toEpochMilli()}L
     const val MOCK_NOW_EPOCH_MILLIS = ${mockNow.toInstant().toEpochMilli()}L
+    const val HAS_MOCK_LOCATION = ${hasMockLocation}
+    const val MOCK_LOCATION_LATITUDE = ${mockLatitude}
+    const val MOCK_LOCATION_LONGITUDE = ${mockLongitude}
     const val MAP_CACHE_VERSION = ${mapCacheVersion}L
 }
 """.stripIndent().trim() + "\n"

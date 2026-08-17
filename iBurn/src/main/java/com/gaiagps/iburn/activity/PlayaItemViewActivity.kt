@@ -480,7 +480,9 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
 
     private fun populateViews(itemWithUserData: PlayaItemWithUserData) {
         val item = itemWithUserData.item
-        val embargoActive = Embargo.isEmbargoActiveForPlayaItem(PrefsHelper(applicationContext), item)
+        val prefs = PrefsHelper(applicationContext)
+        val embargoActive = Embargo.isEmbargoActiveForPlayaItem(prefs, item)
+        val addressEmbargoActive = Embargo.isAddressEmbargoActiveForPlayaItem(prefs, item)
         showingLocation = (item.hasLocation() && !embargoActive) || item.hasUnofficialLocation()
 
         if (showingLocation) {
@@ -520,7 +522,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
 
         setTextOrHideIfEmpty(item.description, binding.body)
 
-        if (!embargoActive) {
+        if (!addressEmbargoActive) {
             setTextOrHideIfEmpty(item.playaAddress, binding.subitem1)
         } else if (item.hasUnofficialLocation()) {
             setTextOrHideIfEmpty("BurnerMap: " + item.playaAddressUnofficial, binding.subitem1)

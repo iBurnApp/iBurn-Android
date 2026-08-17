@@ -10,7 +10,11 @@ object ShareUrlBuilder {
     private const val BASE_URL = "https://iburnapp.com"
     private val deepLinkFormatter = DateUtil.getIso8601DeepLinkFormat()
 
-    fun buildShareUrl(item: PlayaItem): Uri {
+    fun buildShareUrl(
+        item: PlayaItem,
+        includeOfficialCoordinates: Boolean = true,
+        includeOfficialAddress: Boolean = true
+    ): Uri {
         val builder = Uri.Builder()
             .scheme("https")
             .authority("iburnapp.com")
@@ -56,16 +60,18 @@ object ShareUrlBuilder {
             builder.appendQueryParameter("desc", desc)
         }
         
-        if (item.latitude != 0f) {
+        if (includeOfficialCoordinates && item.latitude != 0f) {
             builder.appendQueryParameter("lat", String.format(Locale.US, "%.6f", item.latitude))
         }
         
-        if (item.longitude != 0f) {
+        if (includeOfficialCoordinates && item.longitude != 0f) {
             builder.appendQueryParameter("lng", String.format(Locale.US, "%.6f", item.longitude))
         }
         
-        item.playaAddress?.let { addr ->
-            builder.appendQueryParameter("addr", addr)
+        if (includeOfficialAddress) {
+            item.playaAddress?.let { addr ->
+                builder.appendQueryParameter("addr", addr)
+            }
         }
         
         // Event-specific parameters
