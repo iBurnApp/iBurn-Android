@@ -30,6 +30,7 @@ import timber.log.Timber
 import java.util.*
 
 internal object LocationChangedPayload
+internal object FavoriteChangedPayload
 
 /**
  * Facilities the display of a collection of [PlayaItem]s in a [RecyclerView]
@@ -79,7 +80,9 @@ open class PlayaItemAdapter(
         if (changedPositions == null) {
             notifyDataSetChanged()
         } else {
-            changedPositions.forEach(::notifyItemChanged)
+            changedPositions.forEach { position ->
+                notifyItemChanged(position, FavoriteChangedPayload)
+            }
         }
     }
 
@@ -247,28 +250,9 @@ open class PlayaItemAdapter(
 
             bindLocation(viewHolder, item)
 
-            if (itemWithUserData.userData.isFavorite) {
-                holder.favoriteView.setImageResource(R.drawable.ic_heart_full_24dp)
-            } else {
-                holder.favoriteView.setImageResource(R.drawable.ic_heart_empty_24dp)
-            }
+            bindFavorite(holder, itemWithUserData)
 
             holder.itemView.tag = itemWithUserData
-
-            // Set up favorite button click listener here in onBindViewHolder
-            // This ensures it always references the correct item for this position
-            holder.favoriteView.setOnClickListener({ view ->
-                val willBeFavorite = !itemWithUserData.userData.isFavorite
-                if (willBeFavorite) {
-                    (view as ImageView).setImageResource(R.drawable.ic_heart_full_24dp)
-                    view.animateScalePulse {
-                        listener.onItemFavoriteButtonSelected(itemWithUserData.item)
-                    }
-                } else {
-                    (view as ImageView).setImageResource(R.drawable.ic_heart_empty_24dp)
-                    listener.onItemFavoriteButtonSelected(itemWithUserData.item)
-                }
-            })
 
             if (isLastItem) {
                 // Set footer padding
@@ -294,10 +278,37 @@ open class PlayaItemAdapter(
         position: Int,
         payloads: MutableList<Any>
     ) {
-        if (payloads.isNotEmpty() && payloads.all { it === LocationChangedPayload }) {
-            items?.getOrNull(position)?.item?.let { bindLocation(viewHolder, it) }
-        } else {
-            onBindViewHolder(viewHolder, position)
+        if (payloads.isNotEmpty()) {
+            val item = items?.getOrNull(position)
+            if (item != null && payloads.all {
+                    it === LocationChangedPayload || it === FavoriteChangedPayload
+                }) {
+                if (payloads.any { it === LocationChangedPayload }) {
+                    bindLocation(viewHolder, item.item)
+                }
+                if (payloads.any { it === FavoriteChangedPayload }) {
+                    bindFavorite(viewHolder, item)
+                }
+                return
+            }
+        }
+        onBindViewHolder(viewHolder, position)
+    }
+
+    private fun bindFavorite(holder: ViewHolder, item: PlayaItemWithUserData) {
+        var isFavorite = item.userData.isFavorite
+        holder.favoriteView.setImageResource(
+            if (isFavorite) R.drawable.ic_heart_full_24dp else R.drawable.ic_heart_empty_24dp
+        )
+        holder.favoriteView.setOnClickListener { view ->
+            isFavorite = !isFavorite
+            (view as ImageView).setImageResource(
+                if (isFavorite) R.drawable.ic_heart_full_24dp else R.drawable.ic_heart_empty_24dp
+            )
+            if (isFavorite) {
+                view.animateScalePulse()
+            }
+            listener.onItemFavoriteButtonSelected(item.item)
         }
     }
 

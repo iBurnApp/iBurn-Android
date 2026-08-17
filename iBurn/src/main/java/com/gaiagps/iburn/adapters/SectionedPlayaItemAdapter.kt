@@ -48,7 +48,7 @@ abstract class SectionedPlayaItemAdapter(context: Context, listener: AdapterList
             positionToDataPosition.entries
                 .firstOrNull { it.value == dataPosition }
                 ?.key
-                ?.let(::notifyItemChanged)
+                ?.let { position -> notifyItemChanged(position, FavoriteChangedPayload) }
         }
     }
 

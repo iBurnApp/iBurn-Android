@@ -25,15 +25,16 @@ import com.gaiagps.iburn.database.SectionedPlayaItems
 import com.gaiagps.iburn.databinding.ActivitySearchBinding
 import com.tonicartos.superslim.LayoutManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
 
 class SearchFragment : Fragment(), AdapterListener {
 
     private var adapter: MultiTypePlayaItemAdapter? = null
+    private var searchJob: Job? = null
     private lateinit var binding: ActivitySearchBinding
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -82,15 +83,16 @@ class SearchFragment : Fragment(), AdapterListener {
      * Dispatch a search query to the current Fragment in the FragmentPagerAdapter
      */
     private fun dispatchSearchQuery(query: String) {
-        lifecycleScope.launch {
+        searchJob?.cancel()
+        searchJob = lifecycleScope.launch {
             try {
                 val provider = DataProvider.getInstance(requireContext().applicationContext)
-                val items = withContext(Dispatchers.IO) {
-                    provider.observeFtsQuery(query).first()
+                provider.observeFtsQuery(query).collectLatest { items ->
+                    binding.resultsSummary.text = describeResults(items)
+                    adapter?.sectionedItems = items
                 }
-                binding.resultsSummary.text = describeResults(items)
-                adapter?.sectionedItems = items
             } catch (t: Throwable) {
+                if (t is kotlinx.coroutines.CancellationException) throw t
                 Timber.w(t, "FTS search failed; showing no results")
                 adapter?.sectionedItems =
                     SectionedPlayaItems(
@@ -121,5 +123,12 @@ class SearchFragment : Fragment(), AdapterListener {
                 Timber.e(t, "failed to toggle favorite")
             }
         }
+    }
+
+    override fun onDestroyView() {
+        searchJob?.cancel()
+        searchJob = null
+        adapter = null
+        super.onDestroyView()
     }
 }

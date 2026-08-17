@@ -16,6 +16,7 @@ import com.gaiagps.iburn.view.ArtListHeader
 import com.gaiagps.iburn.view.BrowseListHeader
 import com.gaiagps.iburn.view.EventListHeader
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import com.gaiagps.iburn.VerticalRecyclerViewFastScroller2
@@ -34,10 +35,12 @@ class BrowseListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaLis
     private var includeExpired: Boolean = false
 
     private var showAudioTourOnly = false
+    private var observationJob: Job? = null
 
     override fun startObserving() {
+        observationJob?.cancel()
         val provider = DataProvider.getInstance(requireActivity().applicationContext)
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+        observationJob = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
             when (categorySelection) {
                 BrowseListHeader.BrowseSelection.CAMPS -> {
                     adapter.sectionIndexer = AlphabeticalSectionIndexer()
@@ -59,6 +62,11 @@ class BrowseListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaLis
                 }
             }
         }
+    }
+
+    override fun stopObserving() {
+        observationJob?.cancel()
+        observationJob = null
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
