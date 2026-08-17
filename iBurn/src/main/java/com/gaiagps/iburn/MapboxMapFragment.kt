@@ -61,6 +61,7 @@ import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.location.modes.RenderMode
 import org.maplibre.android.maps.MapLibreMap
+import org.maplibre.android.maps.MapLibreMapOptions
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.OnMapReadyCallback
 import org.maplibre.android.maps.Style
@@ -244,12 +245,17 @@ class MapboxMapFragment : Fragment() {
         inflater.let { inflater ->
             val context = inflater.context
             val options = MapFragmentUtils.resolveArgs(context, this.arguments)
-            val mapView = MapView(context, options)
-            this.mapView = mapView
-
+                ?: MapLibreMapOptions.createFromAttributes(context)
             val dpValue = 10 // margin in dips
             val d = requireActivity().resources!!.displayMetrics!!.density
             val margin = (dpValue * d).toInt() // margin in pixels
+
+            options
+                .compassGravity(Gravity.BOTTOM.or(Gravity.END))
+                .compassMargins(intArrayOf(margin, margin, margin, margin))
+
+            val mapView = MapView(context, options)
+            this.mapView = mapView
 
             // Add Playa Address label
             val addressLabel =
