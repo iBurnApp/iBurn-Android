@@ -31,7 +31,10 @@ public class Embargo {
 
     public static boolean isEmbargoActiveForPlayaItem(PrefsHelper prefs, PlayaItem item) {
         // Determine embargo based on which core table is present in the query
-        if (item instanceof Art || (item instanceof Event && ((Event) item).hasArtHost())) {
+        if (item instanceof MutantVehicle) {
+            // The Mutant Vehicle feed does not contain location data.
+            return false;
+        } else if (item instanceof Art || (item instanceof Event && ((Event) item).hasArtHost())) {
             if (didArtEmbargoEnd) return false;
             boolean result = isEmbargoActiveForArt(prefs);
             // Once the art embargo has ended, it will never be active again

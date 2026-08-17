@@ -34,6 +34,8 @@ private const val DATABASE_V2 = 2
 private const val DATABASE_V3 = 3
 // Store occurrence timestamps as epochs and remove derived presentation columns.
 private const val DATABASE_V4 = 4
+// Add the browseable Mutant Vehicles feed.
+private const val DATABASE_V5 = 5
 
 private const val EVENT_VIEW_QUERY_V3 =
     "SELECT o._id AS _id, d.name AS name, d.`desc` AS `desc`, d.url AS url, " +
@@ -52,7 +54,8 @@ private val READONLY_TABLES = listOf(
     Art.TABLE_NAME,
     Camp.TABLE_NAME,
     EventDefinition.TABLE_NAME,
-    EventOccurrence.TABLE_NAME
+    EventOccurrence.TABLE_NAME,
+    MutantVehicle.TABLE_NAME
 )
 
 @Database(
@@ -64,18 +67,21 @@ private val READONLY_TABLES = listOf(
         ArtFts::class,
         CampFts::class,
         EventFts::class,
+        MutantVehicle::class,
+        MutantVehicleFts::class,
         UserPoi::class,
         Favorite::class,
         MapPin::class
     ),
     views = [Event::class],
-    version = DATABASE_V4
+    version = DATABASE_V5
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun artDao(): ArtDao
     abstract fun campDao(): CampDao
     abstract fun eventDao(): EventDao
+    abstract fun mutantVehicleDao(): MutantVehicleDao
     abstract fun userPoiDao(): UserPoiDao
     abstract fun favoriteDao(): FavoriteDao
     abstract fun mapPinDao(): MapPinDao
@@ -181,7 +187,7 @@ fun buildDatabase(context: Context, name: String, copyBundled: Boolean): AppData
 
 private fun newRoomDatabase(context: Context, name: String): AppDatabase =
     androidx.room.Room.databaseBuilder(context, AppDatabase::class.java, name)
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
         .build()
 
 fun newDatabase(context: Context, name: String): AppDatabase {
@@ -724,6 +730,75 @@ val MIGRATION_3_4 = object : Migration(DATABASE_V3, DATABASE_V4) {
         database.execSQL("DROP TABLE `favorites_legacy`")
         database.execSQL(
             "CREATE VIEW `${Event.VIEW_NAME}` AS ${Event.VIEW_QUERY}"
+        )
+    }
+}
+
+val MIGRATION_4_5 = object : Migration(DATABASE_V4, DATABASE_V5) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `${MutantVehicle.TABLE_NAME}` (
+                `${MutantVehicle.ARTIST}` TEXT,
+                `${MutantVehicle.HOMETOWN}` TEXT,
+                `${MutantVehicle.IMAGE_URL}` TEXT,
+                `${MutantVehicle.TAGS}` TEXT,
+                `${PlayaItem.ID}` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `${PlayaItem.NAME}` TEXT, `${PlayaItem.DESC}` TEXT,
+                `${PlayaItem.URL}` TEXT, `${PlayaItem.CONTACT}` TEXT,
+                `${PlayaItem.PLAYA_ADDR}` TEXT, `${PlayaItem.PLAYA_ADDR_UNOFFICIAL}` TEXT,
+                `${PlayaItem.PLAYA_ID}` TEXT,
+                `${PlayaItem.LATITUDE}` REAL NOT NULL,
+                `${PlayaItem.LONGITUDE}` REAL NOT NULL,
+                `${PlayaItem.LATITUDE_UNOFFICIAL}` REAL NOT NULL,
+                `${PlayaItem.LONGITUDE_UNOFFICIAL}` REAL NOT NULL
+            )
+            """.trimIndent()
+        )
+        database.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS `index_mutant_vehicles_p_id` " +
+                "ON `${MutantVehicle.TABLE_NAME}` (`${PlayaItem.PLAYA_ID}`)"
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_mutant_vehicles_name` " +
+                "ON `${MutantVehicle.TABLE_NAME}` (`${PlayaItem.NAME}`)"
+        )
+
+        val ftsColumns = listOf(
+            PlayaItem.NAME,
+            PlayaItem.DESC,
+            MutantVehicle.ARTIST,
+            MutantVehicle.HOMETOWN,
+            MutantVehicle.TAGS
+        )
+        val definitions = ftsColumns.joinToString(", ") { "`$it` TEXT" }
+        val columns = ftsColumns.joinToString(", ") { "`$it`" }
+        val newColumns = ftsColumns.joinToString(", ") { "NEW.`$it`" }
+        database.execSQL(
+            "CREATE VIRTUAL TABLE IF NOT EXISTS `${MutantVehicleFts.TABLE_NAME}` " +
+                "USING FTS4($definitions, content=`${MutantVehicle.TABLE_NAME}`)"
+        )
+        database.execSQL(
+            "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_mutant_vehicles_fts_BEFORE_UPDATE " +
+                "BEFORE UPDATE ON `${MutantVehicle.TABLE_NAME}` BEGIN DELETE FROM " +
+                "`${MutantVehicleFts.TABLE_NAME}` WHERE `docid`=OLD.`rowid`; END"
+        )
+        database.execSQL(
+            "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_mutant_vehicles_fts_BEFORE_DELETE " +
+                "BEFORE DELETE ON `${MutantVehicle.TABLE_NAME}` BEGIN DELETE FROM " +
+                "`${MutantVehicleFts.TABLE_NAME}` WHERE `docid`=OLD.`rowid`; END"
+        )
+        database.execSQL(
+            "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_mutant_vehicles_fts_AFTER_UPDATE " +
+                "AFTER UPDATE ON `${MutantVehicle.TABLE_NAME}` BEGIN INSERT INTO " +
+                "`${MutantVehicleFts.TABLE_NAME}`(`docid`, $columns) VALUES " +
+                "(NEW.`rowid`, $newColumns); END"
+        )
+        database.execSQL(
+            "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_mutant_vehicles_fts_AFTER_INSERT " +
+                "AFTER INSERT ON `${MutantVehicle.TABLE_NAME}` BEGIN INSERT INTO " +
+                "`${MutantVehicleFts.TABLE_NAME}`(`docid`, $columns) VALUES " +
+                "(NEW.`rowid`, $newColumns); END"
         )
     }
 }

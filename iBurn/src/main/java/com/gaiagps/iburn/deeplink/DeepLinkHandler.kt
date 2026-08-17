@@ -30,6 +30,7 @@ class DeepLinkHandler(
         private const val PATH_ART = "art"
         private const val PATH_CAMP = "camp"
         private const val PATH_EVENT = "event"
+        private const val PATH_MUTANT_VEHICLE = "mv"
         private const val PATH_PIN = "pin"
         
         // Intent extras for map pins
@@ -64,7 +65,7 @@ class DeepLinkHandler(
         
         when {
             // Handle https://iburnapp.com/art/?uid=xxx or /camp/?uid=xxx or /event/?uid=xxx
-            pathSegments.isNotEmpty() && pathSegments[0] in listOf(PATH_ART, PATH_CAMP, PATH_EVENT) -> {
+            pathSegments.isNotEmpty() && pathSegments[0] in listOf(PATH_ART, PATH_CAMP, PATH_EVENT, PATH_MUTANT_VEHICLE) -> {
                 val type = pathSegments[0]
                 val uid = queryParams["uid"]
                 
@@ -91,7 +92,7 @@ class DeepLinkHandler(
                     return
                 }
                 
-                if (type in listOf(PATH_ART, PATH_CAMP, PATH_EVENT) && uid != null) {
+                if (type in listOf(PATH_ART, PATH_CAMP, PATH_EVENT, PATH_MUTANT_VEHICLE) && uid != null) {
                     handleDataObject(host, type, uid, queryParams, callback)
                 } else if (type == PATH_PIN) {
                     handleMapPin(queryParams, callback)
@@ -153,6 +154,17 @@ class DeepLinkHandler(
                 } catch (t: Throwable) {
                     Timber.e(t, "Error loading deep link object: $type/$playaId")
                     launch(Dispatchers.Main) { callback(null) }
+                }
+            }
+            PATH_MUTANT_VEHICLE -> scope.launch(Dispatchers.IO) {
+                val item = dataProvider.observeMutantVehicleByPlayaId(playaId).firstOrNull()
+                launch(Dispatchers.Main) {
+                    if (item != null) {
+                        callback(IntentUtil.getViewItemDetailIntent(host, item.item))
+                    } else {
+                        Timber.w("Object not found: $type/$playaId")
+                        callback(null)
+                    }
                 }
             }
             else -> callback(null)

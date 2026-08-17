@@ -3,6 +3,7 @@ package com.gaiagps.iburn
 import android.content.Context
 import android.widget.ImageView
 import com.gaiagps.iburn.database.Art
+import com.gaiagps.iburn.database.MutantVehicle
 import com.squareup.picasso.Picasso
 import android.os.Handler
 import android.os.Looper
@@ -94,6 +95,18 @@ fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
             })
         }
     }
+}
+
+fun loadMutantVehicleImage(vehicle: MutantVehicle, view: ImageView, callback: Callback? = null) {
+    val imageUrl = vehicle.imageUrl
+    if (imageUrl.isNullOrEmpty()) {
+        callback?.onError()
+        return
+    }
+    Picasso.get().load(imageUrl).into(view, object : com.squareup.picasso.Callback {
+        override fun onSuccess() = callback?.onSuccess() ?: Unit
+        override fun onError(e: Exception?) = callback?.onError() ?: Unit
+    })
 }
 
 private fun cacheArtImageFile(context: Context, art: Art, callback: Callback) {

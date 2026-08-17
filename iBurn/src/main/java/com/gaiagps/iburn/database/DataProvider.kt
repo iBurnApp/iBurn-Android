@@ -57,6 +57,8 @@ class DataProvider private constructor(private val context: Context, private val
         return clearTable(Camp.TABLE_NAME)
     }
 
+    fun deleteMutantVehicles(): Int = clearTable(MutantVehicle.TABLE_NAME)
+
     private fun clearTable(tablename: String): Int {
         return db.openHelper.writableDatabase.delete(tablename, null, null)
     }
@@ -120,6 +122,7 @@ class DataProvider private constructor(private val context: Context, private val
         when (table) {
             Camp.TABLE_NAME -> return deleteCamps()
             Art.TABLE_NAME -> return deleteArt()
+            MutantVehicle.TABLE_NAME -> return deleteMutantVehicles()
             EventDefinition.TABLE_NAME -> return deleteEvents()
             else -> Timber.w("Cannot clear unknown table name '%s'", table)
         }
@@ -286,6 +289,18 @@ class DataProvider private constructor(private val context: Context, private val
         return db.artDao().findById(id)
     }
 
+    fun observeMutantVehicles(): Flow<List<MutantVehicleWithUserData>> =
+        db.mutantVehicleDao().all
+
+    fun observeMutantVehicleFavorites(): Flow<List<MutantVehicleWithUserData>> =
+        db.mutantVehicleDao().favorites
+
+    fun observeMutantVehicleByPlayaId(playaId: String): Flow<MutantVehicleWithUserData> =
+        db.mutantVehicleDao().findByPlayaId(playaId)
+
+    fun observeMutantVehicleById(id: Int): Flow<MutantVehicleWithUserData> =
+        db.mutantVehicleDao().findById(id)
+
     /**
      * Observe all favorites.
      *
@@ -300,11 +315,12 @@ class DataProvider private constructor(private val context: Context, private val
         return combine(
                 db.artDao().favorites,
                 db.campDao().favorites,
+                db.mutantVehicleDao().favorites,
                 db.eventDao().favorites)
-        { arts, camps, events ->
+        { arts, camps, vehicles, events ->
 
-            val sections = ArrayList<IntRange>(3)
-            val items = ArrayList<PlayaItemWithUserData>(arts.size + camps.size + events.size)
+            val sections = ArrayList<IntRange>(4)
+            val items = ArrayList<PlayaItemWithUserData>(arts.size + camps.size + vehicles.size + events.size)
 
             var lastRangeEnd = 0
 
@@ -320,6 +336,13 @@ class DataProvider private constructor(private val context: Context, private val
                 val artRangeEnd = items.size
                 sections.add(IntRange(lastRangeEnd, artRangeEnd))
                 lastRangeEnd = artRangeEnd
+            }
+
+            if (vehicles.isNotEmpty()) {
+                items.addAll(vehicles)
+                val vehiclesRangeEnd = items.size
+                sections.add(IntRange(lastRangeEnd, vehiclesRangeEnd))
+                lastRangeEnd = vehiclesRangeEnd
             }
 
             if (events.size > 0) {
@@ -349,10 +372,11 @@ class DataProvider private constructor(private val context: Context, private val
                 db.artDao().searchFts(ftsQuery),
                 db.campDao().searchFts(ftsQuery),
                 db.eventDao().searchFts(ftsQuery),
+                db.mutantVehicleDao().searchFts(ftsQuery),
                 db.userPoiDao().findByName(wildQuery))
-        { arts, camps, events, userpois ->
-            val sections = ArrayList<IntRange>(4)
-            val items = ArrayList<PlayaItemWithUserData>(arts.size + camps.size + events.size)
+        { arts, camps, events, vehicles, userpois ->
+            val sections = ArrayList<IntRange>(5)
+            val items = ArrayList<PlayaItemWithUserData>(arts.size + camps.size + events.size + vehicles.size + userpois.size)
 
             var lastRangeEnd = 0
 
@@ -375,6 +399,14 @@ class DataProvider private constructor(private val context: Context, private val
                 val eventsRangeEnd = items.size
                 sections.add(IntRange(lastRangeEnd, eventsRangeEnd))
                 lastRangeEnd = eventsRangeEnd
+            }
+
+
+            if (vehicles.isNotEmpty()) {
+                items.addAll(vehicles)
+                val vehiclesRangeEnd = items.size
+                sections.add(IntRange(lastRangeEnd, vehiclesRangeEnd))
+                lastRangeEnd = vehiclesRangeEnd
             }
 
             if (userpois.size > 0) {
@@ -477,6 +509,8 @@ class DataProvider private constructor(private val context: Context, private val
             Timber.w("Bundled events are read-only and cannot be updated individually")
         } else if (item is Camp) {
             db.campDao().update(item)
+        } else if (item is MutantVehicle) {
+            db.mutantVehicleDao().update(item)
         } else if (item is UserPoi) {
             db.userPoiDao().update(item)
         } else {
@@ -534,9 +568,11 @@ class DataProvider private constructor(private val context: Context, private val
     fun getCampByIdBlocking(id: Int): CampWithUserData = runBlocking { observeCampById(id).first() }
     fun getArtByIdBlocking(id: Int): ArtWithUserData = runBlocking { observeArtById(id).first() }
     fun getEventByIdBlocking(id: Int): EventWithUserData = runBlocking { observeEventById(id) }
+    fun getMutantVehicleByIdBlocking(id: Int): MutantVehicleWithUserData = runBlocking { observeMutantVehicleById(id).first() }
     fun getCampByPlayaIdBlocking(playaId: String): CampWithUserData = runBlocking { observeCampByPlayaId(playaId).first() }
     fun getArtByPlayaIdBlocking(playaId: String): ArtWithUserData = runBlocking { observeArtByPlayaId(playaId).first() }
     fun getEventByPlayaIdBlocking(playaId: String): EventWithUserData = runBlocking { observeEventByPlayaId(playaId) }
+    fun getMutantVehicleByPlayaIdBlocking(playaId: String): MutantVehicleWithUserData = runBlocking { observeMutantVehicleByPlayaId(playaId).first() }
 
         /**
          * Add wildcards to the beginning and end of a query term

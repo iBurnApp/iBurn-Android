@@ -6,6 +6,7 @@ import com.gaiagps.iburn.R
 import com.gaiagps.iburn.database.Art
 import com.gaiagps.iburn.database.Camp
 import com.gaiagps.iburn.database.Event
+import com.gaiagps.iburn.database.MutantVehicle
 import com.gaiagps.iburn.database.PlayaItemWithUserData
 import com.gaiagps.iburn.database.SectionedPlayaItems
 import com.gaiagps.iburn.database.UserPoi
@@ -39,6 +40,10 @@ class MultiTypePlayaItemAdapter(context: Context, listener: AdapterListener) :
 
             is Event -> {
                 headerText = context.getString(R.string.events_tab)
+            }
+
+            is MutantVehicle -> {
+                headerText = context.getString(R.string.mutant_vehicles_tab)
             }
 
             is UserPoi -> {

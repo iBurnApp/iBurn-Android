@@ -8,6 +8,7 @@ import com.gaiagps.iburn.database.Camp
 import com.gaiagps.iburn.database.Event
 import com.gaiagps.iburn.database.PlayaItem
 import com.gaiagps.iburn.database.PlayaItemWithUserData
+import com.gaiagps.iburn.database.MutantVehicle
 
 /**
  * Created by dbro on 8/29/16.
@@ -37,6 +38,11 @@ object IntentUtil {
             i.putExtra(
                 PlayaItemViewActivity.EXTRA_PLAYA_ITEM_TYPE,
                 PlayaItemViewActivity.EXTRA_PLAYA_ITEM_EVENT
+            )
+        } else if (item is MutantVehicle) {
+            i.putExtra(
+                PlayaItemViewActivity.EXTRA_PLAYA_ITEM_TYPE,
+                PlayaItemViewActivity.EXTRA_PLAYA_ITEM_MUTANT_VEHICLE
             )
         }
         return i

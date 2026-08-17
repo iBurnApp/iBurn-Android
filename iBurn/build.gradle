@@ -176,7 +176,7 @@ def mapInputFiles = fileTree(mapSource) {
     include 'map.mbtiles', 'camp_outlines.geojson', 'camp_labels.geojson'
     include 'styles/*.json', 'glyphs/Open Sans Regular/**/*.pbf'
 }.files
-def apiInputFiles = ['art.json', 'camp.json', 'event.json'].collect { file("$apiSource/$it") }
+def apiInputFiles = ['art.json', 'camp.json', 'event.json', 'mv.json'].collect { file("$apiSource/$it") }
 def mapContentDigest = contentDigest(mapSource, mapInputFiles)
 def databaseInputFiles = apiInputFiles + [
         file("$geocoderSource/bundle.js"),
@@ -448,6 +448,7 @@ tasks.register('validateAnnualData') {
                 file("$mapSource/styles/iburn-light.json"), file("$mapSource/styles/iburn-dark.json"),
                 file("$mapSource/camp_outlines.geojson"), file("$mapSource/camp_labels.geojson"),
                 file("$apiSource/art.json"), file("$apiSource/camp.json"), file("$apiSource/event.json"),
+                file("$apiSource/mv.json"),
                 datesInfoFile
         ]
         def missing = requiredFiles.findAll { !it.isFile() }
@@ -460,7 +461,7 @@ tasks.register('validateAnnualData') {
         if (!missing.isEmpty()) {
             throw new GradleException("Missing annual data inputs: ${missing.join(', ')}")
         }
-        ['art.json', 'camp.json', 'event.json'].each { name ->
+        ['art.json', 'camp.json', 'event.json', 'mv.json'].each { name ->
             def records = new JsonSlurper().parse(file("$apiSource/$name"))
             if (!(records instanceof List) || records.any { !(it instanceof Map) || !it.uid }) {
                 throw new GradleException("${name} must be an array of records with non-empty uid values")
@@ -535,7 +536,7 @@ tasks.register('syncAudioTour', Sync) {
 tasks.register('syncApiJson', Sync) {
     group = 'annual update'
     dependsOn 'validateAnnualData'
-    from(apiSource) { include 'art.json', 'camp.json', 'event.json' }
+    from(apiSource) { include 'art.json', 'camp.json', 'event.json', 'mv.json' }
     into "$projectDir/src/main/assets/json"
 }
 

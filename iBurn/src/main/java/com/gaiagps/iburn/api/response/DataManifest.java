@@ -9,10 +9,16 @@ public class DataManifest {
     public ResourceManifest art;
     public ResourceManifest camps;
     public ResourceManifest events;
+    public ResourceManifest mv;
 
     public DataManifest(ResourceManifest art, ResourceManifest camps, ResourceManifest events) {
+        this(art, camps, events, null);
+    }
+
+    public DataManifest(ResourceManifest art, ResourceManifest camps, ResourceManifest events, ResourceManifest mv) {
         this.art = art;
         this.camps = camps;
         this.events = events;
+        this.mv = mv;
     }
 }

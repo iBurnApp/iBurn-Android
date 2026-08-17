@@ -32,6 +32,11 @@ object ShareUrlBuilder {
                     .appendPath("") // Creates /event/
                     .appendQueryParameter("uid", item.eventUid)
             }
+            is MutantVehicle -> {
+                builder.appendPath("mv")
+                    .appendPath("")
+                    .appendQueryParameter("uid", item.playaId)
+            }
             is UserPoi -> {
                 // User POIs could be handled as pins
                 return buildPinShareUrl(

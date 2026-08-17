@@ -4,6 +4,7 @@ import com.gaiagps.iburn.api.response.Art
 import com.gaiagps.iburn.api.response.Camp
 import com.gaiagps.iburn.api.response.DataManifest
 import com.gaiagps.iburn.api.response.Event
+import com.gaiagps.iburn.api.response.MutantVehicle
 import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.http.Streaming
@@ -21,8 +22,10 @@ interface IBurnApi {
     @GET("event.json")
     suspend fun getEvents(): List<Event>
 
+    @GET("mv.json")
+    suspend fun getMutantVehicles(): List<MutantVehicle>
+
     @GET("iburn.mbtiles.jar")
     @Streaming
     suspend fun getTiles(): ResponseBody
 }
-

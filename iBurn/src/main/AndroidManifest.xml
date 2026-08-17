@@ -63,6 +63,7 @@
                 <data android:scheme="https" android:host="iburnapp.com" android:pathPrefix="/art" />
                 <data android:scheme="https" android:host="iburnapp.com" android:pathPrefix="/camp" />
                 <data android:scheme="https" android:host="iburnapp.com" android:pathPrefix="/event" />
+                <data android:scheme="https" android:host="iburnapp.com" android:pathPrefix="/mv" />
                 <data android:scheme="https" android:host="iburnapp.com" android:pathPrefix="/pin" />
             </intent-filter>
         </activity>

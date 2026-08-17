@@ -52,8 +52,10 @@ import com.gaiagps.iburn.database.Event
 import com.gaiagps.iburn.database.EventWithUserData
 import com.gaiagps.iburn.database.PlayaItem
 import com.gaiagps.iburn.database.PlayaItemWithUserData
+import com.gaiagps.iburn.database.MutantVehicle
 import com.gaiagps.iburn.databinding.ActivityPlayaItemViewBinding
 import com.gaiagps.iburn.loadArtImage
+import com.gaiagps.iburn.loadMutantVehicleImage
 import com.gaiagps.iburn.service.AudioPlayerService
 import com.gaiagps.iburn.service.MediaMetadataKeyArtPlayaId
 import com.google.android.material.appbar.CollapsingToolbarLayout
@@ -84,6 +86,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         const val EXTRA_PLAYA_ITEM_CAMP = "playa-camp"
         const val EXTRA_PLAYA_ITEM_ART = "playa-art"
         const val EXTRA_PLAYA_ITEM_EVENT = "playa-event"
+        const val EXTRA_PLAYA_ITEM_MUTANT_VEHICLE = "playa-mutant-vehicle"
 
         // Avoid spamming Crashlytics with duplicate non-fatals per process
         private var reportedBadIntentOnce = false
@@ -177,6 +180,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
                         EXTRA_PLAYA_ITEM_CAMP -> provider.getCampByIdBlocking(itemId)
                         EXTRA_PLAYA_ITEM_ART -> provider.getArtByIdBlocking(itemId)
                         EXTRA_PLAYA_ITEM_EVENT -> provider.getEventByIdBlocking(itemId)
+                        EXTRA_PLAYA_ITEM_MUTANT_VEHICLE -> provider.getMutantVehicleByIdBlocking(itemId)
                         else -> throw IllegalArgumentException("Unknown PlayaItem type $type")
                     }
                 }
@@ -495,8 +499,8 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
                 mapFragment.showcaseItem(item)
                 supportFragmentManager.beginTransaction().add(R.id.map_container, mapFragment).commit()
             }
-        } else if (item is Art && item.hasImage()) {
-            // Art image will be added by populateArtViews
+        } else if ((item is Art && item.hasImage()) || (item is MutantVehicle && item.hasImage())) {
+            // The content image will be added by the type-specific view population.
             showingArt = true
         } else {
             // Adjust the margin / padding show the heart icon doesn't
@@ -530,6 +534,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
                 is Art -> populateArtViews(item, provider)
                 is Camp -> populateCampViews(item, provider)
                 is Event -> populateEventViews(item, provider)
+                is MutantVehicle -> populateMutantVehicleViews(item)
                 else -> Timber.e("Unknown PlayaItem type %s", item.javaClass.simpleName)
             }
         }
@@ -619,6 +624,35 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
                     binding.overflowContainer.addView(holder.itemView)
                 }
             }
+        }
+    }
+
+    private fun populateMutantVehicleViews(vehicle: MutantVehicle) {
+        setTextOrHideIfEmpty(vehicle.artist, binding.subitem2)
+        setTextOrHideIfEmpty(vehicle.hometown, binding.subitem3)
+        if (!vehicle.hasImage()) return
+
+        artImageView = ImageView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            alpha = .99f
+        }
+        binding.mapContainer.addView(artImageView, 0)
+        artImageView?.let { imageView ->
+            loadMutantVehicleImage(vehicle, imageView, object : Callback {
+                override fun onSuccess() {
+                    loadedArtImage = true
+                    imageView.alpha = 1f
+                    invalidateOptionsMenu()
+                }
+
+                override fun onError() {
+                    Timber.e("Failed to load image %s", vehicle.imageUrl)
+                }
+            })
         }
     }
 

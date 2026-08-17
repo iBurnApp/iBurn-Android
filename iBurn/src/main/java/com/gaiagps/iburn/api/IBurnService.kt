@@ -73,7 +73,7 @@ class IBurnService(@NonNull context: Context) {
         cachedLocations.clear()
         cachedUnofficialLocations.clear()
 
-        val toUpdate = listOf(manifest.art, manifest.camps, manifest.events)
+        val toUpdate = listOfNotNull(manifest.art, manifest.camps, manifest.events, manifest.mv)
             .filter { shouldUpdateResource(storage, it) }
 
         if (toUpdate.isEmpty()) return true
@@ -105,6 +105,7 @@ class IBurnService(@NonNull context: Context) {
             manifest.art.file -> updateArt(provider)
             manifest.camps.file -> updateCamps(provider)
             manifest.events.file -> updateEvents(provider)
+            manifest.mv?.file -> updateMutantVehicles(provider)
             else -> 0L
         }
     }
@@ -134,6 +135,19 @@ class IBurnService(@NonNull context: Context) {
         val items = api.getCamps().distinctBy { it.uid }
         return updateTable(provider, items, Camp.TABLE_NAME) { item, values, database ->
             values.put(Camp.HOMETOWN, (item as com.gaiagps.iburn.api.response.Camp).hometown)
+            database.insert(values)
+        }
+    }
+
+    private suspend fun updateMutantVehicles(provider: DataProvider): Long {
+        Timber.d("Updating Mutant Vehicles")
+        val items = api.getMutantVehicles().distinctBy { it.uid }
+        return updateTable(provider, items, MutantVehicle.TABLE_NAME) { item, values, database ->
+            val vehicle = item as com.gaiagps.iburn.api.response.MutantVehicle
+            values.put(MutantVehicle.ARTIST, vehicle.artist)
+            values.put(MutantVehicle.HOMETOWN, vehicle.hometown)
+            values.put(MutantVehicle.TAGS, vehicle.tags?.joinToString(", "))
+            vehicle.images?.firstOrNull()?.let { values.put(MutantVehicle.IMAGE_URL, it.thumbnail_url) }
             database.insert(values)
         }
     }

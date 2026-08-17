@@ -133,6 +133,37 @@ class AppDatabaseMigrationTest {
         }
     }
 
+    @Test
+    fun migrate4To5AddsSearchableMutantVehicles() {
+        helper.createDatabase("app-database-migration-v4", 4).close()
+
+        helper.runMigrationsAndValidate(
+            "app-database-migration-v4",
+            5,
+            true,
+            MIGRATION_4_5
+        ).use { database ->
+            database.execSQL(
+                """
+                INSERT INTO mutant_vehicles (
+                    name, `desc`, p_id, artist, hometown, tags,
+                    lat, lon, lat_unof, lon_unof
+                ) VALUES (
+                    'Test Vehicle', 'A rolling test', 'mv-1', 'Test Artist',
+                    'Reno, NV', 'Rolling, Lights', 0, 0, 0, 0
+                )
+                """.trimIndent()
+            )
+            database.query(
+                "SELECT COUNT(*) FROM mutant_vehicles_fts " +
+                    "WHERE mutant_vehicles_fts MATCH 'Lights'"
+            ).use {
+                it.moveToFirst()
+                assertEquals(1, it.getInt(0))
+            }
+        }
+    }
+
     companion object {
         private const val TEST_DATABASE = "app-database-migration"
     }

@@ -12,6 +12,8 @@ import com.gaiagps.iburn.database.CampWithUserData
 import com.gaiagps.iburn.database.DataProvider
 import com.gaiagps.iburn.database.EventWithUserData
 import com.gaiagps.iburn.database.MapPin
+import com.gaiagps.iburn.database.MutantVehicle
+import com.gaiagps.iburn.database.MutantVehicleWithUserData
 import com.gaiagps.iburn.database.PlayaItem
 import com.gaiagps.iburn.databinding.ActivityShareBinding
 import com.gaiagps.iburn.util.ShareUrlBuilder
@@ -46,6 +48,7 @@ class ShareActivity : AppCompatActivity() {
                         is com.gaiagps.iburn.database.Camp -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_CAMP
                         is com.gaiagps.iburn.database.Art -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_ART
                         is com.gaiagps.iburn.database.Event -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_EVENT
+                        is MutantVehicle -> PlayaItemViewActivity.EXTRA_PLAYA_ITEM_MUTANT_VEHICLE
                         else -> null
                     }
                 )
@@ -116,6 +119,11 @@ class ShareActivity : AppCompatActivity() {
                     }
                     PlayaItemViewActivity.EXTRA_PLAYA_ITEM_EVENT -> {
                         val itemWithUserData: EventWithUserData = provider.observeEventByPlayaId(playaId)
+                        onPlayaItemLoaded(itemWithUserData.item)
+                    }
+                    PlayaItemViewActivity.EXTRA_PLAYA_ITEM_MUTANT_VEHICLE -> {
+                        val itemWithUserData: MutantVehicleWithUserData =
+                            provider.observeMutantVehicleByPlayaId(playaId).first()
                         onPlayaItemLoaded(itemWithUserData.item)
                     }
                     else -> finishWithError(IllegalArgumentException("Unknown PlayaItem type $type"))

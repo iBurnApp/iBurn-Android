@@ -122,6 +122,7 @@ def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -
     art = deduplicate_records(load_array(api_root / "art.json"), "art.json")
     camps = deduplicate_records(load_array(api_root / "camp.json"), "camp.json")
     events = deduplicate_records(load_array(api_root / "event.json"), "event.json")
+    mutant_vehicles = deduplicate_records(load_array(api_root / "mv.json"), "mv.json")
     populate_missing_coordinates(art + camps, geocoder)
     locations = {
         item["uid"]: location_values(item)
@@ -139,6 +140,10 @@ def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -
         with connection:
             connection.execute(f"CREATE TABLE arts (`artist` TEXT, `a_loc` TEXT, `i_url` TEXT, {BASE_COLUMNS})")
             connection.execute(f"CREATE TABLE camps (`hometown` TEXT, {BASE_COLUMNS})")
+            connection.execute(
+                f"CREATE TABLE mutant_vehicles (`artist` TEXT, `hometown` TEXT, "
+                f"`i_url` TEXT, `tags` TEXT, {BASE_COLUMNS})"
+            )
             connection.execute(
                 f"CREATE TABLE events (`e_type` TEXT, `all_day` INTEGER NOT NULL, "
                 f"`check_loc` INTEGER NOT NULL, `c_id` TEXT, `a_id` TEXT, "
@@ -165,6 +170,18 @@ def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -
                     "INSERT INTO camps (hometown,name,desc,url,contact,p_addr,p_addr_unof,p_id,lat,lon,lat_unof,lon_unof) "
                     "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                     (item.get("hometown"), *base_values(item)),
+                )
+            for item in mutant_vehicles:
+                images = item.get("images") or []
+                image_url = images[0].get("thumbnail_url") if images else None
+                connection.execute(
+                    "INSERT INTO mutant_vehicles "
+                    "(artist,hometown,i_url,tags,name,desc,url,contact,p_addr,p_addr_unof,p_id,lat,lon,lat_unof,lon_unof) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        item.get("artist"), item.get("hometown"), image_url,
+                        ", ".join(item.get("tags") or []), *base_values(item),
+                    ),
                 )
             event_rows = 0
             for item in events:
@@ -214,11 +231,12 @@ def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -
                     event_rows += 1
             # Runtime indexes belong to Room's destination schema. The app copies
             # rows, not indexes, from this import-only bundle.
-            connection.execute("PRAGMA user_version = 4")
+            connection.execute("PRAGMA user_version = 5")
             expected_ids = {
                 "arts": Counter(item["uid"] for item in art),
                 "camps": Counter(item["uid"] for item in camps),
                 "events": Counter(item["uid"] for item in events),
+                "mutant_vehicles": Counter(item["uid"] for item in mutant_vehicles),
                 "event_occurrences": Counter(
                     f"{item['uid']}-{index}"
                     for item in events
@@ -242,6 +260,7 @@ def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -
             "arts": len(art),
             "camps": len(camps),
             "events": len(events),
+            "mutant_vehicles": len(mutant_vehicles),
             "event_occurrences": event_rows,
         }
     finally:

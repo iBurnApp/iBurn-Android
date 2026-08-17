@@ -2,7 +2,7 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="40dp"
+    android:layout_height="48dp"
     android:layout_marginBottom="2dp"
     android:orientation="horizontal"
     android:weightSum="1.0">
@@ -12,9 +12,10 @@
         style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight=".3333"
+        android:layout_weight=".25"
         android:ellipsize="marquee"
         android:gravity="center"
+        android:singleLine="true"
         android:text="@string/art_tab" />
 
     <TextView
@@ -22,19 +23,32 @@
         style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight=".3333"
+        android:layout_weight=".25"
         android:ellipsize="marquee"
         android:gravity="center"
+        android:singleLine="true"
         android:text="@string/camps_tab" />
+
+    <TextView
+        android:id="@+id/mutantVehicleSelection"
+        style="@style/PlayaListViewHeaderItem"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight=".25"
+        android:ellipsize="marquee"
+        android:gravity="center"
+        android:singleLine="true"
+        android:text="@string/mutant_vehicles_tab" />
 
     <TextView
         android:id="@+id/eventSelection"
         style="@style/PlayaListViewHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight=".3333"
+        android:layout_weight=".25"
         android:ellipsize="marquee"
         android:gravity="center"
+        android:singleLine="true"
         android:text="@string/events_tab" />
 
 </LinearLayout>

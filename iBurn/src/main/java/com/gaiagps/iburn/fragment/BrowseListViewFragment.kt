@@ -54,6 +54,10 @@ class BrowseListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaLis
                     provider.observeEventsOnDayOfTypes(selectedDay, selectedTypes, includeExpired, eventTiming)
                         .collect { onDataChanged(it) }
                 }
+                BrowseListHeader.BrowseSelection.MUTANT_VEHICLES -> {
+                    adapter.sectionIndexer = AlphabeticalSectionIndexer()
+                    provider.observeMutantVehicles().collect { onDataChanged(it) }
+                }
             }
         }
     }
@@ -102,6 +106,10 @@ class BrowseListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaLis
             }
             BrowseListHeader.BrowseSelection.EVENT -> {
                 eventListHeader?.visibility = View.VISIBLE
+                artListHeader?.visibility = View.GONE
+            }
+            BrowseListHeader.BrowseSelection.MUTANT_VEHICLES -> {
+                eventListHeader?.visibility = View.GONE
                 artListHeader?.visibility = View.GONE
             }
         }

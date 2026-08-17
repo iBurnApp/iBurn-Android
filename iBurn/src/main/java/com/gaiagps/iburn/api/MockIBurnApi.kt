@@ -5,6 +5,7 @@ import com.gaiagps.iburn.api.response.Art
 import com.gaiagps.iburn.api.response.Camp
 import com.gaiagps.iburn.api.response.DataManifest
 import com.gaiagps.iburn.api.response.Event
+import com.gaiagps.iburn.api.response.MutantVehicle
 import com.gaiagps.iburn.api.response.ResourceManifest
 import com.gaiagps.iburn.api.typeadapter.PlayaDateTypeAdapter
 import com.google.gson.FieldNamingPolicy
@@ -56,10 +57,17 @@ open class MockIBurnApi(private val context: Context) : IBurnApi {
         }
     }
 
+    override suspend fun getMutantVehicles(): List<MutantVehicle> = withContext(Dispatchers.IO) {
+        context.assets.open("json/mv.json").use { input ->
+            BufferedReader(InputStreamReader(input)).use { reader ->
+                gson.fromJson(reader, Array<MutantVehicle>::class.java).toList()
+            }
+        }
+    }
+
     override suspend fun getTiles(): ResponseBody {
         // Unused in tests; return empty body
         val buffer = Buffer()
         return ResponseBody.create(null, buffer.size, buffer)
     }
 }
-

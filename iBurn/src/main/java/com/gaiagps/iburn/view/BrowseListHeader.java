@@ -20,13 +20,14 @@ import com.gaiagps.iburn.R;
  */
 public class BrowseListHeader extends RelativeLayout {
 
-    public enum BrowseSelection { ART, CAMPS, EVENT }
+    public enum BrowseSelection { ART, CAMPS, EVENT, MUTANT_VEHICLES }
 
     private BrowseSelectionListener listener;
 
     protected TextView art;
     protected TextView camp;
     protected TextView events;
+    protected TextView mutantVehicles;
 
     public BrowseListHeader(Context context) {
         super(context);
@@ -49,10 +50,11 @@ public class BrowseListHeader extends RelativeLayout {
 
     protected void init(Context context) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View v = inflater.inflate(R.layout.list_view_header_three, this, false);
+        View v = inflater.inflate(R.layout.list_view_header_four, this, false);
         art    = (TextView) v.findViewById(R.id.artSelection);
         camp   = (TextView) v.findViewById(R.id.campSelection);
         events = (TextView) v.findViewById(R.id.eventSelection);
+        mutantVehicles = (TextView) v.findViewById(R.id.mutantVehicleSelection);
         camp.setSelected(true);
         setupTouchListeners();
         addView(v);
@@ -63,10 +65,12 @@ public class BrowseListHeader extends RelativeLayout {
         art.setTag(BrowseSelection.ART);
         camp.setTag(BrowseSelection.CAMPS);
         events.setTag(BrowseSelection.EVENT);
+        mutantVehicles.setTag(BrowseSelection.MUTANT_VEHICLES);
 
         art.setOnClickListener(mOnClickListener);
         camp.setOnClickListener(mOnClickListener);
         events.setOnClickListener(mOnClickListener);
+        mutantVehicles.setOnClickListener(mOnClickListener);
     }
 
     public interface BrowseSelectionListener {
@@ -80,6 +84,7 @@ public class BrowseListHeader extends RelativeLayout {
             if (!v.equals(art)) art.setSelected(false);
             if (!v.equals(camp)) camp.setSelected(false);
             if (!v.equals(events)) events.setSelected(false);
+            if (!v.equals(mutantVehicles)) mutantVehicles.setSelected(false);
 
             if (!wasSelected) {
                 v.setSelected(true);

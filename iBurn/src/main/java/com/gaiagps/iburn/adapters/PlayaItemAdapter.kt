@@ -203,6 +203,20 @@ open class PlayaItemAdapter(
                 holder.eventTimeView.visibility = View.GONE
                 holder.showImage(false)
 
+            } else if (item is MutantVehicle) {
+                holder.artistView.visibility = if (item.artist.isNullOrEmpty()) View.GONE else View.VISIBLE
+                holder.artistView.text = item.artist
+                holder.audioTourView.visibility = View.GONE
+                holder.eventTypeView.visibility = View.GONE
+                holder.eventTimeView.visibility = View.GONE
+                holder.showImage(item.hasImage())
+                if (item.hasImage()) {
+                    loadMutantVehicleImage(item, holder.imageView, object : Callback {
+                        override fun onSuccess() = Unit
+                        override fun onError() = holder.showImage(false)
+                    })
+                }
+
             } else if (item is Event) {
                 holder.eventTypeView.visibility = View.VISIBLE
                 holder.eventTimeView.visibility = View.VISIBLE
