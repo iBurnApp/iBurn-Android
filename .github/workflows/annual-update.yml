@@ -36,7 +36,6 @@ jobs:
     timeout-minutes: 60
     env:
       ANNUAL_YEAR: ${{ inputs.year }}
-      ANNUAL_CONFIG: annual/${{ inputs.year }}.json
       DATA_REVISION: ${{ inputs.data_revision }}
       VERSION_ASSERTION: ${{ inputs.version_name }}
       IBURN_UNLOCK_CODE: ${{ secrets.IBURN_UNLOCK_CODE }}
@@ -67,50 +66,14 @@ jobs:
           java-version: "21"
           cache: gradle
 
-      - name: Validate inputs and private data revision
-        shell: bash
+      - name: Validate, generate, and verify annual update
         run: |
-          set -euo pipefail
-          [[ "$DATA_REVISION" =~ ^[0-9a-f]{40}$ ]]
-          test -f "$ANNUAL_CONFIG"
-          test "$(jq -r .year "$ANNUAL_CONFIG")" = "$ANNUAL_YEAR"
-          if test -n "$VERSION_ASSERTION"; then
-            test "$(jq -r .versionName "$ANNUAL_CONFIG")" = "$VERSION_ASSERTION"
-          fi
-
-          test "$(git -C .annual-data rev-parse HEAD)" = "$DATA_REVISION"
-          reachable=false
-          while read -r ref; do
-            if git -C .annual-data merge-base --is-ancestor "$DATA_REVISION" "$ref"; then
-              reachable=true
-              break
-            fi
-          done < <(git -C .annual-data for-each-ref \
-            --format='%(refname)' refs/remotes/origin)
-          test "$reachable" = true
-
-          if test -d iBurn-Data; then
-            rmdir iBurn-Data
-          fi
-          mv .annual-data iBurn-Data
-
-      - name: Validate restricted staff configuration
-        run: ./gradlew :iBurn:validateAnnualSecret -PannualConfig="$ANNUAL_CONFIG"
-
-      - name: Generate and verify annual update
-        run: |
-          ./gradlew :iBurn:annualUpdate \
-            -PannualConfig="$ANNUAL_CONFIG" \
-            -PdataRevision="$DATA_REVISION"
-          first_manifest="$(sha256sum build/reports/annual-update/annual-manifest.json)"
-          ./gradlew :iBurn:annualUpdate --rerun-tasks \
-            -PannualConfig="$ANNUAL_CONFIG" \
-            -PdataRevision="$DATA_REVISION"
-          second_manifest="$(sha256sum build/reports/annual-update/annual-manifest.json)"
-          test "$first_manifest" = "$second_manifest"
-          ./gradlew :iBurn:verifyAnnualUpdate \
-            -PannualConfig="$ANNUAL_CONFIG" \
-            -PdataRevision="$DATA_REVISION"
+          tools/annual-update.sh run \
+            --year "$ANNUAL_YEAR" \
+            --data-revision "$DATA_REVISION" \
+            --version-name "$VERSION_ASSERTION" \
+            --staged-data-dir .annual-data \
+            --require-secret
 
       - name: Upload restricted verification artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -126,25 +89,7 @@ jobs:
 
       - name: Prepare non-restricted pull request inputs
         if: ${{ inputs.create_pr }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          handoff=build/reports/annual-update/pr-handoff
-          mkdir -p "$handoff"
-          git diff --binary -- \
-            "$ANNUAL_CONFIG" \
-            iBurn-Data \
-            iBurn/src/main/assets/js \
-            iBurn/src/main/assets/map \
-            > "$handoff/changes.patch"
-          jq '{
-            year,
-            versionName,
-            sourceRecords,
-            databaseRows: (.database.rowCounts | to_entries | map(.value) | add),
-            status
-          }' build/reports/annual-update/verification-report.json \
-            > "$handoff/summary.json"
+        run: tools/annual-update.sh prepare-pr --year "$ANNUAL_YEAR"
 
       - name: Upload pull request handoff
         if: ${{ inputs.create_pr }}
@@ -184,38 +129,8 @@ jobs:
       - name: Create or update annual update pull request
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
         run: |
-          set -euo pipefail
-          branch="annual-update/$ANNUAL_YEAR"
-          handoff=build/reports/annual-update/pr-handoff
-          summary="$handoff/summary.json"
-          git checkout -B "$branch"
-          git apply --index "$handoff/changes.patch"
-          git diff --cached --quiet && exit 0
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git commit -m "Automate $ANNUAL_YEAR annual update"
-          git push --force-with-lease origin "$branch"
-
-          body=build/reports/annual-update/pull-request.md
-          printf '%s\n' \
-            "## Annual update $ANNUAL_YEAR" \
-            "" \
-            "- Data revision: \`$DATA_REVISION\`" \
-            "- Version: \`$(jq -r .versionName "$summary")\`" \
-            "- Art: $(jq -r .sourceRecords.art "$summary")" \
-            "- Camps: $(jq -r .sourceRecords.camps "$summary")" \
-            "- Events: $(jq -r .sourceRecords.events "$summary")" \
-            "- Database rows: $(jq -r .databaseRows "$summary")" \
-            "- Verification: $(jq -r .status "$summary")" \
-            "" \
-            "Restricted JSON, media, database, and APK outputs are workflow artifacts and are not included in this PR." \
-            > "$body"
-
-          if gh pr view "$branch" >/dev/null 2>&1; then
-            gh pr edit "$branch" --title "Annual update $ANNUAL_YEAR" --body-file "$body"
-          else
-            gh pr create --draft --base "${{ github.event.repository.default_branch }}" \
-              --head "$branch" --title "Annual update $ANNUAL_YEAR" --body-file "$body"
-          fi
+          tools/annual-update.sh publish-pr \
+            --year "$ANNUAL_YEAR" \
+            --data-revision "$DATA_REVISION" \
+            --base "${{ github.event.repository.default_branch }}"

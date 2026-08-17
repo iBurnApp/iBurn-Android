@@ -108,18 +108,30 @@
     },
     {
       "id": "camp-labels-big",
-      "type": "line",
+      "type": "symbol",
       "source": "camp-labels",
-      "minzoom": 17,
+      "minzoom": 15,
       "layout": {
         "visibility": "visible",
-        "line-join": "round",
-        "line-cap": "round"
+        "text-field": ["get", "name"],
+        "text-font": ["Open Sans Regular"],
+        "text-size": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          15, 9,
+          17, 12,
+          20, 14
+        ],
+        "text-max-width": 8,
+        "text-line-height": 1.1,
+        "text-padding": 2
       },
       "paint": {
-        "line-color": "#D4D4D4",
-        "line-width": 2,
-        "line-opacity": 0.9
+        "text-color": "#D4D4D4",
+        "text-halo-color": "#202426",
+        "text-halo-width": 2,
+        "text-halo-blur": 1
       }
     },
     {
