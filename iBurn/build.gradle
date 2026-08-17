@@ -260,9 +260,9 @@ android {
         viewBinding = true
     }
     defaultConfig {
-        compileSdk 35
+        compileSdk 36
         minSdkVersion 23
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode annualConfig.versionCode
 
         versionName annualConfig.versionName

@@ -18,6 +18,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -113,6 +114,20 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         setContentView(binding.getRoot());
         bottomBar = findViewById(R.id.bottomBar);
         setupBottomBar(bottomBar, savedInstanceState);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // First back press should return to map, if not already visible.
+                if (bottomBar.getSelectedItemId() != R.id.tab_map) {
+                    bottomBar.setSelectedItemId(R.id.tab_map);
+                    return;
+                }
+
+                setEnabled(false);
+                getOnBackPressedDispatcher().onBackPressed();
+                setEnabled(true);
+            }
+        });
 
         prefs = new PrefsHelper(this);
         
@@ -178,16 +193,6 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
         if (bottomBar != null) {
             outState.putInt(BUNDLE_SELECTED_TAB, bottomBar.getSelectedItemId());
         }
-    }
-
-    @Override
-    public void onBackPressed() {
-        // First back press should return to map, if not already visible
-        if (bottomBar.getSelectedItemId() != R.id.tab_map) {
-            bottomBar.setSelectedItemId(R.id.tab_map);
-            return;
-        }
-        super.onBackPressed();
     }
 
     private void setAwaitingLocationPermission(boolean awaitingPermission) {

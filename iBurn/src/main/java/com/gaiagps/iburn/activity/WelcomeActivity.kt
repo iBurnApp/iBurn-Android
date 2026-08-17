@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -80,6 +81,17 @@ class WelcomeActivity : AppCompatActivity(), HomeCampSelectionListener {
         pagerAdapter = ScreenSlidePagerAdapter(getSupportFragmentManager())
         pager!!.setAdapter(pagerAdapter)
         pager!!.setPageTransformer(true, CrossfadePageTransformer())
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (pager!!.currentItem == 0) {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                    isEnabled = true
+                } else {
+                    pager!!.currentItem -= 1
+                }
+            }
+        })
 
         pager!!.addOnPageChangeListener(object : OnPageChangeListener {
             override fun onPageScrolled(
@@ -189,14 +201,6 @@ class WelcomeActivity : AppCompatActivity(), HomeCampSelectionListener {
         startActivity(mainIntent)
         finish()
         //overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
-    }
-
-    override fun onBackPressed() {
-        if (pager!!.currentItem == 0) {
-            super.onBackPressed()
-        } else {
-            pager!!.setCurrentItem(pager!!.getCurrentItem() - 1)
-        }
     }
 
     //    public void onAudioTourDownloadButtonClicked(View view) {
