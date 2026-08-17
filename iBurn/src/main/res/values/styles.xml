@@ -56,6 +56,8 @@
         <item name="android:clickable">true</item>
         <item name="android:background">@drawable/sub_pager_tab_bg</item>
         <item name="android:foreground">?attr/selectableItemBackground</item>
+        <item name="android:ellipsize">marquee</item>
+        <item name="android:singleLine">true</item>
     </style>
 
     <style name="PlayaListViewSubHeaderItem">

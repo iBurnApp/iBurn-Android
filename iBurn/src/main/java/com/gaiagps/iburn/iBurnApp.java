@@ -1,6 +1,8 @@
 package com.gaiagps.iburn;
 
 
+import com.gaiagps.iburn.adapters.AdapterUtils;
+
 import timber.log.Timber;
 
 import org.maplibre.android.MapLibre;
@@ -18,6 +20,8 @@ public class iBurnApp extends android.app.Application {
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
         }
+
+        AdapterUtils.populateDayRanges(this);
 
         MapLibre.getInstance(
                 getApplicationContext(),

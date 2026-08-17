@@ -7,6 +7,7 @@ import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.database.Favorite
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -148,8 +149,7 @@ class DataProvider private constructor(private val context: Context, private val
 
     fun observeEventsOnDayOfTypes(day: String?,
                                   types: ArrayList<String>?,
-                                  includeExpired: Boolean,
-                                  eventTiming: String): Flow<List<EventWithUserData>> {
+                                  includeExpired: Boolean): Flow<List<EventWithUserData>> {
 
         // TODO : Honor upgradeLock?
         val now = CurrentDateProvider.getCurrentDate().time
@@ -157,28 +157,16 @@ class DataProvider private constructor(private val context: Context, private val
         // Handle "all days" case when day is null or empty
         if (day == null || day.isEmpty()) {
             if (types == null || types.isEmpty()) {
-                if(eventTiming=="timed"){
-                    if(includeExpired == true) {
-                        return db.eventDao().findAllDaysTimed()
-                    }
-                    else{
-                        return db.eventDao().findAllDaysNoExpiredTimed(now)
-                    }
-                }
-                else{
-                    return db.eventDao().findAllDaysAllDay()
+                return if (includeExpired) {
+                    db.eventDao().findAllDays()
+                } else {
+                    db.eventDao().findAllDaysNoExpired(now)
                 }
             } else {
-                if(eventTiming=="timed"){
-                    if(includeExpired == true) {
-                        return db.eventDao().findAllDaysAndTypeTimed(types)
-                    }
-                    else{
-                        return db.eventDao().findAllDaysAndTypeNoExpiredTimed(types, now)
-                    }
-                }
-                else{
-                    return db.eventDao().findAllDaysAndTypeAllDay(types)
+                return if (includeExpired) {
+                    db.eventDao().findAllDaysAndType(types)
+                } else {
+                    db.eventDao().findAllDaysAndTypeNoExpired(types, now)
                 }
             }
         }
@@ -186,33 +174,16 @@ class DataProvider private constructor(private val context: Context, private val
         val (dayStart, dayEnd) = dayBounds(day)
 
         if (types == null || types.isEmpty()) {
-            if(eventTiming=="timed"){
-                if(includeExpired == true) {
-                    return db.eventDao().findByDayTimed(dayStart, dayEnd)
-                }
-                else{
-                    return db.eventDao().findByDayNoExpiredTimed(dayStart, dayEnd, now)
-                }
-            }
-            else{
-                return db.eventDao().findByDayAllDay(dayStart, dayEnd)
+            return if (includeExpired) {
+                db.eventDao().findByDay(dayStart, dayEnd)
+            } else {
+                db.eventDao().findByDayNoExpired(dayStart, dayEnd, now)
             }
         } else {
-            if(eventTiming=="timed"){
-                if(includeExpired == true) {
-                    return db.eventDao().findByDayAndTypeTimed(dayStart, dayEnd, types)
-                }
-                else{
-                    return db.eventDao().findByDayAndTypeNoExpiredTimed(
-                        dayStart,
-                        dayEnd,
-                        types,
-                        now
-                    )
-                }
-            }
-            else{
-                return db.eventDao().findByDayAndTypeAllDay(dayStart, dayEnd, types)
+            return if (includeExpired) {
+                db.eventDao().findByDayAndType(dayStart, dayEnd, types)
+            } else {
+                db.eventDao().findByDayAndTypeNoExpired(dayStart, dayEnd, types, now)
             }
         }
     }
@@ -568,6 +539,9 @@ class DataProvider private constructor(private val context: Context, private val
     fun getCampByIdBlocking(id: Int): CampWithUserData = runBlocking { observeCampById(id).first() }
     fun getArtByIdBlocking(id: Int): ArtWithUserData = runBlocking { observeArtById(id).first() }
     fun getEventByIdBlocking(id: Int): EventWithUserData = runBlocking { observeEventById(id) }
+    fun getEventDateRangeBlocking(): EventDateRange = runBlocking(Dispatchers.IO) {
+        db.eventDao().getDateRange()
+    }
     fun getMutantVehicleByIdBlocking(id: Int): MutantVehicleWithUserData = runBlocking { observeMutantVehicleById(id).first() }
     fun getCampByPlayaIdBlocking(playaId: String): CampWithUserData = runBlocking { observeCampByPlayaId(playaId).first() }
     fun getArtByPlayaIdBlocking(playaId: String): ArtWithUserData = runBlocking { observeArtByPlayaId(playaId).first() }

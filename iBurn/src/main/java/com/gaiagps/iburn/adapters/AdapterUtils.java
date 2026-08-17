@@ -13,6 +13,8 @@ import com.gaiagps.iburn.DateUtil;
 import com.gaiagps.iburn.EventInfo;
 import com.gaiagps.iburn.Geo;
 import com.gaiagps.iburn.R;
+import com.gaiagps.iburn.database.DataProvider;
+import com.gaiagps.iburn.database.EventDateRange;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -79,9 +81,9 @@ public class AdapterUtils {
     }
 
     private static void populateDayRanges(Date start, Date end) {
-        Calendar startCal = Calendar.getInstance();
+        Calendar startCal = Calendar.getInstance(DateUtil.PLAYA_TIME_ZONE);
         startCal.setTime(start);
-        Calendar endCal = Calendar.getInstance();
+        Calendar endCal = Calendar.getInstance(DateUtil.PLAYA_TIME_ZONE);
         endCal.setTime(end);
 
         sDayNames.clear();
@@ -94,6 +96,21 @@ public class AdapterUtils {
         for (Date date = startCal.getTime(); startCal.before(endCal); startCal.add(Calendar.DATE, 1), date = startCal.getTime()) {
             sDayNames.add(dayLabelFormatter.format(date));
             sDayAbbreviations.add(dayAbbrevFormatter.format(date));
+        }
+    }
+
+    public static void populateDayRanges(Context context) {
+        EventDateRange range = DataProvider.Companion.getInstance(
+                context.getApplicationContext()).getEventDateRangeBlocking();
+        Long firstStartTime = range.getFirstStartTime();
+        Long lastEndTime = range.getLastEndTime();
+        if (firstStartTime != null && lastEndTime != null) {
+            populateDayRanges(new Date(firstStartTime), new Date(lastEndTime));
+        } else {
+            sDayNames.clear();
+            sDayAbbreviations.clear();
+            sDayNames.add("All Days");
+            sDayAbbreviations.add("");
         }
     }
 

@@ -13,9 +13,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight=".25"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:singleLine="true"
+        android:layout_marginEnd="@dimen/list_header_item_margin"
         android:text="@string/art_tab" />
 
     <TextView
@@ -24,9 +22,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight=".25"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:singleLine="true"
+        android:layout_marginEnd="@dimen/list_header_item_margin"
         android:text="@string/camps_tab" />
 
     <TextView
@@ -35,9 +31,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight=".25"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:singleLine="true"
+        android:layout_marginEnd="@dimen/list_header_item_margin"
         android:text="@string/mutant_vehicles_tab" />
 
     <TextView
@@ -46,9 +40,6 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight=".25"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:singleLine="true"
         android:text="@string/events_tab" />
 
 </LinearLayout>

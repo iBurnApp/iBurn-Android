@@ -32,7 +32,6 @@ class BrowseListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaLis
     private var selectedDay: String = com.gaiagps.iburn.adapters.AdapterUtils.getCurrentOrFirstDayAbbreviation()
     private var selectedTypes: ArrayList<String>? = null
     private var includeExpired: Boolean = false
-    private var eventTiming: String = "timed"
 
     private var showAudioTourOnly = false
 
@@ -51,7 +50,7 @@ class BrowseListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaLis
                 }
                 BrowseListHeader.BrowseSelection.EVENT -> {
                     adapter.sectionIndexer = EventStartTimeSectionIndexer()
-                    provider.observeEventsOnDayOfTypes(selectedDay, selectedTypes, includeExpired, eventTiming)
+                    provider.observeEventsOnDayOfTypes(selectedDay, selectedTypes, includeExpired)
                         .collect { onDataChanged(it) }
                 }
                 BrowseListHeader.BrowseSelection.MUTANT_VEHICLES -> {
@@ -86,11 +85,10 @@ class BrowseListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaLis
         return v
     }
 
-    override fun onSelectionChanged(day: String, types: ArrayList<String>?, expired: Boolean, timing: String) {
+    override fun onSelectionChanged(day: String, types: ArrayList<String>?, expired: Boolean) {
         selectedDay = day
         selectedTypes = types
         includeExpired = expired
-        eventTiming = timing
         startObserving()
     }
 

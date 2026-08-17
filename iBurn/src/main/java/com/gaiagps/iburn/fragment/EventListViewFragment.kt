@@ -24,12 +24,11 @@ class EventListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaList
     private var selectedDay: String = AdapterUtils.getCurrentOrFirstDayAbbreviation()
     private var selectedTypes: ArrayList<String>? = null
     private var includeExpired: Boolean = false
-    private var eventTiming: String = "timed"
 
     override fun startObserving() {
         val provider = DataProvider.getInstance(requireActivity().applicationContext)
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-            provider.observeEventsOnDayOfTypes(selectedDay, selectedTypes, includeExpired, eventTiming)
+            provider.observeEventsOnDayOfTypes(selectedDay, selectedTypes, includeExpired)
                 .collect { events ->
                     Timber.d("Data onNext %d items", events.size)
                     onDataChanged(events)
@@ -47,12 +46,10 @@ class EventListViewFragment : PlayaListViewFragment(), EventListHeader.PlayaList
         return v
     }
 
-    override fun onSelectionChanged(day: String, types: ArrayList<String>?, expired: Boolean, timing: String) {
+    override fun onSelectionChanged(day: String, types: ArrayList<String>?, expired: Boolean) {
         selectedDay = day
         selectedTypes = types
         includeExpired = expired
-        eventTiming = timing
         startObserving()
     }
 }
-

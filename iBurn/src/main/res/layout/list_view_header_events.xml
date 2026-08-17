@@ -11,31 +11,22 @@
         style="@style/PlayaListViewSubHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight=".25"
+        android:layout_weight=".333"
         android:ellipsize="marquee"
         android:gravity="center"
+        android:layout_marginEnd="@dimen/list_header_item_margin"
         android:textOff="New Only"
         android:textOn="Old + New" />
-
-    <ToggleButton
-        android:id="@+id/timingFilter"
-        style="@style/PlayaListViewSubHeaderItem"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight=".25"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:textOff="Timed"
-        android:textOn="All Day" />
 
     <TextView
         android:id="@+id/typeFilter"
         style="@style/PlayaListViewSubHeaderItem"
         android:layout_width="31dp"
         android:layout_height="match_parent"
-        android:layout_weight=".25"
+        android:layout_weight=".333"
         android:ellipsize="marquee"
         android:gravity="center"
+        android:layout_marginEnd="@dimen/list_header_item_margin"
         android:text="@string/any_type" />
 
     <TextView
@@ -43,7 +34,7 @@
         style="@style/PlayaListViewSubHeaderItem"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight=".25"
+        android:layout_weight=".334"
         android:ellipsize="marquee"
         android:gravity="center"
         android:text="@string/any_day" />
