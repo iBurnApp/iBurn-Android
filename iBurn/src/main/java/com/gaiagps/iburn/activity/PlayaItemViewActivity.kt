@@ -38,6 +38,7 @@ import com.gaiagps.iburn.Callback
 import com.gaiagps.iburn.CurrentDateProvider
 import com.gaiagps.iburn.DateUtil
 import com.gaiagps.iburn.IntentUtil
+import com.gaiagps.iburn.ImageSource
 import com.gaiagps.iburn.MapboxMapFragment
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.R
@@ -58,6 +59,7 @@ import com.gaiagps.iburn.loadArtImage
 import com.gaiagps.iburn.loadMutantVehicleImage
 import com.gaiagps.iburn.service.AudioPlayerService
 import com.gaiagps.iburn.service.MediaMetadataKeyArtPlayaId
+import com.gaiagps.iburn.view.FullscreenImageDialog
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
@@ -558,10 +560,11 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
 
             artImageView?.let { imageView ->
                 loadArtImage(art, imageView, object : Callback {
-                    override fun onSuccess() {
+                    override fun onSuccess(source: ImageSource) {
                         loadedArtImage = true
+                        enableFullscreenImageOnTap(imageView)
                         invalidateOptionsMenu()
-                        Timber.d("Loaded image %s", art.imageUrl)
+                        Timber.d("Loaded art image for %s from %s", art.playaId, source)
 
                         // If we're showing location, image will be under map. After a delay
                         // bring it to front and fade-in. Else, image will be visible here
@@ -645,9 +648,10 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         binding.mapContainer.addView(artImageView, 0)
         artImageView?.let { imageView ->
             loadMutantVehicleImage(vehicle, imageView, object : Callback {
-                override fun onSuccess() {
+                override fun onSuccess(source: ImageSource) {
                     loadedArtImage = true
                     imageView.alpha = 1f
+                    enableFullscreenImageOnTap(imageView)
                     invalidateOptionsMenu()
                 }
 
@@ -655,6 +659,21 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
                     Timber.e("Failed to load image %s", vehicle.imageUrl)
                 }
             })
+        }
+    }
+
+    private fun enableFullscreenImageOnTap(imageView: ImageView) {
+        imageView.isClickable = true
+        imageView.isFocusable = true
+        imageView.contentDescription = getString(R.string.view_image_fullscreen)
+        imageView.setOnClickListener {
+            if (imageView.drawable != null) {
+                FullscreenImageDialog(
+                    this,
+                    imageView,
+                    itemWithUserData?.item?.name
+                ).show()
+            }
         }
     }
 

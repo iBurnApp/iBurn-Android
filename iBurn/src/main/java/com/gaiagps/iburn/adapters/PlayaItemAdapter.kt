@@ -190,7 +190,7 @@ open class PlayaItemAdapter(
                 holder.eventTimeView.visibility = View.GONE
                 holder.showImage(true)
                 loadArtImage(item, holder.imageView, object: Callback {
-                    override fun onSuccess() {
+                    override fun onSuccess(source: ImageSource) {
                         //no-op
                     }
 
@@ -215,7 +215,7 @@ open class PlayaItemAdapter(
                 holder.showImage(item.hasImage())
                 if (item.hasImage()) {
                     loadMutantVehicleImage(item, holder.imageView, object : Callback {
-                        override fun onSuccess() = Unit
+                        override fun onSuccess(source: ImageSource) = Unit
                         override fun onError() = holder.showImage(false)
                     })
                 }

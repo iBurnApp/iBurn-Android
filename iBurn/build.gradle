@@ -12,7 +12,7 @@ buildscript {
 
             // Add the Crashlytics Gradle plugin
             classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.4'
-            classpath "com.google.devtools.ksp:symbol-processing-gradle-plugin:2.1.0-1.0.29"
+            classpath "com.google.devtools.ksp:symbol-processing-gradle-plugin:2.2.10-2.0.2"
         }
         google()
     }
@@ -407,6 +407,7 @@ dependencies {
     // Removed legacy v9 annotations plugin; using SDK 11 runtime layers instead
 
     implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation 'com.alexvasilkov:gesture-views:2.9.0'
 
     implementation 'com.github.permissions-dispatcher:permissionsdispatcher:4.9.2'
     kapt "com.github.permissions-dispatcher:permissionsdispatcher-processor:4.9.2"

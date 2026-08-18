@@ -56,7 +56,7 @@ fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
                 .into(view, object : com.squareup.picasso.Callback {
 
                     override fun onSuccess() {
-                        callback?.onSuccess()
+                        callback?.onSuccess(ImageSource.ASSET)
                     }
 
                     override fun onError(e: Exception?) {
@@ -74,7 +74,7 @@ fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
                     .load(cachedFile)
                     .into(view, object : com.squareup.picasso.Callback {
                         override fun onSuccess() {
-                            callback?.onSuccess()
+                            callback?.onSuccess(ImageSource.NETWORK)
                         }
 
                         override fun onError(e: Exception?) {
@@ -84,7 +84,7 @@ fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
         } else {
             Timber.d("Cache miss for ${art.name} image")
             cacheArtImageFile(context, art, object : Callback {
-                override fun onSuccess() {
+                override fun onSuccess(source: ImageSource) {
                     loadArtImage(art, view, callback)
                 }
 
@@ -106,7 +106,7 @@ fun loadMutantVehicleImage(vehicle: MutantVehicle, view: ImageView, callback: Ca
     Picasso.get()
         .load(normalizeRemoteImageUrl(imageUrl))
         .into(view, object : com.squareup.picasso.Callback {
-            override fun onSuccess() = callback?.onSuccess() ?: Unit
+            override fun onSuccess() = callback?.onSuccess(ImageSource.NETWORK) ?: Unit
             override fun onError(e: Exception?) = callback?.onError() ?: Unit
         })
 }
@@ -153,7 +153,7 @@ private fun cacheArtImageFile(context: Context, art: Art, callback: Callback) {
 
 private fun postResult(callback: Callback, succcess: Boolean = true) {
     Handler(Looper.getMainLooper()).post {
-        if (succcess) callback.onSuccess() else callback.onError()
+        if (succcess) callback.onSuccess(ImageSource.NETWORK) else callback.onError()
     }
 }
 
@@ -179,7 +179,12 @@ private fun getArtImagesDirectory(context: Context): File {
     return dir
 }
 
+enum class ImageSource {
+    ASSET,
+    NETWORK,
+}
+
 interface Callback {
-    fun onSuccess()
+    fun onSuccess(source: ImageSource)
     fun onError()
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="view_image_fullscreen">View image full screen</string>
 
     <!-- Application name and year are provided by build.gradle -->
 
