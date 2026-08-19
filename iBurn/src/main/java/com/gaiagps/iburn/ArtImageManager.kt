@@ -37,7 +37,12 @@ fun getArtImageLocalPath(context: Context, art: Art): String? {
     }
 }
 
-fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
+fun loadArtImage(
+    art: Art,
+    view: ImageView,
+    callback: Callback? = null,
+    fadeIn: Boolean = true
+) {
 
     val artUrl = art.imageUrl
     if (artUrl == null) {
@@ -51,18 +56,18 @@ fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
         val assetPath = getArtImageAssetPath(art)
 
         val picasso = Picasso.get()
-        picasso
-                .load(assetPath)
-                .into(view, object : com.squareup.picasso.Callback {
+        val request = picasso.load(assetPath)
+        if (!fadeIn) request.noFade()
+        request.into(view, object : com.squareup.picasso.Callback {
 
-                    override fun onSuccess() {
-                        callback?.onSuccess(ImageSource.ASSET)
-                    }
+            override fun onSuccess() {
+                callback?.onSuccess(ImageSource.ASSET)
+            }
 
-                    override fun onError(e: Exception?) {
-                        callback?.onError()
-                    }
-                })
+            override fun onError(e: Exception?) {
+                callback?.onError()
+            }
+        })
     } else {
         // Load and cache art images from Internet
         val cachedFile = getCachedArtImageFile(context, artUrl)
@@ -70,22 +75,22 @@ fun loadArtImage(art: Art, view: ImageView, callback: Callback? = null) {
         val picasso = Picasso.get()
         if (cachedFile.exists()) {
             Timber.d("Cache hit for ${art.name} image")
-            picasso
-                    .load(cachedFile)
-                    .into(view, object : com.squareup.picasso.Callback {
-                        override fun onSuccess() {
-                            callback?.onSuccess(ImageSource.NETWORK)
-                        }
+            val request = picasso.load(cachedFile)
+            if (!fadeIn) request.noFade()
+            request.into(view, object : com.squareup.picasso.Callback {
+                override fun onSuccess() {
+                    callback?.onSuccess(ImageSource.NETWORK)
+                }
 
-                        override fun onError(e: Exception?) {
-                            callback?.onError()
-                        }
-                    })
+                override fun onError(e: Exception?) {
+                    callback?.onError()
+                }
+            })
         } else {
             Timber.d("Cache miss for ${art.name} image")
             cacheArtImageFile(context, art, object : Callback {
                 override fun onSuccess(source: ImageSource) {
-                    loadArtImage(art, view, callback)
+                    loadArtImage(art, view, callback, fadeIn)
                 }
 
                 override fun onError() {

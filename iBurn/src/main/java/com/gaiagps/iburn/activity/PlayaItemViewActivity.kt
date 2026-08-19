@@ -1,6 +1,5 @@
 package com.gaiagps.iburn.activity
 
-import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.ComponentName
@@ -63,8 +62,6 @@ import com.gaiagps.iburn.view.FullscreenImageDialog
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -100,6 +97,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
     private var isFavorite = false
     private var showingLocation = false
     private var showingArt = false
+    private var showingImage = false
 
     private var favoriteMenuItem: MenuItem? = null
     private var imageMenuItem: MenuItem? = null
@@ -109,9 +107,9 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
     private var audioTourToggle: TextView? = null
 
     private lateinit var binding: ActivityPlayaItemViewBinding
-    private var autoShowArtJob: Job? = null
     private var loadedArtImage = false
     private var artImageView: ImageView? = null
+    private var mapFragment: MapboxMapFragment? = null
 
     private var mediaBrowser: MediaBrowserCompat? = null
     private var mediaControllerCallback: MediaControllerCompat.Callback? = null
@@ -227,11 +225,6 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
     private fun finishWithError(throwable: Throwable) {
         // Optionally show error to user
         finish()
-    }
-
-    override fun onDestroy() {
-        autoShowArtJob?.cancel()
-        super.onDestroy()
     }
 
     private fun onCreateMediaController() {
@@ -438,8 +431,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         if (!loadedArtImage || !showingLocation) {
             imageMenuItem?.isVisible = false
         } else {
-            val isShowingImage = artImageView?.alpha == 1f
-            setImageMenuToggle(isShowingImage)
+            setImageMenuToggle(showingImage)
         }
         Timber.d("onCreateOptionsMenu image visible %b", imageMenuItem?.isVisible)
         return super.onCreateOptionsMenu(menu)
@@ -462,17 +454,17 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
             R.id.image_menu -> {
                 val imageView = artImageView
                 if (imageView != null) {
-                    val isVisible = imageView.visibility == View.VISIBLE && (imageView.alpha == 1f)
-                    val willBeVisible = !isVisible
+                    val willBeVisible = !showingImage
                     if (willBeVisible) {
                         imageView.bringToFront()
+                    } else if (itemWithUserData?.item is Art) {
+                        mapFragment?.startShowcase()
                     }
                     Timber.d("Fading %s art view", if (willBeVisible) "in" else "out")
                     fadeView(imageView, willBeVisible, null)
 
+                    showingImage = willBeVisible
                     setImageMenuToggle(willBeVisible)
-
-                    autoShowArtJob?.cancel()
                 }
                 true
             }
@@ -486,6 +478,13 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         val embargoActive = Embargo.isEmbargoActiveForPlayaItem(prefs, item)
         val addressEmbargoActive = Embargo.isAddressEmbargoActiveForPlayaItem(prefs, item)
         showingLocation = (item.hasLocation() && !embargoActive) || item.hasUnofficialLocation()
+        showingArt = (item is Art && item.hasImage()) ||
+                (item is MutantVehicle && item.hasImage())
+        if (showingArt) {
+            // Image-backed details should appear immediately, without inheriting the
+            // showcase map's entrance animation.
+            binding.mapContainer.clearAnimation()
+        }
 
         if (showingLocation) {
             binding.fab.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
@@ -499,13 +498,27 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
             latLng?.let { location ->
                 Timber.d("adding / centering marker on %f, %f", location.latitude, location.longitude)
 
-                val mapFragment = MapboxMapFragment()
-                mapFragment.showcaseItem(item)
-                supportFragmentManager.beginTransaction().add(R.id.map_container, mapFragment).commit()
+                val mapFragment = MapboxMapFragment().also {
+                    this.mapFragment = it
+                }
+                if (item is Art && item.hasImage()) {
+                    mapFragment.prepareShowcaseItem(item)
+                } else {
+                    mapFragment.showcaseItem(item)
+                }
+                supportFragmentManager.beginTransaction()
+                    .add(R.id.map_container, mapFragment)
+                    .runOnCommit {
+                        // The fragment view may be attached after the image finishes loading.
+                        // Restore the requested stacking order once the transaction completes.
+                        if (showingArt) {
+                            artImageView?.bringToFront()
+                        }
+                    }
+                    .commit()
             }
-        } else if ((item is Art && item.hasImage()) || (item is MutantVehicle && item.hasImage())) {
+        } else if (showingArt) {
             // The content image will be added by the type-specific view population.
-            showingArt = true
         } else {
             // Adjust the margin / padding show the heart icon doesn't
             // overlap title + description
@@ -555,39 +568,29 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
             )
             artImageView?.layoutParams = params
             artImageView?.scaleType = ImageView.ScaleType.CENTER_CROP
-            artImageView?.alpha = .99f // Hack - Can't seem to properly add view if it's visibility is not VISIBLE or alpha 0. This lets us know that the view isn't technically visible
+            artImageView?.alpha = 1f
+            artImageView?.setBackgroundResource(R.color.map_bg)
             binding.mapContainer.addView(artImageView, 0)
+            artImageView?.bringToFront()
 
             artImageView?.let { imageView ->
                 loadArtImage(art, imageView, object : Callback {
                     override fun onSuccess(source: ImageSource) {
                         loadedArtImage = true
+                        showingImage = true
+                        imageView.alpha = 1f
+                        imageView.bringToFront()
                         enableFullscreenImageOnTap(imageView)
                         invalidateOptionsMenu()
                         Timber.d("Loaded art image for %s from %s", art.playaId, source)
-
-                        // If we're showing location, image will be under map. After a delay
-                        // bring it to front and fade-in. Else, image will be visible here
-                        if (showingLocation) {
-                            autoShowArtJob = lifecycleScope.launch {
-                                delay(7000) // 7 seconds
-                                if (imageView.alpha == 1f) return@launch
-
-                                imageView.bringToFront()
-                                fadeView(imageView, true, object : AnimatorListenerAdapter() {
-                                    override fun onAnimationEnd(animation: Animator) {
-                                        invalidateOptionsMenu()
-                                    }
-                                })
-                            }
-                        }
                     }
 
                     override fun onError() {
-                        // fuhgeddaboudit. Don't show image
+                        imageView.visibility = View.GONE
+                        mapFragment?.startShowcase()
                         Timber.e("Failed to load image %s", art.imageUrl)
                     }
-                })
+                }, fadeIn = false)
             }
             // TODO : Add Placeholder and error images
         }
@@ -650,7 +653,9 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
             loadMutantVehicleImage(vehicle, imageView, object : Callback {
                 override fun onSuccess(source: ImageSource) {
                     loadedArtImage = true
+                    showingImage = true
                     imageView.alpha = 1f
+                    imageView.bringToFront()
                     enableFullscreenImageOnTap(imageView)
                     invalidateOptionsMenu()
                 }

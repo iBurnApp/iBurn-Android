@@ -150,6 +150,8 @@ class MapboxMapFragment : Fragment() {
     )
 
     private var showcaseMarker: LatLng? = null
+    private var showcaseStarted = false
+    private var showcaseAnimationDispatched = false
     private var styleRef: Style? = null
     private var nextMarkerId: Long = 1L
     private val markerStore = HashMap<Long, MapMarker>()
@@ -170,8 +172,18 @@ class MapboxMapFragment : Fragment() {
      * Showcase a playaitem on the map
      */
     fun showcaseItem(item: PlayaItem) {
+        prepareShowcaseItem(item)
+        startShowcase()
+    }
+
+    /**
+     * Configure showcase mode without starting its camera animation.
+     */
+    fun prepareShowcaseItem(item: PlayaItem) {
         // Prepare showcase state and add the appropriate marker icon for this item
         state = State.SHOWCASE
+        showcaseStarted = false
+        showcaseAnimationDispatched = false
 
         // Prefer official coordinates; fall back to unofficial if needed
         val target = when {
@@ -183,8 +195,26 @@ class MapboxMapFragment : Fragment() {
         // Add a marker for this item using its appropriate icon, if we have a target
         if (target != null) {
             addNewMarkerForItem(item)
-            showcaseMarker(target)
+            showcaseMarker = target
         }
+    }
+
+    /**
+     * Start a prepared showcase once. If the map is not ready yet, setup will start it.
+     */
+    fun startShowcase() {
+        if (showcaseStarted) return
+
+        showcaseStarted = true
+        dispatchShowcaseAnimationIfReady()
+    }
+
+    private fun dispatchShowcaseAnimationIfReady() {
+        val marker = showcaseMarker ?: return
+        if (!showcaseStarted || showcaseAnimationDispatched || !isResumed || styleRef == null) return
+
+        showcaseAnimationDispatched = true
+        _showcaseMarker(marker)
     }
 
     /**
@@ -193,9 +223,9 @@ class MapboxMapFragment : Fragment() {
     fun showcaseMarker(marker: LatLng) {
         state = State.SHOWCASE
         showcaseMarker = marker
-        if (isResumed) {
-            _showcaseMarker(marker)
-        }
+        showcaseStarted = true
+        showcaseAnimationDispatched = false
+        dispatchShowcaseAnimationIfReady()
     }
 
     private fun hasLocationPermission(): Boolean {
@@ -770,7 +800,7 @@ class MapboxMapFragment : Fragment() {
                     }
                 }
 
-                this.showcaseMarker?.let { _showcaseMarker(it) }
+                dispatchShowcaseAnimationIfReady()
             }
         }
     }
@@ -970,6 +1000,7 @@ class MapboxMapFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         mapView?.onResume()
+        dispatchShowcaseAnimationIfReady()
         keepScreenOn(true)
     }
 
