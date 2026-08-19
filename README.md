@@ -34,7 +34,17 @@ Fortunately, you can still run and test the app with the previous year's data.
 
 1. Review upstream event dates and create `annual/<year>.json`. Version codes
    must increase, first releases use `<year>.1`, and all timestamps must carry
-   the correct `America/Los_Angeles` offset.
+   the correct `America/Los_Angeles` offset. Example:
+   ```
+    {
+      "year": 2026,
+      "versionCode": 70,
+      "versionName": "2026.1",
+      "locationEmbargo": "eventStart",
+      "campAddressEmbargo": "eventStartMinusOneWeek",
+      "mockNow": "2026-09-01T10:05:00-07:00"
+    }
+   ```
 2. Check out the exact `iBurn-Data` commit. The selected `data/<year>` tree must
    be clean; automation never fetches or moves it.
 3. Run:
