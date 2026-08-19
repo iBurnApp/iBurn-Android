@@ -169,8 +169,10 @@ fun getSharedDb(context: Context): AppDatabase {
 fun buildDatabase(context: Context, name: String, copyBundled: Boolean): AppDatabase {
     if (copyBundled) {
         val prefs = PrefsHelper(context)
-        if (prefs.ingestedDatabaseName != BuildConfig.BUNDLED_DATABASE_NAME) {
-            Timber.d("Updating from bundled db. '${prefs.ingestedDatabaseName}' (Last ingested version) -> '${BuildConfig.BUNDLED_DATABASE_NAME}' (Bundled version)")
+        val bundledDatabaseVersion = BuildConfig.BUNDLED_DATABASE_NAME +
+            if (BuildConfig.LIVE_DATA_UPDATES_ENABLED) ":live" else ":bundled-only"
+        if (prefs.ingestedDatabaseName != bundledDatabaseVersion) {
+            Timber.d("Updating from bundled db. '${prefs.ingestedDatabaseName}' (Last ingested version) -> '$bundledDatabaseVersion' (Bundled version)")
             // Create/upgrade the complete Room schema first. The host-generated
             // bundle contains only the read-only tables imported below.
             newRoomDatabase(context, name).also { it.openHelper.writableDatabase }
@@ -179,7 +181,7 @@ fun buildDatabase(context: Context, name: String, copyBundled: Boolean): AppData
                 assetPath = "databases/${BuildConfig.BUNDLED_DATABASE_NAME}",
                 destinationDbName = name
             )
-            prefs.ingestedDatabaseName = BuildConfig.BUNDLED_DATABASE_NAME;
+            prefs.ingestedDatabaseName = bundledDatabaseVersion
         }
     }
     return newRoomDatabase(context, name)

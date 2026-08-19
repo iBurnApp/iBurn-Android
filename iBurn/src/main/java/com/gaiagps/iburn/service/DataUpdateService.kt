@@ -7,6 +7,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.gaiagps.iburn.BuildConfig
 import com.gaiagps.iburn.api.IBurnService
 import com.gaiagps.iburn.database.DataProvider
 import kotlinx.coroutines.runBlocking
@@ -41,6 +42,13 @@ class DataUpdateService(context: Context, workerParams: WorkerParameters) :
     }
 
     override fun doWork(): Result {
+        // A worker scheduled by another installed build can survive an app update.
+        // Never let it replace a historical or mock build's bundled records with
+        // whatever year the live endpoint currently serves.
+        if (!BuildConfig.LIVE_DATA_UPDATES_ENABLED) {
+            Timber.d("Skipping live data update for bundled annual data")
+            return Result.success()
+        }
         val dataProvider = DataProvider.getInstance(applicationContext)
         if (dataProvider.inUpgrade()) return Result.retry()
 

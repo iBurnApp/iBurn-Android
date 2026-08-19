@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements SearchQueryProvid
             showWelcome();
         }
 
-        if (!prefs.didScheduleUpdate()) {
+        if (BuildConfig.LIVE_DATA_UPDATES_ENABLED && !prefs.didScheduleUpdate()) {
             DataUpdateService.Companion.scheduleAutoUpdate(this);
             prefs.setDidScheduleUpdate(true);
         }

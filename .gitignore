@@ -22,6 +22,7 @@ iBurn/src/main/assets/art_images/
 .idea/
 .gradle/
 local.properties
+.annual-config
 /*/out
 iBurn/build/
 iBurn/production/

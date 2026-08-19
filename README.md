@@ -61,6 +61,12 @@ manifest and verification report under `build/reports/annual-update/`.
 Embargoed JSON, images, audio, and databases remain ignored and must be handled
 only as restricted artifacts.
 
+After all verification gates pass, the script records the selected config in
+the ignored `.annual-config` file. Android Studio and ordinary Gradle builds
+then keep using that year. An explicit `-PannualConfig=annual/<year>.json`
+overrides the local selection. Historical and mock builds also disable live
+API updates so the bundled records cannot be replaced by the current year.
+
 The script runs the update twice and verifies that `annual-manifest.json` is
 unchanged before running the full verification suite. Run it with `--help` for
 optional version assertions, an alternate config path, and CI-only checks.

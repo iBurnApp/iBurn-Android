@@ -36,7 +36,15 @@ def annualConfigFiles = file("$rootDir/annual").listFiles()
 if (annualConfigFiles.isEmpty()) {
     throw new GradleException('No annual configuration found at annual/<year>.json')
 }
-def requestedAnnualConfig = providers.gradleProperty('annualConfig').orNull
+// annual-update.sh persists its successfully verified selection here so a
+// subsequent Android Studio build uses the same year. An explicit Gradle
+// property remains authoritative for CI and one-off command-line builds.
+def localAnnualConfigFile = rootProject.file('.annual-config')
+def localAnnualConfig = localAnnualConfigFile.isFile()
+        ? localAnnualConfigFile.getText('UTF-8').trim()
+        : null
+def requestedAnnualConfig = providers.gradleProperty('annualConfig').orNull ?:
+        (localAnnualConfig ? localAnnualConfig : null)
 def annualConfigFile = requestedAnnualConfig != null
         ? rootProject.file(requestedAnnualConfig)
         : annualConfigFiles.last()
@@ -46,6 +54,8 @@ if (!annualConfigFile.isFile() ||
     throw new GradleException("annualConfig must select annual/<year>.json: ${annualConfigFile}")
 }
 def annualConfig = new JsonSlurper().parse(annualConfigFile)
+def isLatestAnnualConfig = annualConfigFile.canonicalFile ==
+        annualConfigFiles.last().canonicalFile
 def releaseSigningPropertyNames = [
         'storeFile', 'storePassword', 'keyAlias', 'keyPassword'
 ]
@@ -319,11 +329,14 @@ android {
     productFlavors {
         regular {
             buildConfigField "boolean", "MOCK", "false"
+            buildConfigField "boolean", "LIVE_DATA_UPDATES_ENABLED",
+                    isLatestAnnualConfig.toString()
             dimension "production"
         }
         // Mock location and date data
         mock {
             buildConfigField "boolean", "MOCK", "true"
+            buildConfigField "boolean", "LIVE_DATA_UPDATES_ENABLED", "false"
             dimension "production"
         }
     }
