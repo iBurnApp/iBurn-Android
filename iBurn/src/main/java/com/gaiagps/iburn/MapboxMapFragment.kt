@@ -130,6 +130,7 @@ class MapboxMapFragment : Fragment() {
 
     private val defaultZoom = 12.5
     private val markerShowcaseZoom = 14.5
+    private val showcaseBoundsMarginFraction = 0.1f
     private val poiVisibleZoom = 16.0
     private val labelVisibleZoom = 14.5
 
@@ -195,7 +196,6 @@ class MapboxMapFragment : Fragment() {
         if (isResumed) {
             _showcaseMarker(marker)
         }
-        locationJob?.cancel()
     }
 
     private fun hasLocationPermission(): Boolean {
@@ -207,13 +207,14 @@ class MapboxMapFragment : Fragment() {
     @SuppressLint("MissingPermission")
     private fun _showcaseMarker(marker: LatLng) {
         Timber.d("_showcaseMarker")
-        mapMarkerAndFitEntireCity(marker)
+        applyCampLayerPreferences(PrefsHelper(requireContext()))
+        animateShowcaseCamera(marker)
         map?.locationComponent?.cameraMode = CameraMode.NONE
         addressLabel?.visibility = View.INVISIBLE
         userPoiButton?.visibility = View.INVISIBLE
     }
 
-    private fun mapMarkerAndFitEntireCity(marker: LatLng) {
+    private fun animateShowcaseCamera(marker: LatLng) {
         mapView?.getMapAsync { map ->
             Timber.d("Moving camera to %s at zoom %f", marker, markerShowcaseZoom)
             map.moveCamera(
@@ -225,16 +226,38 @@ class MapboxMapFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 delay(1000)
                 Timber.d("Animating camera")
-                map.animateCamera(
-                    CameraUpdateFactory.newLatLngZoom(
-                        LatLng(
-                            Geo.MAN_LAT,
-                            Geo.MAN_LON
-                        ), defaultZoom
-                    ), 3 * 1000
-                )
+                val location = awaitShowcaseLocation(map)
+                val cameraUpdate = if (location != null &&
+                    (location.latitude != marker.latitude || location.longitude != marker.longitude)
+                ) {
+                    val bounds = LatLngBounds.Builder()
+                        .include(marker)
+                        .include(LatLng(location.latitude, location.longitude))
+                        .build()
+                    val viewportWidth = mapView?.width?.takeIf { it > 0 }
+                        ?: resources.displayMetrics.widthPixels
+                    val margin = (viewportWidth * showcaseBoundsMarginFraction).toInt()
+                    CameraUpdateFactory.newLatLngBounds(bounds, margin)
+                } else {
+                    if (location == null) {
+                        Timber.w("No user location available for showcase camera bounds")
+                    }
+                    CameraUpdateFactory.newLatLngZoom(marker, markerShowcaseZoom)
+                }
+                map.animateCamera(cameraUpdate, 3 * 1000)
             }
         }
+    }
+
+    private suspend fun awaitShowcaseLocation(map: MapLibreMap): Location? {
+        if (currentLocation == null && hasLocationPermission()) {
+            withTimeoutOrNull(2_000L) {
+                while (currentLocation == null) {
+                    delay(50L)
+                }
+            }
+        }
+        return currentLocation ?: map.locationComponent.lastKnownLocation
     }
 
     override fun onCreateView(
@@ -755,8 +778,10 @@ class MapboxMapFragment : Fragment() {
     fun applyCampLayerPreferences(prefs: PrefsHelper) {
         val style = styleRef ?: return
         val campMapAvailable = !Embargo.isCampMapEmbargoActive(prefs)
-        val showBoundaries = campMapAvailable && prefs.showCampBoundaries
-        val showBigNames = campMapAvailable && prefs.showBigCampNames
+        val showBoundaries = campMapAvailable &&
+            (state == State.SHOWCASE || prefs.showCampBoundaries)
+        val showBigNames = campMapAvailable &&
+            (state == State.SHOWCASE || prefs.showBigCampNames)
 
         style.getLayer("camp-boundaries")?.setProperties(
             PropertyFactory.visibility(if (showBoundaries) Property.VISIBLE else Property.NONE)
@@ -870,13 +895,15 @@ class MapboxMapFragment : Fragment() {
                             )
                         )
                         refreshLocationTrail(nowMillis)
-                        val address = com.gaiagps.iburn.js.Geocoder.reverseGeocode(
-                            context,
-                            location.latitude.toFloat(),
-                            location.longitude.toFloat()
-                        )
-                        addressLabel?.visibility = View.VISIBLE
-                        addressLabel?.text = address
+                        if (state != State.SHOWCASE) {
+                            val address = com.gaiagps.iburn.js.Geocoder.reverseGeocode(
+                                context,
+                                location.latitude.toFloat(),
+                                location.longitude.toFloat()
+                            )
+                            addressLabel?.visibility = View.VISIBLE
+                            addressLabel?.text = address
+                        }
                     }
             } catch (t: Throwable) {
                 Timber.e(t, "Failed to get device location")
@@ -937,9 +964,7 @@ class MapboxMapFragment : Fragment() {
                 setupCameraUpdateSub(map)
             }
         }
-        if (state != State.SHOWCASE) {
-            setupLocationSub()
-        }
+        setupLocationSub()
     }
 
     override fun onResume() {
