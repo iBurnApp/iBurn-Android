@@ -4,10 +4,12 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.ComponentName
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.content.res.TypedArray
 import android.graphics.Point
 import android.graphics.Typeface
+import android.location.Location
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -42,6 +44,7 @@ import com.gaiagps.iburn.MapboxMapFragment
 import com.gaiagps.iburn.PrefsHelper
 import com.gaiagps.iburn.R
 import com.gaiagps.iburn.adapters.AdapterListener
+import com.gaiagps.iburn.adapters.AdapterUtils
 import com.gaiagps.iburn.adapters.PlayaItemAdapter
 import com.gaiagps.iburn.database.Art
 import com.gaiagps.iburn.database.ArtWithUserData
@@ -54,15 +57,22 @@ import com.gaiagps.iburn.database.PlayaItem
 import com.gaiagps.iburn.database.PlayaItemWithUserData
 import com.gaiagps.iburn.database.MutantVehicle
 import com.gaiagps.iburn.databinding.ActivityPlayaItemViewBinding
+import com.gaiagps.iburn.location.LocationProvider
 import com.gaiagps.iburn.loadArtImage
 import com.gaiagps.iburn.loadMutantVehicleImage
 import com.gaiagps.iburn.service.AudioPlayerService
 import com.gaiagps.iburn.service.MediaMetadataKeyArtPlayaId
 import com.gaiagps.iburn.view.FullscreenImageDialog
 import com.google.android.material.appbar.CollapsingToolbarLayout
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.Priority
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.maplibre.android.geometry.LatLng
@@ -110,6 +120,12 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
     private var loadedArtImage = false
     private var artImageView: ImageView? = null
     private var mapFragment: MapboxMapFragment? = null
+    private var deviceLocation: Location? = null
+    private var locationJob: Job? = null
+    private val locationRequest: LocationRequest =
+        LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 10_000L)
+            .setMinUpdateIntervalMillis(5_000L)
+            .build()
 
     private var mediaBrowser: MediaBrowserCompat? = null
     private var mediaControllerCallback: MediaControllerCompat.Callback? = null
@@ -128,7 +144,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         supportActionBar?.let {
             it.setDisplayHomeAsUpEnabled(true)
             it.title = ""
-            it.setHomeAsUpIndicator(R.drawable.ic_arrow_back_white_on_orange_24dp)
+            it.setHomeAsUpIndicator(R.drawable.ic_arrow_back_white_24dp)
         }
         setTextContainerMinHeight()
         val fadeAnimation = AlphaAnimation(0f, 1f)
@@ -200,6 +216,11 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         binding.appbar.addOnOffsetChangedListener { _, verticalOffset ->
             val collapsingTriggerHeight = binding.collapsingToolbar.scrimVisibleHeightTrigger
             val collapsingOffsetTrigger = -(binding.collapsingToolbar.height - collapsingTriggerHeight)
+            val scrimFadeDistance = binding.toolbar.height.coerceAtLeast(1)
+            binding.toolbarScrim.alpha = (
+                (verticalOffset - collapsingOffsetTrigger).toFloat() / scrimFadeDistance
+            ).coerceIn(0f, 1f)
+
             if (verticalOffset <= collapsingOffsetTrigger) {
                 // Collapsed
                 val imageMenu = imageMenuItem
@@ -261,12 +282,36 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         super.onStart()
         // If the browser was created earlier, ensure it's connected
         onStartMediaController()
+        startMonitoringLocation()
     }
 
     override fun onStop() {
+        stopMonitoringLocation()
         super.onStop()
         // Tidy up the media connection when leaving the screen
         onStopMediaController()
+    }
+
+    private fun startMonitoringLocation() {
+        if (locationJob != null) return
+        locationJob = LocationProvider.currentLocationFlow(applicationContext, locationRequest)
+            .onEach { lastLocation ->
+                val prior = deviceLocation
+                val deltaMeters = prior?.distanceTo(lastLocation) ?: Float.MAX_VALUE
+                deviceLocation = lastLocation
+                if (prior == null || deltaMeters > 61f) {
+                    itemWithUserData?.item?.let(::updateLocationTimes)
+                }
+            }
+            .catch { error ->
+                Timber.e(error, "Failed to get last location")
+            }
+            .launchIn(lifecycleScope)
+    }
+
+    private fun stopMonitoringLocation() {
+        locationJob?.cancel()
+        locationJob = null
     }
 
     private inner class PlayaItemViewMediaConnectionCallback : MediaBrowserCompat.ConnectionCallback() {
@@ -310,8 +355,8 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
 
     private fun setupMediaTransportControls() {
         // Find or create Audio Tour Playback Toggle View
-        val contentContainer = findViewById<ViewGroup>(R.id.content_container)
-        var audioTourToggle = contentContainer.findViewById<TextView>(R.id.audio_tour_toggle)
+        val audioTourContainer = binding.audioTourContainer
+        var audioTourToggle = audioTourContainer.findViewById<TextView>(R.id.audio_tour_toggle)
 
         if (audioTourToggle == null) {
             audioTourToggle = TextView(this)
@@ -326,9 +371,10 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
             params.bottomMargin = 12 // 8 dp
             audioTourToggle.layoutParams = params
 
-            contentContainer.addView(audioTourToggle, 3)
+            audioTourContainer.addView(audioTourToggle)
         }
 
+        audioTourContainer.visibility = View.VISIBLE
         this.audioTourToggle = audioTourToggle
 
         // Get initial media state
@@ -424,8 +470,8 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         inflater.inflate(R.menu.activity_playa_item, menu)
 
         favoriteMenuItem = menu.findItem(R.id.favorite_menu)
-        if (isFavorite) favoriteMenuItem?.setIcon(R.drawable.ic_heart_full_24dp)
-        if (showingLocation || showingArt) favoriteMenuItem?.isVisible = false
+        if (isFavorite) favoriteMenuItem?.setIcon(R.drawable.ic_heart_full_white_24dp)
+        favoriteMenuItem?.isVisible = true
 
         imageMenuItem = menu.findItem(R.id.image_menu)
         if (!loadedArtImage || !showingLocation) {
@@ -460,6 +506,8 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
                     } else if (itemWithUserData?.item is Art) {
                         mapFragment?.startShowcase()
                     }
+                    imageView.isClickable = willBeVisible
+                    imageView.isFocusable = willBeVisible
                     Timber.d("Fading %s art view", if (willBeVisible) "in" else "out")
                     fadeView(imageView, willBeVisible, null)
 
@@ -480,6 +528,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         showingLocation = (item.hasLocation() && !embargoActive) || item.hasUnofficialLocation()
         showingArt = (item is Art && item.hasImage()) ||
                 (item is MutantVehicle && item.hasImage())
+        binding.toolbarScrim.visibility = if (showingLocation || showingArt) View.VISIBLE else View.GONE
         if (showingArt) {
             // Image-backed details should appear immediately, without inheriting the
             // showcase map's entrance animation.
@@ -487,9 +536,6 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         }
 
         if (showingLocation) {
-            binding.fab.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
-                favoriteMenuItem?.isVisible = v.visibility == View.GONE
-            }
             if (item.hasLocation() && !embargoActive) {
                 latLng = item.latLng
             } else {
@@ -523,27 +569,42 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
             // Adjust the margin / padding show the heart icon doesn't
             // overlap title + description
             findViewById<View>(R.id.map_container).visibility = View.GONE
-            binding.collapsingToolbar.setBackgroundResource(android.R.color.transparent)
+            binding.collapsingToolbar.setBackgroundResource(R.color.iburn_color)
             val parms = CollapsingToolbarLayout.LayoutParams(
                 CollapsingToolbarLayout.LayoutParams.MATCH_PARENT, 24
             )
             binding.mapContainer.layoutParams = parms
-            binding.fab.visibility = View.GONE
         }
 
+        binding.itemType.setText(
+            when (item) {
+                is Event -> R.string.detail_type_event
+                is Camp -> R.string.detail_type_camp
+                is Art -> R.string.detail_type_art
+                is MutantVehicle -> R.string.detail_type_mutant_vehicle
+                else -> R.string.app_name
+            }
+        )
         binding.title.text = item.name
         setFavorite(itemWithUserData.userData.isFavorite, false)
-        binding.fab.setOnClickListener(favoriteButtonOnClickListener)
 
-        setTextOrHideIfEmpty(item.description, binding.body)
+        if (!item.description.isNullOrEmpty()) {
+            binding.body.text = item.description
+            binding.aboutContainer.visibility = View.VISIBLE
+        } else {
+            binding.aboutContainer.visibility = View.GONE
+        }
 
         if (!addressEmbargoActive) {
-            setTextOrHideIfEmpty(item.playaAddress, binding.subitem1)
+            setTextOrHideIfEmpty(item.playaAddress, binding.locationAddress)
         } else if (item.hasUnofficialLocation()) {
-            setTextOrHideIfEmpty("BurnerMap: " + item.playaAddressUnofficial, binding.subitem1)
+            setTextOrHideIfEmpty("BurnerMap: " + item.playaAddressUnofficial, binding.locationAddress)
         } else {
-            binding.subitem1.visibility = View.GONE
+            binding.locationAddress.visibility = View.GONE
         }
+        updateLocationRowVisibility()
+
+        updateLocationTimes(item)
 
         lifecycleScope.launch {
             val provider = DataProvider.getInstance(applicationContext)
@@ -557,9 +618,61 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         }
     }
 
+    private fun updateLocationTimes(item: PlayaItem) {
+        val prefs = PrefsHelper(applicationContext)
+        val canShowOfficialLocation =
+            !Embargo.isEmbargoActiveForPlayaItem(prefs, item) && item.hasLocation()
+        val canShowUnofficialLocation = item.hasUnofficialLocation()
+
+        if (!canShowOfficialLocation && !canShowUnofficialLocation) {
+            binding.locationTimes.visibility = View.GONE
+            updateLocationRowVisibility()
+            return
+        }
+
+        binding.locationTimes.visibility = View.VISIBLE
+        updateLocationRowVisibility()
+        val latitude = if (canShowOfficialLocation) item.latitude else item.latitudeUnofficial
+        val longitude = if (canShowOfficialLocation) item.longitude else item.longitudeUnofficial
+        val event = item as? Event
+        val walkTime = binding.locationTimes.findViewById<TextView>(R.id.walk_time)
+        val bikeTime = binding.locationTimes.findViewById<TextView>(R.id.bike_time)
+        val iconTint = ColorStateList.valueOf(getColor(R.color.sub_sub_text))
+        walkTime.compoundDrawableTintList = iconTint
+        bikeTime.compoundDrawableTintList = iconTint
+        AdapterUtils.setDistanceText(
+            deviceLocation,
+            CurrentDateProvider.getCurrentDate(),
+            event?.startDate,
+            event?.endDate,
+            walkTime,
+            bikeTime,
+            latitude,
+            longitude
+        )
+    }
+
+    private fun updateLocationRowVisibility() {
+        binding.locationRow.visibility = if (
+            binding.locationAddress.visibility == View.VISIBLE ||
+            binding.locationTimes.visibility == View.VISIBLE
+        ) View.VISIBLE else View.GONE
+    }
+
+    private fun setMetadata(labelRes: Int, primary: String?, secondary: String? = null) {
+        if (primary.isNullOrEmpty() && secondary.isNullOrEmpty()) {
+            binding.metadataRow.visibility = View.GONE
+            return
+        }
+
+        binding.metadataLabel.setText(labelRes)
+        setTextOrHideIfEmpty(primary, binding.metadataPrimary)
+        setTextOrHideIfEmpty(secondary, binding.metadataSecondary)
+        binding.metadataRow.visibility = View.VISIBLE
+    }
+
     private suspend fun populateArtViews(art: Art, provider: DataProvider) {
-        setTextOrHideIfEmpty(art.artist, binding.subitem2)
-        setTextOrHideIfEmpty(art.artistLocation, binding.subitem3)
+        setMetadata(R.string.detail_artist, art.artist, art.artistLocation)
 
         if (art.hasImage()) {
             artImageView = ImageView(this)
@@ -600,8 +713,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
     }
 
     private suspend fun populateCampViews(camp: Camp, provider: DataProvider) {
-        setTextOrHideIfEmpty(camp.hometown, binding.subitem2)
-        binding.subitem3.visibility = View.GONE
+        setMetadata(R.string.detail_hometown, camp.hometown)
 
         // Display hosted events
         val adapter = PlayaItemAdapter(applicationContext, this)
@@ -619,7 +731,10 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
                     val wrapper = ContextThemeWrapper(this@PlayaItemViewActivity, R.style.PlayaTextItem)
                     val hostedEventsTitle = TextView(wrapper)
                     hostedEventsTitle.setText(R.string.hosted_events)
-                    hostedEventsTitle.textSize = 32f
+                    hostedEventsTitle.setTextColor(getColor(R.color.sub_text))
+                    hostedEventsTitle.typeface = Typeface.create("sans-serif", Typeface.BOLD)
+                    hostedEventsTitle.isAllCaps = true
+                    hostedEventsTitle.textSize = 12f
                     hostedEventsTitle.setPadding(pad, pad, pad, pad)
                     binding.overflowContainer.addView(hostedEventsTitle)
                 }
@@ -636,8 +751,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
     }
 
     private fun populateMutantVehicleViews(vehicle: MutantVehicle) {
-        setTextOrHideIfEmpty(vehicle.artist, binding.subitem2)
-        setTextOrHideIfEmpty(vehicle.hometown, binding.subitem3)
+        setMetadata(R.string.detail_creator, vehicle.artist, vehicle.hometown)
         if (!vehicle.hasImage()) return
 
         artImageView = ImageView(this).apply {
@@ -672,7 +786,12 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         imageView.isFocusable = true
         imageView.contentDescription = getString(R.string.view_image_fullscreen)
         imageView.setOnClickListener {
-            if (imageView.drawable != null) {
+            if (
+                showingImage &&
+                imageView.visibility == View.VISIBLE &&
+                imageView.alpha > 0f &&
+                imageView.drawable != null
+            ) {
                 FullscreenImageDialog(
                     this,
                     imageView,
@@ -686,7 +805,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         val nowDate = CurrentDateProvider.getCurrentDate()
 
         // Describe the event time with some smarts: "[Starts|Ends] [in|at] [20m|4:20p]"
-        binding.subitem2.text = DateUtil.getDateString(
+        binding.eventTime.text = DateUtil.getDateString(
             applicationContext,
             nowDate,
             event.startDate,
@@ -694,8 +813,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
             event.endDate,
             event.endTimePretty
         )
-
-        binding.subitem3.visibility = View.GONE
+        binding.eventTimeRow.visibility = View.VISIBLE
 
         // Display Hosted-By-Camp
         val wrapper = ContextThemeWrapper(this, R.style.PlayaTextItem)
@@ -705,21 +823,21 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         ).toInt()
 
         if (event.hasCampHost()) {
-            val hostedByCamp = TextView(wrapper)
-            hostedByCamp.tag = event.campPlayaId
-            hostedByCamp.typeface = condensed
-            hostedByCamp.textSize = 32f
-            hostedByCamp.setPadding(pad, pad, pad, 0)
-
             lifecycleScope.launch {
                 try {
                     val camp = provider.observeCampByPlayaId(event.campPlayaId!!).first()
-                    hostedByCamp.setOnClickListener(RelatedItemOnClickListener(camp))
-                    val campName = camp.item.name
-                    hostedByCamp.text = "Hosted by $campName"
-                    binding.overflowContainer.addView(hostedByCamp)
+                    showHost(camp)
                 } catch (e: Exception) {
                     Timber.w(e, "Could not load camp for event")
+                }
+            }
+        } else if (event.hasArtHost()) {
+            lifecycleScope.launch {
+                try {
+                    val art = provider.observeArtByPlayaId(event.artPlayaId!!).first()
+                    showHost(art)
+                } catch (e: Exception) {
+                    Timber.w(e, "Could not load art host for event")
                 }
             }
         }
@@ -732,8 +850,9 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
                 if (eventOccurrences.isNotEmpty()) {
                     val occurrencesTitle = TextView(wrapper)
                     occurrencesTitle.setText(R.string.also_at)
-                    occurrencesTitle.typeface = condensed
-                    occurrencesTitle.textSize = 32f
+                    occurrencesTitle.setTextColor(getColor(R.color.sub_text))
+                    occurrencesTitle.setTypeface(occurrencesTitle.typeface, Typeface.BOLD)
+                    occurrencesTitle.textSize = 15f
                     occurrencesTitle.setPadding(pad, pad, pad, 0)
                     binding.overflowContainer.addView(occurrencesTitle)
                 }
@@ -763,9 +882,17 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         }
     }
 
+    private fun showHost(host: PlayaItemWithUserData) {
+        binding.hostName.text = host.item.name
+        binding.hostContainer.tag = host.item.playaId
+        binding.hostContainer.setOnClickListener(RelatedItemOnClickListener(host))
+        binding.hostContainer.visibility = View.VISIBLE
+    }
+
     private fun setTextOrHideIfEmpty(text: String?, view: TextView) {
         if (!TextUtils.isEmpty(text)) {
             view.text = text
+            view.visibility = View.VISIBLE
         } else {
             view.visibility = View.GONE
         }
@@ -823,10 +950,6 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         }
     }
 
-    private val favoriteButtonOnClickListener = View.OnClickListener {
-        setFavorite(!isFavorite, true)
-    }
-
     private fun setFavorite(isFavorite: Boolean, save: Boolean) {
         val item = itemWithUserData
         if (item == null) {
@@ -834,9 +957,12 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
             return
         }
 
-        val newMenuDrawableResId = if (isFavorite) R.drawable.ic_heart_full_24dp else R.drawable.ic_heart_empty_24dp
+        val newMenuDrawableResId = if (isFavorite) {
+            R.drawable.ic_heart_full_white_24dp
+        } else {
+            R.drawable.ic_heart_empty_white_24dp
+        }
 
-        binding.fab.setSelectedState(isFavorite, save)
         favoriteMenuItem?.setIcon(newMenuDrawableResId)
         if (save) {
             lifecycleScope.launch(Dispatchers.IO) {
@@ -861,9 +987,9 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
     private fun setImageMenuToggle(isShowingImage: Boolean) {
         val imageMenu = imageMenuItem ?: return
         if (isShowingImage) {
-            imageMenu.setIcon(R.drawable.ic_map_white_on_orange_24dp)
+            imageMenu.setIcon(R.drawable.ic_map_white_24dp)
         } else {
-            imageMenu.setIcon(R.drawable.ic_image_white_on_orange_24dp)
+            imageMenu.setIcon(R.drawable.ic_image_white_24dp)
         }
     }
 

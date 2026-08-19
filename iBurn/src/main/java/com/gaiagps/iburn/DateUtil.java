@@ -55,7 +55,25 @@ public class DateUtil {
      * @param prettyEndDateStr   A 'prettified' end date string
      */
     public static String getDateString(Context context, Date nowDate, Date startDate, String prettyStartDateStr, Date endDate, String prettyEndDateStr) {
-            return prettyStartDateStr + " - " + prettyEndDateStr;
+        Calendar startCalendar = Calendar.getInstance(PLAYA_TIME_ZONE);
+        startCalendar.setTime(startDate);
+        Calendar endCalendar = Calendar.getInstance(PLAYA_TIME_ZONE);
+        endCalendar.setTime(endDate);
+        boolean occursOnOneDay =
+                startCalendar.get(Calendar.ERA) == endCalendar.get(Calendar.ERA) &&
+                startCalendar.get(Calendar.YEAR) == endCalendar.get(Calendar.YEAR) &&
+                startCalendar.get(Calendar.DAY_OF_YEAR) == endCalendar.get(Calendar.DAY_OF_YEAR);
+
+        if (occursOnOneDay) {
+            // All-day events omit their times, so identical labels already express the full range.
+            if (prettyStartDateStr.equals(prettyEndDateStr)) {
+                return prettyStartDateStr;
+            }
+            return getPlayaTimeFormat("EE M/d h:mma").format(startDate) +
+                    "-" + getPlayaTimeFormat("h:mma").format(endDate);
+        }
+
+        return prettyStartDateStr + " - " + prettyEndDateStr;
     }
 
     public static String getStartDateString(Date startDate, Date nowDate) {

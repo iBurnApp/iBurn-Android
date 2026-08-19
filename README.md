@@ -72,7 +72,6 @@ the allowed configuration, submodule pointer, map, and geocoder outputs.
 
 ## TODO
 
-* Pretty up that item detail view.
 * Investigate Mapbox offline and SIGABRT issues. Seems like it's possible Mapbox gets into a state where it stops displaying the map
 
 ## Releasing

@@ -130,7 +130,6 @@ class MapboxMapFragment : Fragment() {
 
     private val defaultZoom = 12.5
     private val markerShowcaseZoom = 14.5
-    private val showcaseBoundsMarginFraction = 0.1f
     private val poiVisibleZoom = 16.0
     private val labelVisibleZoom = 14.5
 
@@ -264,9 +263,9 @@ class MapboxMapFragment : Fragment() {
                         .include(marker)
                         .include(LatLng(location.latitude, location.longitude))
                         .build()
-                    val viewportWidth = mapView?.width?.takeIf { it > 0 }
-                        ?: resources.displayMetrics.widthPixels
-                    val margin = (viewportWidth * showcaseBoundsMarginFraction).toInt()
+                    val margin = resources.getDimensionPixelSize(
+                        R.dimen.playa_detail_toolbar_scrim_height
+                    )
                     CameraUpdateFactory.newLatLngBounds(bounds, margin)
                 } else {
                     if (location == null) {
@@ -290,6 +289,7 @@ class MapboxMapFragment : Fragment() {
         return currentLocation ?: map.locationComponent.lastKnownLocation
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -308,6 +308,7 @@ class MapboxMapFragment : Fragment() {
                 .compassMargins(intArrayOf(margin, margin, margin, margin))
 
             val mapView = MapView(context, options)
+            mapView.setOnTouchListener { _, _ -> state == State.SHOWCASE }
             this.mapView = mapView
 
             // Add Playa Address label

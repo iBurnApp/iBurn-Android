@@ -67,6 +67,17 @@
 
     <string name="also_at">Also at:</string>
     <string name="hosted_events">Hosted Events</string>
+    <string name="detail_type_event">Event</string>
+    <string name="detail_type_camp">Camp</string>
+    <string name="detail_type_art">Art</string>
+    <string name="detail_type_mutant_vehicle">Mutant Vehicle</string>
+    <string name="detail_when">When</string>
+    <string name="detail_where">Where</string>
+    <string name="detail_about">About</string>
+    <string name="detail_artist">Artist</string>
+    <string name="detail_hometown">Hometown</string>
+    <string name="detail_creator">Creator</string>
+    <string name="detail_hosted_by">Hosted by</string>
     <string name="send_feedback">Send Feedback</string>
     <string name="we_love_feedback">We ❤ Feedback</string>
     <string name="feedback_hint">What do you think?</string>
