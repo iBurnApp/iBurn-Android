@@ -11,7 +11,7 @@ buildscript {
         dependencies {
 
             // Add the Crashlytics Gradle plugin
-            classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.4'
+            classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.8'
             classpath "com.google.devtools.ksp:symbol-processing-gradle-plugin:2.2.10-2.0.2"
         }
         google()
@@ -260,9 +260,13 @@ android {
         viewBinding = true
     }
     defaultConfig {
-        compileSdk 36
+        compileSdk {
+            version = release(37) {
+                minorApiLevel = 1
+            }
+        }
         minSdkVersion 23
-        targetSdkVersion 36
+        targetSdkVersion 37
         versionCode annualConfig.versionCode
 
         versionName annualConfig.versionName
@@ -281,7 +285,6 @@ android {
                 JsonOutput.toJson(mapboxApiKey.get())
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        archivesBaseName = "iburn-$versionName-$versionCode"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -319,7 +322,7 @@ android {
         }
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
             signingConfig signingConfigs.release
             debuggable false
         }
@@ -349,6 +352,13 @@ androidComponents {
     beforeVariants(selector().withBuildType('release')) { variantBuilder ->
         variantBuilder.enable = hasReleaseSigningConfig
     }
+
+    onVariants(selector().all()) { variant ->
+        variant.outputs.each { output ->
+            output.outputFileName.set(
+                    "iburn-${annualConfig.versionName}-${annualConfig.versionCode}-${variant.flavorName}-${variant.buildType}.apk")
+        }
+    }
 }
 
 // Read Signing key from gradle.properties located in project root
@@ -370,29 +380,29 @@ def PLAY_SERVICES_VERSION = "17.0.0"
 dependencies {
 
     // Android Support libraries
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'com.google.android.material:material:1.14.0'
     implementation 'androidx.legacy:legacy-support-v13:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.appcompat:appcompat:1.8.0'
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
-    implementation 'androidx.annotation:annotation:1.9.1'
-    implementation 'androidx.dynamicanimation:dynamicanimation:1.1.0'
-    implementation "androidx.work:work-runtime:2.10.2"
+    implementation 'androidx.annotation:annotation:1.10.0'
+    implementation 'androidx.dynamicanimation:dynamicanimation-ktx:1.1.0'
+    implementation "androidx.work:work-runtime:2.11.2"
 
     // Google Play Services
     implementation "com.google.android.gms:play-services-gcm:$PLAY_SERVICES_VERSION"
-    implementation "com.google.android.gms:play-services-location:21.3.0"
+    implementation "com.google.android.gms:play-services-location:21.4.0"
 
     // 3rd Party libraries
-    implementation 'com.google.code.gson:gson:2.13.1'
+    implementation 'com.google.code.gson:gson:2.14.0'
     implementation 'com.jakewharton.timber:timber:5.0.1'
     // Coroutines
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0"
     implementation 'com.squareup.retrofit2:retrofit:3.0.0'
     implementation 'com.squareup.retrofit2:converter-gson:3.0.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:5.1.0'
-    implementation 'com.squareup.okhttp3:okhttp:5.1.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:5.5.0'
+    implementation 'com.squareup.okhttp3:okhttp:5.5.0'
     // Replace Rx-based location helper with direct FusedLocationProvider usage
     implementation 'com.tonicartos:superslim:0.4.13'
     implementation 'xyz.danoz:recyclerviewfastscroller:0.1.3'
@@ -400,43 +410,43 @@ dependencies {
     // QR Code generation
     implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
     
-    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
-    implementation 'androidx.media:media:1.7.0'
-    implementation 'com.eclipsesource.j2v8:j2v8:6.2.1@aar'
-    implementation 'org.maplibre.gl:android-sdk:11.13.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
+    implementation 'androidx.media:media:1.8.0'
+    implementation 'com.eclipsesource.j2v8:j2v8:6.3.4@aar'
+    implementation 'org.maplibre.gl:android-sdk:13.5.0'
     // Removed legacy v9 annotations plugin; using SDK 11 runtime layers instead
 
     implementation 'com.squareup.picasso:picasso:2.71828'
-    implementation 'com.alexvasilkov:gesture-views:2.9.0'
+    implementation 'com.alexvasilkov:gesture-views:2.10.0'
 
     implementation 'com.github.permissions-dispatcher:permissionsdispatcher:4.9.2'
     kapt "com.github.permissions-dispatcher:permissionsdispatcher-processor:4.9.2"
 
-    implementation 'com.google.firebase:firebase-crashlytics:20.0.0'
-    implementation 'com.google.firebase:firebase-analytics:23.0.0'
+    implementation 'com.google.firebase:firebase-crashlytics:20.1.0'
+    implementation 'com.google.firebase:firebase-analytics:23.2.0'
 
-    implementation 'androidx.room:room-ktx:2.7.2'
-    implementation 'androidx.room:room-runtime:2.7.2'
-    ksp 'androidx.room:room-compiler:2.7.2'
+    implementation 'androidx.room:room-ktx:2.8.4'
+    implementation 'androidx.room:room-runtime:2.8.4'
+    ksp 'androidx.room:room-compiler:2.8.4'
 
     // Lifecycle (for Flow collection in UI)
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.6'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.6'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.11.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.11.0'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
 
     // Test dependencies
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-core:5.19.0'
+    testImplementation 'org.mockito:mockito-core:5.23.0'
     // Enable static method mocking (for CurrentDateProvider)
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     androidTestImplementation 'androidx.test:runner:1.7.0'
     androidTestImplementation 'androidx.test:rules:1.7.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
-    androidTestImplementation 'androidx.annotation:annotation:1.9.1'
+    androidTestImplementation 'androidx.annotation:annotation:1.10.0'
     androidTestImplementation 'androidx.test.ext:junit:1.3.0'
-    androidTestImplementation 'androidx.room:room-testing:2.7.2'
+    androidTestImplementation 'androidx.room:room-testing:2.8.4'
 
 }
 
@@ -688,13 +698,10 @@ tasks.register('generateAnnualBaselineManifest', Exec) {
 def annualReportDir = file("$rootProject.buildDir/reports/annual-update")
 def annualManifestFile = file("$annualReportDir/annual-manifest.json")
 def annualVerificationFile = file("$annualReportDir/verification-report.json")
-def dataRevisionOutput = new ByteArrayOutputStream()
-exec {
+def selectedDataRevision = providers.exec {
     workingDir "$rootDir/iBurn-Data"
     commandLine 'git', 'rev-parse', 'HEAD'
-    standardOutput = dataRevisionOutput
-}
-def selectedDataRevision = dataRevisionOutput.toString('UTF-8').trim()
+}.standardOutput.asText.get().trim()
 
 tasks.register('generateAnnualManifest', Exec) {
     group = 'annual update'
