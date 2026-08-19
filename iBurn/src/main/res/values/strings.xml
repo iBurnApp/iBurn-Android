@@ -102,6 +102,8 @@
     <string name="location_trail_history_title">Location Trail History</string>
     <string name="location_trail_history_menu">Trail History: %1$d minutes</string>
     <string name="location_trail_history_minutes">%1$d minutes</string>
+    <string name="show_camp_boundaries">Show Camp Boundaries</string>
+    <string name="show_camp_names">Show Camp Names</string>
     <!-- provided by build.gradle -->
 
 </resources>

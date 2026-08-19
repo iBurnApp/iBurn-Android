@@ -47,10 +47,8 @@ import com.google.android.gms.location.Priority
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.collect
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.exceptions.InvalidLatLngBoundsException
@@ -156,6 +154,8 @@ class MapboxMapFragment : Fragment() {
     private val markerStore = HashMap<Long, MapMarker>()
     private val annotationsSourceId = "app-annotations-source"
     private val annotationsLayerId = "app-annotations-layer"
+    private val campLabelsLayerId = "camp-labels-big"
+    private val campUidProperty = "uid"
     private val cameraUpdate = MutableSharedFlow<VisibleRegion>(replay = 0, extraBufferCapacity = 64)
     private var cameraUpdateJob: Job? = null
 
@@ -393,7 +393,7 @@ class MapboxMapFragment : Fragment() {
             }
             this.userPoiButton = userPoiButton
 
-            // Add Layers toggle button (camp boundaries / big camp names)
+            // Add Layers toggle button (camp boundaries / camp names)
             val layersButton =
                 inflater.inflate(R.layout.map_image_btn, container, false) as ImageView
             layersButton.visibility = if (state != State.SHOWCASE) View.VISIBLE else View.GONE
@@ -425,10 +425,10 @@ class MapboxMapFragment : Fragment() {
         popup.menuInflater.inflate(R.menu.menu_map_layers, popup.menu)
         // Sync state
         popup.menu.findItem(R.id.menu_show_camp_boundaries)?.isChecked = prefs.showCampBoundaries
-        popup.menu.findItem(R.id.menu_show_big_camp_names)?.isChecked = prefs.showBigCampNames
+        popup.menu.findItem(R.id.menu_show_camp_names)?.isChecked = prefs.showBigCampNames
         val campMapAvailable = !Embargo.isCampMapEmbargoActive(prefs)
         popup.menu.findItem(R.id.menu_show_camp_boundaries)?.isEnabled = campMapAvailable
-        popup.menu.findItem(R.id.menu_show_big_camp_names)?.isEnabled = campMapAvailable
+        popup.menu.findItem(R.id.menu_show_camp_names)?.isEnabled = campMapAvailable
         popup.menu.findItem(R.id.menu_show_location_trail)?.isChecked = prefs.showLocationTrail
         popup.menu.findItem(R.id.menu_location_trail_history)?.title =
             getString(
@@ -445,7 +445,7 @@ class MapboxMapFragment : Fragment() {
                     applyCampLayerPreferences(prefs)
                     true
                 }
-                R.id.menu_show_big_camp_names -> {
+                R.id.menu_show_camp_names -> {
                     val newVal = !item.isChecked
                     item.isChecked = newVal
                     prefs.setShowBigCampNames(newVal)
@@ -756,6 +756,16 @@ class MapboxMapFragment : Fragment() {
                             return@addOnMapClickListener true
                         }
                     }
+
+                    val campFeature = map.queryRenderedFeatures(screenPoint, campLabelsLayerId)
+                        .firstOrNull()
+                    val campUid = campFeature
+                        ?.takeIf { it.hasProperty(campUidProperty) }
+                        ?.getStringProperty(campUidProperty)
+                    if (!campUid.isNullOrBlank()) {
+                        openCampDetail(campUid)
+                        return@addOnMapClickListener true
+                    }
                     false
                 }
                 val initZoomAmount = 0.2
@@ -817,9 +827,27 @@ class MapboxMapFragment : Fragment() {
         style.getLayer("camp-boundaries")?.setProperties(
             PropertyFactory.visibility(if (showBoundaries) Property.VISIBLE else Property.NONE)
         )
-        style.getLayer("camp-labels-big")?.setProperties(
+        style.getLayer(campLabelsLayerId)?.setProperties(
             PropertyFactory.visibility(if (showBigNames) Property.VISIBLE else Property.NONE)
         )
+    }
+
+    private fun openCampDetail(playaId: String) {
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val camp = withContext(Dispatchers.IO) {
+                withTimeoutOrNull(2_000L) {
+                    DataProvider.getInstance(appContext)
+                        .observeCampByPlayaId(playaId)
+                        .first()
+                }
+            }
+            if (camp != null) {
+                activity?.let { IntentUtil.viewItemDetail(it, camp.item) }
+            } else {
+                Timber.w("No camp found for map label uid %s", playaId)
+            }
+        }
     }
 
     private fun setupLocationTrailLayer(style: Style) {
