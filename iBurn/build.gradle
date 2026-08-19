@@ -210,6 +210,10 @@ def mapCacheVersion = new BigInteger(mapContentDigest.substring(0, 15), 16).long
 ext.versionYear = versionYear
 ext.bundledDatabaseName = "playaDatabase${versionYear}-${databaseContentDigest.substring(0, 12)}.db"
 
+base {
+    archivesName = "iburn-${annualConfig.versionName}-${annualConfig.versionCode}"
+}
+
 // Generate typed annual metadata for application code. Event start and end are
 // sourced directly from the selected year's iBurn-Data dates_info.json.
 def generatedSrcDir = "${buildDir}/generated/source/annualmetadata"
@@ -291,6 +295,14 @@ android {
                 arguments = ["room.schemaLocation":
                                      "$projectDir/schemas".toString()]
             }
+        }
+    }
+
+    ndkVersion "30.0.15729638"
+
+    packaging {
+        resources {
+            excludes += "/libj2v8-macosx-aarch_64.dylib"
         }
     }
 
