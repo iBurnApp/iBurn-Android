@@ -1378,11 +1378,54 @@ class MapboxMapFragment : Fragment() {
                 }
             }
 
-            var didDelete = false
+            fun saveEdits() {
+                if (markerTitle?.text?.isNotBlank() == true) {
+                    marker.title = markerTitle.text.toString()
+                }
+
+                when (iconGroup.checkedRadioButtonId) {
+                    R.id.btn_star -> marker.iconImage = UserPoi.ICON_STAR
+                    R.id.btn_heart -> marker.iconImage = UserPoi.ICON_HEART
+                    R.id.btn_home -> marker.iconImage = UserPoi.ICON_HOME
+                    R.id.btn_bike -> marker.iconImage = UserPoi.ICON_BIKE
+                }
+
+                updateCustomPinWithMarker(marker)
+            }
+
+            dialogBody.findViewById<View>(R.id.sharePin).setOnClickListener {
+                try {
+                    // Build a MapPin from the current UserPoi for sharing.
+                    val title = markerTitle?.text?.toString()?.takeIf { it.isNotBlank() }
+                        ?: (userPoi.name ?: "Custom Pin")
+                    val pin = com.gaiagps.iburn.database.MapPin(
+                        uid = userPoi.playaId ?: java.util.UUID.randomUUID().toString(),
+                        title = title,
+                        description = userPoi.description,
+                        latitude = userPoi.latitude,
+                        longitude = userPoi.longitude,
+                        address = userPoi.playaAddress,
+                        // map color optionally by icon; default to red for now
+                        color = "red",
+                        icon = userPoi.icon,
+                        createdAt = System.currentTimeMillis(),
+                        notes = null
+                    )
+                    val intent = com.gaiagps.iburn.activity.ShareActivity.createIntent(requireContext(), pin)
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to share user pin")
+                }
+            }
 
             val builder = AlertDialog.Builder(requireActivity(), R.style.Theme_Iburn_Dialog)
                 .setView(dialogBody)
-                .setPositiveButton("Move") { dialog, which ->
+                // AlertDialog lays these out neutral, negative, positive from left to right.
+                .setNeutralButton(R.string.delete) { _, _ ->
+                    removeCustomPin(marker)
+                }
+                .setNegativeButton(R.string.move) { _, _ ->
+                    saveEdits()
                     if (state != State.PLACE_USER_POI) {
                         val prePlaceUserPoiState = state
 
@@ -1411,56 +1454,10 @@ class MapboxMapFragment : Fragment() {
                         }
                     }
                 }
-                .setNeutralButton("Share") { dialog, which ->
-                    try {
-                        // Build a MapPin from the current UserPoi for sharing
-                        val title = (markerTitle?.text?.toString()?.takeIf { it.isNotBlank() }
-                            ?: (userPoi.name ?: "Custom Pin"))
-                        val pin = com.gaiagps.iburn.database.MapPin(
-                            uid = userPoi.playaId ?: java.util.UUID.randomUUID().toString(),
-                            title = title,
-                            description = userPoi.description,
-                            latitude = userPoi.latitude,
-                            longitude = userPoi.longitude,
-                            address = userPoi.playaAddress,
-                            // map color optionally by icon; default to red for now
-                            color = "red",
-                            icon = userPoi.icon,
-                            createdAt = System.currentTimeMillis(),
-                            notes = null
-                        )
-                        val intent = com.gaiagps.iburn.activity.ShareActivity.createIntent(requireContext(), pin)
-                        startActivity(intent)
-                    } catch (e: Exception) {
-                        Timber.e(e, "Failed to share user pin")
-                    }
-                }
-                .setNegativeButton("Delete") { dialog, which ->
-                    // Delete Pin
-                    didDelete = true
-                    removeCustomPin(marker)
+                .setPositiveButton(R.string.save) { _, _ ->
+                    saveEdits()
                 }
             val alertDialog = builder.create()
-
-            // Auto-save on dismiss: update title and icon selections
-            alertDialog.setOnDismissListener {
-                if (didDelete) return@setOnDismissListener
-
-                // Save the title if changed
-                if (markerTitle?.text?.isNotBlank() == true) {
-                    marker.title = markerTitle?.text.toString()
-                }
-
-                // Update icon based on selection
-                when (iconGroup.checkedRadioButtonId) {
-                    R.id.btn_star -> marker.iconImage = UserPoi.ICON_STAR
-                    R.id.btn_heart -> marker.iconImage = UserPoi.ICON_HEART
-                    R.id.btn_home -> marker.iconImage = UserPoi.ICON_HOME
-                    R.id.btn_bike -> marker.iconImage = UserPoi.ICON_BIKE
-                }
-
-                updateCustomPinWithMarker(marker)
-            }
 
             alertDialog.show()
         }

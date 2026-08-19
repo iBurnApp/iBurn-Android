@@ -48,6 +48,10 @@
     <string name="done">Done</string>
     <string name="default_custom_pin_title">A Special Place</string>
     <string name="dialog_edit_marker_title">Edit Marker</string>
+    <string name="delete">Delete</string>
+    <string name="move">Move</string>
+    <string name="save">Save</string>
+    <string name="share">Share</string>
     <string name="enter_unlock_code">Enter Unlock Code</string>
     <string name="unlock_description">Location info is hidden until gates open.</string>
     <string name="dialog_data_rescue_title">Data Rescued!</string>

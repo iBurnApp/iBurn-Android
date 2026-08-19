@@ -26,6 +26,7 @@
     <color name="iburn_color_accent_yel">#ffd600</color>
     <color name="window_background">#FFFFFF</color>
     <color name="window_background_translucent">#2FFFFFFF</color>
+    <color name="radio_button_checked_halo">#66000000</color>
 
 
     <!-- ActionBar -->
