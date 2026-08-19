@@ -1,5 +1,6 @@
 package com.gaiagps.iburn.view
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
 import android.content.Context
@@ -19,6 +20,8 @@ import android.view.Window
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -41,6 +44,7 @@ class FullscreenImageDialog(
     private lateinit var closeButton: AppCompatImageButton
     private var sourcePresentationWasChanged = false
     private var isFinishing = false
+    private var backCallback: OnBackInvokedCallback? = null
     private val sourceOriginalVisibility = sourceImage.visibility
 
     private val positionListener =
@@ -126,6 +130,24 @@ class FullscreenImageDialog(
         root.addView(closeButton)
         setContentView(root)
 
+        configureBackNavigation()
+    }
+
+    private fun configureBackNavigation() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val callback = OnBackInvokedCallback { startExit() }
+            onBackInvokedDispatcher.registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                callback
+            )
+            backCallback = callback
+            return
+        }
+        configureLegacyBackNavigation()
+    }
+
+    @SuppressLint("GestureBackNavigation")
+    private fun configureLegacyBackNavigation() {
         setOnKeyListener { _, keyCode, event ->
             if (keyCode != KeyEvent.KEYCODE_BACK) return@setOnKeyListener false
             if (event.action == KeyEvent.ACTION_UP) startExit()
@@ -187,6 +209,12 @@ class FullscreenImageDialog(
     }
 
     private fun cleanup() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            backCallback?.let {
+                onBackInvokedDispatcher.unregisterOnBackInvokedCallback(it)
+            }
+            backCallback = null
+        }
         if (::gestureImage.isInitialized) {
             gestureImage.animate().cancel()
             gestureImage.positionAnimator.removePositionUpdateListener(positionListener)

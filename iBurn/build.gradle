@@ -467,23 +467,18 @@ tasks.register('validateAnnualData') {
     description = 'Validates the selected iBurn-Data revision and annual source contract.'
     inputs.dir annualDataRoot
     doLast {
-        def statusOutput = new ByteArrayOutputStream()
-        exec {
+        def statusOutput = project.providers.exec {
             workingDir "$rootDir/iBurn-Data"
             commandLine 'git', 'status', '--porcelain', '--untracked-files=all',
                     '--', "data/${versionYear}"
-            standardOutput = statusOutput
-        }
-        if (!statusOutput.toString('UTF-8').trim().isEmpty()) {
+        }.standardOutput.asText.get().trim()
+        if (!statusOutput.isEmpty()) {
             throw new GradleException("iBurn-Data data/${versionYear} must be clean before annual synchronization")
         }
-        def revisionOutput = new ByteArrayOutputStream()
-        exec {
+        def actualRevision = project.providers.exec {
             workingDir "$rootDir/iBurn-Data"
             commandLine 'git', 'rev-parse', 'HEAD'
-            standardOutput = revisionOutput
-        }
-        def actualRevision = revisionOutput.toString('UTF-8').trim()
+        }.standardOutput.asText.get().trim()
         def expectedRevision = providers.gradleProperty('dataRevision').orNull
         if (expectedRevision != null && !(expectedRevision ==~ /[0-9a-f]{40}/)) {
             throw new GradleException('dataRevision must be a full 40-character commit id')
@@ -640,24 +635,26 @@ tasks.register('bootstrapDatabase') {
         def bootstrapName = "bootstrap"
 
         // Ensure the app is fully installed
-        exec {
+        project.providers.exec {
             commandLine adb, 'shell', 'sleep', '1'
-        }
+        }.result.get()
 
         println("Broadcasting bootstrap intent to ${pkg} with name ${bootstrapName}")
-        exec {
+        project.providers.exec {
             commandLine adb, 'shell', 'am', 'broadcast', '-a',
                     'com.gaiagps.iburn.BOOTSTRAP_DB', '--es',
                     'com.gaiagps.iburn.EXTRA_DB_NAME', bootstrapName,
                     '-n', "${pkg}/com.gaiagps.iburn.DatabaseBootstrapReceiver"
-        }
+        }.result.get()
 
         def outFile = file("$buildDir/reports/annual-update/device/${databaseName}")
         outFile.parentFile.mkdirs()
-        exec {
-            commandLine adb, 'exec-out', 'run-as', pkg,
-                    'cat', "/data/data/${pkg}/databases/${bootstrapName}"
-            standardOutput = new FileOutputStream(outFile)
+        outFile.withOutputStream { output ->
+            project.providers.exec {
+                commandLine adb, 'exec-out', 'run-as', pkg,
+                        'cat', "/data/data/${pkg}/databases/${bootstrapName}"
+                standardOutput = output
+            }.result.get()
         }
         println("Database bootstrap complete. Output written to ${outFile.absolutePath} (${outFile.length()} bytes)")
     }
