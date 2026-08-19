@@ -64,6 +64,12 @@ class GeneratePlayaDatabaseTest(unittest.TestCase):
                     {"start_time": "2025-08-26T12:00:00-07:00", "end_time": "2025-08-26T13:00:00-07:00"}
                 ]
             }]))
+            (api / "mv.json").write_text(json.dumps([{
+                "uid": "mv-1", "name": "Mutant Vehicle", "artist": "Builder",
+                "hometown": "Home", "tags": ["Day", "Night"],
+                "location": {"gps_latitude": 5.0, "gps_longitude": 6.0},
+                "location_string": "Open Playa"
+            }]))
             output = root / "playa.db"
 
             counts = build_database(api, output)
@@ -72,10 +78,18 @@ class GeneratePlayaDatabaseTest(unittest.TestCase):
                 "arts": 1,
                 "camps": 1,
                 "events": 1,
+                "mutant_vehicles": 1,
                 "event_occurrences": 2,
             }, counts)
             with sqlite3.connect(output) as database:
                 self.assertEqual("ok", database.execute("PRAGMA integrity_check").fetchone()[0])
+                mutant_vehicle = database.execute(
+                    "SELECT p_id, artist, hometown, tags, lat, lon FROM mutant_vehicles"
+                ).fetchone()
+                self.assertEqual(
+                    ("mv-1", "Builder", "Home", "Day, Night", 5.0, 6.0),
+                    mutant_vehicle,
+                )
                 event = database.execute(
                     "SELECT p_id, lat, lon FROM events"
                 ).fetchone()
