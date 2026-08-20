@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="206dp"
+    android:height="82dp"
+    android:viewportWidth="5.4458"
+    android:viewportHeight="2.1644">
+
+    <!--
+      Centerline geometry imported from 2026_3.svg. The source SVG's single
+      `two` path is reused with a horizontal translation for the second 2.
+    -->
+    <group
+        android:translateX="-27.548666"
+        android:translateY="-107.9754">
+        <path
+            android:name="two_first"
+            android:fillColor="@android:color/transparent"
+            android:pathData="m 28.20396,108.54725 c 0.196394,-0.10261 0.446203,-0.19958 0.667921,-0.15241 0.215898,0.0203 0.22002,0.11768 -0.239834,0.5004 -0.357919,0.32091 -0.632994,0.43982 -0.848187,0.79873 -0.210625,0.39953 -0.0885,0.35707 0.858788,0.11308 0.232187,-0.0197 0.19289,0.005 0.244277,0.0261"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="0.185"
+            android:trimPathEnd="0" />
+        <path
+            android:name="zero"
+            android:fillColor="@android:color/transparent"
+            android:pathData="m 30.14341,108.18472 c -0.232335,0.0948 -0.338094,0.34098 -0.521002,0.49653 -0.25307,0.23228 -0.380518,0.57086 -0.432216,0.90397 -0.0074,0.12307 -0.0028,0.27676 0.109751,0.35372 0.119147,0.0629 0.264702,0.0233 0.376936,-0.0372 0.13086,-0.0746 0.243768,-0.17712 0.351071,-0.28162 0.268777,-0.29524 0.464253,-0.68433 0.445085,-1.09154 -0.01463,-0.16031 -0.209073,-0.23767 -0.347412,-0.18463 -0.09018,0.0425 -0.184755,0.084 -0.257963,0.1535"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="0.185"
+            android:trimPathEnd="0" />
+    </group>
+    <group
+        android:translateX="-24.948666"
+        android:translateY="-107.9754">
+        <path
+            android:name="two_second"
+            android:fillColor="@android:color/transparent"
+            android:pathData="m 28.20396,108.54725 c 0.196394,-0.10261 0.446203,-0.19958 0.667921,-0.15241 0.215898,0.0203 0.22002,0.11768 -0.239834,0.5004 -0.357919,0.32091 -0.632994,0.43982 -0.848187,0.79873 -0.210625,0.39953 -0.0885,0.35707 0.858788,0.11308 0.232187,-0.0197 0.19289,0.005 0.244277,0.0261"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="0.185"
+            android:trimPathEnd="0" />
+    </group>
+    <group
+        android:translateX="-26.498666"
+        android:translateY="-107.9754">
+        <path
+            android:name="six"
+            android:fillColor="@android:color/transparent"
+            android:pathData="m 31.878041,108.11766 c -0.189517,0.0148 -0.319798,0.1683 -0.458116,0.28018 -0.05751,0.0458 -0.122371,0.0808 -0.168548,0.13959 -0.182372,0.18671 -0.374163,0.37147 -0.504112,0.60018 -0.07288,0.17903 -0.1666,0.37178 -0.121231,0.56976 0.02453,0.12975 0.149416,0.21582 0.275811,0.22615 0.196175,0.0172 0.383747,-0.0866 0.513139,-0.22789 0.147026,-0.14032 0.301927,-0.29436 0.347056,-0.50025 0.03596,-0.088 0.0017,-0.19999 -0.08943,-0.23839 -0.115245,-0.057 -0.252306,-0.0394 -0.366165,0.0116 -0.221309,0.0815 -0.387232,0.25706 -0.559338,0.41032 -0.0032,0.005 -0.0063,0.009 -0.0094,0.014"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="0.185"
+            android:trimPathEnd="0" />
+    </group>
+</vector>

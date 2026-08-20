@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/year_2026_trace">
+    <target
+        android:name="two_first"
+        android:animation="@anim/year_trace_digit_1" />
+    <target
+        android:name="zero"
+        android:animation="@anim/year_trace_digit_2" />
+    <target
+        android:name="two_second"
+        android:animation="@anim/year_trace_digit_3" />
+    <target
+        android:name="six"
+        android:animation="@anim/year_trace_digit_4" />
+</animated-vector>

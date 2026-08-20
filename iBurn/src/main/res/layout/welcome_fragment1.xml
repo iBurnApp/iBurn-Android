@@ -28,6 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_marginTop="32dp"
+            android:layout_marginBottom="@dimen/margin_medium"
             android:fontFamily="sans-serif-condensed"
             android:gravity="center"
             android:text="@string/welcome_iburn"
@@ -37,19 +38,20 @@
             android:shadowDy="2"
             android:textSize="38sp" />
 
-        <TextView
+        <LinearLayout
             android:id="@+id/sub_heading"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:fontFamily="sans-serif-condensed"
-            android:gravity="center"
-            android:text="@string/current_year"
-            android:textColor="#ffffff"
-            android:shadowColor="#000000"
-            android:shadowDx="2"
-            android:shadowDy="2"
-            android:textSize="54sp" />
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/year_reveal"
+                android:layout_width="206dp"
+                android:layout_height="82dp"
+                android:contentDescription="@string/current_year"
+                android:src="@drawable/year_2026_reveal" />
+        </LinearLayout>
     </LinearLayout>
 
 </RelativeLayout>

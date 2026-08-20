@@ -3,6 +3,7 @@ package com.gaiagps.iburn.fragment
 import android.animation.ValueAnimator
 import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.content.Context
+import android.graphics.drawable.Animatable
 import android.graphics.SurfaceTexture
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -142,18 +143,10 @@ class WelcomeFragment : Fragment(), SurfaceTextureListener {
             fadeIn.setDuration((1 * 1000).toLong())
             fadeIn.start()
 
-            val subHeading = requireView().findViewById<View>(R.id.sub_heading)
-            subHeading.setAlpha(0f)
-            heading.setAlpha(0f)
-            val subFadeIn = ValueAnimator.ofFloat(0f, 1f)
-            subFadeIn.addUpdateListener(AnimatorUpdateListener { animation: ValueAnimator? ->
-                subHeading.setAlpha(
-                    (animation!!.getAnimatedValue() as kotlin.Float?)!!
-                )
-            })
-            subFadeIn.setStartDelay(2000)
-            subFadeIn.setDuration((1 * 1000).toLong())
-            subFadeIn.start()
+            val yearReveal = requireView().findViewById<ImageView>(R.id.year_reveal)
+            yearReveal.postDelayed({
+                (yearReveal.drawable as? Animatable)?.start()
+            }, 2000L)
             performedEntranceAnimation = true
         }
     }
