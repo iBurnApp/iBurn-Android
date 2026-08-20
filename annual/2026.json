@@ -4,5 +4,9 @@
   "versionName": "2026.1",
   "locationEmbargo": "eventStart",
   "campAddressEmbargo": "eventStartMinusOneWeek",
-  "mockNow": "2026-09-01T10:05:00-07:00"
+  "mockNow": "2026-08-19T10:05:00-07:00",
+  "mockLocation": {
+    "latitude": 40.7864,
+    "longitude": -119.2065
+  }
 }

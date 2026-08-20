@@ -164,6 +164,27 @@ class AppDatabaseMigrationTest {
         }
     }
 
+    @Test
+    fun migrate5To6AddsArtHometown() {
+        helper.createDatabase("app-database-migration-v5", 5).close()
+
+        helper.runMigrationsAndValidate(
+            "app-database-migration-v5",
+            6,
+            true,
+            MIGRATION_5_6
+        ).use { database ->
+            database.execSQL(
+                "INSERT INTO arts (name, p_id, hometown, lat, lon, lat_unof, lon_unof) " +
+                    "VALUES ('Test Art', 'art-1', 'Reno, NV', 0, 0, 0, 0)"
+            )
+            database.query("SELECT hometown FROM arts WHERE p_id = 'art-1'").use {
+                it.moveToFirst()
+                assertEquals("Reno, NV", it.getString(0))
+            }
+        }
+    }
+
     companion object {
         private const val TEST_DATABASE = "app-database-migration"
     }

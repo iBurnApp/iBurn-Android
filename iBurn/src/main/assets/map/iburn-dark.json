@@ -80,6 +80,17 @@
       "paint": {"fill-color": "#574e26"}
     },
     {
+      "id": "gate-road",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "gate_road",
+      "layout": {"visibility": "visible", "line-join": "round", "line-cap": "round"},
+      "paint": {
+        "line-color": "#574e26",
+        "line-width": {"base": 1.4, "stops": [[8, 0.5], [12, 1.5], [14, 3], [17, 8], [22, 20]]}
+      }
+    },
+    {
       "id": "camp-boundaries",
       "type": "line",
       "source": "camp-boundaries",
@@ -97,18 +108,30 @@
     },
     {
       "id": "camp-labels-big",
-      "type": "line",
+      "type": "symbol",
       "source": "camp-labels",
-      "minzoom": 17,
+      "minzoom": 15,
       "layout": {
         "visibility": "visible",
-        "line-join": "round",
-        "line-cap": "round"
+        "text-field": ["get", "name"],
+        "text-font": ["Open Sans Regular"],
+        "text-size": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          15, 9,
+          17, 12,
+          20, 14
+        ],
+        "text-max-width": 8,
+        "text-line-height": 1.1,
+        "text-padding": 2
       },
       "paint": {
-        "line-color": "#D4D4D4",
-        "line-width": 2,
-        "line-opacity": 0.9
+        "text-color": "#D4D4D4",
+        "text-halo-color": "#202426",
+        "text-halo-width": 2,
+        "text-halo-blur": 1
       }
     },
     {
@@ -154,7 +177,7 @@
       "type": "symbol",
       "source": "composite",
       "source-layer": "points",
-      "filter": ["!in", "NAME", "The Man", "Will Call Lot", "D Lot", "Media Mecca", "DMV", "DMZ", "HEaT", "Station 6"],
+      "filter": ["!in", "NAME", "The Man", "Will Call Lot", "D Lot", "Media Mecca", "DMV", "DMZ", "HEaT", "Station 6", "Department of Mutant Vehicles (DMV)", "Deep-Playa Music Zone (DMZ)", "ESD Station 6"],
       "layout": {
         "icon-image": "{NAME}",
         "icon-allow-overlap": true,

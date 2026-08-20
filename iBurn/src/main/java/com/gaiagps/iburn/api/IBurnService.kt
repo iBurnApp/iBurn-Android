@@ -123,6 +123,7 @@ class IBurnService(@NonNull context: Context) {
             val art = item as com.gaiagps.iburn.api.response.Art
             values.put(Art.ARTIST, art.artist)
             values.put(Art.ARTIST_LOCATION, art.artistLocation)
+            values.put(Art.HOMETOWN, art.hometown)
             if (art.images != null && art.images.size > 0) {
                 values.put(Art.IMAGE_URL, art.images[0].thumbnail_url)
             }

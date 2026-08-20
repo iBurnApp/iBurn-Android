@@ -605,6 +605,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         updateLocationRowVisibility()
 
         updateLocationTimes(item)
+        populateAdditionalMetadata(item)
 
         lifecycleScope.launch {
             val provider = DataProvider.getInstance(applicationContext)
@@ -671,6 +672,38 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         binding.metadataRow.visibility = View.VISIBLE
     }
 
+    private fun populateAdditionalMetadata(item: PlayaItem) {
+        val hometown = when (item) {
+            is Art -> item.hometown
+            is Camp -> item.hometown
+            is MutantVehicle -> item.hometown
+            else -> null
+        }
+        val supportsAdditionalMetadata =
+            item is Art || item is Camp || item is MutantVehicle
+
+        val hasHometown = setMetadataValue(hometown, binding.hometownRow, binding.hometownValue)
+        val hasContact = setMetadataValue(
+            if (supportsAdditionalMetadata) item.contact else null,
+            binding.contactRow,
+            binding.contactValue
+        )
+        val hasWebsite = setMetadataValue(
+            if (supportsAdditionalMetadata) item.url else null,
+            binding.websiteRow,
+            binding.websiteValue
+        )
+        binding.additionalMetadataContainer.visibility =
+            if (hasHometown || hasContact || hasWebsite) View.VISIBLE else View.GONE
+    }
+
+    private fun setMetadataValue(value: String?, row: View, textView: TextView): Boolean {
+        val hasValue = !value.isNullOrEmpty()
+        if (hasValue) textView.text = value
+        row.visibility = if (hasValue) View.VISIBLE else View.GONE
+        return hasValue
+    }
+
     private suspend fun populateArtViews(art: Art, provider: DataProvider) {
         setMetadata(R.string.detail_artist, art.artist, art.artistLocation)
 
@@ -713,8 +746,6 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
     }
 
     private suspend fun populateCampViews(camp: Camp, provider: DataProvider) {
-        setMetadata(R.string.detail_hometown, camp.hometown)
-
         // Display hosted events
         val adapter = PlayaItemAdapter(applicationContext, this)
 
@@ -751,7 +782,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
     }
 
     private fun populateMutantVehicleViews(vehicle: MutantVehicle) {
-        setMetadata(R.string.detail_creator, vehicle.artist, vehicle.hometown)
+        setMetadata(R.string.detail_creator, vehicle.artist)
         if (!vehicle.hasImage()) return
 
         artImageView = ImageView(this).apply {

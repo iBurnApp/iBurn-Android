@@ -9,6 +9,7 @@ public class Art extends PlayaItem {
 
     public String artist;
     public String artistLocation;
+    public String hometown;
     public String audioTourUrl;
 
     public List<ArtImage> images;

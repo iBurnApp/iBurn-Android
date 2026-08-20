@@ -138,7 +138,10 @@ def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -
         connection = sqlite3.connect(temporary)
         connection.execute("PRAGMA foreign_keys = ON")
         with connection:
-            connection.execute(f"CREATE TABLE arts (`artist` TEXT, `a_loc` TEXT, `i_url` TEXT, {BASE_COLUMNS})")
+            connection.execute(
+                f"CREATE TABLE arts (`artist` TEXT, `a_loc` TEXT, `i_url` TEXT, "
+                f"`hometown` TEXT, {BASE_COLUMNS})"
+            )
             connection.execute(f"CREATE TABLE camps (`hometown` TEXT, {BASE_COLUMNS})")
             connection.execute(
                 f"CREATE TABLE mutant_vehicles (`artist` TEXT, `hometown` TEXT, "
@@ -161,9 +164,12 @@ def build_database(api_root: Path, output: Path, geocoder: Path | None = None) -
                 images = item.get("images") or []
                 image_url = images[0].get("thumbnail_url") if images else None
                 connection.execute(
-                    "INSERT INTO arts (artist,a_loc,i_url,name,desc,url,contact,p_addr,p_addr_unof,p_id,lat,lon,lat_unof,lon_unof) "
-                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                    (item.get("artist"), item.get("artist_location"), image_url, *base_values(item)),
+                    "INSERT INTO arts (artist,a_loc,i_url,hometown,name,desc,url,contact,p_addr,p_addr_unof,p_id,lat,lon,lat_unof,lon_unof) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        item.get("artist"), item.get("artist_location"), image_url,
+                        item.get("hometown"), *base_values(item),
+                    ),
                 )
             for item in camps:
                 connection.execute(

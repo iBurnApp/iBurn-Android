@@ -49,11 +49,15 @@ class GeneratePlayaDatabaseTest(unittest.TestCase):
             api.mkdir()
             (api / "art.json").write_text(json.dumps([{
                 "uid": "art-1", "name": "Art", "artist": "Artist",
+                "contact_email": "artist@example.com",
+                "url": "https://example.com/art", "hometown": "Art Town",
                 "location": {"gps_latitude": 1.0, "gps_longitude": 2.0},
                 "location_string": "Open Playa"
             }]))
             (api / "camp.json").write_text(json.dumps([{
                 "uid": "camp-1", "name": "Camp", "hometown": "Home",
+                "contact_email": "camp@example.com",
+                "url": "https://example.com/camp",
                 "location": {"gps_latitude": 3.0, "gps_longitude": 4.0},
                 "location_string": "A & 1:00"
             }]))
@@ -67,6 +71,8 @@ class GeneratePlayaDatabaseTest(unittest.TestCase):
             (api / "mv.json").write_text(json.dumps([{
                 "uid": "mv-1", "name": "Mutant Vehicle", "artist": "Builder",
                 "hometown": "Home", "tags": ["Day", "Night"],
+                "contact_email": "vehicle@example.com",
+                "url": "https://example.com/vehicle",
                 "location": {"gps_latitude": 5.0, "gps_longitude": 6.0},
                 "location_string": "Open Playa"
             }]))
@@ -89,6 +95,31 @@ class GeneratePlayaDatabaseTest(unittest.TestCase):
                 self.assertEqual(
                     ("mv-1", "Builder", "Home", "Day, Night", 5.0, 6.0),
                     mutant_vehicle,
+                )
+                art = database.execute(
+                    "SELECT contact, url, hometown FROM arts"
+                ).fetchone()
+                self.assertEqual(
+                    ("artist@example.com", "https://example.com/art", "Art Town"),
+                    art,
+                )
+                camp = database.execute(
+                    "SELECT contact, url, hometown FROM camps"
+                ).fetchone()
+                self.assertEqual(
+                    ("camp@example.com", "https://example.com/camp", "Home"),
+                    camp,
+                )
+                vehicle_fields = database.execute(
+                    "SELECT contact, url, hometown FROM mutant_vehicles"
+                ).fetchone()
+                self.assertEqual(
+                    (
+                        "vehicle@example.com",
+                        "https://example.com/vehicle",
+                        "Home",
+                    ),
+                    vehicle_fields,
                 )
                 event = database.execute(
                     "SELECT p_id, lat, lon FROM events"

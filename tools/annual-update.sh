@@ -129,6 +129,8 @@ run_update() {
   second_manifest=$(manifest_sha256 "$report_dir/annual-manifest.json")
   test "$first_manifest" = "$second_manifest" || die 'annual manifest changed between identical update runs'
   ./gradlew :iBurn:verifyAnnualUpdate -PannualConfig="$config" -PdataRevision="$revision"
+  printf 'annual/%s.json\n' "$year" > "$repo_root/.annual-config"
+  printf 'annual-update: Android Studio builds now use annual/%s.json\n' "$year"
 }
 
 prepare_pr() {

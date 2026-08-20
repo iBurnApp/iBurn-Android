@@ -16,7 +16,7 @@ from typing import Iterable
 
 READ_ONLY_SCHEMA = {
     "arts": [
-        "_id", "artist", "a_loc", "i_url", "name", "desc", "url", "contact",
+        "_id", "artist", "a_loc", "i_url", "hometown", "name", "desc", "url", "contact",
         "p_addr", "p_addr_unof", "p_id", "lat", "lon", "lat_unof", "lon_unof",
     ],
     "camps": [

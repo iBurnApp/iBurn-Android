@@ -34,6 +34,10 @@ class Art : PlayaItem(), Parcelable {
     @ColumnInfo(name = IMAGE_URL)
     var imageUrl: String? = null
 
+    @JvmField
+    @ColumnInfo(name = HOMETOWN)
+    var hometown: String? = null
+
     //    @ColumnInfo(name = AUDIO_TOUR_URL)
     //    public String audioTourUrl;
     fun hasAudioTour(context: Context): Boolean {
@@ -52,5 +56,6 @@ class Art : PlayaItem(), Parcelable {
         const val ARTIST: String = "artist"
         const val ARTIST_LOCATION: String = "a_loc"
         const val IMAGE_URL: String = "i_url"
+        const val HOMETOWN: String = "hometown"
     }
 }

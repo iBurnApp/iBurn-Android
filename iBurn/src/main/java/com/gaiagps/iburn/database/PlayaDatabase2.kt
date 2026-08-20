@@ -36,6 +36,8 @@ private const val DATABASE_V3 = 3
 private const val DATABASE_V4 = 4
 // Add the browseable Mutant Vehicles feed.
 private const val DATABASE_V5 = 5
+// Add art hometown. Art URL and contact email are already stored by PlayaItem.
+private const val DATABASE_V6 = 6
 
 private const val EVENT_VIEW_QUERY_V3 =
     "SELECT o._id AS _id, d.name AS name, d.`desc` AS `desc`, d.url AS url, " +
@@ -74,7 +76,7 @@ private val READONLY_TABLES = listOf(
         MapPin::class
     ),
     views = [Event::class],
-    version = DATABASE_V5
+    version = DATABASE_V6
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -134,7 +136,10 @@ fun updateDatabaseTablesFromSource(sourceDbPath: String, destDbPath: String, tab
         val columnsByTable = tables.associateWith { table ->
             val destinationColumns = columns("PRAGMA table_info(`$table`)")
             val sourceColumns = columns("PRAGMA newdb.table_info(`$table`)")
-            check(destinationColumns == sourceColumns) {
+            // ALTER TABLE appends migrated columns, while a freshly generated bundled
+            // database may declare those same columns in the entity's natural order.
+            // The copy below names every column explicitly, so physical order is irrelevant.
+            check(destinationColumns.toSet() == sourceColumns.toSet()) {
                 "Bundled $table schema mismatch. destination=$destinationColumns source=$sourceColumns"
             }
             destinationColumns
@@ -189,7 +194,13 @@ fun buildDatabase(context: Context, name: String, copyBundled: Boolean): AppData
 
 private fun newRoomDatabase(context: Context, name: String): AppDatabase =
     androidx.room.Room.databaseBuilder(context, AppDatabase::class.java, name)
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+        .addMigrations(
+            MIGRATION_1_2,
+            MIGRATION_2_3,
+            MIGRATION_3_4,
+            MIGRATION_4_5,
+            MIGRATION_5_6
+        )
         .build()
 
 fun newDatabase(context: Context, name: String): AppDatabase {
@@ -801,6 +812,14 @@ val MIGRATION_4_5 = object : Migration(DATABASE_V4, DATABASE_V5) {
                 "AFTER INSERT ON `${MutantVehicle.TABLE_NAME}` BEGIN INSERT INTO " +
                 "`${MutantVehicleFts.TABLE_NAME}`(`docid`, $columns) VALUES " +
                 "(NEW.`rowid`, $newColumns); END"
+        )
+    }
+}
+
+val MIGRATION_5_6 = object : Migration(DATABASE_V5, DATABASE_V6) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            "ALTER TABLE `${Art.TABLE_NAME}` ADD COLUMN `${Art.HOMETOWN}` TEXT"
         )
     }
 }
