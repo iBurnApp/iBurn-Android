@@ -177,7 +177,7 @@
       "type": "symbol",
       "source": "composite",
       "source-layer": "points",
-      "filter": ["!in", "NAME", "The Man", "Will Call Lot", "D Lot", "Media Mecca", "DMV", "DMZ", "HEaT", "Station 6", "Department of Mutant Vehicles (DMV)", "Deep-Playa Music Zone (DMZ)", "ESD Station 6"],
+      "filter": ["!in", "NAME", "The Man", "Will Call Lot", "D Lot", "Media Mecca", "DMV", "DMZ", "HEaT", "Station 6", "Department of Mutant Vehicles (DMV)", "Deep-Playa Music Zone (DMZ)"],
       "layout": {
         "icon-image": "{NAME}",
         "icon-allow-overlap": true,
