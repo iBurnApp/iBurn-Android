@@ -412,4 +412,19 @@
                 android:orientation="vertical" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!--
+        Keep scrolling map/image content out of the status bar. The height is populated from
+        window insets and the color is blended with the collapsed toolbar color in code.
+    -->
+    <View
+        android:id="@+id/status_bar_background"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/window_background"
+        android:elevation="13dp"
+        android:fitsSystemWindows="true"
+        android:importantForAccessibility="no"
+        android:outlineProvider="none" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

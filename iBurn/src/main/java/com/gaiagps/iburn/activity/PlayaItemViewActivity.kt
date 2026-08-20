@@ -33,6 +33,11 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import com.gaiagps.iburn.AudioTourManager
 import com.gaiagps.iburn.Callback
@@ -136,6 +141,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
         super.onCreate(savedInstanceState)
         binding = ActivityPlayaItemViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setupStatusBarBackground()
         didPopulateViews = false
 
         loadPlayaItemFromIntent(intent)
@@ -217,9 +223,11 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
             val collapsingTriggerHeight = binding.collapsingToolbar.scrimVisibleHeightTrigger
             val collapsingOffsetTrigger = -(binding.collapsingToolbar.height - collapsingTriggerHeight)
             val scrimFadeDistance = binding.toolbar.height.coerceAtLeast(1)
-            binding.toolbarScrim.alpha = (
+            val toolbarScrimAlpha = (
                 (verticalOffset - collapsingOffsetTrigger).toFloat() / scrimFadeDistance
             ).coerceIn(0f, 1f)
+            binding.toolbarScrim.alpha = toolbarScrimAlpha
+            updateStatusBarBackground(1f - toolbarScrimAlpha)
 
             if (verticalOffset <= collapsingOffsetTrigger) {
                 // Collapsed
@@ -241,6 +249,32 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
             populateViews(itemWithUserData!!)
             didPopulateViews = true
         }
+    }
+
+    private fun setupStatusBarBackground() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.statusBarBackground) { _, insets ->
+            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            if (binding.statusBarBackground.layoutParams.height != statusBarHeight) {
+                binding.statusBarBackground.layoutParams =
+                    binding.statusBarBackground.layoutParams.apply { height = statusBarHeight }
+            }
+            insets
+        }
+        updateStatusBarBackground(0f)
+        ViewCompat.requestApplyInsets(binding.root)
+    }
+
+    private fun updateStatusBarBackground(collapseFraction: Float) {
+        val expandedColor = ContextCompat.getColor(this, R.color.window_background)
+        val collapsedColor = ContextCompat.getColor(this, R.color.iburn_color)
+        val statusBarColor = ColorUtils.blendARGB(
+            expandedColor,
+            collapsedColor,
+            collapseFraction.coerceIn(0f, 1f)
+        )
+        binding.statusBarBackground.setBackgroundColor(statusBarColor)
+        WindowInsetsControllerCompat(window, binding.root).isAppearanceLightStatusBars =
+            ColorUtils.calculateLuminance(statusBarColor) > 0.5
     }
 
     private fun finishWithError(throwable: Throwable) {
