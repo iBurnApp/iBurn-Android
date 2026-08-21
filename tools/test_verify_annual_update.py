@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from verify_annual_update import load_records, verify_mbtiles
+from verify_annual_update import load_records, verify_mbtiles, verify_media
 
 
 class VerifyAnnualUpdateTest(unittest.TestCase):
@@ -45,6 +45,21 @@ class VerifyAnnualUpdateTest(unittest.TestCase):
             result = verify_mbtiles(path)
             self.assertEqual(1, result["tileCount"])
             self.assertEqual("pbf", result["format"])
+
+    def test_media_reports_missing_bundled_images(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assets_root = Path(directory)
+            (assets_root / "art_images").mkdir()
+            (assets_root / "audio_tour").mkdir()
+            (assets_root / "art_images" / "art-1.jpg").write_bytes(b"\xff\xd8\xff")
+
+            result = verify_media(
+                assets_root,
+                [{"uid": "art-1"}, {"uid": "mv-1"}],
+                {"art-1.jpg", "mv-1.jpg"},
+            )
+
+            self.assertEqual(1, result["missingReferencedFiles"])
 
 
 if __name__ == "__main__":

@@ -184,9 +184,11 @@ def geocoderSource = file("$annualDataRoot/geocoder")
 def mapSource = file("$annualDataRoot/Map/Map.bundle")
 def mediaSource = file("$annualDataRoot/MediaFiles/MediaFiles.bundle")
 def apiSource = file("$annualDataRoot/APIData/APIData.bundle")
-def artMediaNames = new JsonSlurper().parse(file("$apiSource/art.json"))
-        .findAll { it.uid && it.images }
-        .collect { "${it.uid}.jpg" }
+def bundledImageNames = ['art.json', 'mv.json'].collectMany { sourceName ->
+    new JsonSlurper().parse(file("$apiSource/$sourceName"))
+            .findAll { it.uid && it.images }
+            .collect { "${it.uid}.jpg" }
+}
         .unique()
 def contentDigest = { File root, Collection<File> files ->
     def digest = MessageDigest.getInstance('SHA-256')
@@ -578,7 +580,7 @@ tasks.register('syncMap', Sync) {
 tasks.register('syncMedia', Sync) {
     group = 'annual update'
     dependsOn 'validateAnnualData'
-    from(mediaSource) { include artMediaNames }
+    from(mediaSource) { include bundledImageNames }
     into "$projectDir/src/main/assets/art_images"
 }
 

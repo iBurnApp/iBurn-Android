@@ -172,7 +172,7 @@ def verify_styles(map_root: Path) -> dict[str, object]:
 def verify_media(
     assets_root: Path,
     source_records: Iterable[dict],
-    expected_art_images: set[str],
+    expected_bundled_images: set[str],
 ) -> dict[str, object]:
     media = sorted(
         path
@@ -210,10 +210,10 @@ def verify_media(
         for string in nested_strings(record)
         if Path(string.split("?", 1)[0]).suffix.lower() in MEDIA_SUFFIXES
     }
-    referenced_names.update(expected_art_images)
+    referenced_names.update(expected_bundled_images)
     orphan_count = sum(path.name not in referenced_names for path in media)
     available_names = {path.name for path in media}
-    missing_count = len(expected_art_images - available_names)
+    missing_count = len(expected_bundled_images - available_names)
     duplicate_count = sum(count - 1 for count in hashes.values() if count > 1)
     return {
         "fileCount": len(media),
@@ -264,18 +264,23 @@ def main() -> None:
     art, art_duplicates = load_records(api_root / "art.json")
     camps, camp_duplicates = load_records(api_root / "camp.json")
     events, event_duplicates = load_records(api_root / "event.json")
-    source_duplicates = art_duplicates + camp_duplicates + event_duplicates
+    mutant_vehicles, mutant_vehicle_duplicates = load_records(api_root / "mv.json")
+    source_duplicates = (
+        art_duplicates + camp_duplicates + event_duplicates + mutant_vehicle_duplicates
+    )
 
     database = verify_database(args.database, art, camps, events)
     mbtiles = verify_mbtiles(assets_root / "map/map.mbtiles")
     styles = verify_styles(assets_root / "map")
-    expected_art_images = {
-        f"{item['uid']}.jpg" for item in art if item.get("images")
+    expected_bundled_images = {
+        f"{item['uid']}.jpg"
+        for item in [*art, *mutant_vehicles]
+        if item.get("images")
     }
     media = verify_media(
         assets_root,
-        [*art, *camps, *events],
-        expected_art_images,
+        [*art, *camps, *events, *mutant_vehicles],
+        expected_bundled_images,
     )
     verify_embargo_assets_not_tracked(repo_root)
 
@@ -295,7 +300,7 @@ def main() -> None:
     if media["unreferencedFiles"]:
         warnings.append("media bundle contains files not referenced by synchronized JSON")
     if media["missingReferencedFiles"]:
-        warnings.append("some referenced art images are absent and require network fallback")
+        warnings.append("some referenced bundled images are absent")
 
     report = {
         "schemaVersion": 1,
@@ -308,6 +313,7 @@ def main() -> None:
             "art": len(art),
             "camps": len(camps),
             "events": len(events),
+            "mutantVehicles": len(mutant_vehicles),
             "identicalDuplicatesCollapsed": source_duplicates,
         },
         "database": database,
@@ -325,6 +331,7 @@ def main() -> None:
     print(
         "Annual verification passed: "
         f"art={len(art)}, camps={len(camps)}, events={len(events)}, "
+        f"mutantVehicles={len(mutant_vehicles)}, "
         f"databaseRows={sum(database['rowCounts'].values())}, "
         f"media={media['fileCount']}"
     )

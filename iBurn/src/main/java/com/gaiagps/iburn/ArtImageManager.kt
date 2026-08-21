@@ -103,15 +103,14 @@ fun loadArtImage(
 }
 
 fun loadMutantVehicleImage(vehicle: MutantVehicle, view: ImageView, callback: Callback? = null) {
-    val imageUrl = vehicle.imageUrl
-    if (imageUrl.isNullOrEmpty()) {
+    if (!vehicle.hasImage()) {
         callback?.onError()
         return
     }
     Picasso.get()
-        .load(normalizeRemoteImageUrl(imageUrl))
+        .load(getBundledImageAssetPath(vehicle.playaId))
         .into(view, object : com.squareup.picasso.Callback {
-            override fun onSuccess() = callback?.onSuccess(ImageSource.NETWORK) ?: Unit
+            override fun onSuccess() = callback?.onSuccess(ImageSource.ASSET) ?: Unit
             override fun onError(e: Exception?) = callback?.onError() ?: Unit
         })
 }
@@ -175,8 +174,11 @@ private fun getCachedArtImageFile(context: Context, mediaPath: String): File {
  */
 private fun getArtImageAssetPath(art: Art): String {
     //Timber.d("Getting bundled art for ${art.name}")
-    return "file:///android_asset/art_images/${art.playaId}.jpg"
+    return getBundledImageAssetPath(art.playaId)
 }
+
+private fun getBundledImageAssetPath(playaId: String?): String =
+    "file:///android_asset/art_images/$playaId.jpg"
 
 private fun getArtImagesDirectory(context: Context): File {
     val dir = File(context.filesDir, "art_images")
