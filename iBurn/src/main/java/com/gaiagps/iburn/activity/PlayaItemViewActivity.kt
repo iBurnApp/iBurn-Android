@@ -374,7 +374,11 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
     }
 
     private inner class PlayaItemMediaControllerCallback : MediaControllerCompat.Callback() {
-        override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            if (state == null) {
+                Timber.d("onPlaybackStateChanged to null")
+                return
+            }
             // Selected corresponds to the playing state
             val playbackState = state.state
             Timber.d("onPlaybackStateChanged to %d", playbackState)
@@ -382,7 +386,7 @@ class PlayaItemViewActivity : AppCompatActivity(), AdapterListener {
             setAudioTourToggleStateWithPlaybackState(mediaController, itemWithUserData?.item)
         }
 
-        override fun onMetadataChanged(metadata: MediaMetadataCompat) {
+        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
             Timber.d("onMetadataChanged to %s", metadata)
         }
     }
