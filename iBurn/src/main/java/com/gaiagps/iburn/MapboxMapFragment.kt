@@ -55,6 +55,7 @@ import org.maplibre.android.exceptions.InvalidLatLngBoundsException
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.geometry.VisibleRegion
+import org.maplibre.android.location.LocationComponent
 import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.location.modes.RenderMode
@@ -1055,7 +1056,7 @@ class MapboxMapFragment : Fragment() {
         if (locationComponent?.isLocationComponentActivated == true &&
             !hasLocationPermission()
         ) {
-            locationComponent.isLocationComponentEnabled = false
+            disableLocationComponent(locationComponent)
             currentLocation = null
         }
 
@@ -1081,6 +1082,11 @@ class MapboxMapFragment : Fragment() {
             // onStart again completes the interrupted startup; its lifecycle methods are guarded.
             mapView.onStart()
         }
+    }
+
+    @SuppressLint("MissingPermission") // MapLibre annotates both enable and disable paths.
+    private fun disableLocationComponent(locationComponent: LocationComponent) {
+        locationComponent.isLocationComponentEnabled = false
     }
 
     override fun onResume() {
