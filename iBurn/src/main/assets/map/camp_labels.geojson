@@ -10308,20 +10308,6 @@
     {
       "type": "Feature",
       "properties": {
-        "uid": "a1XVI00000FMOXh2AP",
-        "name": "NOT BORING"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -119.189949,
-          40.77931
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
         "uid": "a1XVI00000FMOzB2AX",
         "name": "Religious As Fuck"
       },
@@ -13304,20 +13290,6 @@
     {
       "type": "Feature",
       "properties": {
-        "uid": "a1XVI00000FObll2AD",
-        "name": "The Balls Depot"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -119.197269,
-          40.778397
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
         "uid": "a1XVI00000FOboz2AD",
         "name": "Playa Art Park Support"
       },
@@ -15160,20 +15132,6 @@
         "coordinates": [
           -119.202831,
           40.773028
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "uid": "a1XVI00000FV7UP2A1",
-        "name": "Read Write Draw Camp"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -119.211645,
-          40.770992
         ]
       }
     },

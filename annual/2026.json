@@ -1,7 +1,7 @@
 {
   "year": 2026,
-  "versionCode": 75,
-  "versionName": "2026.2",
+  "versionCode": 76,
+  "versionName": "2026.3",
   "locationEmbargo": "eventStart",
   "campAddressEmbargo": "eventStartMinusOneWeek",
   "mockNow": "2026-08-19T10:05:00-07:00",
