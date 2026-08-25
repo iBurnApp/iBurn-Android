@@ -440,6 +440,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
     implementation 'androidx.media:media:1.8.0'
     implementation 'com.eclipsesource.j2v8:j2v8:6.3.4@aar'
+    implementation 'com.getkeepsafe.relinker:relinker:1.4.5'
     implementation 'org.maplibre.gl:android-sdk:13.5.0'
     // Removed legacy v9 annotations plugin; using SDK 11 runtime layers instead
 

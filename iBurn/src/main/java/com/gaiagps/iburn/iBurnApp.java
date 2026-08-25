@@ -5,6 +5,7 @@ import com.gaiagps.iburn.adapters.AdapterUtils;
 
 import timber.log.Timber;
 
+import org.maplibre.android.LibraryLoader;
 import org.maplibre.android.MapLibre;
 import org.maplibre.android.WellKnownTileServer;
 
@@ -23,6 +24,9 @@ public class iBurnApp extends android.app.Application {
 
         AdapterUtils.populateDayRanges(this);
 
+        LibraryLoader.setLibraryLoader(
+                new MapLibreNativeLibraryLoader(getApplicationContext())
+        );
         MapLibre.getInstance(
                 getApplicationContext(),
                 BuildConfig.MAPBOX_API_KEY,
