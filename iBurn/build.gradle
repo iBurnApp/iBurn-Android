@@ -457,6 +457,11 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.8.4'
     ksp 'androidx.room:room-compiler:2.8.4'
 
+    // Room's migration tooling requires serialization 1.8.1. Firebase Sessions
+    // otherwise pins the shared runtime to 1.7.3, which breaks migration tests.
+    implementation platform('org.jetbrains.kotlinx:kotlinx-serialization-bom:1.8.1')
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json'
+
     // Lifecycle (for Flow collection in UI)
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.11.0'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.11.0'
