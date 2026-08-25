@@ -1029,7 +1029,7 @@ class MapboxMapFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        mapView?.onStart()
+        startMapViewWithCurrentLocationPermission()
         mapView?.getMapAsync { map ->
             onMapReadyCallback?.onMapReady(map)
             if (state != State.SHOWCASE) {
@@ -1037,6 +1037,50 @@ class MapboxMapFragment : Fragment() {
             }
         }
         setupLocationSub()
+    }
+
+    /**
+     * MapLibre retains the enabled state of its location component across stops. If location
+     * permission is revoked while the app is stopped, MapView.onStart() otherwise asks the
+     * platform for a last-known location with the stale enabled state and crashes.
+     *
+     * Some Android builds can also report the runtime permission as granted while the location
+     * service rejects the request (for example, because of an OEM app-op). In that case, disable
+     * the optional location layer and finish starting the map without it.
+     */
+    private fun startMapViewWithCurrentLocationPermission() {
+        val mapView = mapView ?: return
+        val locationComponent = map?.locationComponent
+
+        if (locationComponent?.isLocationComponentActivated == true &&
+            !hasLocationPermission()
+        ) {
+            locationComponent.isLocationComponentEnabled = false
+            currentLocation = null
+        }
+
+        try {
+            mapView.onStart()
+        } catch (exception: SecurityException) {
+            // Only handle the known MapLibre location failure; unrelated security errors should
+            // retain their normal failure behavior.
+            if (locationComponent?.isLocationComponentActivated != true ||
+                !locationComponent.isLocationComponentEnabled
+            ) {
+                throw exception
+            }
+
+            Timber.w(
+                exception,
+                "Location permission rejected while starting map; disabling location layer"
+            )
+            locationComponent.isLocationComponentEnabled = false
+            currentLocation = null
+
+            // MapView marks itself started before starting MapLibreMap and its renderer. Calling
+            // onStart again completes the interrupted startup; its lifecycle methods are guarded.
+            mapView.onStart()
+        }
     }
 
     override fun onResume() {
